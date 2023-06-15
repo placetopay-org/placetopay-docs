@@ -1,3 +1,5 @@
+const colors = require('tailwindcss/colors')
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['./src/**/*.{js,mjs,jsx,mdx}'],
@@ -21,6 +23,9 @@ module.exports = {
     },
     typography: require('./typography'),
     extend: {
+      colors: {
+        primary: colors.teal,
+      },
       boxShadow: {
         glow: '0 0 4px rgb(0 0 0 / 0.1)',
       },
