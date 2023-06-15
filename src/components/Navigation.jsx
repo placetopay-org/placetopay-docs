@@ -20,7 +20,7 @@ function TopLevelNavItem({ href, children }) {
     <li className="md:hidden">
       <Link
         href={href}
-        className="block py-1 text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+        className="block py-1 text-sm text-gray-600 transition hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
       >
         {children}
       </Link>
@@ -37,13 +37,13 @@ function NavLink({ href, tag, active, isAnchorLink = false, children }) {
         'flex justify-between gap-2 py-1 pr-3 text-sm transition',
         isAnchorLink ? 'pl-7' : 'pl-4',
         active
-          ? 'text-zinc-900 dark:text-white'
-          : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white'
+          ? 'text-gray-900 dark:text-white'
+          : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
       )}
     >
       <span className="truncate">{children}</span>
       {tag && (
-        <Tag variant="small" color="zinc">
+        <Tag variant="small" color="gray">
           {tag}
         </Tag>
       )}
@@ -81,7 +81,7 @@ function VisibleSectionHighlight({ group, pathname }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: { delay: 0.2 } }}
       exit={{ opacity: 0 }}
-      className="absolute inset-x-0 top-0 bg-zinc-800/2.5 will-change-transform dark:bg-white/2.5"
+      className="absolute inset-x-0 top-0 bg-gray-800/2.5 will-change-transform dark:bg-white/2.5"
       style={{ borderRadius: 8, height, top }}
     />
   )
@@ -122,7 +122,7 @@ function NavigationGroup({ group, className }) {
     <li className={clsx('relative mt-6', className)}>
       <motion.h2
         layout="position"
-        className="text-xs font-semibold text-zinc-900 dark:text-white"
+        className="text-xs font-semibold text-gray-900 dark:text-white"
       >
         {group.title}
       </motion.h2>
@@ -134,7 +134,7 @@ function NavigationGroup({ group, className }) {
         </AnimatePresence>
         <motion.div
           layout
-          className="absolute inset-y-0 left-2 w-px bg-zinc-900/10 dark:bg-white/5"
+          className="absolute inset-y-0 left-2 w-px bg-gray-900/10 dark:bg-white/5"
         />
         <AnimatePresence initial={false}>
           {isActiveGroup && (
