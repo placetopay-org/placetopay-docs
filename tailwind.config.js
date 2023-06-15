@@ -25,6 +25,7 @@ module.exports = {
     extend: {
       colors: {
         primary: colors.teal,
+        gray: colors.slate,
       },
       boxShadow: {
         glow: '0 0 4px rgb(0 0 0 / 0.1)',
