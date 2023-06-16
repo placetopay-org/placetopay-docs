@@ -188,7 +188,7 @@ export const navigation = [
     title: 'Checkout',
     links: [
       { title: 'Introducción', href: '/' },
-      { title: 'Quickstart', href: '/quickstart' },
+      { title: 'Cómo Funciona', href: '/how-checkout-works' },
       { title: 'SDKs', href: '/sdks' },
       { title: 'Authentication', href: '/authentication' },
       { title: 'Pagination', href: '/pagination' },
