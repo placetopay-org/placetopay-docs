@@ -189,7 +189,7 @@ export const navigation = [
     links: [
       { title: 'Introducción', href: '/' },
       { title: 'Cómo Funciona', href: '/how-checkout-works' },
-      { title: 'SDKs', href: '/sdks' },
+      { title: 'Plugins', href: '/plugins' },
       { title: 'Authentication', href: '/authentication' },
       { title: 'Pagination', href: '/pagination' },
       { title: 'Errors', href: '/errors' },

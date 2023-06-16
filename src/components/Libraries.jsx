@@ -1,82 +1,80 @@
-import Image from 'next/image'
-
-import { Button } from '@/components/Button'
 import { Heading } from '@/components/Heading'
-import logoGo from '@/images/logos/go.svg'
-import logoNode from '@/images/logos/node.svg'
+import { ItemsList } from '@/components/ItemsList'
+import logoWooComerce from '@/images/logos/woocomerce.svg'
+import logoMagento from '@/images/logos/magento.svg'
+import logoPrestashop from '@/images/logos/prestashop.svg'
+import logoCSharp from '@/images/logos/csharp.svg'
+import logoJava from '@/images/logos/java.svg'
 import logoPhp from '@/images/logos/php.svg'
-import logoPython from '@/images/logos/python.svg'
-import logoRuby from '@/images/logos/ruby.svg'
+
+const plugins = [
+  {
+    href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/woocommerce-gateway-placetopay-2.17.2.zip',
+    name: 'WooCommerce',
+    description:
+      'Plugin para WordPress. Diseñado para tiendas y comercios en linea que usan WordPress.',
+    logo: logoWooComerce,
+    action: 'Ver más'
+  },
+  {
+    href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/magento2-placetopay-1.7.7.zip',
+    name: 'Magento',
+    description:
+      'Plataforma de código abierto para comercio electrónico escrita en PHP.',
+    logo: logoMagento,
+    action: 'Ver más'
+  },
+  {
+    href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/placetopaypayment_3.4.7.zip',
+    name: 'PrestaShop',
+    description:
+      'Plataforma especializada en la creación y gestión de tiendas online.',
+    logo: logoPrestashop,
+    action: 'Ver más'
+
+  },
+]
 
 const libraries = [
   {
-    href: '#',
+    href: 'https://github.com/dnetix/redirection',
     name: 'PHP',
     description:
-      'A popular general-purpose scripting language that is especially suited to web development.',
+      'Lenguaje de programación de código abierto, especialmente adecuado para el desarrollo web',
     logo: logoPhp,
+    action: 'Ver más'
   },
   {
-    href: '#',
-    name: 'Ruby',
+    href: 'https://github.com/placetopay/redirection-csharp-sdk',
+    name: 'C#',
     description:
-      'A dynamic, open source programming language with a focus on simplicity and productivity.',
-    logo: logoRuby,
+      'Lenguaje de programación moderno y orientado a objetos desarrollado por Microsoft',
+    logo: logoCSharp,
+    action: 'Ver más'
   },
   {
-    href: '#',
-    name: 'Node.js',
+    href: 'https://github.com/placetopay/java-placetopay',
+    name: 'Java',
     description:
-      'Node.js® is an open-source, cross-platform JavaScript runtime environment.',
-    logo: logoNode,
-  },
-  {
-    href: '#',
-    name: 'Python',
-    description:
-      'Python is a programming language that lets you work quickly and integrate systems more effectively.',
-    logo: logoPython,
-  },
-  {
-    href: '#',
-    name: 'Go',
-    description:
-      'An open-source programming language supported by Google with built-in concurrency.',
-    logo: logoGo,
+      'Lenguaje de programación de alto nivel y orientado a objetos',
+    logo: logoJava,
+    action: 'Ver más'
+
   },
 ]
 
 export function Libraries() {
   return (
     <div className="my-16 xl:max-w-none">
-      <Heading level={2} id="official-libraries">
-        Official libraries
+      <Heading level={2} id="plugins">
+        Plugins
       </Heading>
-      <div className="not-prose mt-4 grid grid-cols-1 gap-x-6 gap-y-10 border-t border-gray-900/5 pt-10 dark:border-white/5 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
-        {libraries.map((library) => (
-          <div key={library.name} className="flex flex-row-reverse gap-6">
-            <div className="flex-auto">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                {library.name}
-              </h3>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                {library.description}
-              </p>
-              <p className="mt-4">
-                <Button href={library.href} variant="text" arrow="right">
-                  Read more
-                </Button>
-              </p>
-            </div>
-            <Image
-              src={library.logo}
-              alt=""
-              className="h-12 w-12"
-              unoptimized
-            />
-          </div>
-        ))}
-      </div>
+      <ItemsList items={plugins}></ItemsList>
+
+      <Heading level={2} id="libraries">
+        Librerias
+      </Heading>
+      <ItemsList items={libraries}></ItemsList>
     </div>
   )
 }
