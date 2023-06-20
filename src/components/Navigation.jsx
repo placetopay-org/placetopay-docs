@@ -190,7 +190,7 @@ export const navigation = [
       { title: 'Introducción', href: '/' },
       { title: 'Cómo Funciona', href: '/how-checkout-works' },
       { title: 'Plugins', href: '/plugins' },
-      { title: 'Authentication', href: '/authentication' },
+      { title: 'Lightbox', href: '/lightbox' },
       { title: 'Pagination', href: '/pagination' },
       { title: 'Errors', href: '/errors' },
       { title: 'Webhooks', href: '/webhooks' },
