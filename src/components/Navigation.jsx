@@ -191,9 +191,8 @@ export const navigation = [
       { title: 'Cómo Funciona', href: '/how-checkout-works' },
       { title: 'Plugins', href: '/plugins' },
       { title: 'Lightbox', href: '/lightbox' },
-      { title: 'Api Version Policy', href: '/api-policy' },
-      { title: 'Errors', href: '/errors' },
-      { title: 'Webhooks', href: '/webhooks' },
+      { title: 'Historial de cambios', href: '/changelog' },
+      { title: 'Politica de cambios', href: '/api-policy' },
     ],
   },
   {
