@@ -196,6 +196,22 @@ export const navigation = [
     ],
   },
   {
+    title: 'Integración',
+    links: [
+      { title: 'Autenticación', href: '/authentication' },
+      { title: 'Crear sesión', href: '/create-session' },
+      { title: 'Tipos de pago', href: '/payment-types' },
+      { title: 'Seguridad', href: '/security' },
+      { title: 'Suscripción', href: '/subscription' },
+      { title: 'Tipos de documento', href: '/document-types' },
+      { title: 'Impuestos y Detalles', href: '/tax-details' },
+      { title: 'Métodos de pago', href: '/payment-methods' },
+      { title: 'Prueba tu integración', href: '/test-your-integration' },
+      { title: 'Preautorización', href: '/preauthorization' },
+      { title: 'Notificación', href: '/notification' },
+    ],
+  },
+  {
     title: 'Resources',
     links: [
       { title: 'Contacts', href: '/contacts' },
