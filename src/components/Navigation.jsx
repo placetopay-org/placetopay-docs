@@ -207,7 +207,7 @@ export const navigation = [
       { title: 'Impuestos y Detalles', href: '/tax-details' },
       { title: 'Métodos de pago', href: '/payment-methods' },
       { title: 'Prueba tu integración', href: '/test-your-integration' },
-      { title: 'Preautorización', href: '/preauthorization' },
+      { title: 'Preautorización', href: 'preuthorization' },
       { title: 'Notificación', href: '/notification' },
     ],
   },
