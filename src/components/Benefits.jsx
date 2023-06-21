@@ -3,11 +3,12 @@ import { motion, useMotionTemplate, useMotionValue } from 'framer-motion'
 
 import { BGPatternSmall } from '@/components/BGPatternSmall'
 import { Heading } from '@/components/Heading'
-import { ChatBubbleIcon } from '@/components/icons/ChatBubbleIcon'
-import { EnvelopeIcon } from '@/components/icons/EnvelopeIcon'
-import { UserIcon } from '@/components/icons/UserIcon'
-import { UsersIcon } from '@/components/icons/UsersIcon'
 import { BrushTwoToneIcon } from '@/components/iconsax/BrushTwoToneIcon'
+import { MonitorMobileTwoToneIcon } from '@/components/iconsax/MonitorMobileTwoToneIcon'
+import { MoneyReceiveTwoToneIcon } from '@/components/iconsax/MoneyReceiveTwoToneIcon'
+import { WalletTwoToneIcon } from '@/components/iconsax/WalletTwoToneIcon'
+import { SecuritySafeTwoToneIcon } from '@/components/iconsax/SecuritySafeTwoToneIcon'
+import { LampChargeTwoToneIcon } from '@/components/iconsax/LampChargeTwoToneIcon'
 
 const resources = [
   {
@@ -15,7 +16,7 @@ const resources = [
     name: 'Diseño personalizado',
     description:
       'Personaliza la apariencia de Checkout con logotipos y colores de tu empresa. Crea una experiencia de pago única y coherente con tu marca.',
-    icon: UsersIcon,
+    icon: BrushTwoToneIcon,
     pattern: {
       y: 16,
       squares: [
@@ -29,7 +30,7 @@ const resources = [
     name: 'Múltiples idiomas y monedas',
     description:
       'Acepta pagos en diferentes idiomas y monedas para atraer a clientes de todo el mundo. Amplía tu alcance y aumenta tus oportunidades de venta.',
-    icon: ChatBubbleIcon,
+    icon: MoneyReceiveTwoToneIcon,
     pattern: {
       y: -6,
       squares: [
@@ -43,7 +44,7 @@ const resources = [
     name: 'Optimizado para cualquier dispositivo',
     description:
       'Nuestro checkout está diseñado para adaptarse y funcionar sin problemas en dispositivos móviles y de escritorio. Brinda una experiencia de pago optimizada, independientemente del dispositivo que utilice tu cliente.',
-    icon: EnvelopeIcon,
+    icon: MonitorMobileTwoToneIcon,
     pattern: {
       y: 32,
       squares: [
@@ -57,7 +58,7 @@ const resources = [
     name: 'Wallet PlacetoPay',
     description:
       'Con Checkout, tus clientes pueden aprovechar nuestra billetera digital, permitiéndoles guardar y gestionar sus medios de pago de forma segura. Esto agiliza el proceso de pago y brinda una mayor comodidad al realizar transacciones futuras.',
-    icon: UsersIcon,
+    icon: WalletTwoToneIcon,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -68,7 +69,7 @@ const resources = [
     name: 'Seguridad de la información',
     description:
       'Nos tomamos en serio la protección de los datos sensibles. PlacetoPay Checkout cumple con los estándares de seguridad de la industria, incluidos los lineamientos PCI, para garantizar la seguridad en la captura y procesamiento de la información de tarjetas.',
-    icon: UsersIcon,
+    icon: SecuritySafeTwoToneIcon,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -79,7 +80,7 @@ const resources = [
     name: 'Pagos avanzados',
     description:
       'Nuestra plataforma ofrece una amplia gama de opciones de pago, incluyendo pagos con impuestos, pagos mixtos, suscripciones, cobros recurrentes y promociones. Ten el control total sobre tus transacciones y ofrece opciones flexibles a tus clientes.',
-    icon: UsersIcon,
+    icon: LampChargeTwoToneIcon,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -89,8 +90,8 @@ const resources = [
 
 function ResourceIcon({ icon: Icon }) {
   return (
-    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-900/5 ring-1 ring-gray-900/25 backdrop-blur-[2px] transition duration-300 group-hover:bg-white/50 group-hover:ring-gray-900/25 dark:bg-white/7.5 dark:ring-white/15 dark:group-hover:bg-primary-300/10 dark:group-hover:ring-primary-400">
-      <Icon className="h-6 w-6 fill-gray-700/10 stroke-gray-700 transition-colors duration-300 group-hover:stroke-gray-900 dark:fill-white/10 dark:stroke-gray-400 dark:group-hover:fill-primary-300/10 dark:group-hover:stroke-primary-400" />
+    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900/5 ring-1 ring-gray-900/25 backdrop-blur-[2px] transition duration-300 group-hover:bg-white/50 group-hover:ring-gray-900/25 dark:bg-white/7.5 dark:ring-white/15 dark:group-hover:bg-primary-300/10 dark:group-hover:ring-primary-400">
+      <Icon className="h-6 w-6 fill-none stroke-gray-700 transition-colors duration-300 group-hover:stroke-gray-900 dark:stroke-gray-400 dark:group-hover:stroke-primary-400" />
     </div>
   )
 }
