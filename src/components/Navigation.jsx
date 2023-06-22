@@ -199,6 +199,7 @@ export const navigation = [
     title: 'Integración',
     links: [
       { title: 'Autenticación', href: '/authentication' },
+      { title: 'Localización', href: '/localization' },
       { title: 'Crear sesión', href: '/create-session' },
       { title: 'Tipos de pago', href: '/payment-types' },
       { title: 'Seguridad', href: '/security' },
