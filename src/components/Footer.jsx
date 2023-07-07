@@ -150,7 +150,7 @@ function PageNavigation() {
       )}
       {nextPage && (
         <div className="ml-auto flex flex-col items-end gap-3">
-          <PageLink label="Next" page={nextPage} />
+          <PageLink label="Siguiente" page={nextPage} />
         </div>
       )}
     </div>
@@ -201,7 +201,7 @@ function SmallPrint() {
         &copy; Copyright {new Date().getFullYear()}. All rights reserved.
       </p>
       <div className="flex gap-4">
-        <SocialLink href="#" icon={TwitterIcon}>
+        {/* <SocialLink href="#" icon={TwitterIcon}>
           Follow us on Twitter
         </SocialLink>
         <SocialLink href="#" icon={GitHubIcon}>
@@ -209,7 +209,7 @@ function SmallPrint() {
         </SocialLink>
         <SocialLink href="#" icon={DiscordIcon}>
           Join our Discord server
-        </SocialLink>
+        </SocialLink> */}
       </div>
     </div>
   )
@@ -220,7 +220,7 @@ export function Footer() {
 
   return (
     <footer className="mx-auto max-w-2xl space-y-10 pb-16 lg:max-w-5xl">
-      <Feedback key={router.pathname} />
+      {/* <Feedback key={router.pathname} /> */}
       <PageNavigation />
       <SmallPrint />
     </footer>

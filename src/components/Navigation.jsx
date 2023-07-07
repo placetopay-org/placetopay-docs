@@ -199,6 +199,7 @@ export const navigation = [
     title: 'Integración',
     links: [
       { title: 'Autenticación', href: '/authentication' },
+      { title: 'Localización', href: '/localization' },
       { title: 'Crear sesión', href: '/create-session' },
       { title: 'Tipos de pago', href: '/payment-types' },
       { title: 'Seguridad', href: '/security' },
@@ -207,7 +208,7 @@ export const navigation = [
       { title: 'Impuestos y Detalles', href: '/tax-details' },
       { title: 'Métodos de pago', href: '/payment-methods' },
       { title: 'Prueba tu integración', href: '/test-your-integration' },
-      { title: 'Preautorización', href: '/preauthorization' },
+      { title: 'Preautorización', href: 'preuthorization' },
       { title: 'Notificación', href: '/notification' },
     ],
   },
@@ -227,9 +228,9 @@ export function Navigation(props) {
   return (
     <nav {...props}>
       <ul role="list">
-        <TopLevelNavItem href="/api">API</TopLevelNavItem>
-        <TopLevelNavItem href="#">Documentation</TopLevelNavItem>
-        <TopLevelNavItem href="#">Support</TopLevelNavItem>
+        {/* <TopLevelNavItem href="/">API</TopLevelNavItem> */}
+        {/* <TopLevelNavItem href="#">Documentation</TopLevelNavItem> */}
+        {/* <TopLevelNavItem href="#">Support</TopLevelNavItem> */}
         {navigation.map((group, groupIndex) => (
           <NavigationGroup
             key={group.title}
