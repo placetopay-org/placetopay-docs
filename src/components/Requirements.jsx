@@ -1,15 +1,19 @@
 import { ItemList } from '@/components/ItemsList'
+import { UserOctagonTwoToneIcon } from '@/components/iconsax/UserOctagonTwoToneIcon'
+import { ProgrammingScrollTwoToneIcon } from '@/components/iconsax/ProgrammingScrollTwoToneIcon'
 
 const guides = [
   {
     href: '/authentication',
     name: 'Cuenta de Placetopay',
+    icon: UserOctagonTwoToneIcon,
     description: 'Debes tener una cuenta activa en PlacetoPay para acceder a tu sitio y tus credenciales API.',
   },
   {
     href: '/pagination',
     name: 'Conocimientos básicos en programación',
-    description: 'Es recomendable tener conocimientos  sobre desarrollo web y programación, ya que la documentación se enfoca en la integración de la pasarela de pagos en tu sitio web o aplicación.',
+    icon: ProgrammingScrollTwoToneIcon,
+    description: 'Es recomendable tener conocimientos  sobre desarrollo web y programación ya que la documentación se enfoca en la integración de la pasarela de pagos en tu sitio web o aplicación.',
   },
 ]
 
