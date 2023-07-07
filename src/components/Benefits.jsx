@@ -155,10 +155,7 @@ function Resource({ resource }) {
 
 export function Benefits() {
   return (
-    <div className="my-16 xl:max-w-none">
-      <Heading level={2} id="benefits">
-        Beneficios de Checkout
-      </Heading>
+    <div className="xl:max-w-none">
       <div className="not-prose mt-4 grid grid-cols-1 gap-8  dark:border-white/5 sm:grid-cols-2 xl:grid-cols-3">
         {resources.map((resource) => (
           <Resource key={resource.href} resource={resource} />
