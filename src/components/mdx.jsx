@@ -6,6 +6,7 @@ import { Heading } from '@/components/Heading'
 export const a = Link
 export { Button } from '@/components/Button'
 export { CodeGroup, Code as code, Pre as pre } from '@/components/Code'
+export { ApiReader } from '@/components/ApiReader'
 
 export const h2 = function H2(props) {
   return <Heading level={2} {...props} />
@@ -59,9 +60,9 @@ export function Col({ children, sticky = false }) {
   )
 }
 
-export function Properties({ children }) {
+export function Properties({ children, classNames = '' }) {
   return (
-    <div className="my-6">
+    <div className={clsx("my-6", classNames)}>
       <ul
         role="list"
         className="m-0 max-w-[calc(theme(maxWidth.lg)-theme(spacing.8))] list-none divide-y divide-gray-900/5 p-0 dark:divide-white/5"
@@ -72,9 +73,15 @@ export function Properties({ children }) {
   )
 }
 
-export function Property({ name, type, children }) {
+export function Property({
+  name,
+  type,
+  children,
+  isRequired = true,
+  className = '',
+}) {
   return (
-    <li className="m-0 px-0 py-4 first:pt-0 last:pb-0">
+    <li className={clsx("m-0 px-0 py-4 first:pt-0 last:pb-0", className)}>
       <dl className="m-0 flex flex-wrap items-center gap-x-3 gap-y-2">
         <dt className="sr-only">Name</dt>
         <dd>
@@ -82,7 +89,16 @@ export function Property({ name, type, children }) {
         </dd>
         <dt className="sr-only">Type</dt>
         <dd className="font-mono text-xs text-gray-400 dark:text-gray-500">
-          {type}
+          {Array.isArray(type) ? type.join('|') : type}
+        </dd>
+        <dt className="sr-only">is {isRequired ? 'Required' : 'optional'}</dt>
+        <dd
+          className={clsx('text-2xs font-medium', {
+            'text-teal-500 dark:text-teal-400': isRequired,
+            'text-gray-400 dark:text-gray-500': !isRequired,
+          })}
+        >
+          {isRequired ? 'REQUIRED' : 'OPTIONAL'}
         </dd>
         <dt className="sr-only">Description</dt>
         <dd className="w-full flex-none [&>:first-child]:mt-0 [&>:last-child]:mb-0">
