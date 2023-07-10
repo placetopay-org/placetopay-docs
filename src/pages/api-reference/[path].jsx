@@ -2,6 +2,8 @@ import Head from 'next/head'
 import SwaggerParser from '@apidevtools/swagger-parser'
 import path from 'path'
 import SessionPage from '@/contents/session.mdx'
+import PaymentPage from '@/contents/payment.mdx'
+import TokenPage from '@/contents/token.mdx'
 
 export default function Page({
   pageProps,
@@ -26,9 +28,25 @@ const paths = [
     component: SessionPage,
     endpoints: ['/api/session', '/api/session/{requestId}'],
     props: {
-      title: 'Session',
+      title: 'Sesión',
     },
   },
+  {
+    path: 'payment',
+    component: PaymentPage,
+    endpoints: ['/api/reverse', '/api/transaction'],
+    props: {
+      title: 'Pagos',
+    },
+  },
+  {
+    path: 'token',
+    component: TokenPage,
+    endpoints: ['/api/collect', '/api/instrument/invalidate'],
+    props: {
+      title: 'Token',
+    },
+  }
 ]
 
 export async function getStaticPaths() {

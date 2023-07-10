@@ -216,10 +216,8 @@ export const navigation = [
     title: 'API',
     links: [
       { title: 'Sesión', href: '/api-reference/session' },
-      { title: 'Conversations', href: '/conversations' },
-      { title: 'Messages', href: '/messages' },
-      { title: 'Groups', href: '/groups' },
-      { title: 'Attachments', href: '/attachments' },
+      { title: 'Pagos', href: '/api-reference/payment' },
+      { title: 'Token', href: '/api-reference/token' },
     ],
   },
 ]
