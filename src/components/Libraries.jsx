@@ -6,6 +6,9 @@ import logoPrestashop from '@/images/logos/prestashop.svg'
 import logoCSharp from '@/images/logos/csharp.svg'
 import logoJava from '@/images/logos/java.svg'
 import logoPhp from '@/images/logos/php.svg'
+import logoShopify from '@/images/logos/shopify.svg'
+import logoVtex from '@/images/logos/vtex.svg'
+import logoJumpseller from '@/images/logos/jumpseller.svg'
 
 const plugins = [
   {
@@ -31,7 +34,27 @@ const plugins = [
       'Plataforma especializada en la creación y gestión de tiendas online.',
     logo: logoPrestashop,
     action: 'Ver más'
-
+  },
+  {
+    href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/placetopaypayment_3.4.7.zip',
+    name: 'Jumpseller',
+    description:
+      'Plataforma de comercio electrónico para crear tu tienda en línea.',
+    logo: logoJumpseller,
+  },
+  {
+    href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/placetopaypayment_3.4.7.zip',
+    name: 'Vtex',
+    description:
+      'Plataforma de comercio digital para grandes empresas.',
+    logo: logoVtex,
+  },
+  {
+    href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/placetopaypayment_3.4.7.zip',
+    name: 'Shopify',
+    description:
+      'En desarrollo...',
+    logo: logoShopify,
   },
 ]
 
@@ -59,7 +82,6 @@ const libraries = [
       'Lenguaje de programación de alto nivel y orientado a objetos',
     logo: logoJava,
     action: 'Ver más'
-
   },
 ]
 
