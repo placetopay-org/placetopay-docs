@@ -1,20 +1,388 @@
-# Crear sesión
+# Crear Sesión
 
-Este endpoint sirve para solicitar la creación de una sesión de pagos.
-Retorna el identificador y la URL de procesamiento.
-Puedes ver la descripción detallada de cada uno de los elementos de petición y respuesta en
-[CreateRequest](../reference/WebCheckout-ES.yaml/paths/~1api~1session/post)
+Sesión es el término que usamos para referirnos al proceso de pago con el que interactuan tus usuarios en Checkout. {{ className: "leading" }}
 
-## Manejo decimales y monedas
+Para crear una sesión debes consumir nuestro API según tus necesidades, conoce los detalles del API en [API - Crear Sesion](/api/session-create).
+
+---
+
+## Pago Básico
+
+Una sesión de pago básico es una sesión en la cual esperas recibir un pago único de un usuario.
+
+```json {{ 'title': 'CreateSessionRequest - Simple' }}
+{
+    ...
+    "payment": {
+        "reference": "PAY_ABC_1287",
+        "description": "Pago por Placetopay",
+        "amount": {
+            "currency": "USD",
+            "total": 1000
+        },
+    }
+    ...
+}
+```
+
+---
+
+## Pagos Parciales
+
+Una sesión de pago parcial es una sesión en la cual un usuario puede hacer varias transacciones de distintos montos o con diferentes medios de pago hasta completar el total solicitado en la misma sesión.
+
+Para usar esta funcionalidad se debe enviar la propiedad `payment.allowPartial` como `true`.
+
+```json {{ 'title': 'CreateSessionRequest - Partial Payment' }}
+{
+    ...
+    "payment": {
+        "reference": "PAY_ABC_1287",
+        "description": "Pago por Placetopay",
+        "amount": {
+            "currency": "USD",
+            "total": 1000
+        },
+        "allowPartial": true
+    }
+    ...
+}
+```
+
+Cuando se hace una sesión de pagos parciales, aparecen nuevo escenarios que se deben controlar:
+
+- La sesión finaliza con el estado `APPROVED_PARTIAL`, ocurre cuando en la sesión se hizo al menos una transacción `APPROVED`, pero no se completó el total del monto solicitado.
+- La sesión finaliza con el estado `PARTIAL_EXPIRED`, ocurre cuando en la sesión se hizo al menos una transacción `APPROVED`, pero no se completó el toal del monto solicitado y la sesión expiró.
+
+Las sesiones parciales tambien tienen condicinoes adicionales como:
+
+- No se aceptan impuestos, pues no se pueden dividir los impuestos en diferentes transacciones.
+
+---
+
+## Pago Recurrrente
+
+Una sesión de pago recurrente es una sesión en la cual el usuario completa el proceso con una tarjeta de crédito, y a partir de ese momento periodicamente se le realizan cobros automáticos al medio de pago. Por ejemplo, en el pago de una mensualidad o suscripción a un servicio.
+
+Para usar esta funcionalidad se debe enviar la propiedad `payment.recurring` con la estructura `Recurrence`.
+
+ 
+```json {{ 'title': 'CreateSessionRequest - Recurring Payment' }}
+{
+    ...
+    "payment": {
+        "reference": "PAY_ABC_1287",
+        "description": "Pago por Placetopay",
+        "amount": {
+            "currency": "USD",
+            "total": 1000
+        },
+        "recurring": {
+            "periodicity": "D",
+            "interval": "1",
+            "nextPayment": "2024-08-24",
+            "maxPeriods": 1,
+            "dueDate ": "2024-09-24",
+            "notificationUrl ": "https://merchanturl.com/notify"
+        },
+    }
+    ...
+}
+```
+
+- El atributo `nextPayment` no es obligatorio, en caso de que no se envié, se calcula dependiendo del atributo `interval` y `periodicity`, en caso de que se declare debe ser una fecha futura a la fecha actual.
+- En el caso de fallar un cobro recurrente, éste seguirá reintentado una vez cada día durante 3 días, si luego de esto no se obtiene una transacción aprobada, la recurrencia se le cancela al tarjetahabiente.
+- La recurrencia se deja de reintentar si la primera respuesta no tiene sentido reintentar (Tarjeta invalida, robada, etc), es decir se reintenta sólo si es por saldo.
+- Las recurrencias sólo pueden ser canceladas en la consola administrativa de PlacetoPay.
+
+### Entidad `Recurring` 
+
+Se usa para describir la frecuencia y las condiciones con las cuales se harán cobros recurrentes.
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="periodicity" type="string">
+        Periodicidad de la factura `D` Día | `M` Mes | `Y` Año
+      </Property>
+      <Property name="interval" type="int">
+        Intervalo asociado a la periodicidad.
+      </Property>
+      <Property name="maxPeriods" type="int">
+        Número máximo de periodo (-1 en caso de que no haya restricción.)
+      </Property>
+      <Property name="nextPayment" type="string" isRequired={false}>
+        Fecha del próximo pago.
+      </Property>
+      <Property name="dueDate" type="string" isRequired={false}>
+        Fecha para finalizar el pago.
+      </Property>
+      <Property name="notificationUrl" type="string" isRequired={false}>
+        URL en el que el servicio notificará cada vez que se haga un pago recurrente.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+
+    ```json {{ 'title': 'Recurring' }}
+    {    
+      "periodicity": "D",
+      "interval": "1",
+      "maxPeriods": 1,
+      "nextPayment": "2024-08-24",
+      "dueDate ": "2024-09-24",
+      "notificationUrl ": "https://merchanturl.com/notify"
+    }
+
+    ```
+  </Col>
+</Row>
+
+---
+
+## Pago con Dispersión
+
+Una sesión de dispersión es una sesión en la cual el monto total del pago será dividido en diferentes destinos.
+
+Para usar este tipo de sesión, debes enviar la propiedad `payment.dispersión` que contiene un arreglo de `DispersionRequests`
+
+```json {{ 'title': 'CreateSessionRequest - Dispersion Payment' }}
+{
+    ...
+    "payment": {
+        "reference": "PAY_ABC_1287",
+        "description": "Pago por Placetopay",
+        "amount": {
+            "currency": "USD",
+            "total": 1000
+        },
+        "dispersion": [
+            {
+                "amount": {
+                    "total": 700,
+                    "currency": "USD"
+                },
+                "agreement": 30,
+                "agreementType": "AIRLINE"
+            },
+            {
+                "amount": {
+                    "total": 300,
+                    "currency": "USD"
+                },
+                "agreementType": "MERCHANT"
+            }
+        ],
+    }
+    ...
+}
+```
+
+El pago puede ser dividoe en diferentes convenios registrados, además permite que cada parte de la transacción sea procesada por diferentes proveedores.
+
+Para hacer uso de esta funcionalidad es importante conocer el identificador del convenio (`agreement`) a donde va dirigido el pago. Si no se agrega ningún valor de aggreement, se tomará por defecto el medio de pago configurado en el sitio de la sesión, también es necesario indicar el tipo de convenio (`aggrementType`), en este caso MERCHANT o AIRLINE.
+
+- No se permiten pagos parciales cuando se crea una sesión de dispersión.
+- No se permiten pagos de preautorización cuando se crea una sesión de dispersión.
+- La suma total de las dispersiones deben ser igual al total del pago.
+- Todas las monedas de las dispersiones deben ser igual a la moneda del pago
+
+Para el envió de impuestos, es importante que se encuentre en la estructura de cada una de las dispersiones
+
+```json {{ 'title': 'CreateSessionRequest - Dispersion Payment Taxes' }}
+{
+    ...
+    "payment": {
+        ...
+        "dispersion": [
+            {
+                "amount": {
+                    "total": 700,
+                    "currency": "USD"
+                },
+                "agreement": 30,
+                "agreementType": "AIRLINE",
+                "taxes": [
+                    {
+                        "kind": "airportTax",
+                        "amount": 16.13
+                    }
+                ],
+                "details": [
+                    {
+                        "kind": "tip",
+                        "amount": 11
+                    }
+                ]
+            },
+            
+        ],
+    }
+    ...
+}
+```
+
+---
+
+## Preautorización de Pago
+
+Una sesión de preautorización es una sesión en la cual el usuario completa el proceso y el monto solicitado es reservado en su tarjeta de crédito, luego de la reserva el monto puede ser modificado, confirmado o cancelado.
+
+Este flujo de trabajo es usado con el fin de reservar (CHECKIN) un monto de dinero en el tarjetahabiente para posteriormente hacer el débito del mismo, en este caso (CHECKOUT). Este monto en el transcurso del tiempo puede cambiar (REAUTHORIZATION) según las necesidades del comercio o cambios en los servicios elegidos por el tarjetahabiente. Por último, el reverso (REVERSE) es un tipo de transacción, el cual permite reversar un pago aprobado o debitado con el código de referencia interna.
+
+
+```json {{ 'title': 'CreateSessionRequest - Preauthorization Payment' }}
+{
+    ...
+    "type": "checkin",
+    "payment": {
+        "reference": "PAY_ABC_1287",
+        "description": "Pago por Placetopay",
+        "amount": {
+            "currency": "USD",
+            "total": 1000
+        }
+    }
+    ...
+}
+```
+
+La transacción tipo CHECKIN es utilizada para obtener una autorización por parte del banco. Realiza un débito a una tarjeta de crédito/débito el cual se utiliza como depósito de garantía por la utilización de un bien o servicio.
+
+- No se permiten pagos de preautorización cuando se quiere hacer un pago mixto.
+- No se permiten pagos de preautorización con valores de dispersión.
+
+### Reautorization
+
+Se aplica sobre transacciones de preautorización y se usa para modificar el monto anteriormente reservado.
+
+La transacción tipo REAUTHORIZATION es utilizada para modificar el monto definido como depósito de garantía separado previamente, con una transacción tipo CHECKIN. Esto realiza una nueva autorización por parte del banco.
+
+```json {{ 'title': 'TransactionActionRequest - Reauthorization' }}
+{
+    ...
+    "internalReference": 1, //código de referencia interna
+    "amount": {
+        "currency": "USD",
+        "total": 100
+    },
+    "action": "reauthorization"
+    ...
+}
+```
+
+### Checkout
+
+Se aplica sobre transacciones de preautorización y se usa para confirmar y cerrar la transacción con el monto indicado.
+
+La transacción tipo CHECKOUT es utilizada para confirmar el monto del depósito de garantía separado previamente, con una transacción tipo CHECKIN/REAUTHORIZATION. Esto formaliza la transacción de compra con el banco.
+
+
+```json {{ 'title': 'TransactionActionRequest - Reauthorization' }}
+{
+    ...
+    "internalReference": 1, //código de referencia interna
+    "amount": {
+        "currency": "USD",
+        "total": 100
+    },
+    "action": "checkout"
+    ...
+}
+```
+
+---
+
+## Suscripción
+
+Una sesión de suscripción es una sesión en la cual el usuario ingresa un medio de pago para tokenizarlo y que luego podrá ser usado para cobrar sobre ese medio de pago.
+
+La suscripción permite almacenar de forma segura (tokenizando) el medio de pago de un usuario, para que luego pueda efectuar cobros relacionados a éste.
+
+Para hacer uso de esta funcionalidad es necesario enviar en el `RedirectRequest` la estructura `subscription`.
+
+```json {{ 'title': 'CreateSessionRequest - Subscription' }}
+{
+    ...
+    "subscription": {
+        "reference": "3110",
+        "description": "Una suscripción de prueba"
+    },
+    ...
+}
+```
+
+### Cobrar sobre un medio de pago tokenizado
+
+Cuando se realiza una suscripción se obitne un token, con este token puedes hacer cobros al cliente.
+
+La estructura de la respuesta contiene toda la información de la petición original y una estructura de suscripción (`subscription`) con un instrumento (`instrument`) representado en forma de token.
+
+```json {{ 'title': 'CollectRequest' }}
+{
+    ...
+    "payment": {
+        "reference": "1122334455",
+        "description": "Prueba",
+        "amount": {
+            "currency": "USD",
+            "total": 100
+        }
+    },
+    "instrument": {
+        "token": {
+            "token": "e07ca9986cf0ecac8a557fa11c07bf37ea35e9e3e3a4180c49"
+        }
+    },
+    ...
+}
+```
+
+La información del token debe ser almacenada en su sitio y relacionada al usuario y/o producto. Luego de tener el token, puede generar cobros al medio de pago tokenizado usando el servicio collect.*
+
+--- 
+
+## Pago con suscripción
+
+
+Un pago se puede convertir en pago y subscripción al mismo tiempo, para realizar este flujo es importante agregar en el objeto payment el atributo subscribe en true de la siguiente manera
+
+Para usar este tipo de sesión, debes enviar la propiedad `payment.subscribe` como `true`
+
+```json {{ 'title': 'CreateSessionRequest - Payment with Subscription' }}
+{
+    ...
+    "payment": {
+        "reference": "PAY_ABC_1287",
+        "description": "Pago por Placetopay",
+        "amount": {
+            "currency": "USD",
+            "total": 1000
+        },
+        "subscribe": true
+    }
+    ...
+}
+```
+
+En el proceso de pago el usuario podrá elegir si quiere suscribir el medio de pago.
+
+--- 
+
+## Conceptos Adicionales
+
+### Manejo decimales y monedas
 
 Al momento de realizar la creación de una sesión de pago, webcheckout utiliza la [ISO 4217](https://es.wikipedia.org/wiki/ISO_4217) para realizar validaciones y almacenamiento de los montos a pagar.
 
 Según el tipo de sesión se podrá presentar alguno de los siguientes casos:
 
-### Sesión de pago estandar:
+**Sesión de pago estandar**
+
 1. El valor del campo `payment.total.amount` será redondeado en base a la ISO 4217 y posteriormente almacenado.
 
-### Sesión de pago con dispersión:
+**Sesión de pago con dispersión**
+
 1. Se redondea cada uno de los valores de la dispersión en base a ISO 4217.
 2. Se realiza una sumatoria de los valores anteriormente redondeados.
 3. Se comparará la sumatoria de la dispersión con el `payment.amount.total` redondeado,  si la suma es correcta, la sesión se creará con éxito.
