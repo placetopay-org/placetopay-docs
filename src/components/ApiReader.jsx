@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import { Disclosure } from '@headlessui/react'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { Properties, Property } from './mdx'
+import ReactMarkdown from 'react-markdown'
 
 const ChildProperties = ({ properties = [] }) => {
   if (properties.length === 0) return null
@@ -27,9 +28,7 @@ const ParentProperty = ({ name, property, isChild = false }) => {
         >
           <>
             {property.description && (
-              <p className={clsx(withChilds && 'mb-0')}>
-                {property.description}
-              </p>
+              <ReactMarkdown>{property.description}</ReactMarkdown>
             )}
 
             {withChilds && (

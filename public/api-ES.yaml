@@ -18,7 +18,6 @@ info:
     > #### Acerca de HTTPS
     >
     > Para hacer uso de este servicio es necesario que tu sistema soporte comunicación con la versión 1.2 del protocolo TLS.
-  license: {}
   contact:
     url: 'https://www.evertecinc.com/pasarela-de-pagos-e-commerce/'
     name: PlacetoPay by Evertec
@@ -1508,7 +1507,7 @@ components:
       title: PaymentRequest
       type: object
       description: |
-        Estructura que contiene la información acerca del pago de la transacción requerida al servicio web.
+        Información del pago solicitado.
       examples:
         - reference: '12345'
           description: Prueba de pago
@@ -1857,7 +1856,7 @@ components:
       title: SubscriptionRequest
       type: object
       description: |
-        Estructura que contiene la información relacionada con una solicitud de suscripción para obtener un Token.
+        Información de la suscripción solicitada.
       properties:
         reference:
           type: string
@@ -2032,71 +2031,101 @@ components:
           noBuyerFill: false
           type: checkin
       properties:
-        locale:
-          type: string
-          description: |
-            Definido con los códigos ISO 631-1 (language) y ISO 3166-1 alpha-2 (2-letras del país). ej. en_US, es_CO
-          example: es_CO
         auth:
           $ref: '#/components/schemas/Autentication'
-        payer:
-          $ref: '#/components/schemas/Person'
-        buyer:
-          $ref: '#/components/schemas/Person'
         payment:
           $ref: '#/components/schemas/PaymentRequest'
         subscription:
           $ref: '#/components/schemas/SubscriptionRequest'
-        fields:
-          type: array
-          items:
-            $ref: '#/components/schemas/NameValuePair'
-        paymentMethod:
-          type: string
-          description: |
-            Forzar el medio de pago en la interfaz de redirección, los códigos aceptados son los de la lista. Si necesita más de uno separarlos con coma. ej. visa,amex,master
-          example: visa
         expiration:
           type: string
           format: date-time
           description: |
-            Fecha de expiración de una solicitud, el usuario debe terminar el proceso antes de esta fecha.
-        returnUrl:
-          type: string
-          description: |
-            URL de retorno es utilizada para redirigir al usuario una vez termina la operación de pago.
-          example: 'https://commerce.test/return'
-        cancelUrl:
-          type: string
-          description: |
-            URL para retornar cuando el cliente aborte la operación.
-          example: 'https://commerce.test/cancel'
+            Fecha de expiración de una sesión. El usuario debe terminar el proceso antes de esta fecha.   
+            El tiempo de expiración debe ser de al menos 5 minutos desde el momento de la creación.
+
+            EJ: `2023-07-17T13:12:44-05:00`
         ipAddress:
           type: string
           description: |
-            Dirección IP del usuario.
-          example: 127.0.0.1
+            Dirección IP del usuario que realizará el proceso.
+
+            Ej: `134.10.163.36`
+          example: 134.10.163.36
         userAgent:
           type: string
+          description: |
+            User Agent del navegador del usuario que realizará el proceso.
+
+            Ej: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ...`
           example: PlacetoPay Sandbox
+        returnUrl:
+          type: string
+          description: |
+            URL de retorno, a esta url se redirige al usuario una vez termina la sesión.
+            Ocurre cuando el usuario da click en _Volver al comercio_.
+
+            EJ: `https://merchant.com/return`
+          example: 'https://commerce.test/return'
+        locale:
+          $ref: '#/components/schemas/Locale'
+        fields:
+          type: array
+          description: Listado de campos adicionales para adjuntar en el proceso de pago.
+          items:
+            $ref: '#/components/schemas/NameValuePair'
+        payer:
+          $ref: '#/components/schemas/Person'
+          description: |
+            Datos del usuario pagador, hace referencia al dueño del medio de pago o usuario quien pagó o pagará el monto solicitado.     
+            **Crear una sesión**: Sólo se debe usar cuando quieres "forzar" los datos del usuario que completará el proceso.   
+            Si se envía este dato, el usuario no podrá cambiar su correo electrónico y sus datos personales estarán restringidos.
+        buyer:
+          $ref: '#/components/schemas/Person'
+          description: |
+            Datos del usuario comprador, hace referencia al usuario que está comprando un producto o un servicio.   
+            **Cuando se crea una sesión**: Se debe enviar si conoces al usuario que está haciendo la compra pues ayuda a completar la información de la sesión.   
+            Si se envía este dato, el usuario tendrá sus datos personales pre-diligenciados y podrá cambiarlos en el proceso de pago.
+        paymentMethod:
+          type: string
+          description: |
+            Se usa para forzar los métodos de pago disponibles en la sesión de pago   
+            Se pueden enviar varios códigos separados por coma   
+            Ver más en [Métodos de pago](/payment-methods)
+
+            EJ: `visa,master,pse`   
+          example: visa
+        cancelUrl:
+          type: string
+          description: |
+            URL de cancelación, a esta url se redirige al usuario cuando él decide no continuar con el proceso.   
+            Ocurre cuando el usario da click en _No deseo continuar_
+
+            EJ: `https://merchant.com/cancel`
+          example: 'https://commerce.test/cancel'
         skipResult:
           type: boolean
           description: |
-            Si se envía el parámetro como true se omite la pantalla del resultado en redirección y una vez aprobado el pago regresa al comercio automaticamente.
+            Si se envía `true`, cuando el usuario finalice el proceso no se mostrará la página de resultado de sesión, en su lugar será redireccionado al `returnUrl`
           default: false
         noBuyerFill:
           type: boolean
           description: |
-            Por defecto se llenan los datos que se piden en redirección con los del comprador (buyer) enviados, si se envía como true se omite este autocompletado automático.
+            Por defecto los datos enviados como `buyer` se pre diligencian en la interfaz de Checkout para facilitar el proceso de pago, si se envía este parámetro como `true` entonces no se hará este pre diligenciamiento.
           default: false
         type:
           type: string
-          description: crear una sesión de preautorización
+          description: | 
+            Parámetro usado para sesiones de tipo preauthorización
+
+            # Posibles valores: `checkin`
           enum:
             - checkin
           example: checkin
     Autentication:
-      description: Estructura de autenticación api para sitios.
+      description: |
+        La autenticación del sitio.  
+        Ver más en [Authenticación](/authentication)
       type: object
       title: Authentication
       examples:
@@ -2908,7 +2937,10 @@ components:
       format: regex
       pattern: '^\w{2}\_[A-Z]{2}'
       example: en_US
-      description: 'Combinación de Idioma y País para definir el "Idioma" en el que se tratará la petición. "en_US", "es_CO"'
+      description: |
+        Idioma en el que se tratará la petición y la sesión.   
+        Ejemplo: `en_US`, `es_CO`   
+        Ver más en [Localización](/localization)
     PaymentResponse:
       title: PaymentResponse
       x-stoplight:

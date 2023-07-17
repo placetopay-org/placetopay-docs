@@ -199,7 +199,7 @@ export const navigation = [
       { title: 'Autenticación', href: '/authentication' },
       { title: 'Crear Sesión', href: '/create-session' },
       { title: 'Localización', href: '/localization' },
-      { title: 'Seguridad', href: '/security' },
+      // { title: 'Seguridad', href: '/security' },
       { title: 'Tipos de documento', href: '/document-types' },
       { title: 'Impuestos y Detalles', href: '/tax-details' },
       { title: 'Métodos de pago', href: '/payment-methods' },
