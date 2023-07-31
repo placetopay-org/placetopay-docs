@@ -4,14 +4,15 @@ import { PlusIcon } from '@heroicons/react/24/outline'
 import { Properties, Property } from './mdx'
 import ReactMarkdown from 'react-markdown'
 
-const ChildProperties = ({ properties = [] }) => {
+const ChildProperties = ({ properties = [], requireds = [] }) => {
   if (properties.length === 0) return null
 
-  return <ApiProperties properties={properties} isChild />
+  return <ApiProperties properties={properties} requireds={requireds} isChild />
 }
 
-const ParentProperty = ({ name, property, isChild = false }) => {
+const ParentProperty = ({ name, property, isRequired = false, isChild = false }) => {
   const properties = property.properties ?? property.items?.properties ?? null
+  const requireds = property.required ?? property.items?.required ?? []
   const withChilds = !!properties
   const ParentComponent = withChilds
     ? Disclosure
@@ -23,7 +24,7 @@ const ParentProperty = ({ name, property, isChild = false }) => {
         <Property
           name={name.replace('?', '')}
           type={property.title ?? property.type}
-          isRequired={!name.includes('?')}
+          isRequired={isRequired}
           className={clsx(isChild && 'px-4')}
         >
           <>
@@ -57,6 +58,7 @@ const ParentProperty = ({ name, property, isChild = false }) => {
                   >
                     <ChildProperties
                       properties={Object.entries(properties)}
+                      requireds={requireds}
                     />
                   </div>
                 </Disclosure.Panel>
@@ -69,7 +71,7 @@ const ParentProperty = ({ name, property, isChild = false }) => {
   )
 }
 
-const ApiProperties = ({ properties = [], isChild = false }) => {
+const ApiProperties = ({ properties = [], requireds = [], isChild = false }) => {
   if (properties.length === 0) return null
 
   return (
@@ -82,6 +84,7 @@ const ApiProperties = ({ properties = [], isChild = false }) => {
             key={name}
             name={name}
             property={property}
+            isRequired={requireds.includes(name)}
             isChild={isChild}
           />
         ))}
@@ -103,5 +106,7 @@ export function ApiReader({ path, method = '', api = {} }) {
     data.requestBody?.content?.['application/json']?.schema?.properties || {}
   )
 
-  return <ApiProperties properties={properties} />
+  const requireds = data.requestBody?.content?.['application/json']?.schema?.required || []
+
+  return <ApiProperties properties={properties} requireds={requireds} />
 }
