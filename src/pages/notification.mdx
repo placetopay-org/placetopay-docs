@@ -1,43 +1,36 @@
 # Notificacion
 
-Una notificación permite informar al comercio sobre el estado de las sesiones.
+Cuando una sesión es finalizada, una notificación HTTP (Webhook) es enviada al comercio. {{ className: 'lead' }}
 
-Configura en tu servidor una URL de notificación usando los puertos 80 o 443 y en caso de que la sesión se cancele o apruebe, reciba una notificación mediante POST.
+Para recibir notificaciones debes configurar en tu aplicación una URL de notificación. Cada vez que una sesión finalice se hará una petición HTTP a ese endpoint con información útil sobre el estado de la sesión.
 
-```json json_schema
+```json {{ 'title': 'Notification' }}
 {
-  "type": "object",
-  "properties": {
-    "requestID": {
-      "type": "integer"
-    },
-    "reference": {
-      "type": "string"
-    },
-    "signature": {
-      "type": "string"
-    }
-  }
+  "status": {
+    "status": "APPROVED",
+    "reason": "00",
+    "message": "Transacción aprobada",
+    "date": "2019-01-01T12:00:00-05:00"
+  },
+  "requestId": 1234,
+  "reference": "TEST_123424",
+  "signature": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
 }
 ```
 
-De manera asincrónica, una notificación del estado de la petición será enviada a una URL definida por configuración del comercio en PlacetoPay.
+## Recepción de Notificación
 
-**Al recibir la notificación su sitio debe:**
+Para aprovechar esta notificació, en tu aplicación debes:
 
-**Identificar operación:**
-Con el identificador de la sesión requestId y la referencia reference identifican la sesión notificada. Para esta sesión debe validar que el estado de la operación notificada están pendientes en su sistema.
+**Identificar la sesión:** Con el `requestId` y `reference` buscar el pago en tu sistema, debe coincidir con una sesión que hayas creado previamente.
 
+**Validar firma del mensaje:** Puedes validar que se trate de un mensaje confiable de Placetopay generando y comparando el `signature`.
 
-**Validar autenticidad de la notificación:**
-Puedes validar que se trate de una respuesta de PlacetoPay haciendo un SHA-1 con los datos requestId + status + date + secretKey.
+El signature se genera con la siguiente formula: `SHA-1(requestId + status.date + status.date + secretKey)`
 
-**Validar que la transacción se encuentre sin resolver**
+Si el `signature` generado es igual al `signature` que llegó en el mensaje, entonces la notificación es auténtica.
 
-Si deseas obtener más información sobre la sesión debes usar el método **`getRequestInformation`**
+**Actualizar Información** Si todo lo que necesitas es el estado final de la sesión, entonces puedes actualizar el estado en tu sistema y eso sería todo.
 
-```json
-Bajo ninguna circunstancia reveles tu secretKey en ninguna parte accesible a los clientes o usuarios de su aplicación.
-```
+Además, si deseas obtener más información sobre la sesión y las transacciones relacionadas, debes consultar la sesión y obtener todos los detalles de esta.
 
-Luego de obtener el estado de la sesión, puede continuar con la regla de negocio de su sitio. (ejemplo: si la operación es aprobada, envía un correo electrónico al usuario).
