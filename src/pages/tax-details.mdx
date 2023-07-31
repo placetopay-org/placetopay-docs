@@ -1,39 +1,66 @@
 export const description =
   'TODO'
 
-# Taxes (Impuestos)
+# Montos y monedas
 
-Los impuestos son los tributos que las personas están obligadas a pagar a alguna organización.
+El monto a cobrar puede tener algunos parámetros y condiciones adicionales que debemos teneren cuenta.
+
+## Montos decimales
+
+Al momento de realizar la creación de una sesión de pago, Checkout utiliza la [ISO 4217](https://es.wikipedia.org/wiki/ISO_4217) para realizar validaciones y almacenamiento de los montos a pagar.
+
+Si el dato es un monto monetario y contiene decimales, el valor indicado será redondeado en base a la ISO 4217 y posteriormente almacenado.
+
+| Moneda | Input       | Monto almacenado | Descripción                        |
+|--------|-------------|------------------|------------------------------------|
+| USD    | `576.12345` | `576.12`         | Dos Decimales, redondeo a la baja  |
+| USD    | `576.9875`  | `576.99`         | Dos Decimales, redondeo a la alta  |
+| CLP    | `576.12345` | `576`            | Cero Decimales, redondeo a la baja |
+| CLP    | `576.9875`  | `577`            | Cero Decimales, redondeo a la alta |
+| COP    | `576.12345` | `576.12`         | Dos Decimales, redondeo a la baja  |
+| COP    | `576.9875`  | `576.99`         | Dos Decimales, redondeo a la alta  |
+
+### Sesión de pago con dispersión
+
+Para sesiones con dispersión, se debe tener cuidado con los decimales y la sumatoria de las transacciones a "dividir".
+
+La suma de todas las transacciones debe coincidir con el monto total de la sesión de pago, para esto se realiza lo siguiente:
+
+1. Se redondea cada uno de los valores de la dispersión en base a ISO 4217.
+2. Se realiza una sumatoria de los valores anteriormente redondeados.
+3. Se comparará la sumatoria de la dispersión con el `payment.amount.total` redondeado,  si la suma es correcta, la sesión se creará con éxito.
+
+## Impuestos del monto
+
+Los impuestos son los tributos que las personas o empresas deben pagar a alguna entidad u organización.
 
 Dependiendo de la actividad sobre la que recaiga, se le aplica un impuesto u otro. Presentan variación en la cuantía que el interesado debe abonar. Esto se basa en la normativa que presente cada sistema tributario.
 
-## Tipos de Impuestos
+Checkout se soporta la **definición** de algunos de estos impuestos para que puedan ser incluidos en la sesión de pago.
 
-El valor `kind` representa el tipo de impuesto que está incluido en el pago, los diferentes tipos de impuestos son:
-
-
-Kind | Traducción | País
----------|----------|---------
- **valueAddedTax** | IVA | Todos
- **exciseDuty** | Impuesto | Todos
- **ice** | ICE | Todos
- **airportTax** | Tasa aeroportuaria | Colombia y Ecuador
- **stateTax** | IVU Estatal | Puerto Rico
- **municipalTax** | IVU Municipal | Puerto Rico
- **reducedStateTax** | IVU Reducido | Puerto Rico
+El valor `amount.taxes.[].kind` representa el tipo de impuesto que está incluido en el pago, las opciones son:
 
 
-> ### Importante
->
-> *Cuando se escribe erroneamente el `kind` o no existe en el listado de tipos de impuestos, el `tax` no se incluye dentro de la sesión de Webcheckout*
+| Kind              | Traducción         | País               |
+|-------------------|--------------------|--------------------|
+| `valueAddedTax`   | IVA                | Global             |
+| `exciseDuty`      | Impuesto           | Global             |
+| `ice`             | ICE                | Global             |
+| `airportTax`      | Tasa aeroportuaria | Colombia y Ecuador |
+| `stateTax`        | IVU Estatal        | Puerto Rico        |
+| `municipalTax`    | IVU Municipal      | Puerto Rico        |
+| `reducedStateTax` | IVU Reducido       | Puerto Rico        |
 
-## Estructura de los impuestos
 
-los taxes estan dentro de la estructura `amount` siendo el atributo `taxes` un arreglo de objetos
+<Note>
+    Cuando se escribe erroneamente el `kind` o no existe en el listado de tipos de impuestos, el dato se ignora y el `tax` no se incluye dentro de la sesión de Checkout
+</Note>
 
-### Ejemplo
+### Estructura de los impuestos
 
-```json
+Los taxes se pueden incluir dentro de la estructura `amount` en el  atributo `taxes` que lleva un arreglo de objetos
+
+```json {{ 'title': 'Tax - Amount with Taxes' }}
 {
   "payment": {
     "amount": {
@@ -56,42 +83,42 @@ los taxes estan dentro de la estructura `amount` siendo el atributo `taxes` un a
 }
 ```
 
-## Details (Detalles)
+## Detalles del monto
 
-Los Details son los detalles que pueden tener una transacción
+Los detalles del monto son datos adicionales que comunmente puede tener un pago.
 
-## Tipos de detalles
+Se usa para dar más información acerca del cobro hecho y se pueden mostrar al usuario en el proceso de Checkout.
 
-El valor `kind` representa el tipo de detalle que está incluido en el pago, los diferentes tipos de detalles son:
+El valor `amount.details.[].kind` representa el tipo de detalle que está incluido en el pago, las opciones son:
 
 
-Kind | Traducción 
----------|----------
- **discount** | Descuento 
- **additional** | Adicional 
- **vatDevolutionBase** | Base devolución 
- **shipping** | Envío
- **handlingFee** | Cuota manejo 
- **insurance** | Seguro
- **giftWrap** | Regalo
- **subtotal** | Subtotal
- **fee** | Cobro
- **tip** | Propina
- **airline** | Aerolínea
- **interests** | Intereses
- 
+| Kind                | Traducción      |
+|---------------------|-----------------|
+| `discount`          | Descuento       |
+| `additional`        | Adicional       |
+| `vatDevolutionBase` | Base devolución |
+| `shipping`          | Envío           |
+| `handlingFee`       | Cuota manejo    |
+| `insurance`         | Seguro          |
+| `giftWrap`          | Regalo          |
+| `subtotal`          | Subtotal        |
+| `fee`               | Cobro           |
+| `tip`               | Propina         |
+| `airline`           | Aerolínea       |
+| `interests`         | Intereses       |
 
-> ### Nota Importante
->
-> *Cuando se escribe erroneamente el `kind` o no existe en el listado de tipos de detalles, el `detail` no se incluye dentro de la sesión de Webcheckout*
+<Note>
+    Cuando se escribe erroneamente el `kind` o no existe en el listado de tipos de detalles, el `detail` no se incluye dentro de la sesión de Checkout
+</Note>
 
-## Estructura de los detalles
 
-los `details` estan dentro de la estructura `amount` siendo el atributo `details` un arreglo de objetos
+### Estructura de los detalles
+
+Los detalles del monto estan dentro de la estructura `amount` en el atributo `details` que lleva un arreglo de objetos
 
 ### Ejemplo
 
-```json
+```json {{ 'title': 'Detail - Amount with Details' }}
 {
   "payment": {
     "amount": {
@@ -112,9 +139,11 @@ los `details` estan dentro de la estructura `amount` siendo el atributo `details
 }
 ```
 
+[//]: # (TODO: Verificar si hay otros casos donde no se soporte alguno de los datos)
 
-> ### Importante
->
-> *No se permite el uso de pagos mixtos cuando se utilizan taxes/details ya que estos no se pueden dividir y genera un error al crear la sesión*
+<Note>
+    No se permite el uso de impuestos o detalles en sesiones de pago parcial o dispersión, pues estos no se pueden dividir en diferentes transacciones
+</Note>
+
 
 

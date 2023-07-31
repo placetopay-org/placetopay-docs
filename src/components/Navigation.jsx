@@ -201,7 +201,7 @@ export const navigation = [
       { title: 'Localización', href: '/localization' },
       // { title: 'Seguridad', href: '/security' },
       { title: 'Tipos de documento', href: '/document-types' },
-      { title: 'Impuestos y Detalles', href: '/tax-details' },
+      { title: 'Montos y Monedas', href: '/tax-details' },
       { title: 'Métodos de pago', href: '/payment-methods' },
       { title: 'Prueba tu integración', href: '/test-your-integration' },
       { title: 'Notificación', href: '/notification' },
