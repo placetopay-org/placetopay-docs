@@ -798,6 +798,8 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - auth
               properties:
                 auth:
                   $ref: '#/components/schemas/Authentication'
@@ -845,15 +847,14 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - auth
+                - internalReference
               properties:
                 auth:
                   $ref: '#/components/schemas/Authentication'
                 internalReference:
-                  type:
-                    - string
-                    - number
-                  description: |
-                    Referencia interna de la transacción a reversar que se encuentra en el listado de transacciones del getRequestInformation (payment).
+                  $ref: '#/components/schemas/InternalReference'
             examples:
               Ejemplo:
                 value:
@@ -1444,16 +1445,17 @@ components:
         document:
           type: string
           minLength: 1
-          description: Documento de identidad
+          description: |
+            Documento de identidad
+            
+            Ej: `1017111222`
           example: '1122334455'
         documentType:
           type: string
           minLength: 1
           example: CC
           description: |
-            Identificador del tipo de documento
-            
-            Ver opciones en [Tipos de documento](/document-types)
+            Identificador del tipo de documento. Ver opciones en [Tipos de documento](/document-types)
             
             EJ: `CC` para "Cédula de Ciudadanía" en Colombia.
         name:
@@ -1468,8 +1470,7 @@ components:
           type: string
           minLength: 1
           description: |
-            Apellido de la persona   
-            No aplica cuando el tipo de documento corresponde al de una empresa
+            Apellido de la persona. No aplica cuando el tipo de documento corresponde al de una empresa
             
             EJ: `Peréz Pinzon`
           example: Doe
@@ -1487,14 +1488,14 @@ components:
           description: |
             Correo eléctronico del usuario o empresa
             
-            EJ: juan.perez@example.com
+            EJ: `juan.perez@example.com`
         mobile:
           type: string
           minLength: 1
           description: |
             Número de teléfono del usuario o empresa
             
-            EJ: +573214445566
+            EJ: `+573214445566`
           example: '+573214445566'
         address:
           type: object
@@ -1506,7 +1507,7 @@ components:
               minLength: 1
               description: |
                 País del domicilio
-
+                
                 EJ: `Colombia`
               example: Colombia
             state:
@@ -1514,7 +1515,7 @@ components:
               minLength: 1
               description: |
                 Departamento del domicilio
-
+                
                 EJ: `Antioquia`
               example: Antioquia
             city:
@@ -1554,6 +1555,75 @@ components:
       type: object
       description: |
         Información del pago solicitado.
+      required:
+        - reference
+        - description
+        - amount
+      properties:
+        reference:
+          type: string
+          description: |
+            Referencia única del pago. Máximo de 32 caracteres   
+            Ej: `PAYMENT_0001_ABC`
+          example: '12345'
+        description:
+          type: string
+          description: |
+            Descripción del proceso a realizar   
+            EJ: `Consumo mes de Mayo`
+          example: Consumo mes de Mayo
+        amount:
+          $ref: '#/components/schemas/Amount'
+        allowPartial:
+          type: boolean
+          description: |
+            Define si el monto a ser cobrado puede ser pagado en varias transacciones.
+            Cuando es `true` el usuario podrá completar el pago en varias transacciones.
+          default: false
+        shipping:
+          $ref: '#/components/schemas/Person'
+          description: |
+            Estructura para relacionar información de envío.
+        items:
+          type:
+            - array
+          items:
+            $ref: '#/components/schemas/Item'
+          description: |
+            Estructura para relacionar productos o articulos en el proceso.
+        fields:
+          type:
+            - array
+          description: |
+            Estructura para relacionar datos adicionales en el proceso.
+          items:
+            $ref: '#/components/schemas/NameValuePair'
+        recurring:
+          $ref: '#/components/schemas/Recurring'
+        subscribe:
+          type: boolean
+          description: |
+            Cuando se envía `true`, se genera una sesión de pago con suscripción.
+            
+            En el proceso de pago, el usuario puede elegir si quiere o no guardar su medio de pago para que sea usado en futuros cobros.
+          default: false
+        dispersion:
+          type:
+            - array
+          description: |
+            Cuando se define, se genera una sesión de pago con dispersión.
+            El pago generado puede ser dividido en diferentes destinos según las condiciones dadas.
+          items:
+            $ref: '#/components/schemas/DispersionDetail'
+        modifiers:
+          type:
+            - array
+          items:
+            $ref: '#/components/schemas/Modifiers'
+          description: |
+            Estructura para definir modificadores en el cobro.
+            
+            Aplica para leyes de impuestos en paises especificos.
       examples:
         - reference: '12345'
           description: Prueba de pago
@@ -1613,70 +1683,6 @@ components:
               code: 17934
               additional:
                 invoice: '123345'
-      properties:
-        reference:
-          type: string
-          description: |
-            Referencia única del pago   
-            Máximo de 32 caracteres
-            
-            Ej: `PAYMENT_0001_ABC`
-          example: '12345'
-        description:
-          type: string
-          description: |
-            Descripción del proceso a realizar
-            
-            EJ: `Pago de factura mensualidad`
-          example: Prueba de pago
-        amount:
-          $ref: '#/components/schemas/Amount'
-        allowPartial:
-          type: boolean
-          description: |
-            Define si el monto a ser cobrado puede ser pagado en varias transacciones.
-            
-            Cuando es `true` el usuario podrá completar el pago en varias transacciones.
-          default: false
-        shipping:
-          $ref: '#/components/schemas/Person'
-          description: |
-            Estructura para relacionar información de envío.
-        items:
-          type:
-            - array
-            - 'null'
-          items:
-            $ref: '#/components/schemas/Item'
-          description: |
-            Estructura para relacionar productos o articulos en el proceso.
-        fields:
-          type:
-            - array
-            - 'null'
-          items:
-            $ref: '#/components/schemas/NameValuePair'
-        recurring:
-          $ref: '#/components/schemas/Recurring'
-        subscribe:
-          type: boolean
-          description: |
-            Permite solicitar un proceso de cobro y suscripción en la misma sesión.
-          default: false
-        dispersion:
-          type:
-            - array
-            - 'null'
-          description: Agrega información de dispersión
-          items:
-            $ref: '#/components/schemas/DispersionDetail'
-        modifiers:
-          type:
-            - array
-            - 'null'
-          description: Agrega información de tipo de ley
-          items:
-            $ref: '#/components/schemas/Modifiers'
     Amount:
       title: Amount
       type: object
@@ -1688,22 +1694,19 @@ components:
           type: string
           example: COP
           description: |
-            Código afabético de la moneda a usar (ISO 4217 alpha code)
-            
+            Código afabético de la moneda a usar (ISO 4217 alpha code)   
             EJ: `USD`
         total:
           type: number
           example: 2000
-          description: | 
-            Valor total en la moneda base indicada
-            
+          description: |
+            Valor total en la moneda base indicada   
             EJ: `1000` equivalen a _Mil dolares_
         taxes:
           description: |
             Estructura para definir impuestos en el proceso de pago.
           type:
             - array
-            - 'null'
           items:
             $ref: '#/components/schemas/Taxes'
         details:
@@ -1711,13 +1714,41 @@ components:
             Estructura para definir detalles adicionales del monto en el proceso de pago.
           type:
             - array
-            - 'null'
           items:
             $ref: '#/components/schemas/Details'
     NameValuePair:
       description: |
-        Se utiliza para definir un tipo de par clave-valor
+        Estructura para relacionar datos adicionales en el proceso.
       type: object
+      properties:
+        keyword:
+          type: string
+          minLength: 1
+          description: |
+            Identificador o indice del dato a anexar.   
+            EJ: `cmsInvoiceId`
+          example: '1111'
+        value:
+          type:
+            - string
+            - object
+            - array
+            - number
+            - boolean
+          minLength: 1
+          description: |
+            Valor del dato a anexar.   
+            EJ: `ID_2233`
+          example: lastDigits
+        displayOn:
+          type: string
+          minLength: 1
+          description: |
+            El dato anexo puede ser mostrado en el proceso de Checkout, debes indicar en qué condiciones se muestra:
+            
+            `none` no se muestra. `payment` se muestra en el proceso de captura de datos. `receipt` se muestra en el resultado del proceso.
+            `both` se muestra en el proceso de captura de datos y en el resultado del proceso. `approved` se muestra cuando el proceso fue aprobado
+          example: none
       examples:
         - value: '468232'
           keyword: merchantCode
@@ -1735,34 +1766,59 @@ components:
         - value: 685.33
           keyword: installmentAmount
           displayOn: none
-      properties:
-        keyword:
-          type: string
-          minLength: 1
-          description: |
-            Clave para el par de valores del dato.
-          example: '1111'
-        value:
-          type:
-            - string
-            - object
-            - array
-            - number
-            - boolean
-            - integer
-          minLength: 1
-          description: |
-            Valor para el par de datos.
-          example: lastDigits
-        displayOn:
-          type: string
-          minLength: 1
-          description: |
-            Bajo qué circunstancias el campo debe ser mostrado en la interfaz de redirección. [none, payment, receipt, both, approved]
-          example: none
     Recurring:
       type: object
-      description: Estructura que contiene la información requerida para una solicitud de pago recurrente.
+      description: |
+        Estructura para indicar la frecuencia de un cobro recurrente.
+      properties:
+        periodicity:
+          type: string
+          description: |
+            Periodicidad del cobro   
+            `D` Día, `M` Mes, `Y` Año
+          enum:
+            - D
+            - M
+            - Y
+          example: D
+        interval:
+          type:
+            - number
+          minLength: 1
+          description: |
+            Intervalo asociado a la periodicidad   
+            EJ: `15` para días.
+          example: '1'
+          maxLength: 127
+        nextPayment:
+          type: string
+          description: |
+            Fecha del próximo pago   
+            EJ: `2019-08-24`
+          format: date
+          example: '2019-08-24'
+        maxPeriods:
+          type:
+            - number
+          description: |
+            Número máximo de periodos. Usar `-1` en caso de que no haya límite      
+            EJ: `12` para máximo 12 cobros
+          example: 1
+          minLength: -1
+          maxLength: 32767
+        dueDate:
+          type: string
+          format: date
+          description: |
+            Fecha de vencimiento de la recurrencia   
+            EJ: `2019-09-24`
+          example: '2019-09-24'
+        notificationUrl:
+          type: string
+          description: |
+            URL en el que el servicio notificará cada vez que se haga un cobro   
+            EJ: `https://merchant.com/notification`
+          example: 'https://checkout.placetopay.com'
       examples:
         - periodicity: D
           interval: '1'
@@ -1770,49 +1826,6 @@ components:
           maxPeriods: 1
           'dueDate ': '2019-09-24'
           'notificationUrl ': 'https://checkout.placetopay.com'
-      properties:
-        periodicity:
-          type: string
-          description: 'Periodicidad de la factura [D, M, Y]'
-          enum:
-            - D
-            - M
-            - 'Y'
-          example: D
-        interval:
-          type:
-            - string
-            - integer
-          minLength: 1
-          description: |
-            Intervalo asociado a la periodicidad.
-          example: '1'
-          maxLength: 127
-        nextPayment:
-          type: string
-          description: Fecha del próximo pago.
-          format: date
-          example: '2019-08-24'
-        maxPeriods:
-          type:
-            - string
-            - integer
-          description: |
-            Número máximo de periodo (-1 en caso de que no haya restricción.)
-          example: 1
-          minLength: -1
-          maxLength: 32767
-        'dueDate ':
-          type: string
-          format: date
-          description: |
-            Fecha para finalizar el pago.
-          example: '2019-09-24'
-        'notificationUrl ':
-          type: string
-          description: |
-            URL en el que el servicio notificará cada vez que se haga un pago recurrente
-          example: 'https://checkout.placetopay.com'
     Item:
       description: Posee una colección de estructuras de elementos.
       type: object
@@ -1820,13 +1833,15 @@ components:
         sku:
           type: string
           description: |
-            Identificador SKU del artículo. EJ: `SKU-12345`
+            Identificador SKU del artículo.   
+            EJ: `SKU-12345`
           example: 'SKU-12345'
         name:
           type: string
           minLength: 1
           description: |
-            Nombre del artículo. EJ: `Manta de lana`
+            Nombre del artículo.   
+            EJ: `Manta de lana`
           example: product_1
         category:
           type: string
@@ -1840,17 +1855,20 @@ components:
         qty:
           type: number
           description: |
-            Cantidad de articulos de este tipo. EJ: `23`
+            Cantidad de articulos de este tipo.   
+            EJ: `23`
           example: '1'
         price:
           type: number
           description: |
-            Costo total del artículo. EJ: `1400`
+            Costo total del artículo.   
+            EJ: `1400`
           example: 1400
         tax:
           type: number
           description: |
-            Monto en impuestos del artículo. EJ: `100`
+            Monto en impuestos del artículo.   
+            EJ: `100`
     Taxes:
       title: Taxes
       type: object
@@ -1880,12 +1898,14 @@ components:
           type:
             - number
           description: |
-            Monto total del impuesto
+            Monto total del impuesto   
+            EJ: `200`
         base:
           type:
             - number
           description: |
-            Monto base sobre el cual se calcula el impuesto
+            Monto base sobre el cual se calcula el impuesto   
+            EJ: `1000`
     Details:
       title: Details
       type: object
@@ -1899,8 +1919,7 @@ components:
         kind:
           type: string
           description: |
-            Identificador del tipo de detalle
-            
+            Identificador del tipo de detalle. 
             Uno de:  `discount` `additional` `vatDevolutionBase` `shipping` `handlingFee` `insurance` `giftWrap` `subtotal` `fee` `tip` `airline` `interests`
           example: discount
           enum:
@@ -1921,27 +1940,116 @@ components:
             - number
           description: |
             Monto total del detalle
+            
+            EJ: `200`
     SubscriptionRequest:
       title: SubscriptionRequest
       type: object
       description: |
-        Información de la suscripción solicitada.
+        Cuando se envía, se genera una sesión de suscripción.
+        
+        El usuario registra un medio de pago para que luego se realicen cobros sobre ese medio de pago.
       properties:
         reference:
-          type: string
-          example: '12345'
+          $ref: '#/components/schemas/Reference'
         description:
-          type: string
-          example: Ejemplo de descripción
+          $ref: '#/components/schemas/Description'
         fields:
-          $ref: '#/components/schemas/NameValuePair'
+          type:
+            - array
+          description: |
+            Estructura para relacionar datos adicionales en el proceso.
+          items:
+            $ref: '#/components/schemas/NameValuePair'
     RedirectRequest:
       title: RedirectRequest
       type: object
       description: |
         Estructura que contiene toda la información acerca de la transacción para ser procesada.
+      required:
+        - auth
+        - payment
+        - expiration
+        - ipAddress
+        - userAgent
+        - returnUrl
+      properties:
+        auth:
+          $ref: '#/components/schemas/Authentication'
+        payment:
+          $ref: '#/components/schemas/PaymentRequest'
+        expiration:
+          $ref: '#/components/schemas/Expiration'
+        ipAddress:
+          $ref: '#/components/schemas/IpAddress'
+        userAgent:
+          $ref: '#/components/schemas/UserAgent'
+        returnUrl:
+          $ref: '#/components/schemas/ReturnUrl'
+        locale:
+          $ref: '#/components/schemas/Locale'
+        buyer:
+          $ref: '#/components/schemas/Person'
+          description: |
+            Datos del usuario **comprador**, hace referencia al usuario que está comprando un producto o un servicio.
+            
+            **Cuando se crea una sesión**: Se puede enviar si conoces al usuario que está haciendo la compra, pues ayuda a completar la información de la sesión.   
+            Si se envía este dato, el usuario tendrá sus datos personales pre-diligenciados y podrá cambiarlos en Checkout.
+        payer:
+          $ref: '#/components/schemas/Person'
+          description: |
+            Datos del usuario **pagador**, hace referencia al dueño del medio de pago o usuario que pagó el monto solicitado.
+            
+            **Cuando se crea una sesión**: Sólo se debe usar cuando quieres "forzar" los datos del usuario que completará el proceso.   
+            Si se envía este dato, el usuario tendrá sus datos personales pre-diligenciados pero **no podrá cambiarlos**.
+        subscription:
+          $ref: '#/components/schemas/SubscriptionRequest'
+        fields:
+          type:
+            - array
+          description: |
+            Estructura para relacionar datos adicionales en el proceso.
+          items:
+            $ref: '#/components/schemas/NameValuePair'
+        paymentMethod:
+          type: string
+          description: |
+            Se usa para restringir los métodos de pago disponibles en checkout.
+            Se pueden enviar varios códigos separados por coma.
+            Ver más en [Métodos de pago](/payment-methods)
+
+            EJ: `visa,master,pse`
+          example: visa
+        cancelUrl:
+          type:
+            - string
+          description: |
+            URL de cancelación, a esta url se redirige al usuario cuando decide no continuar con el proceso.
+            Ocurre cuando el usario da click en _No deseo continuar_
+
+            EJ: `https://merchant.com/cancel`
+          example: 'https://commerce.test/cancel'
+        skipResult:
+          type: boolean
+          description: |
+            Si se envía `true`, cuando el usuario finalice el proceso no se mostrará la página de resultado de sesión, en su lugar será redireccionado al `returnUrl`
+          default: false
+        noBuyerFill:
+          type: boolean
+          description: |
+            Por defecto los datos enviados como `buyer` se pre-diligencian en la interfaz de Checkout para agilizar el proceso de pago, si se envía este parámetro como `true` entonces no se hará este pre diligenciamiento.
+          default: false
+        type:
+          type: string
+          description: |
+            Parámetro usado para sesiones de tipo preauthorización
+
+            Sólo se soporta `checkin` para generar una sesión de preautorización
+          enum:
+            - checkin
+          example: checkin
       x-examples:
-        'Crear sesión básica ':
+        'Crear sesión básica':
           locale: es_CO
           payer:
             name: Diego
@@ -2099,102 +2207,9 @@ components:
           skipResult: false
           noBuyerFill: false
           type: checkin
-      properties:
-        auth:
-          $ref: '#/components/schemas/Authentication'
-        payment:
-          $ref: '#/components/schemas/PaymentRequest'
-        subscription:
-          $ref: '#/components/schemas/SubscriptionRequest'
-        expiration:
-          type: string
-          format: date-time
-          description: |
-            Fecha de expiración de una sesión. El usuario debe terminar el proceso antes de esta fecha.   
-            El tiempo de expiración debe ser de al menos 5 minutos desde el momento de la creación.
-
-            EJ: `2023-07-17T13:12:44-05:00`
-        ipAddress:
-          type: string
-          description: |
-            Dirección IP del usuario que realizará el proceso.
-
-            Ej: `134.10.163.36`
-          example: 134.10.163.36
-        userAgent:
-          type: string
-          description: |
-            User Agent del navegador del usuario que realizará el proceso.
-
-            Ej: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ...`
-          example: PlacetoPay Sandbox
-        returnUrl:
-          type: string
-          description: |
-            URL de retorno, a esta url se redirige al usuario una vez termina la sesión.
-            Ocurre cuando el usuario da click en _Volver al comercio_.
-
-            EJ: `https://merchant.com/return`
-          example: 'https://commerce.test/return'
-        locale:
-          $ref: '#/components/schemas/Locale'
-        fields:
-          type: array
-          description: Listado de campos adicionales para adjuntar en el proceso de pago.
-          items:
-            $ref: '#/components/schemas/NameValuePair'
-        payer:
-          $ref: '#/components/schemas/Person'
-          description: |
-            Datos del usuario pagador, hace referencia al dueño del medio de pago o usuario quien pagó o pagará el monto solicitado.     
-            **Crear una sesión**: Sólo se debe usar cuando quieres "forzar" los datos del usuario que completará el proceso.   
-            Si se envía este dato, el usuario no podrá cambiar su correo electrónico y sus datos personales estarán restringidos.
-        buyer:
-          $ref: '#/components/schemas/Person'
-          description: |
-            Datos del usuario comprador, hace referencia al usuario que está comprando un producto o un servicio.   
-            **Cuando se crea una sesión**: Se debe enviar si conoces al usuario que está haciendo la compra pues ayuda a completar la información de la sesión.   
-            Si se envía este dato, el usuario tendrá sus datos personales pre-diligenciados y podrá cambiarlos en el proceso de pago.
-        paymentMethod:
-          type: string
-          description: |
-            Se usa para forzar los métodos de pago disponibles en la sesión de pago   
-            Se pueden enviar varios códigos separados por coma   
-            Ver más en [Métodos de pago](/payment-methods)
-
-            EJ: `visa,master,pse`   
-          example: visa
-        cancelUrl:
-          type: string
-          description: |
-            URL de cancelación, a esta url se redirige al usuario cuando él decide no continuar con el proceso.   
-            Ocurre cuando el usario da click en _No deseo continuar_
-
-            EJ: `https://merchant.com/cancel`
-          example: 'https://commerce.test/cancel'
-        skipResult:
-          type: boolean
-          description: |
-            Si se envía `true`, cuando el usuario finalice el proceso no se mostrará la página de resultado de sesión, en su lugar será redireccionado al `returnUrl`
-          default: false
-        noBuyerFill:
-          type: boolean
-          description: |
-            Por defecto los datos enviados como `buyer` se pre diligencian en la interfaz de Checkout para facilitar el proceso de pago, si se envía este parámetro como `true` entonces no se hará este pre diligenciamiento.
-          default: false
-        type:
-          type: string
-          description: | 
-            Parámetro usado para sesiones de tipo preauthorización
-
-            # Posibles valores: `checkin`
-          enum:
-            - checkin
-          example: checkin
     Authentication:
       description: |
-        La autenticación del sitio.  
-        Ver más en [Autenticación](/authentication)
+        La autenticación del sitio. Ver más en [Autenticación](/authentication)
       type: object
       title: Authentication
       examples:
@@ -2581,6 +2596,26 @@ components:
       type: object
       description: |
         Estructura de respuesta a una solicitud para una información de transacción.
+      properties:
+        requestId:
+          type:
+            - string
+            - number
+            - integer
+          example: 1
+          description: Id de la petición
+        status:
+          $ref: '#/components/schemas/Status'
+        request:
+          $ref: '#/components/schemas/RedirectRequest'
+        payment:
+          type:
+            - array
+            - 'null'
+          items:
+            $ref: '#/components/schemas/Transaction'
+        subscription:
+          $ref: '#/components/schemas/SubscriptionResponse'
       examples:
         - requestId: 1
           status:
@@ -2767,87 +2802,97 @@ components:
               - keyword: installments
                 value: null
                 displayOn: none
-      properties:
-        requestId:
-          type:
-            - string
-            - number
-            - integer
-          example: 1
-          description: Id de la petición
-        status:
-          $ref: '#/components/schemas/Status'
-        request:
-          $ref: '#/components/schemas/RedirectRequest'
-        payment:
-          type:
-            - array
-            - 'null'
-          items:
-            $ref: '#/components/schemas/Transaction'
-        subscription:
-          $ref: '#/components/schemas/SubscriptionResponse'
     Instrument:
       title: Instrument
       type: object
       description: |
         Estructura que contiene los detalles de un medio de pago suscrito.
+      required:
+        - token
       properties:
         token:
           $ref: '#/components/schemas/SimpleToken'
         pocket:
           type:
             - string
-            - 'null'
-            - number
-            - integer
           description: |
-            Código de billetera (casos cuando se realiza subscripciones que requieren pockets actualmente en Uruguay)
+            Código de billetera. Aplica para Tarjetas en Uruguay
 
-            Códigos soportados
-
-            10 – Cuenta de ahorros en UYU
-
-            20 – Cuenta corriente en UYU
-
-            80 – Cuenta de ahorros en USD
-
-            90 – Cuenta corriente en USD
+            Valores posibles:   
+            `10` Cuenta de ahorros en UYU
+            `20` Cuenta corriente en UYU
+            `80` Cuenta de ahorros en USD
+            `90` Cuenta corriente en USD
           example: '10'
           enum:
             - '10'
             - '20'
             - '80'
             - '90'
-    SimpleToken:
-      title: SimpleToken
-      type: object
+    InstrumentInvalidate:
+      title: InstrumentInvalidate
       description: |
-        Estructura que contiene los detalles de un token previamente obtenido mediante un proceso de suscripción, se debe enviar el token o el subtoken en los casos que se habilite, no es necesario enviar ambos.
+        Información del Token a invalidar.
+      type:
+        - object
+      required:
+        - token
       properties:
         token:
-          type: string
           description: |
-            Token completo para tarjeta de crédito, debe ser usada para solicitar cualquier transacción a PlacetoPay.
-          example: a3bfc8e2afb9ac5583922eccd6d2061c1b0592b099f04e352a894f37ae51cf1a
+            Información de un medio de pago "tokenizado". Se debe tokenizar con una sesión de suscripción.
+            Debe contener el `token` o el `subtoken`, ambas representaciones válidas de un medio de pago tokenizado.
+          type:
+            - object
+          properties:
+            token:
+              $ref: '#/components/schemas/InstrumentTokenToken'
+            subtoken:
+              $ref: '#/components/schemas/InstrumentTokenSubToken'
+    InstrumentTokenToken:
+      type:
+        - number
+      description: |
+        Representación del medio de pago.
+
+        EJ: `a3bfc8e2afb9ac5583922eccd6d2061c1b0592b0...`
+      example: a3bfc8e2afb9ac5583922eccd6d2061c1b0592b099f04e352a894f37ae51cf1a
+    InstrumentTokenSubToken:
+      type:
+        - string
+      description: |
+        Representación numérica del medio de pago. Se usa en casos donde es requerido que el token sea numérico.
+        Los últimos 4 dígitos son iguales a los últimos 4 dígitos de la tarjeta de crédito.
+
+        EJ: `8740257204881112`
+      example: '8740257204881112'
+    SimpleToken:
+      title: SimpleToken
+      type:
+        - object
+      description: |
+        Información de un medio de pago "tokenizado". Se debe tokenizar con una sesión de suscripción.    
+        Debe contener el `token` o el `subtoken`, ambas representaciones válidas de un medio de pago tokenizado.
+      properties:
+        token:
+          $ref: '#/components/schemas/InstrumentTokenToken'
         subtoken:
-          type: string
-          description: |
-            Representación numérica del Token para casos donde es requerido un número adicional que parece como una tarjeta de crédito, los últimos 4 dígitos son iguales a los últimos 4 dígitos de la tarjeta de crédito.
-          example: '8740257204881112'
+          $ref: '#/components/schemas/InstrumentTokenSubToken'
         installments:
           type:
             - integer
-            - 'null'
           description: |
-            Número de cuotas en las cuales se solicita el cobro (opcional).
+            Número de cuotas en las cuales se solicita el cobro. Aplica para Colombia.
+            
+            EJ: `2` para 2 cuotas.
           example: null
         cvv:
           type:
             - string
-            - 'null'
           description: |
-            Dígitos del código de seguridad de la tarjeta a usar en los casos en los que sea necesario, generalmente se deja en blanco si se tiene una terminal sin validación de CVV.
+            Código de seguridad de la tarjeta. Si el usuario está presente en el proceso de cobro, es recomendado anexar este dato..
+            
+            EJ: `123`
           example: '123'
       examples:
         - token: a3bfc8e2afb9ac5583922eccd6d2061c1b0592b099f04e352a894f37ae51cf1a
@@ -2859,34 +2904,43 @@ components:
       type: object
       description: |
         Permite realizar cobros sin la intervención del usuario usando medios de pago previamente suscritos.
+      required:
+        - auth
+        - payment
+        - instrument
+        - ipAddress
+        - userAgent
+        - payer
       properties:
-        locale:
-          type: string
         auth:
           $ref: '#/components/schemas/Authentication'
-        payer:
-          $ref: '#/components/schemas/Person'
-        buyer:
-          $ref: '#/components/schemas/Person'
         payment:
           $ref: '#/components/schemas/PaymentRequest'
-        type:
-          type: string
-          description: crear una sesión de preautorización
-          enum:
-            - checkin
         instrument:
           $ref: '#/components/schemas/Instrument'
-        expiration:
-          type: string
-        returnUrl:
-          type: string
-        cancelUrl:
-          type: string
         ipAddress:
-          type: string
+          $ref: '#/components/schemas/IpAddress'
         userAgent:
-          type: string
+          $ref: '#/components/schemas/UserAgent'
+        payer:
+          $ref: '#/components/schemas/Person'
+          description: |
+            Datos del usuario **pagador**, hace referencia al dueño del medio de pago o usuario que pagó el monto solicitado.
+        buyer:
+          $ref: '#/components/schemas/Person'
+          description: |
+            Datos del usuario **comprador**, hace referencia al usuario que está comprando un producto o un servicio.
+        locale:
+          $ref: '#/components/schemas/Locale'
+        type:
+          type:
+            - string
+          description: |
+            Parámetro usado para sesiones de tipo preauthorización
+            
+            Sólo se soporta `checkin` para generar una sesión de preautorización
+          enum:
+            - checkin
     TransactionActionRequest:
       title: TransactionActionRequest
       type: object
@@ -2908,80 +2962,92 @@ components:
           internalReference: 1
           action: reverse
       examples: []
+      required:
+        - auth
+        - internalReference
+        - action
       properties:
         auth:
           $ref: '#/components/schemas/Authentication'
-        internalReference:
-          type: integer
-        amount:
-          $ref: '#/components/schemas/Amount'
         action:
-          type: string
+          type:
+            - string
+          description: |
+            Tipo de operación a realizar sobre la transacción
+            
+            `reverse` para reversar una transacción.   
+            `reauthorization` para modificar una transacción de checkin.   
+            `checkout` para cerrar y cobrar una transacción de checkin.
           enum:
             - checkout
             - reauthorization
             - reverse
           example: checkout
+        internalReference:
+          $ref: '#/components/schemas/InternalReference'
+        amount:
+          $ref: '#/components/schemas/Amount'
+
     DispersionDetail:
       title: DispersionDetail
       type: object
       description: Estructura que refleja la información de los detalles para pago con dispersión.
+      properties:
+        amount:
+          $ref: '#/components/schemas/Amount'
+          description: |
+            Monto a "dispersar" en este destino.
+        agreement:
+          type:
+            - string
+            - number
+          description: |
+            Id del destino de este monto. Puede ser el id de un sitio.
+            
+            EJ: `122`
+        agreementType:
+          type: string
+          description: |
+            Tipo de destino de este monto.   
+            `MERCHANT` para sitios, `AIRLINE` para aerolineas.
+          enum:
+            - MERCHANT
+            - AIRLINE
+          example: MERCHANT
       examples:
         - agreement: '1299'
           agreementType: MERCHANT
           amount:
             currency: USD
             total: 200
-      properties:
-        agreement:
-          type:
-            - string
-            - number
-            - 'null'
-          description: Id del sitio a donde apunta dispersión
-        agreementType:
-          type: string
-          enum:
-            - MERCHANT
-            - AIRLINE
-          example: MERCHANT
-        amount:
-          $ref: '#/components/schemas/Amount'
     Modifiers:
       title: Modifiers
       type: object
-      description: 'Estructura que refleja la información sobre un modificador de pago, aplicado a las leyes de impuestos.'
-      examples:
-        - type: FEDERAL_GOVERNMENT
-          code: 17934
-          additional:
-            invoice: '123345'
+      description: |
+        Estructura para modificaciones adicionales en el cobro.
+        
+        Aplica para leyes de impuestos en paises especificos.
       properties:
         type:
           type: string
-          description: Tipo de modificador
+          description: | 
+            Identificador del tipo de modificador.  
+            Sólo `FEDERAL_GOVERMENT` es soportado actualmente.
           example: FEDERAL_GOVERNMENT
           enum:
             - FEDERAL_GOVERNMENT
         code:
           type:
-            - string
-            - integer
             - number
-          description: |-
-            Código del modificador. Cuando el tipo es FEDERAL_GOVERMENT, representa el número de ley para descuento.
-
-            Códigos soportados
-
-            17934 – Servicios Gastronómicos
-
-            18083 – IMESI Brasil - Argentina
-
-            19210 – Inclusión Financiera
-
-            18910 – Asignaciones Familiares
-
-            18999 – Reintegro Inmobiliarias
+          description: |
+            Código del modificador. 
+            
+            Para `FEDERAL_GOVERMENT` representa el número de ley para descuento.   
+            `17934` Servicios Gastronómicos   
+            `18083` IMESI Brasil - Argentina   
+            `19210` Inclusión Financiera   
+            `18910` Asignaciones Familiares   
+            `18999` Reintegro Inmobiliarias
           enum:
             - 17934
             - 18083
@@ -2991,27 +3057,91 @@ components:
           example: 17934
         additional:
           type: object
-          description: Informaciones adicionales del moficador
+          description: |
+            Estructura para anexar información al modificador
           properties:
             invoice:
               type: string
-              description: Número de factura. Requerido cuando tipo es FEDERAL_GOVERMENT.
+              description: |
+                Requerido cuando `modifiers.[].type` es `FEDERAL_GOVERMENT`. Indica el número de factura.
+                
+                EJ: `123456789`
               maxLength: 9
               example: '123456789'
+      examples:
+        - type: FEDERAL_GOVERNMENT
+          code: 17934
+          additional:
+            invoice: '123345'
     Locale:
-      title: Locale
       x-stoplight:
         id: 0eakadh5w5h34
       type:
         - string
-        - 'null'
       format: regex
       pattern: '^\w{2}\_[A-Z]{2}'
       example: en_US
       description: |
-        Idioma en el que se tratará la petición y la sesión.   
-        Ejemplo: `en_US`, `es_CO`   
-        Ver más en [Localización](/localization)
+        Idioma en el que se tratará la petición y la sesión. Ver más en [Localización](/localization)
+        
+        Ejemplo: `en_US`, `es_CO`
+    Reference:
+      title: Reference
+      type: string
+      description: |
+        Referencia única del proceso. Máximo de 32 caracteres
+        
+        Ej: `PAYMENT_0001_ABC`
+      example: '12345'
+    Description:
+      title: Description
+      type: string
+      description: |
+        Descripción del proceso a realizar
+        
+        EJ: `Consumo mes de Mayo`
+      example: Consumo mes de Mayo
+    InternalReference:
+      title: InternalReference
+      type:
+        - number
+      description: |
+        Referencia interna única de la transacción
+
+        EJ: `543423`
+      example: Consumo mes de Mayo
+    Expiration:
+      type:
+        - string
+      format: date-time
+      description: |
+        Fecha de expiración de una sesión. El usuario debe terminar el proceso antes de esta fecha.
+        El tiempo de expiración debe ser de al menos 5 minutos desde el momento de la creación.   
+        EJ: `2023-07-17T13:12:44-05:00`
+    IpAddress:
+      type:
+        - string
+      description: |
+        Dirección IP del usuario que realizará el proceso.   
+        Ej: `134.10.163.36`
+      example: 134.10.163.36
+    UserAgent:
+      type:
+        - string
+      description: |
+        User Agent del navegador del usuario que realizará el proceso.
+
+        EJ: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36`
+      example: PlacetoPay Sandbox
+    ReturnUrl:
+      type:
+        - string
+      description: |
+        URL de retorno, a esta url se redirige al usuario una vez termina la sesión.
+        Ocurre cuando el usuario da click en _Volver al comercio_.
+
+        EJ: `https://merchant.com/return`
+      example: 'https://commerce.test/return'
     PaymentResponse:
       title: PaymentResponse
       x-stoplight:
@@ -3191,32 +3321,18 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              auth:
-                $ref: '#/components/schemas/Authentication'
-              locale:
-                $ref: '#/components/schemas/Locale'
-              instrument:
-                type: object
-                required:
-                  - token
-                properties:
-                  token:
-                    type: object
-                    minProperties: 1
-                    properties:
-                      token:
-                        type:
-                          - string
-                          - 'null'
-                      subtoken:
-                        type:
-                          - string
-                          - 'null'
+            type:
+              - object
             required:
               - auth
               - instrument
+            properties:
+              auth:
+                $ref: '#/components/schemas/Authentication'
+              instrument:
+                $ref: '#/components/schemas/InstrumentInvalidate'
+              locale:
+                $ref: '#/components/schemas/Locale'
           examples:
             Using Token:
               value:

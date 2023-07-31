@@ -64,9 +64,9 @@ module.exports = ({ theme }) => ({
         ...theme('fontSize.base')[1],
       },
       '.condensed p': {
-        lineHeight: theme('lineHeight.6'),
-        marginTop: theme('spacing.2'),
-        marginBottom: theme('spacing.2'),
+        lineHeight: theme('lineHeight.5'),
+        marginTop: theme('spacing.1'),
+        marginBottom: theme('spacing.1'),
       },
 
       '.condensed p:first-child': {
