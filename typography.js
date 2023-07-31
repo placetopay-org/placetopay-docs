@@ -15,7 +15,7 @@ module.exports = ({ theme }) => ({
       '--tw-prose-captions': theme('colors.gray.500'),
       '--tw-prose-code': theme('colors.gray.900'),
       '--tw-prose-code-bg': theme('colors.gray.100'),
-      '--tw-prose-code-ring': theme('colors.gray.300'),
+      '--tw-prose-code-ring': theme('colors.gray.200'),
       '--tw-prose-th-borders': theme('colors.gray.300'),
       '--tw-prose-td-borders': theme('colors.gray.200'),
 
@@ -62,6 +62,19 @@ module.exports = ({ theme }) => ({
       '[class~="lead"]': {
         fontSize: theme('fontSize.base')[0],
         ...theme('fontSize.base')[1],
+      },
+      '.condensed p': {
+        lineHeight: theme('lineHeight.6'),
+        marginTop: theme('spacing.2'),
+        marginBottom: theme('spacing.2'),
+      },
+
+      '.condensed p:first-child': {
+        marginTop: theme('spacing.0'),
+      },
+
+      '.condensed p:last-child': {
+        marginBottom: theme('spacing.0'),
       },
 
       // Lists
@@ -309,6 +322,7 @@ module.exports = ({ theme }) => ({
         backgroundColor: 'var(--tw-prose-code-bg)',
         fontSize: theme('fontSize.2xs'),
       },
+
       ':is(a, h1, h2, h3, blockquote, thead th) code': {
         color: 'inherit',
       },
@@ -319,6 +333,9 @@ module.exports = ({ theme }) => ({
       'h3 code': {
         fontSize: theme('fontSize.sm')[0],
         fontWeight: 'inherit',
+      },
+      '.condensed code': {
+        backgroundColor: 'transparent',
       },
 
       // Overrides
