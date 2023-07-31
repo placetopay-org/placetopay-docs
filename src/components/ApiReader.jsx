@@ -28,15 +28,18 @@ const ParentProperty = ({ name, property, isChild = false }) => {
         >
           <>
             {property.description && (
-              <ReactMarkdown>{property.description}</ReactMarkdown>
+              <div className="condensed">
+                <ReactMarkdown>{property.description}</ReactMarkdown>
+              </div>
             )}
 
             {withChilds && (
               <>
                 <Disclosure.Button
-                  className={
-                    'flex cursor-pointer items-center gap-1 p-2 text-2xs font-medium text-gray-500 dark:text-gray-300'
-                  }
+                  className={clsx(
+                      'flex cursor-pointer items-center gap-1 py-1 px-2 -mx-2 -my-1 text-2xs font-medium text-gray-500 hover:text-gray-600 dark:text-gray-400 hover:dark:text-gray-300 transition',
+                      {'mt-2' : property.description}
+                  )}
                 >
                   <PlusIcon
                     className={clsx('inline-block h-3 w-3 transition', {

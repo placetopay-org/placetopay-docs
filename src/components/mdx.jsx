@@ -92,12 +92,7 @@ export function Property({
           {Array.isArray(type) ? type.join('|') : type}
         </dd>
         <dt className="sr-only">is {isRequired ? 'Required' : 'optional'}</dt>
-        <dd
-          className={clsx('text-2xs font-medium', {
-            'text-teal-500 dark:text-teal-400': isRequired,
-            'text-gray-400 dark:text-gray-500': !isRequired,
-          })}
-        >
+        <dd className={clsx('text-2xs font-medium text-gray-400 dark:text-gray-500')}>
           {isRequired ? 'REQUIRED' : 'OPTIONAL'}
         </dd>
         <dt className="sr-only">Description</dt>

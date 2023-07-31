@@ -800,7 +800,7 @@ paths:
               type: object
               properties:
                 auth:
-                  $ref: '#/components/schemas/Autentication'
+                  $ref: '#/components/schemas/Authentication'
             examples:
               Ejemplo:
                 value:
@@ -847,7 +847,7 @@ paths:
               type: object
               properties:
                 auth:
-                  $ref: '#/components/schemas/Autentication'
+                  $ref: '#/components/schemas/Authentication'
                 internalReference:
                   type:
                     - string
@@ -979,7 +979,7 @@ paths:
               type: object
               properties:
                 auth:
-                  $ref: '#/components/schemas/Autentication'
+                  $ref: '#/components/schemas/Authentication'
                 internalReference:
                   type:
                     - string
@@ -1450,58 +1450,104 @@ components:
           type: string
           minLength: 1
           example: CC
-          description: Tipo de documento
+          description: |
+            Identificador del tipo de documento
+            
+            Ver opciones en [Tipos de documento](/document-types)
+            
+            EJ: `CC` para "Cédula de Ciudadanía" en Colombia.
         name:
           type: string
           minLength: 1
-          description: Nombre
+          description: | 
+            Nombre de la persona o empresa
+            
+            EJ: `Juan José`
           example: John
         surname:
           type: string
           minLength: 1
-          description: Apellido (No aplica tipos de documento de tipo comercial)
+          description: |
+            Apellido de la persona   
+            No aplica cuando el tipo de documento corresponde al de una empresa
+            
+            EJ: `Peréz Pinzon`
           example: Doe
         company:
           type: string
-          description: Información de la compañia
+          description: |
+            Nombre de la compañia a la que pertenece la persona
+            
+            EJ: `Placetopay`
           example: Evertec
         email:
           type: string
           minLength: 1
           example: johndoe@app.com
-          description: Correo Eléctronico
+          description: |
+            Correo eléctronico del usuario o empresa
+            
+            EJ: juan.perez@example.com
         mobile:
           type: string
           minLength: 1
-          description: Número de teléfono
-          example: '+5731111111111'
+          description: |
+            Número de teléfono del usuario o empresa
+            
+            EJ: +573214445566
+          example: '+573214445566'
         address:
           type: object
-          description: Información de dirección
+          description: | 
+            Estructura para anexar información del domicilio o dirección
           properties:
-            street:
-              type: string
-              minLength: 1
-              example: Calle falsa 123
-            city:
-              type: string
-              minLength: 1
-              example: Medellín
-            state:
-              type: string
-              minLength: 1
-              example: Poblado
-            postalCode:
-              type: string
-              minLength: 1
-              example: '55555'
             country:
               type: string
               minLength: 1
+              description: |
+                País del domicilio
+
+                EJ: `Colombia`
               example: Colombia
+            state:
+              type: string
+              minLength: 1
+              description: |
+                Departamento del domicilio
+
+                EJ: `Antioquia`
+              example: Antioquia
+            city:
+              type: string
+              minLength: 1
+              description: |
+                Ciudad del domicilio
+                
+                EJ: `Medellín`
+              example: Medellín
+            postalCode:
+              type: string
+              minLength: 1
+              description: |
+                Código postal del domicilio
+                
+                EJ: `050012`
+              example: '55555'
+            street:
+              type: string
+              minLength: 1
+              description: |
+                Dirección del domicilio
+                
+                EJ: `Calle 12 #33a-12, Apto 101`
+              example: Calle falsa 123
             phone:
               type: string
               minLength: 1
+              description: |
+                Número telefónico del domicilio
+                
+                EJ: `+573214445566`
               example: '+573111111111'
     PaymentRequest:
       title: PaymentRequest
@@ -1571,28 +1617,39 @@ components:
         reference:
           type: string
           description: |
-            Única referencia para la solicitud de pago.
+            Referencia única del pago   
+            Máximo de 32 caracteres
+            
+            Ej: `PAYMENT_0001_ABC`
           example: '12345'
         description:
           type: string
           description: |
-            Descripción de la cuenta.
+            Descripción del proceso a realizar
+            
+            EJ: `Pago de factura mensualidad`
           example: Prueba de pago
         amount:
           $ref: '#/components/schemas/Amount'
         allowPartial:
           type: boolean
           description: |
-            Define si el monto a ser cobrado puede ser parcial.
+            Define si el monto a ser cobrado puede ser pagado en varias transacciones.
+            
+            Cuando es `true` el usuario podrá completar el pago en varias transacciones.
           default: false
         shipping:
           $ref: '#/components/schemas/Person'
+          description: |
+            Estructura para relacionar información de envío.
         items:
           type:
             - array
             - 'null'
           items:
             $ref: '#/components/schemas/Item'
+          description: |
+            Estructura para relacionar productos o articulos en el proceso.
         fields:
           type:
             - array
@@ -1624,24 +1681,34 @@ components:
       title: Amount
       type: object
       x-internal: false
+      description: |
+        Información del monto a cobrar
       properties:
         currency:
           type: string
           example: COP
-          description: Moneda acorde al ISO 4217 (alphabetic code).
+          description: |
+            Código afabético de la moneda a usar (ISO 4217 alpha code)
+            
+            EJ: `USD`
         total:
-          type:
-            - string
-            - number
+          type: number
           example: 2000
-          description: Valor total
+          description: | 
+            Valor total en la moneda base indicada
+            
+            EJ: `1000` equivalen a _Mil dolares_
         taxes:
+          description: |
+            Estructura para definir impuestos en el proceso de pago.
           type:
             - array
             - 'null'
           items:
             $ref: '#/components/schemas/Taxes'
         details:
+          description: |
+            Estructura para definir detalles adicionales del monto en el proceso de pago.
           type:
             - array
             - 'null'
@@ -1744,7 +1811,7 @@ components:
         'notificationUrl ':
           type: string
           description: |
-            URL en el que el servicio notificará cada vez que se haga un pago recurrente.
+            URL en el que el servicio notificará cada vez que se haga un pago recurrente
           example: 'https://checkout.placetopay.com'
     Item:
       description: Posee una colección de estructuras de elementos.
@@ -1753,42 +1820,42 @@ components:
         sku:
           type: string
           description: |
-            Unidad en stock correspondiente (SKU) al artículo.
-          example: '12345'
+            Identificador SKU del artículo. EJ: `SKU-12345`
+          example: 'SKU-12345'
         name:
           type: string
           minLength: 1
           description: |
-            Nombre del artículo.
+            Nombre del artículo. EJ: `Manta de lana`
           example: product_1
         category:
           type: string
           minLength: 1
           description: |
-            Puede ser [digital, physical].
+            Categoría del artículo. Uno de: `digital` `physical`
           enum:
             - digital
             - physical
           example: physical
         qty:
-          type: string
+          type: number
           description: |
-            Número de un artículo en particular.
+            Cantidad de articulos de este tipo. EJ: `23`
           example: '1'
         price:
           type: number
           description: |
-            Costo del artículo.
-          example: 1000
+            Costo total del artículo. EJ: `1400`
+          example: 1400
         tax:
           type: number
           description: |
-            Impuesto del artículo.
+            Monto en impuestos del artículo. EJ: `100`
     Taxes:
       title: Taxes
       type: object
       description: |
-        Estructura para almacenar información sobre un impuesto.
+        Estructura para definir información sobre un impuesto.
       examples:
         - kind: valueAddedTax
           amount: 1000
@@ -1796,7 +1863,10 @@ components:
       properties:
         kind:
           type: string
-          description: Tipo de impuesto
+          description: |
+            Identificador del tipo de impuesto
+            
+            Uno de: `valueAddedTax` `exciseDuty` `ice` `airportTax` `stateTax` `reducedStateTax` `municipalTax`.
           enum:
             - valueAddedTax
             - exciseDuty
@@ -1808,16 +1878,14 @@ components:
           example: valueAddedTax
         amount:
           type:
-            - integer
             - number
-            - string
           description: |
-            Monto del impuesto
+            Monto total del impuesto
         base:
           type:
-            - string
             - number
-            - integer
+          description: |
+            Monto base sobre el cual se calcula el impuesto
     Details:
       title: Details
       type: object
@@ -1830,7 +1898,10 @@ components:
       properties:
         kind:
           type: string
-          description: Tipo de detalle
+          description: |
+            Identificador del tipo de detalle
+            
+            Uno de:  `discount` `additional` `vatDevolutionBase` `shipping` `handlingFee` `insurance` `giftWrap` `subtotal` `fee` `tip` `airline` `interests`
           example: discount
           enum:
             - discount
@@ -1847,11 +1918,9 @@ components:
             - interests
         amount:
           type:
-            - integer
             - number
-            - string
           description: |
-            Monto del detalle
+            Monto total del detalle
     SubscriptionRequest:
       title: SubscriptionRequest
       type: object
@@ -2032,7 +2101,7 @@ components:
           type: checkin
       properties:
         auth:
-          $ref: '#/components/schemas/Autentication'
+          $ref: '#/components/schemas/Authentication'
         payment:
           $ref: '#/components/schemas/PaymentRequest'
         subscription:
@@ -2122,17 +2191,17 @@ components:
           enum:
             - checkin
           example: checkin
-    Autentication:
+    Authentication:
       description: |
         La autenticación del sitio.  
-        Ver más en [Authenticación](/authentication)
+        Ver más en [Autenticación](/authentication)
       type: object
       title: Authentication
       examples:
         - auth:
-            login: c51ce410c124a10e0db5e4b97fc2af39
-            tranKey: VQOcRcVH2DfL6Y4B4SaK6yhoH/VOUveZ3xT16OQnvxE=
-            nonce: NjE0OWVkODgwYjNhNw==
+            login: 'c51ce410c124a10e0db5e4b97fc2af39'
+            tranKey: 'VQOcRcVH2DfL6Y4B4SaK6yhoH/VOUveZ3xT16OQnvxE='
+            nonce: 'NjE0OWVkODgwYjNhNw=='
             seed: '2021-09-21T09:34:48-05:00'
       properties:
         login:
@@ -2143,7 +2212,9 @@ components:
         tranKey:
           type: string
           minLength: 1
-          description: 'Llave transaccional, que está formada por la siguiente operación: Base64(SHA-1(nonce + seed + secretkey)). El nonce dentro de la operación es el original, es decir, el que no está en Base64.'
+          description: |
+            Credencial tranKey generado.   
+            Ver más en [Autenticación](/authentication)
         nonce:
           type: string
           minLength: 1
@@ -2792,7 +2863,7 @@ components:
         locale:
           type: string
         auth:
-          $ref: '#/components/schemas/Autentication'
+          $ref: '#/components/schemas/Authentication'
         payer:
           $ref: '#/components/schemas/Person'
         buyer:
@@ -2839,7 +2910,7 @@ components:
       examples: []
       properties:
         auth:
-          $ref: '#/components/schemas/Autentication'
+          $ref: '#/components/schemas/Authentication'
         internalReference:
           type: integer
         amount:
@@ -3123,7 +3194,7 @@ components:
             type: object
             properties:
               auth:
-                $ref: '#/components/schemas/Autentication'
+                $ref: '#/components/schemas/Authentication'
               locale:
                 $ref: '#/components/schemas/Locale'
               instrument:
