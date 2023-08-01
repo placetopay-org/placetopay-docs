@@ -199,7 +199,6 @@ export const navigation = [
       { title: 'Autenticación', href: '/authentication' },
       { title: 'Crear Sesión', href: '/create-session' },
       { title: 'Notificación', href: '/notification' },
-      // { title: 'Seguridad', href: '/security' },
       { title: 'Localización', href: '/localization' },
       { title: 'Tipos de documento', href: '/document-types' },
       { title: 'Montos y Monedas', href: '/tax-details' },
