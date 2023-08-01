@@ -15,7 +15,7 @@ const guides = [
     description: 'Conoce las capacidades de Checkout, los conceptos y flujos que debes tener en cuenta para una integración exitosa.',
   },
   {
-    href: '/api-session',
+    href: '/api-reference/session',
     action: 'Ver más',
     name: 'API',
     description: 'Conoce en detalle los métodos HTTP disponibles, los parámetros y posibles respuestas de cada servicio.',
