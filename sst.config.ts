@@ -15,10 +15,10 @@ export default {
         buildOutput: "out",
         buildCommand: "npm run build",
         customDomain: {
-          domainName: "docs.placetopay.dev",
+          domainName: process.env.APP_DOMAIN_NAME,
           isExternalDomain: true,
           cdk: {
-            certificate: Certificate.fromCertificateArn(stack, "MyCert", "arn:aws:acm:us-east-1:688114292561:certificate/76e63cf5-56ae-4e0b-a61f-562b23c9d9f5"),
+            certificate: Certificate.fromCertificateArn(stack, "MyCert", process.env.AWS_CERT_ARN),
           }
         },
       });
