@@ -26,6 +26,10 @@ export default {
       stack.addOutputs({
         SiteUrl: site.url,
       });
+
+      if (app.stage !== "prod") {
+        app.setDefaultRemovalPolicy("destroy");
+      }
     });
   },
 } satisfies SSTConfig;
