@@ -26,7 +26,7 @@ function TopLevelNavItem({ href, children }) {
   )
 }
 
-export const Header = forwardRef(function Header({ className }, ref) {
+export const Header = forwardRef(function Header({ className, isHome }, ref) {
   let { isOpen: mobileNavIsOpen } = useMobileNavigationStore()
   let isInsideMobileNavigation = useIsInsideMobileNavigation()
 
@@ -60,7 +60,7 @@ export const Header = forwardRef(function Header({ className }, ref) {
       />
       <Search />
       <div className="flex items-center gap-5 lg:hidden">
-        <MobileNavigation />
+        {!isHome && <MobileNavigation />}
         <Link href="/" aria-label="Home">
           <Logo className="h-6" />
         </Link>

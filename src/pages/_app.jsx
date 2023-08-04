@@ -30,7 +30,7 @@ export default function App({ Component, pageProps }) {
         <meta name="description" content={pageProps.description} />
       </Head>
       <MDXProvider components={mdxComponents}>
-        <Layout {...pageProps}>
+        <Layout isHome={router.pathname === '/'} {...pageProps}>
           <Component {...pageProps} />
         </Layout>
       </MDXProvider>
