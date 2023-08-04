@@ -2,7 +2,7 @@
 import { Button } from '@/components/Button'
 import Image from 'next/image'
 
-export function ItemList({name, description, href, action, logo, icon: Icon}){
+export function ItemList({name, description, href, action, logo, icon: Icon, withoutArrowAction = false}){
   return (
     <div className="flex flex-row-reverse gap-6">
       <div className="flex-auto">
@@ -14,7 +14,7 @@ export function ItemList({name, description, href, action, logo, icon: Icon}){
         </p>
         <p className="mt-4">
           {action && (
-            <Button href={href} variant="text" arrow="right">
+            <Button href={href} variant="text" arrow={!withoutArrowAction && "right"}>
               {action}
             </Button>
           )}
