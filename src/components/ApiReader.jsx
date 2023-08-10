@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { Disclosure, Transition } from '@headlessui/react'
 import ReactMarkdown from 'react-markdown'
 import clsx from 'clsx'
@@ -20,6 +20,7 @@ const ParentProperty = ({
 }) => {
   const properties = property.properties ?? property.items?.properties ?? null
   const requireds = property.required ?? property.items?.required ?? []
+  const title = property.title ?? property.items?.title ?? null
   const withChilds = !!properties
   const ParentComponent = withChilds
     ? Disclosure
@@ -30,7 +31,13 @@ const ParentProperty = ({
       {({ open }) => (
         <Property
           name={name.replace('?', '')}
-          type={property.title ?? property.type}
+          type={
+            title
+              ? property.type === 'array'
+                ? `array[${title}]`
+                : title
+              : property.type
+          }
           isRequired={isRequired}
           className={clsx(isChild && 'px-4')}
         >
@@ -116,10 +123,13 @@ export const ApiResponses = ({ responses = {} }) => {
 
   return (
     <>
-      <div className='flex justify-between items-baseline'>
+      <div className="flex items-baseline justify-between">
         <h3>Respuesta</h3>
 
-        <select className='bg-inherit' onChange={(evt) => setSelected(evt.target.value)}>
+        <select
+          className="bg-inherit"
+          onChange={(evt) => setSelected(evt.target.value)}
+        >
           {Object.entries(responses).map(([code]) => (
             <option key={`response-${code}`} value={code}>
               {code}
@@ -128,22 +138,28 @@ export const ApiResponses = ({ responses = {} }) => {
         </select>
       </div>
       <ApiProperties
-        properties={Object.entries(response?.content?.['application/json']?.schema?.properties || {})}
-        requireds={response?.content?.['application/json']?.schema?.required || []}
+        properties={Object.entries(
+          response?.content?.['application/json']?.schema?.properties || {}
+        )}
+        requireds={
+          response?.content?.['application/json']?.schema?.required || []
+        }
       />
     </>
   )
 }
-
-
 
 export const ApiRequest = ({ request = {} }) => {
   return (
     <>
       <h3>Solicitud</h3>
       <ApiProperties
-        properties={Object.entries(request?.content?.['application/json']?.schema?.properties || {})}
-        requireds={request?.content?.['application/json']?.schema?.required || []}
+        properties={Object.entries(
+          request?.content?.['application/json']?.schema?.properties || {}
+        )}
+        requireds={
+          request?.content?.['application/json']?.schema?.required || []
+        }
       />
     </>
   )
