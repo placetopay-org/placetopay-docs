@@ -62,7 +62,7 @@ export function Col({ children, sticky = false }) {
 
 export function Properties({ children, classNames = '' }) {
   return (
-    <div className={clsx("my-6", classNames)}>
+    <div className={clsx(classNames ?? "my-6")}>
       <ul
         role="list"
         className="m-0 max-w-[calc(theme(maxWidth.lg)-theme(spacing.8))] list-none divide-y divide-gray-900/5 p-0 dark:divide-white/5"
