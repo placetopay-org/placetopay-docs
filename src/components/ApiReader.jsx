@@ -149,6 +149,29 @@ export const ApiResponses = ({ responses = {} }) => {
   )
 }
 
+export const ApiParams = ({ params = [] }) => {
+  return (
+    <>
+      <h3>Parámetros</h3>
+      
+      <Properties classNames="my-4">
+        {params.map((param) => (
+          <ParentProperty
+            key={param.name}
+            name={param.name}
+            property={{
+              type: param.schema.type,
+              description: param.description,
+              title: param.name,
+            }}
+            isRequired={param.required}
+          />
+        ))}
+      </Properties>
+    </>
+  )
+}
+
 export const ApiRequest = ({ request = {} }) => {
   return (
     <>
@@ -166,7 +189,8 @@ export const ApiRequest = ({ request = {} }) => {
 }
 
 export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
-  const data = api?.[path]?.[method]
+  let data = api?.[path]
+  if (type !== 'params') data = data?.[method.toLowerCase()]
 
   if (!data) {
     throw new Error(
@@ -180,6 +204,10 @@ export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
 
   if (type === 'response') {
     return <ApiResponses responses={data.responses} />
+  }
+
+  if(type === 'params') {
+    return <ApiParams params={data.parameters} />
   }
 
   throw new Error(`Type ${type} not supported`)
