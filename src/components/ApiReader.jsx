@@ -119,7 +119,7 @@ export const ApiResponses = ({ responses = {} }) => {
       <div className='flex justify-between items-baseline'>
         <h3>Respuesta</h3>
 
-        <select onChange={(evt) => setSelected(evt.target.value)}>
+        <select className='bg-inherit' onChange={(evt) => setSelected(evt.target.value)}>
           {Object.entries(responses).map(([code]) => (
             <option key={`response-${code}`} value={code}>
               {code}
