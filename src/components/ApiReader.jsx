@@ -96,25 +96,60 @@ const ApiProperties = ({
   if (properties.length === 0) return null
 
   return (
-    <>
-      {!isChild && <h3>Atributos</h3>}
+    <Properties classNames="my-4">
+      {properties.map(([name, property]) => (
+        <ParentProperty
+          key={name}
+          name={name}
+          property={property}
+          isRequired={requireds.includes(name)}
+          isChild={isChild}
+        />
+      ))}
+    </Properties>
+  )
+}
 
-      <Properties classNames="my-4">
-        {properties.map(([name, property]) => (
-          <ParentProperty
-            key={name}
-            name={name}
-            property={property}
-            isRequired={requireds.includes(name)}
-            isChild={isChild}
-          />
-        ))}
-      </Properties>
+export const ApiResponses = ({ responses = {} }) => {
+  const [selected, setSelected] = useState(Object.entries(responses)?.[0]?.[0])
+  const response = responses[selected]
+
+  return (
+    <>
+      <div className='flex justify-between items-baseline'>
+        <h3>Respuesta</h3>
+
+        <select onChange={(evt) => setSelected(evt.target.value)}>
+          {Object.entries(responses).map(([code]) => (
+            <option key={`response-${code}`} value={code}>
+              {code}
+            </option>
+          ))}
+        </select>
+      </div>
+      <ApiProperties
+        properties={Object.entries(response?.content?.['application/json']?.schema?.properties || {})}
+        requireds={response?.content?.['application/json']?.schema?.required || []}
+      />
     </>
   )
 }
 
-export function ApiReader({ path, method = '', api = {} }) {
+
+
+export const ApiRequest = ({ request = {} }) => {
+  return (
+    <>
+      <h3>Solicitud</h3>
+      <ApiProperties
+        properties={Object.entries(request?.content?.['application/json']?.schema?.properties || {})}
+        requireds={request?.content?.['application/json']?.schema?.required || []}
+      />
+    </>
+  )
+}
+
+export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
   const data = api?.[path]?.[method]
 
   if (!data) {
@@ -123,12 +158,13 @@ export function ApiReader({ path, method = '', api = {} }) {
     )
   }
 
-  const properties = Object.entries(
-    data.requestBody?.content?.['application/json']?.schema?.properties || {}
-  )
+  if (type === 'request') {
+    return <ApiRequest request={data.requestBody} />
+  }
 
-  const requireds =
-    data.requestBody?.content?.['application/json']?.schema?.required || []
+  if (type === 'response') {
+    return <ApiResponses responses={data.responses} />
+  }
 
-  return <ApiProperties properties={properties} requireds={requireds} />
+  throw new Error(`Type ${type} not supported`)
 }
