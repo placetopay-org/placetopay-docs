@@ -21,6 +21,9 @@ export default {
             certificate: Certificate.fromCertificateArn(stack, "MyCert", process.env.AWS_CERT_ARN),
           }
         },
+        environment: {
+          NEXT_PUBLIC_FEEDBACK_FORM_URL: process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL,
+        }
       });
 
       stack.addOutputs({
