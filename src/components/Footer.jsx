@@ -23,30 +23,26 @@ function CheckIcon(props) {
 
 function FeedbackButton(props) {
   return (
-    <button
-      type="submit"
-      className="px-3 text-sm font-medium text-gray-600 transition hover:bg-gray-900/2.5 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
+    <a
+      href={process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="px-3 text-sm font-medium text-gray-600 transition rounded-full border border-gray-900/10 dark:border-white/10 hover:bg-gray-900/2.5 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
       {...props}
     />
   )
 }
 
-const FeedbackForm = forwardRef(function FeedbackForm({ onSubmit }, ref) {
+const FeedbackForm = forwardRef(function FeedbackForm({onSubmit}, ref) {
   return (
-    <form
-      ref={ref}
-      onSubmit={onSubmit}
-      className="absolute inset-0 flex items-center justify-center gap-6 md:justify-start"
-    >
+    <div ref={ref} className="flex gap-3">
       <p className="text-sm text-gray-600 dark:text-gray-400">
-        Was this page helpful?
+        Nos importa tu experiencia,
       </p>
-      <div className="group grid h-8 grid-cols-[1fr,1px,1fr] overflow-hidden rounded-full border border-gray-900/10 dark:border-white/10">
-        <FeedbackButton data-response="yes">Yes</FeedbackButton>
-        <div className="bg-gray-900/10 dark:bg-white/10" />
-        <FeedbackButton data-response="no">No</FeedbackButton>
-      </div>
-    </form>
+      <FeedbackButton onClick={onSubmit}>
+        ¡Dejanos un comentario!
+      </FeedbackButton>
+    </div>
   )
 })
 
@@ -58,7 +54,7 @@ const FeedbackThanks = forwardRef(function FeedbackThanks(_props, ref) {
     >
       <div className="flex items-center gap-3 rounded-full bg-primary-50/50 py-1 pl-1.5 pr-3 text-sm text-primary-900 ring-1 ring-inset ring-primary-500/20 dark:bg-primary-500/5 dark:text-primary-200 dark:ring-primary-500/30">
         <CheckIcon className="h-5 w-5 flex-none fill-primary-500 stroke-white dark:fill-primary-200/20 dark:stroke-primary-200" />
-        Thanks for your feedback!
+        ¡Gracias por tus comentarios!
       </div>
     </div>
   )
@@ -66,15 +62,6 @@ const FeedbackThanks = forwardRef(function FeedbackThanks(_props, ref) {
 
 function Feedback() {
   let [submitted, setSubmitted] = useState(false)
-
-  function onSubmit(event) {
-    event.preventDefault()
-
-    // event.nativeEvent.submitter.dataset.response
-    // => "yes" or "no"
-
-    setSubmitted(true)
-  }
 
   return (
     <div className="relative h-8">
@@ -85,7 +72,7 @@ function Feedback() {
         leaveTo="opacity-0"
         leave="pointer-events-none duration-300"
       >
-        <FeedbackForm onSubmit={onSubmit} />
+        <FeedbackForm onSubmit={() => setSubmitted(true)} />
       </Transition>
       <Transition
         show={submitted}
@@ -220,7 +207,7 @@ export function Footer() {
 
   return (
     <footer className="mx-auto max-w-2xl space-y-10 pb-16 lg:max-w-5xl">
-      {/* <Feedback key={router.pathname} /> */}
+      <Feedback />
       <PageNavigation />
       <SmallPrint />
     </footer>
