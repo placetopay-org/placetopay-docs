@@ -40,7 +40,7 @@ const FeedbackForm = forwardRef(function FeedbackForm({onSubmit}, ref) {
         Nos importa tu experiencia,
       </p>
       <FeedbackButton onClick={onSubmit}>
-        ¡Dejanos un comentario!
+        ¡Déjanos un comentario!
       </FeedbackButton>
     </div>
   )
