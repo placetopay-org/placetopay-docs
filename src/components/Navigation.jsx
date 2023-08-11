@@ -207,6 +207,7 @@ export const navigation = [
       { title: 'Prueba tu integración', href: '/checkout/test-your-integration' },
       { title: 'Historial de cambios', href: '/checkout/changelog' },
       { title: 'Politica de cambios', href: '/checkout/api-policy' },
+      { title: 'NameValuePair', href: '/checkout/nameValuePair' },
     ],
   },
   {
