@@ -201,6 +201,7 @@ export const navigation = [
       { title: 'Notificación', href: '/checkout/notification' },
       { title: 'Localización', href: '/checkout/localization' },
       { title: 'Tipos de documento', href: '/checkout/document-types' },
+      { title: 'Campos', href: '/checkout/fields' },
       { title: 'Montos y Monedas', href: '/checkout/tax-details' },
       { title: 'Métodos de pago', href: '/checkout/payment-methods' },
       { title: 'Prueba tu integración', href: '/checkout/test-your-integration' },
