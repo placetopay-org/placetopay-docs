@@ -17,7 +17,7 @@ function recmaRemoveNamedExports() {
 
 function recmaAddOpenapiRefsToStaticProps() {
   return async (tree) => {
-    const filePath = path.join(process.cwd(), 'public', 'api-ES.yaml')
+    const filePath = path.join(process.cwd(), 'src', 'assets', 'apis', 'checkout', 'es.yaml')
     const api = await SwaggerParser.dereference(filePath);
     let apiRefs = null;
 
