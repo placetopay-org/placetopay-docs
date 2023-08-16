@@ -1,0 +1,185 @@
+export const description =
+  'Conoce Lightbox, una forma de integrar Checkout en tu sitio o aplicación sin tener que redirigir a tus usuarios a otra página.'
+
+# Lightbox
+
+Lightbox es una forma de integrar Checkout que permite a tus usuarios completar el pago sin salir de tu página web. {{ className: 'lead' }}
+
+<div className="flex flex-col-reverse xl:flex-row items-center xl:max-w-none">
+  <div className="flex-1 items-center">
+    Cuando usas Lightbox, Checkout aparece de forma dinámica en el centro de la pantalla, ofreciendo una experiencia de pago reducida e integrada en tu página web.
+    
+    Esta solución permite mantener a los usuarios en tu sitio web o aplicación brindándoles comodidad y facilitando el proceso de pago.
+
+    <div className="not-prose">
+      <Button href="https://tiendaporinternet.com/lightbox/" target="_blank" arrow="right" children="Ver en vivo" />
+    </div>
+  </div>
+  <div className="max-w-md sm:ml-10 sm:mr-6">
+    <img src="/Checkout_lightbox_2.webp" alt="Checkout lightbox" className="shadow rounded-md my-0"/>
+  </div>
+</div>
+
+---
+
+## Integración
+
+Sigue estos pasos para completar tu integración forma exitosa.
+
+### Agregar script
+
+Para integrar Lightbox debes agregar nuestro script en tu página web.
+
+```html
+<head>
+	...
+    <script src="https://checkout.placetopay.com/lightbox.min.js"></script>
+</head>
+```
+
+La url referenciada en el script puede cambiar de acuerdo al país y proveedor comercial con el que te estes integrando.
+
+| Instancia | Script URL |
+| :--- | :--- |
+| PlacetoPay Internacional | https://checkout.placetopay.com/lightbox.min.js |
+| PlacetoPay Ecuador | https://checkout.placetopay.ec/lightbox.min.js |
+| Getnet Chile | https://checkout.getnet.cl/lightbox.min.js |
+| Getnet Uruguay | https://checkout.getnet.uy/lightbox.min.js |
+| Davivienda Costa Rica | https://checkout.davivienda.cr/lightbox.min.js |
+| Pago Link Atlántida | https://pagoenlinea.bancatlan.hn/lightbox.min.js |
+| Atlantic Bank | https://abgateway.atlabank.com/lightbox.min.js |
+| Goupagos | https://checkout.goupagos.com.co/lightbox.min.js |
+
+
+### Iniciar Lightbox
+
+En tu servidor (backend) debes [Crear una sesión](http://localhost:3000/create-session) y obtener la url de procesamiento `processUrl`.
+
+Comparte la url de procesamiento `processUrl` con el código javascript de tu cliente (frontend). Una vez esté disponibile puedes iniciar el Lightbox.
+```javascript
+var processUrl = "https://checkout.placetopay.com/spa/session/76300/90443d4926a2...";
+
+P.init(processUrl);
+```
+
+<Note>
+Ten en cuenta que si el lightbox no encuentra un ambiente propicio para su funcionamiento, se ejecutará una redirección a la URL de procesamiento.
+</Note>
+
+### Registrar Callback
+
+Cuando el proceso en Checkout finalice, se emitira un "callback" a tu página web, asegurate de capturarlo para completar el flujo de forma exitosa.
+
+```javascript
+P.on('response', function (response) {
+	console.log(data);
+});
+```
+
+El callback dispondrá del argumento `response` en el cual encontrarás la estructura de un `sessionNotification` con la siguiente información:
+
+```json {{ 'title': 'SessionNotification' }}
+{
+	"reference": "ABC_123",
+	"requestId": 12345,
+	"signature": "bodySignature",
+	"status": { 
+		"date": "2023-07-11T11:34:37-05:00",
+		"message": "The request has been successfully approved",
+		"reason": "00",
+		"status": "APPROVED"
+	} 
+}
+```
+
+## Integración Avanzada
+
+Conoce en detalle los métodos y eventos disponibles
+
+### P.init
+
+Inicializa el Lightbox.
+
+```javascript
+P.init(processUrl, options);
+```
+
+| Propiedad | Tipo | Descripción |
+| --- | --- | --- |
+| `processUrl` | `string` | `required` <br/> Url de procesamiento |
+| `options` |  `object` | Opciones avanzadas |
+| `options.opacity` | `number` | Transparencia del fondo del lightbox. <br/> Por Defecto: `0.7` <br/> Número entre 0 y 1 <br/> 1 indica que el fondo no es transparente y 0 indica que es completamente transparente. |
+
+### P.on
+
+Suscribirse a eventos del lightbox.
+
+```javascript
+P.on(eventType, callback);
+```
+
+| Propiedad | Tipo | Descripción |
+| --- | --- | --- |
+| `eventType` | `string` | `required` <br/> Nombre del evento a suscribirse <br/> Posibles valores `response` `close` |
+| `callback` |  `Function` | Función callback a ejecutarse cuando ocurra el evento |
+
+
+**Listado de eventos**
+
+| Evento | Descripción | Parámetros |
+| --- | --- | --- |
+| `response` | Se ejecuta cuando se recibe una respuesta de PlacetoPay. | `SessionNotification` |
+| `close` | Se ejecuta cuando el usuario cierra el Lightbox o cuando se cierra automáticamente al finalizar el proceso y este haber sido creado con un `skipResult: true` | N/A |
+
+
+```javascript
+P.on('response', function (response) {
+	console.log(response);
+});
+
+
+P.on('close', function () {
+	console.log('El usuario cerró el Lightbox');
+});
+```
+
+También es posible suscribirse a mas de un evento del mismo tipo, solo debes registrar cada uno de forma separada en `P.on()`.
+
+
+## Ejemplo de integración
+
+A continuación el ejemplo más simple de cómo puedes integrar Lightbox en tu HTML.
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<title>Lightbox SDK</title>
+	<script src="https://checkout.placetopay.com/lightbox.min.js"></script>
+</head>
+<body>
+	<h1>Lightbox SDK</h1>
+	
+	<button id="open">Abrir Lightbox</button>
+	
+	<script>
+		<!-- Suscribe el evento close -->
+		P.on('close', function () {
+			alert('El usuario cerró el Lightbox');
+		});
+
+		<!-- Suscribe el evento response -->
+		P.on('response', function (response) {
+			console.log(response);
+		});
+
+		<!-- Abre el Lightbox al hacer click en el botón -->
+		document.getElementById('open').addEventListener('click', function () {
+			var processUrl = "https://checkout.placetopay.com/spa/session/123456/1234567890abc1234567890abc12345";
+
+			P.init(processUrl);
+		});
+	</script>
+</body>
+</html>
+```
