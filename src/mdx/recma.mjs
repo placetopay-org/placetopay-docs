@@ -102,9 +102,48 @@ function recmaAddOpenapiRefsToStaticProps() {
   }
 }
 
+function recmaAddLayoutProperty() {
+  return (tree) => {
+    if (
+      !tree.body.some(
+        (node) =>
+          node.type === 'VariableDeclaration' &&
+          node.declarations[0].id.name === 'Layout'
+      )
+    ) {
+      return
+    }
+
+    tree.body.push({
+      type: 'ExpressionStatement',
+      expression: {
+        type: 'AssignmentExpression',
+        operator: '=',
+        left: {
+          type: 'MemberExpression',
+          computed: false,
+          object: {
+            type: 'Identifier',
+            name: 'MDXContent',
+          },
+          property: {
+            type: 'Identifier',
+            name: 'Layout',
+          },
+        },
+        right: {
+          type: 'Identifier',
+          name: 'Layout',
+        },
+      }
+    })
+  }
+}
+
 export const recmaPlugins = [
   mdxAnnotations.recma,
   recmaRemoveNamedExports,
   recmaNextjsStaticProps,
   recmaAddOpenapiRefsToStaticProps,
+  recmaAddLayoutProperty,
 ]
