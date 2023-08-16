@@ -20,6 +20,8 @@ Router.events.on('hashChangeStart', onRouteChange)
 export default function App({ Component, pageProps }) {
   let router = useRouter()
 
+  const LayoutComponent = Component.Layout || Layout
+
   return (
     <>
       {process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS && (
@@ -50,9 +52,9 @@ export default function App({ Component, pageProps }) {
         <meta name="description" content={pageProps.description} />
       </Head>
       <MDXProvider components={mdxComponents}>
-        <Layout isHome={router.pathname === '/'} {...pageProps}>
+        <LayoutComponent {...pageProps}>
           <Component {...pageProps} />
-        </Layout>
+        </LayoutComponent>
       </MDXProvider>
     </>
   )
