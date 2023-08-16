@@ -49,7 +49,7 @@ export function HomeLayout({ children, sections = [] }) {
             </Link>
           </div>
 
-          <HeaderHome className="w-full h-14" />
+          <HeaderHome className="w-full h-14 lg:h-auto" />
         </div>
       </motion.header>
       <div className="relative mx-auto px-4 pt-4 lg:pt-14 sm:px-6 lg:px-8">
