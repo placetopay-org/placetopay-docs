@@ -14,6 +14,16 @@ function recmaRemoveNamedExports() {
 
 function recmaAddOpenapiRefsToStaticProps() {
   return async (tree) => {
+    if (
+      !tree.body.some(
+        (node) =>
+          node.type === 'VariableDeclaration' &&
+          node.declarations[0].id.name === 'apiRefs'
+      )
+    ) {
+      return
+    }
+
     tree.body.splice(1, 0, {
       type: 'ImportDeclaration',
       specifiers: [
@@ -36,51 +46,59 @@ function recmaAddOpenapiRefsToStaticProps() {
       },
     })
 
-    const getStaticPropsIndex = tree.body.findIndex((node) => node.type === 'ExportNamedDeclaration' && node.declaration.declarations[0].id.name === 'getStaticProps');
-    tree.body[getStaticPropsIndex].declaration.declarations[0].init.async = true;
-    tree.body[getStaticPropsIndex].declaration.declarations[0].init.body.properties[0].value.arguments[0].arguments[0].properties.push({
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: { type: 'Identifier', name: 'refs' },
-      value: {
-        type: "AwaitExpression",
-        argument: {
-          type: "CallExpression",
-          callee: {
-            type: "Identifier",
-            name: "dereferenceOpenapi",
-          },
-          arguments: [
-            {
-              type: "MemberExpression",
-              computed: false,
-              object: {
-                type: "MetaProperty",
-                meta: {
-                  type: "Identifier",
-                  name: "import",
+    const getStaticPropsIndex = tree.body.findIndex(
+      (node) =>
+        node.type === 'ExportNamedDeclaration' &&
+        node.declaration.declarations[0].id.name === 'getStaticProps'
+    )
+    tree.body[getStaticPropsIndex].declaration.declarations[0].init.async = true
+    tree.body[
+      getStaticPropsIndex
+    ].declaration.declarations[0].init.body.properties[0].value.arguments[0].arguments[0].properties.push(
+      {
+        type: 'Property',
+        method: false,
+        shorthand: false,
+        computed: false,
+        kind: 'init',
+        key: { type: 'Identifier', name: 'refs' },
+        value: {
+          type: 'AwaitExpression',
+          argument: {
+            type: 'CallExpression',
+            callee: {
+              type: 'Identifier',
+              name: 'dereferenceOpenapi',
+            },
+            arguments: [
+              {
+                type: 'MemberExpression',
+                computed: false,
+                object: {
+                  type: 'MetaProperty',
+                  meta: {
+                    type: 'Identifier',
+                    name: 'import',
+                  },
+                  property: {
+                    type: 'Identifier',
+                    name: 'meta',
+                  },
                 },
                 property: {
-                  type: "Identifier",
-                  name: "meta",
+                  type: 'Identifier',
+                  name: 'url',
                 },
               },
-              property: {
-                type: "Identifier",
-                name: "url",
+              {
+                type: 'Identifier',
+                name: 'apiRefs',
               },
-            },
-            {
-              type: "Identifier",
-              name: "apiRefs",
-            }
-          ],
+            ],
+          },
         },
-      },
-    })
+      }
+    )
   }
 }
 
