@@ -25,25 +25,24 @@ function TopLevelNavItem({ href, children }) {
   )
 }
 
-export const HeaderHome = forwardRef(function HeaderHome({ className }, ref) {
+export const HeaderHome = ({ className }) => {
   let { isOpen: mobileNavIsOpen } = useMobileNavigationStore()
   let isInsideMobileNavigation = useIsInsideMobileNavigation()
 
   return (
-    <motion.div
-      ref={ref}
+    <div
       className={clsx(
         className,
         'flex items-center justify-between gap-12 px-4 sm:px-6 lg:px-8',
       )}
     >
-      {/* <div
+      <div
         className={clsx(
           'absolute inset-x-0 top-full h-px transition',
           (isInsideMobileNavigation || !mobileNavIsOpen) &&
             'bg-gray-900/7.5 dark:bg-white/7.5'
         )}
-      /> */}
+      />
       <Search />
       <div className="flex items-center gap-5 lg:hidden">
         <Link href="/" aria-label="Home">
@@ -67,9 +66,9 @@ export const HeaderHome = forwardRef(function HeaderHome({ className }, ref) {
           <Button href="#">Sign in</Button>
         </div> */}
       </div>
-    </motion.div>
+    </div>
   )
-})
+}
 
 export const Header = forwardRef(function Header({ className }, ref) {
   let { isOpen: mobileNavIsOpen } = useMobileNavigationStore()
