@@ -6,6 +6,7 @@ import { Transition } from '@headlessui/react'
 import { Button } from '@/components/Button'
 import { navigation } from '@/components/Navigation'
 import { useNavigation } from '@/hooks/useNavigation'
+import { useLocale } from './LocaleProvider'
 
 function CheckIcon(props) {
   return (
@@ -34,20 +35,33 @@ function FeedbackButton(props) {
   )
 }
 
-const FeedbackForm = forwardRef(function FeedbackForm({onSubmit}, ref) {
+const FeedbackByLocale = {
+  es: {
+    title: 'Nos importa tu experiencia,',
+    description: '¡Déjanos un comentario!',
+    thanks: '¡Gracias por tus comentarios!'
+  },
+  en: {
+    title: 'We care about your experience,',
+    description: 'Leave us a comment!',
+    thanks: 'Thanks for your feedback!'
+  }
+}
+
+const FeedbackForm = forwardRef(function FeedbackForm({onSubmit, locale}, ref) {
   return (
     <div ref={ref} className="flex gap-3">
       <p className="text-sm text-gray-600 dark:text-gray-400">
-        Nos importa tu experiencia,
+        {FeedbackByLocale[locale].title}
       </p>
       <FeedbackButton onClick={onSubmit}>
-        ¡Déjanos un comentario!
+        {FeedbackByLocale[locale].description}
       </FeedbackButton>
     </div>
   )
 })
 
-const FeedbackThanks = forwardRef(function FeedbackThanks(_props, ref) {
+const FeedbackThanks = forwardRef(function FeedbackThanks({locale}, ref) {
   return (
     <div
       ref={ref}
@@ -55,13 +69,15 @@ const FeedbackThanks = forwardRef(function FeedbackThanks(_props, ref) {
     >
       <div className="flex items-center gap-3 rounded-full bg-primary-50/50 py-1 pl-1.5 pr-3 text-sm text-primary-900 ring-1 ring-inset ring-primary-500/20 dark:bg-primary-500/5 dark:text-primary-200 dark:ring-primary-500/30">
         <CheckIcon className="h-5 w-5 flex-none fill-primary-500 stroke-white dark:fill-primary-200/20 dark:stroke-primary-200" />
-        ¡Gracias por tus comentarios!
+        {FeedbackByLocale[locale].thanks}
       </div>
     </div>
   )
 })
 
 function Feedback() {
+  const { locale } = useLocale()
+
   let [submitted, setSubmitted] = useState(false)
 
   return (
@@ -73,7 +89,7 @@ function Feedback() {
         leaveTo="opacity-0"
         leave="pointer-events-none duration-300"
       >
-        <FeedbackForm onSubmit={() => setSubmitted(true)} />
+        <FeedbackForm locale={locale} onSubmit={() => setSubmitted(true)} />
       </Transition>
       <Transition
         show={submitted}
@@ -82,7 +98,7 @@ function Feedback() {
         enterTo="opacity-100"
         enter="delay-150 duration-300"
       >
-        <FeedbackThanks />
+        <FeedbackThanks locale={locale} />
       </Transition>
     </div>
   )
