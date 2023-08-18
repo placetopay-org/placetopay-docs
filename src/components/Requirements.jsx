@@ -4,13 +4,11 @@ import { ProgrammingScrollTwoToneIcon } from '@/components/iconsax/ProgrammingSc
 
 const guides = [
   {
-    href: '/authentication',
     name: 'Cuenta de Placetopay',
     icon: UserOctagonTwoToneIcon,
     description: 'Debes tener una cuenta activa en PlacetoPay para acceder a tu sitio y tus credenciales API.',
   },
   {
-    href: '/pagination',
     name: 'Conocimientos básicos en programación',
     icon: ProgrammingScrollTwoToneIcon,
     description: 'Es recomendable tener conocimientos  sobre desarrollo web y programación ya que la documentación se enfoca en la integración de la pasarela de pagos en tu sitio web o aplicación.',
