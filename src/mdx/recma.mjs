@@ -140,10 +140,64 @@ function recmaAddLayoutProperty() {
   }
 }
 
+const recmaAddLocalizeHook = () => {
+  return (tree) => {
+    tree.body.splice(2, 0, {
+      type: 'ImportDeclaration',
+      specifiers: [
+        {
+          type: 'ImportSpecifier',
+          local: {
+            type: 'Identifier',
+            name: 'useLocalizePath',
+          },
+          imported: {
+            type: 'Identifier',
+            name: 'useLocalizePath',
+          },
+        },
+      ],
+      source: {
+        type: 'Literal',
+        value: '@/hooks/useLocalizePath',
+        raw: "'@/hooks/useLocalizePath'",
+      },
+    })
+
+    const getCreateMdxContentIndex = tree.body.findIndex(
+      (node) => node.type === 'FunctionDeclaration' && node.id.name === '_createMdxContent'
+    )
+
+    tree.body[getCreateMdxContentIndex].body.body.splice(0, 0, {
+      type: 'VariableDeclaration',
+      kind: 'const',
+      declarations: [
+        {
+          type: 'VariableDeclarator',
+          id: {
+            type: 'Identifier',
+            name: 'localizePath',
+          },
+          init: {
+            type: 'CallExpression',
+            callee: {
+              type: 'Identifier',
+              name: 'useLocalizePath',
+            },
+            arguments: [],
+            optional: false
+          },
+        },
+      ],
+    })
+  }
+}
+
 export const recmaPlugins = [
   mdxAnnotations.recma,
   recmaRemoveNamedExports,
   recmaNextjsStaticProps,
   recmaAddOpenapiRefsToStaticProps,
   recmaAddLayoutProperty,
+  recmaAddLocalizeHook,
 ]

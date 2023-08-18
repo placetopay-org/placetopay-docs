@@ -9,6 +9,7 @@ import { useIsInsideMobileNavigation } from '@/components/MobileNavigation'
 import { useSectionStore } from '@/components/SectionProvider'
 import { Tag } from '@/components/Tag'
 import { remToPx } from '@/lib/remToPx'
+import { useLocalizePath } from '@/hooks/useLocalizePath'
 
 function useInitialValue(value, condition = true) {
   let initialValue = useRef(value).current
@@ -110,13 +111,22 @@ function NavigationGroup({ group, className }) {
   // state, so that the state does not change during the close animation.
   // The state will still update when we re-open (re-render) the navigation.
   let isInsideMobileNavigation = useIsInsideMobileNavigation()
+  let localizePath = useLocalizePath()
   let [router, sections] = useInitialValue(
     [useRouter(), useSectionStore((s) => s.sections)],
     isInsideMobileNavigation
   )
 
-  let isActiveGroup =
-    group.links.findIndex((link) => link.href === router.pathname) !== -1
+  const groupWithLocaleInLinks = {
+    ...group,
+    links: group.links.map((link) => ({
+      ...link,
+      href: localizePath(link.href),
+    }))
+  }
+
+  let isActiveGroup = 
+    groupWithLocaleInLinks.links.findIndex((link) => link.href === router.pathname) !== -1
 
   return (
     <li className={clsx('relative mt-6', className)}>
@@ -124,12 +134,12 @@ function NavigationGroup({ group, className }) {
         layout="position"
         className="text-xs font-semibold text-gray-900 dark:text-white"
       >
-        {group.title}
+        {groupWithLocaleInLinks.title}
       </motion.h2>
       <div className="relative mt-3 pl-2">
         <AnimatePresence initial={!isInsideMobileNavigation}>
           {isActiveGroup && (
-            <VisibleSectionHighlight group={group} pathname={router.pathname} />
+            <VisibleSectionHighlight group={groupWithLocaleInLinks} pathname={router.pathname} />
           )}
         </AnimatePresence>
         <motion.div
@@ -138,11 +148,11 @@ function NavigationGroup({ group, className }) {
         />
         <AnimatePresence initial={false}>
           {isActiveGroup && (
-            <ActivePageMarker group={group} pathname={router.pathname} />
+            <ActivePageMarker group={groupWithLocaleInLinks} pathname={router.pathname} />
           )}
         </AnimatePresence>
         <ul role="list" className="border-l border-transparent">
-          {group.links.map((link) => (
+          {groupWithLocaleInLinks.links.map((link) => (
             <motion.li key={link.href} layout="position" className="relative">
               <NavLink href={link.href} active={link.href === router.pathname}>
                 {link.title}
@@ -204,7 +214,10 @@ export const navigation = [
       { title: 'Campos Adicionales', href: '/checkout/additional-fields' },
       { title: 'Montos y Monedas', href: '/checkout/tax-details' },
       { title: 'Métodos de pago', href: '/checkout/payment-methods' },
-      { title: 'Prueba tu integración', href: '/checkout/test-your-integration' },
+      {
+        title: 'Prueba tu integración',
+        href: '/checkout/test-your-integration',
+      },
       { title: 'Historial de cambios', href: '/checkout/changelog' },
       { title: 'Politica de cambios', href: '/checkout/api-policy' },
     ],
