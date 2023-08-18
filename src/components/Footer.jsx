@@ -5,6 +5,7 @@ import { Transition } from '@headlessui/react'
 
 import { Button } from '@/components/Button'
 import { navigation } from '@/components/Navigation'
+import { useNavigation } from '@/hooks/useNavigation'
 
 function CheckIcon(props) {
   return (
@@ -111,6 +112,7 @@ function PageLink({ label, page, previous = false }) {
 }
 
 function PageNavigation() {
+  let navigation = useNavigation('checkout');
   let router = useRouter()
   let allPages = navigation.flatMap((group) => group.links)
   let currentPageIndex = allPages.findIndex(
