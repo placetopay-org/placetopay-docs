@@ -1,9 +1,10 @@
 import Head from 'next/head'
 import Script from 'next/script'
-import { Router, useRouter } from 'next/router'
+import { Router } from 'next/router'
 import { MDXProvider } from '@mdx-js/react'
 
 import { Layout } from '@/components/Layout'
+import LocaleProvider from '@/components/LocaleProvider'
 import * as mdxComponents from '@/components/mdx'
 import { useMobileNavigationStore } from '@/components/MobileNavigation'
 
@@ -18,7 +19,7 @@ Router.events.on('routeChangeStart', onRouteChange)
 Router.events.on('hashChangeStart', onRouteChange)
 
 export default function App({ Component, pageProps }) {
-  let router = useRouter()
+  const LayoutComponent = Component.Layout || Layout
 
   return (
     <>
@@ -42,17 +43,15 @@ export default function App({ Component, pageProps }) {
         </>
       )}
       <Head>
-        {router.pathname === '/' ? (
-          <title>Placetopay Docs</title>
-        ) : (
-          <title>{`${pageProps.title} - Placetopay Docs`}</title>
-        )}
+        <title>{`${pageProps.title ? pageProps.title + ' - ' : ''}Placetopay Docs`}</title>
         <meta name="description" content={pageProps.description} />
       </Head>
       <MDXProvider components={mdxComponents}>
-        <Layout isHome={router.pathname === '/'} {...pageProps}>
-          <Component {...pageProps} />
-        </Layout>
+        <LocaleProvider>
+          <LayoutComponent {...pageProps}>
+            <Component {...pageProps} />
+          </LayoutComponent>
+        </LocaleProvider>
       </MDXProvider>
     </>
   )

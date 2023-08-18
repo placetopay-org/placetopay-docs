@@ -1,0 +1,156 @@
+export const description =
+  'Conoce el protocolo de autenticación de Checkout API y cómo generar tu autenticación.';
+  
+<MissingTraductionBanner />
+
+# Autenticación
+
+Para interactuar con la API de Checkout debes autenticar tus peticiones, de esta forma identificamos y validamos la información para que tus operaciones sean seguras. La API utiliza *Web Services Security UsernameToken Profile 1.1*. {{ className: 'lead' }}
+
+## Credenciales API
+
+Para integrarse con Checkout debes contar con tus credenciales `login` y `secretKey`.
+
+- **login:** Identificador del sitio, puede considerarse público pues viaja como dato plano en las peticiones API.
+- **secretKey:** Llave secreta del sitio, debe ser privada, a partir de este dato se generará un nuevo `tranKey` que será enviado en las peticiones.
+
+<Note>
+  Estas credenciales son própias de tu sitio y deben ser tratadas de forma segura. No compartas tus credenciales en áreas de acceso público como Github, código del lado de cliente u otros lugares de facil acceso para terceros.
+</Note>
+
+## Objeto Authentication
+
+El parámetro `auth` debe ser enviado en todas la peticiones API y contiene el grupo de propiedades necesarias para verificar la autenticación.
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="auth.login" type="string">
+        Identificador del sitio
+      </Property>
+      <Property name="auth.tranKey" type="string">
+        Credencial tranKey generado. A continuación se explica en detalle.
+      </Property>
+      <Property name="auth.nonce" type="string">
+        Valor aleatorio para cada solicitud codificado en Base64.
+      </Property>
+      <Property name="auth.seed" type="string">
+        Fecha actual, la cual se genera en formato ISO 8601.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+
+    ```json {{ 'title': 'Autenticación de Ejemplo' }}
+    {    
+      "auth": {
+        "login":"1441d14df19ec88431e513bb990326e1",
+        "tranKey":"DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=",
+        "nonce":"enQ4dXh3YWhkMWM=",
+        "seed":"2023-06-21T09:56:06-05:00"
+      },
+      ...
+    }
+
+    ```
+
+  </Col>
+</Row>
+
+
+## Cómo generar tu autenticación
+
+Debes conocer y preparar los siguientes datos:
+
+**login:** Credencial `login` provista al inicar tu integración. Identificador del sitio.
+
+**secretKey**: Credencial `secretKey` provista al iniciar tu integración. Llave secreta del sitio.
+
+**seed:** Se trata de la fecha en la que se generó la autenticación. La fecha debe estar en formato ISO 8601.    
+Ejemplo: `2023-06-21T09:56:06-05:00`
+
+**nonce:** Valor arbirario que identifica a una petición cómo única.   
+Se genera y se utiliza para otras operaciones.   
+Al momento de enviarlo, debe ser codificado en base 64.   
+Ejemplo: `base64('927342197')`
+
+**tranKey:** Se genera en cada solicitud de forma programatica.   
+Se genera con la siguiente formula `Base64(SHA-256(nonce + seed + secretKey))` esta formula debe ser traducida según el lenguaje de programación utilizado.
+
+
+<CodeGroup title="Generate authentication">
+
+```php
+$login = "siteLogin";
+$secretKey = "siteSecretKey";
+$seed = date('c');
+$rawNonce = rand();
+
+$tranKey = base64_encode(hash('sha256', $rawNonce.$seed.$secretKey, true));
+$nonce = base64_encode($rawNonce);
+
+$body = [
+  "auth" => [
+    "login" => $login,
+    "tranKey" => $tranKey,
+    "nonce" => $nonce,
+    "seed" => $seed,
+  ],
+  // ... other params
+];
+```
+
+```js
+const crypto = require('crypto');
+
+const login = "siteLogin";
+const secretKey = "siteSecretKey";
+const seed = new Date().toISOString();
+const rawNonce = Math.floor(Math.random() * 1000000);
+
+const tranKey = Buffer.from(crypto.createHash('sha256').update(rawNonce + seed + secretKey).digest(), 'binary').toString('base64');
+const nonce = Buffer.from(rawNonce.toString()).toString('base64');
+
+const body = {
+  auth: {
+    login: login,
+    tranKey: tranKey,
+    nonce: nonce,
+    seed: seed,
+  },
+  // ... other params
+};
+```
+
+</CodeGroup>
+
+## Posibles errores
+
+
+Código | Causa
+---------|----------
+ 100 | UsernameToken no proporcionado (Encabezado de la autorización mal formado).
+ 101 | Identificador de sitio no existe ( Login incorrecto o no se encuentra en el ambiente).
+ 102 | 	El hash de TranKey no coincide (Trankey incorrecto o mal formado).
+ 103 | Fecha de la semilla mayor de 5 minutos.
+ 104 | Sitio inactivo.
+ 105| Sitio expirado.
+ 106 | Credenciales expiradas.
+ 107| Mala definición del UsernameToken (No cumple con el encabezado WSSE).
+ 200| Saltar el encabezado de autenticación SOAP.
+ 10001| Contacte a Soporte.
+
+## Errores frecuentes
+
+**Mensaje de error “Autenticación mal formada”:**   
+Se presenta cuando el sistema no detecta que se esté enviando login, tranKey, seed o nonce en la estructura auth enviada, también puede presentarse si se envían estos datos pero de manera incorrecta, es decir sin el parámetro content-type “application/json” de manera que el servidor interpreta la petición como texto en lugar de un arreglo de datos. Puedes validar esto haciendo la petición a la URL https://dnetix.co/p2p/client y capturando la respuesta, es una especie de espejo de la petición que te permitirá comprobar los parámetros y el *body* del mensaje.
+
+**Error conectando al servicio con el mensaje ERROR: javax.net.ssl.SSLHandshakeException: Remote host closed connection during handshake**:   
+Tus servidores requieren TLSv1.2 para recibir la solicitud, debido a la norma PCI. Por favor, revisa el cifrado y el protocolo utilizado para conectar al servidor. Si usas Java, ten presente que solo las versiones después de la 8 tienen soporte completo.
+
+**SoapFault responde con el mensaje "Authentication Failed 103"**:   
+En el proceso de autenticación, Placetopay revisamos el campo Created, este campo debe estar en el tiempo GMT o el tiempo local usando el tiempo de zona. Si obtienes esta respuesta, se debe a que tu tiempo no es preciso con el tiempo real. Nosotros solo permitimos 5 minutos de diferencia entre los tiempos. Puedes usar NTP para mantener la precisión del reloj.
+
+**Dando los mismos valores EXACTOS que en los ejemplos anteriores a la BASE64(SHA256($Nonce + $Created . $secretKey)) estoy obteniendo un password digest diferente.**:   
+Mantén en mente que BASE64 debería ser para el raw output de la SHA256 y de acuerdo con todos los lenguajes de programación este puede ser requerido para configurar esta opción, por ejemplo. En PHP base64_encode(hash('sha256' … , true)) este parámetro retornaría el raw output para el SHA256 algorithm
+

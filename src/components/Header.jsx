@@ -3,7 +3,6 @@ import Link from 'next/link'
 import clsx from 'clsx'
 import { motion, useScroll, useTransform } from 'framer-motion'
 
-import { Button } from '@/components/Button'
 import { Logo } from '@/components/Logo'
 import {
   MobileNavigation,
@@ -12,6 +11,7 @@ import {
 import { useMobileNavigationStore } from '@/components/MobileNavigation'
 import { ModeToggle } from '@/components/ModeToggle'
 import { MobileSearch, Search } from '@/components/Search'
+import { LanguageSwitch } from './LanguageSwitch'
 
 function TopLevelNavItem({ href, children }) {
   return (
@@ -26,7 +26,43 @@ function TopLevelNavItem({ href, children }) {
   )
 }
 
-export const Header = forwardRef(function Header({ className, isHome }, ref) {
+export const HeaderHome = ({ className }) => {
+  return (
+    <div
+      className={clsx(
+        className,
+        'flex items-center justify-between gap-12 px-4 sm:px-6 lg:px-8'
+      )}
+    >
+      <Search />
+      <div className="flex items-center gap-5 lg:hidden">
+        <Link href="/" aria-label="Home">
+          <Logo className="h-6" />
+        </Link>
+      </div>
+      <div className="flex items-center gap-4">
+        {/* <nav className="hidden md:block">
+          <ul role="list" className="flex items-center gap-8">
+          <TopLevelNavItem href="/">API</TopLevelNavItem>
+              <TopLevelNavItem href="#">Documentation</TopLevelNavItem>
+              <TopLevelNavItem href="#">Support</TopLevelNavItem>
+          </ul>
+          </nav> */}
+        <LanguageSwitch />
+        <div className="hidden md:block md:h-5 md:w-px md:bg-gray-900/10 md:dark:bg-white/15" />
+        <div className="flex gap-4">
+          <MobileSearch />
+          <ModeToggle />
+        </div>
+        {/* <div className="hidden min-[416px]:contents">
+          <Button href="#">Sign in</Button>
+        </div> */}
+      </div>
+    </div>
+  )
+}
+
+export const Header = forwardRef(function Header({ className }, ref) {
   let { isOpen: mobileNavIsOpen } = useMobileNavigationStore()
   let isInsideMobileNavigation = useIsInsideMobileNavigation()
 
@@ -60,20 +96,21 @@ export const Header = forwardRef(function Header({ className, isHome }, ref) {
       />
       <Search />
       <div className="flex items-center gap-5 lg:hidden">
-        {!isHome && <MobileNavigation />}
+        <MobileNavigation />
         <Link href="/" aria-label="Home">
           <Logo className="h-6" />
         </Link>
       </div>
       <div className="flex items-center gap-5">
         {/* <nav className="hidden md:block"> */}
-          {/* <ul role="list" className="flex items-center gap-8"> */}
-            {/* <TopLevelNavItem href="/">API</TopLevelNavItem>
+        {/* <ul role="list" className="flex items-center gap-8"> */}
+        {/* <TopLevelNavItem href="/">API</TopLevelNavItem>
             <TopLevelNavItem href="#">Documentation</TopLevelNavItem>
             <TopLevelNavItem href="#">Support</TopLevelNavItem> */}
-          {/* </ul> */}
+        {/* </ul> */}
         {/* </nav> */}
-        {/* <div className="hidden md:block md:h-5 md:w-px md:bg-gray-900/10 md:dark:bg-white/15" /> */}
+        <LanguageSwitch />
+        <div className="hidden md:block md:h-5 md:w-px md:bg-gray-900/10 md:dark:bg-white/15" />
         <div className="flex gap-4">
           <MobileSearch />
           <ModeToggle />
