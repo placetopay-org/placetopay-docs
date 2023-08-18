@@ -4,13 +4,13 @@ import { useRouter } from 'next/router'
 import clsx from 'clsx'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
 
-import { Button } from '@/components/Button'
+
+import { useLocalizePath } from '@/hooks/useLocalizePath'
+import { useNavigation } from '@/hooks/useNavigation'
 import { useIsInsideMobileNavigation } from '@/components/MobileNavigation'
 import { useSectionStore } from '@/components/SectionProvider'
 import { Tag } from '@/components/Tag'
 import { remToPx } from '@/lib/remToPx'
-import { useLocalizePath } from '@/hooks/useLocalizePath'
-
 function useInitialValue(value, condition = true) {
   let initialValue = useRef(value).current
   return condition ? initialValue : value
@@ -193,46 +193,9 @@ function NavigationGroup({ group, className }) {
   )
 }
 
-export const navigation = [
-  {
-    title: 'Checkout',
-    links: [
-      { title: 'Introducción', href: '/checkout' },
-      { title: 'Cómo Funciona', href: '/checkout/how-checkout-works' },
-      { title: 'Plugins', href: '/checkout/plugins' },
-      { title: 'Lightbox', href: '/checkout/lightbox' },
-    ],
-  },
-  {
-    title: 'Integración',
-    links: [
-      { title: 'Autenticación', href: '/checkout/authentication' },
-      { title: 'Crear Sesión', href: '/checkout/create-session' },
-      { title: 'Notificación', href: '/checkout/notification' },
-      { title: 'Localización', href: '/checkout/localization' },
-      { title: 'Tipos de documento', href: '/checkout/document-types' },
-      { title: 'Campos Adicionales', href: '/checkout/additional-fields' },
-      { title: 'Montos y Monedas', href: '/checkout/tax-details' },
-      { title: 'Métodos de pago', href: '/checkout/payment-methods' },
-      {
-        title: 'Prueba tu integración',
-        href: '/checkout/test-your-integration',
-      },
-      { title: 'Historial de cambios', href: '/checkout/changelog' },
-      { title: 'Politica de cambios', href: '/checkout/api-policy' },
-    ],
-  },
-  {
-    title: 'API',
-    links: [
-      { title: 'Sesión', href: '/checkout/api-reference/session' },
-      { title: 'Pagos', href: '/checkout/api-reference/payment' },
-      { title: 'Token', href: '/checkout/api-reference/token' },
-    ],
-  },
-]
-
 export function Navigation(props) {
+  let navigation = useNavigation('checkout');
+
   return (
     <nav {...props}>
       <ul role="list">
