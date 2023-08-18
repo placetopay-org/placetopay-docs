@@ -7,6 +7,7 @@ export const a = Link
 export { Button } from '@/components/Button'
 export { CodeGroup, Code as code, Pre as pre } from '@/components/Code'
 export { ApiReader } from '@/components/ApiReader'
+export { MissingTraductionBanner } from '@/components/MissingTraductionBanner'
 
 export const h2 = function H2(props) {
   return <Heading level={2} {...props} />

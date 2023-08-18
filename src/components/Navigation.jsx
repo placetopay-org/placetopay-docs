@@ -4,12 +4,13 @@ import { useRouter } from 'next/router'
 import clsx from 'clsx'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
 
-import { Button } from '@/components/Button'
+
+import { useLocalizePath } from '@/hooks/useLocalizePath'
+import { useNavigation } from '@/hooks/useNavigation'
 import { useIsInsideMobileNavigation } from '@/components/MobileNavigation'
 import { useSectionStore } from '@/components/SectionProvider'
 import { Tag } from '@/components/Tag'
 import { remToPx } from '@/lib/remToPx'
-
 function useInitialValue(value, condition = true) {
   let initialValue = useRef(value).current
   return condition ? initialValue : value
@@ -110,13 +111,22 @@ function NavigationGroup({ group, className }) {
   // state, so that the state does not change during the close animation.
   // The state will still update when we re-open (re-render) the navigation.
   let isInsideMobileNavigation = useIsInsideMobileNavigation()
+  let localizePath = useLocalizePath()
   let [router, sections] = useInitialValue(
     [useRouter(), useSectionStore((s) => s.sections)],
     isInsideMobileNavigation
   )
 
-  let isActiveGroup =
-    group.links.findIndex((link) => link.href === router.pathname) !== -1
+  const groupWithLocaleInLinks = {
+    ...group,
+    links: group.links.map((link) => ({
+      ...link,
+      href: localizePath(link.href),
+    }))
+  }
+
+  let isActiveGroup = 
+    groupWithLocaleInLinks.links.findIndex((link) => link.href === router.pathname) !== -1
 
   return (
     <li className={clsx('relative mt-6', className)}>
@@ -124,12 +134,12 @@ function NavigationGroup({ group, className }) {
         layout="position"
         className="text-xs font-semibold text-gray-900 dark:text-white"
       >
-        {group.title}
+        {groupWithLocaleInLinks.title}
       </motion.h2>
       <div className="relative mt-3 pl-2">
         <AnimatePresence initial={!isInsideMobileNavigation}>
           {isActiveGroup && (
-            <VisibleSectionHighlight group={group} pathname={router.pathname} />
+            <VisibleSectionHighlight group={groupWithLocaleInLinks} pathname={router.pathname} />
           )}
         </AnimatePresence>
         <motion.div
@@ -138,11 +148,11 @@ function NavigationGroup({ group, className }) {
         />
         <AnimatePresence initial={false}>
           {isActiveGroup && (
-            <ActivePageMarker group={group} pathname={router.pathname} />
+            <ActivePageMarker group={groupWithLocaleInLinks} pathname={router.pathname} />
           )}
         </AnimatePresence>
         <ul role="list" className="border-l border-transparent">
-          {group.links.map((link) => (
+          {groupWithLocaleInLinks.links.map((link) => (
             <motion.li key={link.href} layout="position" className="relative">
               <NavLink href={link.href} active={link.href === router.pathname}>
                 {link.title}
@@ -183,43 +193,9 @@ function NavigationGroup({ group, className }) {
   )
 }
 
-export const navigation = [
-  {
-    title: 'Checkout',
-    links: [
-      { title: 'Introducción', href: '/checkout' },
-      { title: 'Cómo Funciona', href: '/checkout/how-checkout-works' },
-      { title: 'Plugins', href: '/checkout/plugins' },
-      { title: 'Lightbox', href: '/checkout/lightbox' },
-    ],
-  },
-  {
-    title: 'Integración',
-    links: [
-      { title: 'Autenticación', href: '/checkout/authentication' },
-      { title: 'Crear Sesión', href: '/checkout/create-session' },
-      { title: 'Notificación', href: '/checkout/notification' },
-      { title: 'Localización', href: '/checkout/localization' },
-      { title: 'Tipos de documento', href: '/checkout/document-types' },
-      { title: 'Campos Adicionales', href: '/checkout/additional-fields' },
-      { title: 'Montos y Monedas', href: '/checkout/tax-details' },
-      { title: 'Métodos de pago', href: '/checkout/payment-methods' },
-      { title: 'Prueba tu integración', href: '/checkout/test-your-integration' },
-      { title: 'Historial de cambios', href: '/checkout/changelog' },
-      { title: 'Politica de cambios', href: '/checkout/api-policy' },
-    ],
-  },
-  {
-    title: 'API',
-    links: [
-      { title: 'Sesión', href: '/checkout/api-reference/session' },
-      { title: 'Pagos', href: '/checkout/api-reference/payment' },
-      { title: 'Token', href: '/checkout/api-reference/token' },
-    ],
-  },
-]
-
 export function Navigation(props) {
+  let navigation = useNavigation('checkout');
+
   return (
     <nav {...props}>
       <ul role="list">
@@ -233,11 +209,11 @@ export function Navigation(props) {
             className={groupIndex === 0 && 'md:mt-0'}
           />
         ))}
-        <li className="sticky bottom-0 z-10 mt-6 min-[416px]:hidden">
+        {/* <li className="sticky bottom-0 z-10 mt-6 min-[416px]:hidden">
           <Button href="#" variant="filled" className="w-full">
             Sign in
           </Button>
-        </li>
+        </li> */}
       </ul>
     </nav>
   )
