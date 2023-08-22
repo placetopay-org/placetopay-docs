@@ -27,7 +27,7 @@ const LocaleProvider = ({ children }) => {
     setLocale(locale)
     const possibleLanguage = router.pathname.split('/')[1]
     if (possibleLanguage !== locale && LANGUAGE_DEFAULT !== locale) {
-      router.push(`/${locale}${router.pathname}`)
+      router.push(`/${locale}${router.asPath}`)
     }
 
     if (
@@ -35,7 +35,7 @@ const LocaleProvider = ({ children }) => {
       CODES.includes(possibleLanguage) &&
       possibleLanguage !== LANGUAGE_DEFAULT
     ) {
-      const newPathname = router.pathname.split('/').slice(2).join('/')
+      const newPathname = router.asPath.split('/').slice(2).join('/')
       router.push(`/${newPathname}`)
     }
   }
