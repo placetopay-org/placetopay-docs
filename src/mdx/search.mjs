@@ -25,6 +25,24 @@ function excludeObjectExpressions(tree) {
   return filter(tree, (node) => !isObjectExpression(node))
 }
 
+function getSlugify(tree, content) {
+  const child = tree.children?.find((node) => node.type === 'mdxTextExpression')
+  if (child && isObjectExpression(child)) {
+    try {
+      const idToHash = child.data?.estree?.body?.[0]?.expression?.properties?.find(
+        (prop) => prop.key.name === 'id'
+      )?.value?.value;
+      if (idToHash) {
+        return slugify(idToHash)
+      }
+    } catch (e) {
+      console.log('[ERROR:getSlugify:JSON::parse]', e, child.value)
+    }
+  }
+
+  return slugify(content)
+}
+
 function extractSections() {
   return (tree, { sections }) => {
     slugify.reset()
@@ -33,7 +51,7 @@ function extractSections() {
       if (node.type === 'heading' || node.type === 'paragraph') {
         let content = toString(excludeObjectExpressions(node))
         if (node.type === 'heading' && node.depth <= 2) {
-          let hash = node.depth === 1 ? null : slugify(content)
+          let hash = node.depth === 1 ? null : getSlugify(node, content)
           sections.push([content, hash, []])
         } else {
           sections.at(-1)?.[2].push(content)
@@ -62,7 +80,10 @@ export default function (nextConfig = {}) {
               let url =
                 file === 'index.mdx' ? '/' : `/${file.replace(/\.mdx$/, '')}`
               let mdx = fs.readFileSync(path.join(pagesDir, file), 'utf8')
-              let locale = path.dirname(file).split(path.sep)[0].replace('/', '')
+              let locale = path
+                .dirname(file)
+                .split(path.sep)[0]
+                .replace('/', '')
               locale = locale.length === 2 ? locale : 'es'
 
               let sections = []
