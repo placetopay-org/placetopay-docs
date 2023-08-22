@@ -30,7 +30,7 @@ function useAutocomplete() {
             {
               sourceId: 'documentation',
               getItems() {
-                const locale = getWindowLocale();
+                const locale = getWindowLocale()
                 return search(query, { limit: 5 }).filter((item) => item.locale === locale)
               },
               getItemUrl({ item }) {
