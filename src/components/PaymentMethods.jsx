@@ -110,7 +110,7 @@ export function PaymentMethods() {
     <div>
       {groupsByCountry.map((group) => (
         <div key={group.country}>
-          <Heading level={2} id="plugins">
+          <Heading level={2} id="payment-methods">
             {group.country}
           </Heading>
           <table className='mt-6'>
