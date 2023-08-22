@@ -3,8 +3,10 @@ import { useRouter } from 'next/router'
 import { createAutocomplete } from '@algolia/autocomplete-core'
 import { Dialog, Transition } from '@headlessui/react'
 import clsx from 'clsx'
-import { navigation } from '@/components/Navigation'
+import { CHECKOUT_NAVIGATION } from '@/constants/navigations'
 import Highlighter from 'react-highlight-words'
+import { useLocale } from './LocaleProvider'
+import { getWindowLocale } from '@/lib/getWindowLocale'
 
 function useAutocomplete() {
   let id = useId()
@@ -28,7 +30,8 @@ function useAutocomplete() {
             {
               sourceId: 'documentation',
               getItems() {
-                return search(query, { limit: 5 })
+                const locale = getWindowLocale();
+                return search(query, { limit: 5 }).filter((item) => item.locale === locale)
               },
               getItemUrl({ item }) {
                 return item.url
@@ -117,9 +120,10 @@ function SearchResult({
   collection,
   query,
 }) {
+  let {locale} = useLocale()
   let id = useId()
 
-  let sectionTitle = navigation.find((section) =>
+  let sectionTitle = CHECKOUT_NAVIGATION[locale].find((section) =>
     section.links.find((link) => link.href === result.url.split('#')[0])
   )?.title
   let hierarchy = [sectionTitle, result.pageTitle].filter(Boolean)

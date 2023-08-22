@@ -44,6 +44,7 @@ function extractSections() {
   }
 }
 
+// eslint-disable-next-line import/no-anonymous-default-export
 export default function (nextConfig = {}) {
   let cache = new Map()
 
@@ -61,6 +62,8 @@ export default function (nextConfig = {}) {
               let url =
                 file === 'index.mdx' ? '/' : `/${file.replace(/\.mdx$/, '')}`
               let mdx = fs.readFileSync(path.join(pagesDir, file), 'utf8')
+              let locale = path.dirname(file).split(path.sep)[0].replace('/', '')
+              locale = locale.length === 2 ? locale : 'es'
 
               let sections = []
 
@@ -72,7 +75,7 @@ export default function (nextConfig = {}) {
                 cache.set(file, [mdx, sections])
               }
 
-              return { url, sections }
+              return { url, sections, locale }
             })
 
             // When this file is imported within the application
@@ -85,7 +88,7 @@ export default function (nextConfig = {}) {
                 document: {
                   id: 'url',
                   index: 'content',
-                  store: ['title', 'pageTitle'],
+                  store: ['title', 'pageTitle', 'locale'],
                 },
                 context: {
                   resolution: 9,
@@ -96,11 +99,12 @@ export default function (nextConfig = {}) {
 
               let data = ${JSON.stringify(data)}
 
-              for (let { url, sections } of data) {
+              for (let { url, sections, locale } of data) {
                 for (let [title, hash, content] of sections) {
                   sectionIndex.add({
                     url: url + (hash ? ('#' + hash) : ''),
                     title,
+                    locale,
                     content: [title, ...content].join('\\n'),
                     pageTitle: hash ? sections[0][0] : undefined,
                   })
@@ -119,6 +123,7 @@ export default function (nextConfig = {}) {
                   url: item.id,
                   title: item.doc.title,
                   pageTitle: item.doc.pageTitle,
+                  locale: item.doc.locale,
                 }))
               }
             `
