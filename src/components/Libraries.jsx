@@ -9,51 +9,58 @@ import logoPhp from '@/images/logos/php.svg'
 import logoShopify from '@/images/logos/shopify.svg'
 import logoVtex from '@/images/logos/vtex.svg'
 import logoJumpseller from '@/images/logos/jumpseller.svg'
+import { useLocale } from './LocaleProvider'
 
 const plugins = [
   {
     href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/woocommerce-gateway-placetopay-2.17.2.zip',
     name: 'WooCommerce',
-    description:
-      'Plugin para WordPress. Diseñado para tiendas y comercios en linea que usan WordPress.',
+    description: {
+      es: 'Plugin para WordPress. Diseñado para tiendas y comercios en linea que usan WordPress.',
+      en: 'Plugin for WordPress. Designed for stores and online stores that use WordPress.',
+    },
     logo: logoWooComerce,
-    action: 'Ver más'
+    action: { es: 'Ver más', en: 'See more' },
   },
   {
     href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/magento2-placetopay-1.7.7.zip',
     name: 'Magento',
-    description:
-      'Plataforma de código abierto para comercio electrónico escrita en PHP.',
+    description: {
+      es: 'Plataforma de código abierto para comercio electrónico escrita en PHP.',
+      en: 'Open source platform for e-commerce written in PHP.',
+    },
     logo: logoMagento,
-    action: 'Ver más'
+    action: { es: 'Ver más', en: 'See more' },
   },
   {
     href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/placetopaypayment_3.4.7.zip',
     name: 'PrestaShop',
-    description:
-      'Plataforma especializada en la creación y gestión de tiendas online.',
+    description: {
+      es: 'Plataforma especializada en la creación y gestión de tiendas online.',
+      en: 'Platform specialized in the creation and management of online stores.',
+    },
     logo: logoPrestashop,
-    action: 'Ver más'
+    action: { es: 'Ver más', en: 'See more' },
   },
   {
-    href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/placetopaypayment_3.4.7.zip',
     name: 'Jumpseller',
-    description:
-      'Plataforma de comercio electrónico para crear tu tienda en línea.',
+    description: {
+      es: 'Plataforma de comercio electrónico para crear tu tienda en línea.',
+      en: 'E-commerce platform to create your online store.',
+    },
     logo: logoJumpseller,
   },
   {
-    href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/placetopaypayment_3.4.7.zip',
     name: 'Vtex',
-    description:
-      'Plataforma de comercio digital para grandes empresas.',
+    description: {
+      es: 'Plataforma de comercio digital para grandes empresas.',
+      en: 'Digital commerce platform for large companies.',
+    },
     logo: logoVtex,
   },
   {
-    href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/placetopaypayment_3.4.7.zip',
     name: 'Shopify',
-    description:
-      'En desarrollo...',
+    description: { es: 'En desarrollo...', en: 'In development...' },
     logo: logoShopify,
   },
 ]
@@ -62,41 +69,60 @@ const libraries = [
   {
     href: 'https://github.com/dnetix/redirection',
     name: 'PHP',
-    description:
-      'Lenguaje de programación de código abierto, especialmente adecuado para el desarrollo web',
+    description: {
+      es: 'Lenguaje de programación de código abierto, especialmente adecuado para el desarrollo web',
+      en: 'Open source programming language, especially suitable for web development',
+    },
     logo: logoPhp,
-    action: 'Ver más'
+    action: { es: 'Ver más', en: 'See more' },
   },
   {
     href: 'https://github.com/placetopay/redirection-csharp-sdk',
     name: 'C#',
-    description:
-      'Lenguaje de programación moderno y orientado a objetos desarrollado por Microsoft',
+    description: {
+      es: 'Lenguaje de programación moderno y orientado a objetos desarrollado por Microsoft',
+      en: 'Modern and object-oriented programming language developed by Microsoft',
+    },
     logo: logoCSharp,
-    action: 'Ver más'
+    action: { es: 'Ver más', en: 'See more' },
   },
   {
     href: 'https://github.com/placetopay/java-placetopay',
     name: 'Java',
-    description:
-      'Lenguaje de programación de alto nivel y orientado a objetos',
+    description: {
+      es: 'Lenguaje de programación de alto nivel y orientado a objetos',
+      en: 'High level and object oriented programming language',
+    },
     logo: logoJava,
-    action: 'Ver más'
+    action: { es: 'Ver más', en: 'See more' },
   },
 ]
 
 export function Libraries() {
+  const { locale } = useLocale()
   return (
     <div className="my-16 xl:max-w-none">
       <Heading level={2} id="plugins">
         Plugins
       </Heading>
-      <ItemsList items={plugins}></ItemsList>
+      <ItemsList
+        items={plugins.map((plugin) => ({
+          ...plugin,
+          description: plugin.description[locale],
+          action: plugin.action ? plugin.action[locale] : undefined,
+        }))}
+      />
 
       <Heading level={2} id="libraries">
         Librerias
       </Heading>
-      <ItemsList items={libraries}></ItemsList>
+      <ItemsList
+        items={libraries.map((lib) => ({
+          ...lib,
+          description: lib.description[locale],
+          action: lib.action ? lib.action[locale] : undefined,
+        }))}
+      />
     </div>
   )
 }
