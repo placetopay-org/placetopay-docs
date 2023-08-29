@@ -27,17 +27,34 @@ import logoAthCard from '@/images/cards/ath_card.svg'
 import logoTarjetaClave from '@/images/cards/tarjeta_clave.svg'
 import logoACH from '@/images/cards/ach.svg'
 import { Heading } from './Heading'
+import { useLocale } from './LocaleProvider'
 
 const groupsByCountry = [
   {
     country: 'Global',
     items: [
-      {name: 'Tarjeta Visa', code: 'visa', logo: logoVisa},
-      { name: 'Tarjeta Mastercard', code: 'master', logo: logoMastercard},
-      { name: 'Tarjeta Diners Club', code: 'diners', logo: logoDinersClub},
-      { name: 'Tarjeta American Express', code: 'amex', logo: logoAmex},
-      { name: 'Paypal', code: 'paypal', logo: logoPaypal},
-      { name: 'Safety Pay', code: 'safetypay', logo: logoSafetifypay},
+      {
+        name: { es: 'Tarjeta Visa', en: 'Visa' },
+        code: 'visa',
+        logo: logoVisa,
+      },
+      {
+        name: { es: 'Tarjeta Mastercard', en: 'Mastercard' },
+        code: 'master',
+        logo: logoMastercard,
+      },
+      {
+        name: { es: 'Tarjeta Diners Club', en: 'Diners Club' },
+        code: 'diners',
+        logo: logoDinersClub,
+      },
+      {
+        name: { es: 'Tarjeta American Express', en: 'American Express' },
+        code: 'amex',
+        logo: logoAmex,
+      },
+      { name: 'Paypal', code: 'paypal', logo: logoPaypal },
+      { name: 'Safety Pay', code: 'safetypay', logo: logoSafetifypay },
     ],
   },
   {
@@ -49,16 +66,20 @@ const groupsByCountry = [
         logo: logoPse,
       },
       {
-        name: 'Tarjeta débito Visa Electron',
+        name: { es: 'Tarjeta débito Visa Electron', en: 'Visa Electron' },
         code: 'visa_electron',
         logo: logoVisaElectron,
       },
       {
-        name: 'Tarjeta Somos Grupo EPM',
+        name: { es: 'Tarjeta Somos Grupo EPM', en: 'Somos Grupo EPM' },
         code: 'somos',
         logo: logoSomos,
       },
-      { name: 'Tarjeta CODENSA', code: 'codensa', logo: logoCodensa },
+      {
+        name: { es: 'Tarjeta CODENSA', en: 'CODENSA' },
+        code: 'codensa',
+        logo: logoCodensa,
+      },
       {
         name: 'Botón Bancolombia',
         code: 'bancolombia',
@@ -66,46 +87,82 @@ const groupsByCountry = [
       },
       { name: 'Comfandi', code: 'comfandi', logo: logoComfandi },
       { name: 'CAFAM', code: 'cafam', logo: logoCafam },
-      { name: 'Tarjeta Mefia', code: 'mefia', logo: logoMefia },
-      { name: 'Tarjeta Éxito', code: 'exito', logo: logoExito },
-      { name: 'Tarjeta Alkosto', code: 'alkosto', logo: logoAlkosto },
+      {
+        name: { es: 'Tarjeta Mefia', en: 'Mefia' },
+        code: 'mefia',
+        logo: logoMefia,
+      },
+      {
+        name: { es: 'Tarjeta Éxito', en: 'Éxito' },
+        code: 'exito',
+        logo: logoExito,
+      },
+      {
+        name: { es: 'Tarjeta Alkosto', en: 'Alkosto' },
+        code: 'alkosto',
+        logo: logoAlkosto,
+      },
       { name: 'OKI - Gana', code: 'gana', logo: logoOki },
-      { name: 'Billetera Compensar', code: 'procesa', logo: logoCompensar },
-      { name: 'Efectivo', code: 'ath', logo: logoCash },
-
+      {
+        name: { es: 'Billetera Compensar', en: 'Wallet Compensar' },
+        code: 'procesa',
+        logo: logoCompensar,
+      },
+      { name: { es: 'Efectivo', en: 'Cash' }, code: 'ath', logo: logoCash },
     ],
   },
 
   {
     country: 'Chile y Uruguay',
     items: [
-      { name: 'Tarjeta Maestro', code: 'maestro', logo: logoMaestro},
+      {
+        name: { es: 'Tarjeta Maestro', en: 'Maestro Card' },
+        code: 'maestro',
+        logo: logoMaestro,
+      },
     ],
   },
   {
     country: 'Panamá / Costa Rica / Belice / Honduras',
     items: [
-      {code: "discover", name: "Tarjeta Discover  ", logo: logoDiscover},
-      {code: "telered", name: "Tarjeta Clave", logo: logoTarjetaClave},     
+      {
+        code: 'discover',
+        name: { es: 'Tarjeta Discover', en: 'Discover' },
+        logo: logoDiscover,
+      },
+      {
+        code: 'telered',
+        name: { es: 'Tarjeta Clave', en: 'Clave Card' },
+        logo: logoTarjetaClave,
+      },
     ],
   },
   {
     country: 'Puerto Rico',
     items: [
-      {code: "athmv", name: "ATH Móvil ", logo: logoAthMovil},
-      {code: "ath_card", name: "Tarjeta ATH - EBUS", logo: logoAthCard},
-      {code: "ebach", name: "ACH - EBUS", logo: logoACH},
+      { code: 'athmv', name: 'ATH Móvil', logo: logoAthMovil },
+      {
+        code: 'ath_card',
+        name: { es: 'Tarjeta ATH - EBUS', en: 'ATH - EBUS Card' },
+        logo: logoAthCard,
+      },
+      { code: 'ebach', name: 'ACH - EBUS', logo: logoACH },
     ],
   },
   {
     country: 'Perú',
     items: [
-      { name: 'Pago Efectivo', code: 'pagoefectivo', logo: logoPagoEfectivo },
-    ]
-  }
+      {
+        name: 'PagoEfectivo',
+        code: 'pagoefectivo',
+        logo: logoPagoEfectivo,
+      },
+    ],
+  },
 ]
 
 export function PaymentMethods() {
+  const { locale } = useLocale()
   return (
     <div>
       {groupsByCountry.map((group) => (
@@ -113,7 +170,7 @@ export function PaymentMethods() {
           <Heading level={2} id="payment-methods">
             {group.country}
           </Heading>
-          <table className='mt-6'>
+          <table className="mt-6">
             <thead>
               <tr>
                 <th>Nombre</th>
@@ -122,19 +179,21 @@ export function PaymentMethods() {
             </thead>
             <tbody>
               {group.items.map((item) => (
-                <tr key={item.code} className=''>
+                <tr key={item.code} className="">
                   <td className="w-full">
-                    <div className='not-prose flex gap-3'>
+                    <div className="not-prose flex gap-3">
                       <Image
                         src={item.logo}
                         alt=""
                         className="h-7 w-9"
                         unoptimized
                       />
-                      {item.name}
+                      {typeof item.name === 'string'
+                        ? item.name
+                        : item.name[locale]}
                     </div>
                   </td>
-                  <td className='align-middle'>
+                  <td className="align-middle">
                     <code>{item.code}</code>
                   </td>
                 </tr>
