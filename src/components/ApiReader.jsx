@@ -3,8 +3,23 @@ import { Disclosure, Transition } from '@headlessui/react'
 import ReactMarkdown from 'react-markdown'
 import clsx from 'clsx'
 import { PlusIcon } from '@heroicons/react/24/outline'
-
 import { Properties, Property } from './mdx'
+import { useLocale } from './LocaleProvider'
+
+const TITLES = {
+  request: {
+    es: 'Solicitud',
+    en: 'Request',
+  },
+  response: {
+    es: 'Respuesta',
+    en: 'Response',
+  },
+  params: {
+    es: 'Parámetros',
+    en: 'Params',
+  },
+}
 
 const ChildProperties = ({ properties = [], requireds = [] }) => {
   if (properties.length === 0) return null
@@ -118,13 +133,15 @@ const ApiProperties = ({
 }
 
 export const ApiResponses = ({ responses = {} }) => {
+  const {locale} = useLocale()
+
   const [selected, setSelected] = useState(Object.entries(responses)?.[0]?.[0])
   const response = responses[selected]
 
   return (
     <>
       <div className="flex items-baseline justify-between">
-        <h3>Respuesta</h3>
+      <h3>{TITLES.response[locale]}</h3>
 
         <select
           className="bg-inherit"
@@ -150,9 +167,10 @@ export const ApiResponses = ({ responses = {} }) => {
 }
 
 export const ApiParams = ({ params = [] }) => {
+  const {locale} = useLocale()
   return (
     <>
-      <h3>Parámetros</h3>
+      <h3>{TITLES.params[locale]}</h3>
       
       <Properties classNames="my-4">
         {params.map((param) => (
@@ -173,9 +191,10 @@ export const ApiParams = ({ params = [] }) => {
 }
 
 export const ApiRequest = ({ request = {} }) => {
+  const {locale} = useLocale()
   return (
     <>
-      <h3>Solicitud</h3>
+      <h3>{TITLES.request[locale]}</h3>
       <ApiProperties
         properties={Object.entries(
           request?.content?.['application/json']?.schema?.properties || {}
