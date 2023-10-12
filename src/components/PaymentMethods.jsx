@@ -147,6 +147,12 @@ const groupsByCountry = [
         logo: logoAthCard,
       },
       { code: 'ebach', name: 'ACH - EBUS', logo: logoACH },
+      {
+        code: 'discover',
+        name: { es: 'Tarjeta Discover - EBUS', en: 'Discover - EBUS' },
+        logo: logoDiscover,
+      },
+      
     ],
   },
   {
