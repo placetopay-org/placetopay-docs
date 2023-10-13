@@ -177,7 +177,7 @@ export function Benefits() {
   const { locale } = useLocale()
   return (
     <div className="xl:max-w-none">
-      <div className="not-prose mt-4 grid grid-cols-1 gap-8  dark:border-white/5 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="not-prose mt-4 grid grid-cols-1 gap-8 dark:border-white/5 sm:grid-cols-2 xl:grid-cols-3">
         {resources.map((resource) => (
           <Resource
             key={resource.href}
