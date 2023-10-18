@@ -1,22 +1,19 @@
-import ReactFlow, {Background, Controls, Handle, Position} from 'reactflow';
-import {data} from "autoprefixer";
-import clsx from "clsx";
+import ReactFlow, {Background, Controls} from 'reactflow';
+import {nodeTypes} from "@/components/react-flow/react-flow";
 
 const initialNodes = [
-    { id: 'STATE_PENDING', type: 'custom', position: { x: 0, y: 0 }, data: { label: 'PENDING'} },
-    { id: 'STATE_REJECTED', type: 'action', position: { x: 400, y: 0 }, data: { label: 'REJECTED', sourceHandle: false} },
-    { id: 'STATE_APPROVED', type:'action', position: { x: 400, y: 100 }, data: { label: 'APPROVED', sourceHandle: false } },
+    { id: 'STATE_PENDING', type: 'tag', position: { x: 0, y: 0 }, data: { label: "Session", tagLabel: 'PENDING', tagColor: 'amber', targetHandle: false}},
 
+    { id: 'ACTION_T_APPROVED', type: 'action', position: { x: 200, y: -95 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'Approved Transaction', rounded: true } },
+    { id: 'ACTION_T_REJECTED', type: 'action', position: { x: 200, y: -25 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'Rejected Transaction', rounded: true } },
+    { id: 'ACTION_EXPIRATION', type: 'action', position: { x: 200, y: 45 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'Expiration time ends', rounded: true } },
+    { id: 'ACTION_USER_CANCEL', type: 'action', position: { x: 200, y: 115 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'User canceled', rounded: true } },
 
-    { id: 'ACTION_USER_CANCEL', type: 'action', position: { x: 150, y: -100 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'User canceled', rounded: true } },
-    { id: 'ACTION_EXPIRATION', type: 'action', position: { x: 150, y: 0 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'Expiration time ends', rounded: true } },
-    { id: 'ACTION_T_APPROVED', type: 'action', position: { x: 150, y: 100 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'Approved Transaction', rounded: true } },
-    { id: 'ACTION_T_REJECTED', type: 'action', position: { x: 150, y: 200 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'Rejected Transaction', rounded: true } },
-
-    // { id: 'APPROVED_PARTIAL', position: { x: 500, y: 100 }, data: { label: 'APPROVED_PARTIAL' } },
-    // { id: 'PARTIAL_EXPIRED', position: { x: 300, y: 100 }, data: { label: 'PARTIAL_EXPIRED' } },
-    //
+    { id: 'STATE_APPROVED', type:'tag', position: { x: 450, y: -110 }, data: { label: "Session", tagLabel: 'APPROVED', tagColor: 'primary', sourceHandle: false } },
+    { id: 'STATE_PENDING_2', type: 'tag', position: { x: 450, y: -25 }, data: { label: "Session", tagLabel: 'PENDING', tagColor: 'amber', sourceHandle: false} },
+    { id: 'STATE_REJECTED', type: 'tag', position: { x: 450, y: 60 }, data: { label: "Session", tagLabel: 'REJECTED', tagColor: 'rose', sourceHandle: false} },
 ];
+
 const initialEdges = [
     { id: 'e__1', source: 'STATE_PENDING', target: 'ACTION_USER_CANCEL' },
     { id: 'e__2', source: 'ACTION_USER_CANCEL', target: 'STATE_REJECTED' },
@@ -28,36 +25,13 @@ const initialEdges = [
     { id: 'e__6', source: 'ACTION_T_APPROVED', target: 'STATE_APPROVED' },
 
     { id: 'e__7', source: 'STATE_PENDING', target: 'ACTION_T_REJECTED' },
-    { id: 'e__8', source: 'ACTION_T_REJECTED', target: 'STATE_PENDING' },
-
-
-    // { id: 'e__PENDING-APPROVED', source: 'PENDING', target: 'APPROVED' },
-    // { id: 'e__PENDING-PARTIAL_EXPIRED', source: 'PENDING', target: 'PARTIAL_EXPIRED' },
-    // { id: 'e__PENDING-APPROVED_PARTIAL', source: 'PENDING', target: 'APPROVED_PARTIAL' },
+    { id: 'e__8', source: 'ACTION_T_REJECTED', target: 'STATE_PENDING_2' },
 ];
 
-const nodeTypes = {
-    custom: CustomNode,
-    action: CustomNode,
-};
-
-function CustomNode({data}) {
-    const targetHandle = data.targetHandle ?? true;
-    const sourceHandle = data.sourceHandle ?? true;
-    return (
-        <div className={clsx("px-3 py-2 shadow-sm bg-white border border-gray-200", data.rounded? 'rounded-full': 'rounded-md')}>
-            <div className="flex">
-                <div className="text-gray-700 text-sm font-medium">{data.label}</div>
-            </div>
-            { targetHandle && <Handle type="target" position={Position.Left} className="w-16 !bg-teal-500"/>}
-            { sourceHandle && <Handle type="source" position={Position.Right} className="w-16 !bg-teal-500"/>}
-        </div>
-    );
-}
 
 export default function SessionStates() {
     return (
-        <div style={{ width: '100%', height: '400px' }} className="overflow-hidden ring-1 ring-gray-900/7.5 dark:ring-white/10 rounded-2xl">
+        <div style={{ width: '100%', height: '300px' }} className="overflow-hidden ring-1 ring-gray-900/7.5 dark:ring-white/10 rounded-2xl">
             <ReactFlow
                 nodes={initialNodes}
                 edges={initialEdges}
