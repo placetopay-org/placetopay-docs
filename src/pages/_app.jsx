@@ -9,6 +9,7 @@ import * as mdxComponents from '@/components/mdx'
 import { useMobileNavigationStore } from '@/components/MobileNavigation'
 
 import '@/styles/tailwind.css'
+import 'reactflow/dist/style.css';
 import 'focus-visible'
 
 function onRouteChange() {
