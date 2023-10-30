@@ -1,0 +1,77 @@
+export const description = 'How to integrate your Android application correctly.'
+
+# Integration with mobile application
+
+## Android integration (Kotlin) {{ id: "integration-with-android" }}
+
+Once you have obtained a payment session for your backend service, you can start the payment process in the mobile app. For this you must use the `WebView` components to carry out the integration process.
+
+To load the `processUrl` into a `WebView`, you can use the `loadUrl` method of the `WebView` class. It is important that you do not forget to allow both **JavaScript** and **Cookies** for the correct functioning of the payment session, otherwise it will not allow you to advance in the process.
+
+### Configure the WebView
+
+These settings help optimize and personalize the browsing experience within the WebView.
+It is important that you can identify the **Return URL** and the **Cancel URL** to be able to close the `WebView` once the payment process is complete.
+
+```kotlin
+import android.annotation.SuppressLint
+import android.view.ViewGroup
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.viewinterop.AndroidView
+import com.placetopay.p2pr.utilities.Constants
+
+@SuppressLint("SetJavaScriptEnabled")
+@Composable
+fun CheckoutWebView(processUrl: String, returnUrl: String, cancelUrl: String, refreshWebView: Boolean, onFinished: () -> Unit) {
+    AndroidView(factory = {
+        WebView(it).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            clearCache(true)
+
+            CookieManager.getInstance().setAcceptCookie(true)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
+            }
+
+            webChromeClient = WebChromeClient()
+            webViewClient = object : WebViewClient() {
+                override fun shouldOverrideUrlLoading(
+                    view: WebView?, request: WebResourceRequest?
+                ): Boolean {
+                    if (request?.url.toString() == returnUrl || request?.url.toString() == cancelUrl)
+                        onFinished()
+                    return super.shouldOverrideUrlLoading(view, request)
+                }
+            }
+            loadUrl(processUrl)
+        }
+    }, update = {
+        it.loadUrl(processUrl)
+        if (refreshWebView) it.reload()
+    })
+}
+```
+
+| Property                              | Description                                                                                    |
+|:--------------------------------------|:-----------------------------------------------------------------------------------------------|
+| `JavaScriptEnabled`                   | Enables the execution of JavaScript on the loading web page.                                   |
+| `DomStorageEnabled`                   | Enables web pages to store data locally, which can improve speed and performance.              |
+| `ClearCache`                          | Clears the WebView cache before loading a new URL.                                             |
+| `WebChromeClient` and `WebViewClient` | Configure the WebView's behavior for events such as URL loading and interaction with the page. |
+| `CookieManager`                       | Allows the use of cookies in the WebView.                                                      |
+
+### Integration example
+
+<GithubRepo
+    href="https://github.com/placetopay-org/checkout-android"
+    title="placetopay-org/checkout-android: Helper for integration with checkout in Android"
+    description="Helper for integration with checkout in Android. Contribute to placetopay-org/checkout-android development by creating an account on GitHub."
+/>
