@@ -9,6 +9,7 @@ export { CodeGroup, Code as code, Pre as pre } from '@/components/Code'
 export { ApiReader } from '@/components/ApiReader'
 export { CopyContent } from '@/components/CopyContent'
 export { MissingTraductionBanner } from '@/components/MissingTraductionBanner'
+export { GithubRepo } from '@/components/GithubRepo'
 
 export const h2 = function H2(props) {
   return <Heading level={2} {...props} />

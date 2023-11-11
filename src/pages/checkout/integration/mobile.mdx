@@ -1,0 +1,77 @@
+export const description = 'Como integrar tu aplicacion Android correctamente.'
+
+# Integracion con aplicacion móvil
+
+## Integración con Android (Kotlin) {{ id: "integration-with-android" }}
+
+Una vez hayas obtenido una sesión de pago de tu servicio de backend, puedes iniciar el proceso de pago en la aplicación móvil. Para esto debes hacer uso de los componentes `WebView` para realizar el proceso de integración.
+
+Para cargar la `processUrl` en un `WebView`, puedes utilizar el método `loadUrl` de la clase `WebView`. Es importante que no olvides permitir tanto el **JavaScript** y las **Cookies** para el correcto funcionamiento de la sesión de pago, de lo contrario está no permitirá avanzar en el proceso.
+
+### Configurar la WebView
+
+Estas configuraciones ayudan a optimizar y personalizar la experiencia de navegación dentro del WebView.
+Es importante que puedas identificar cual es la **URL de retorno** y la **URL de cancelación** para poder cerrar el `WebView` una vez finalice el proceso de pago.
+
+```kotlin
+import android.annotation.SuppressLint
+import android.view.ViewGroup
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.viewinterop.AndroidView
+import com.placetopay.p2pr.utilities.Constants
+
+@SuppressLint("SetJavaScriptEnabled")
+@Composable
+fun CheckoutWebView(processUrl: String, returnUrl: String, cancelUrl: String, refreshWebView: Boolean, onFinished: () -> Unit) {
+    AndroidView(factory = {
+        WebView(it).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            clearCache(true)
+
+            CookieManager.getInstance().setAcceptCookie(true)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
+            }
+
+            webChromeClient = WebChromeClient()
+            webViewClient = object : WebViewClient() {
+                override fun shouldOverrideUrlLoading(
+                    view: WebView?, request: WebResourceRequest?
+                ): Boolean {
+                    if (request?.url.toString() == returnUrl || request?.url.toString() == cancelUrl)
+                        onFinished()
+                    return super.shouldOverrideUrlLoading(view, request)
+                }
+            }
+            loadUrl(processUrl)
+        }
+    }, update = {
+        it.loadUrl(processUrl)
+        if (refreshWebView) it.reload()
+    })
+}
+```
+
+| Configuración                         | Descripción                                                                                                 |
+| :------------------------------------ | :---------------------------------------------------------------------------------------------------------- |
+| `JavaScriptEnabled`                   | Habilita la ejecución de JavaScript en la página web.                                                       |
+| `DomStorageEnabled`                   | Permite que las páginas web almacenen datos localmente, lo que puede mejorar la velocidad y el rendimiento. |
+| `ClearCache`                          | Borra la caché de WebView antes de cargar una nueva URL.                                                    |
+| `WebChromeClient` and `WebViewClient` | Configura el comportamiento del WebView para eventos como la carga y la interacción con la página.          |
+| `CookieManager`                       | Permite el uso de cookies en el WebView.                                                                    |
+
+### Ejemplo de integración
+
+<GithubRepo
+    href="https://github.com/placetopay-org/checkout-android"
+    title="placetopay-org/checkout-android: Helper for integration with checkout in Android"
+    description="Helper for integration with checkout in Android. Contribute to placetopay-org/checkout-android development by creating an account on GitHub."
+/>

@@ -22,6 +22,10 @@ const CHECKOUT_NAVIGATION_ES = [
       { title: 'Montos y Monedas', href: '/checkout/tax-details' },
       { title: 'Métodos de pago', href: '/checkout/payment-methods' },
       {
+        title: 'Como integrar con móvil',
+        href: '/checkout/integration/mobile',
+      },
+      {
         title: 'Prueba tu integración',
         href: '/checkout/test-your-integration',
       },
@@ -61,6 +65,10 @@ const CHECKOUT_NAVIGATION_EN = [
       { title: 'Additional Fields', href: '/checkout/additional-fields' },
       { title: 'Amounts and Currencies', href: '/checkout/tax-details' },
       { title: 'Payment Methods', href: '/checkout/payment-methods' },
+      {
+        title: 'How to integrate with mobile',
+        href: '/checkout/integration/mobile',
+      },
       {
         title: 'Test your integration',
         href: '/checkout/test-your-integration',
