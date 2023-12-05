@@ -78,29 +78,24 @@ const ParentProperty = ({
                   />
                   {open ? 'Ocultar' : 'Ver'} atributos
                 </Disclosure.Button>
-                <Transition
-                  unmount={false}
-                  enter="transition duration-100 ease-out"
-                  enterFrom="transform scale-95 opacity-0"
-                  enterTo="transform scale-100 opacity-100"
-                  leave="transition duration-75 ease-out"
-                  leaveFrom="transform scale-100 opacity-100"
-                  leaveTo="transform scale-95 opacity-0"
-                >
-                  <Disclosure.Panel static>
-                    <div
-                      className={clsx(
-                        open &&
-                          'rounded-lg border border-zinc-200 dark:border-white/5'
-                      )}
-                    >
-                      <ChildProperties
-                        properties={Object.entries(properties)}
-                        requireds={requireds}
-                      />
-                    </div>
-                  </Disclosure.Panel>
-                </Transition>
+                
+                <Disclosure.Panel static className={clsx(
+                  "grid transition-[grid-template-rows] ease-out duration-300",
+                  open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                )}>
+                  <div
+                    className={clsx(
+                      "overflow-hidden",
+                      open &&
+                        'rounded-lg border border-zinc-200 dark:border-white/5'
+                    )}
+                  >
+                    <ChildProperties
+                      properties={Object.entries(properties)}
+                      requireds={requireds}
+                    />
+                  </div>
+                </Disclosure.Panel>
               </>
             )}
           </>
