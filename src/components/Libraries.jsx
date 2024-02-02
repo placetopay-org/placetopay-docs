@@ -13,7 +13,7 @@ import { useLocale } from './LocaleProvider'
 
 const plugins = [
   {
-    href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/woocommerce-gateway-placetopay-2.17.2.zip',
+    href: 'https://placetopay.dev/plugins/woocommerce',
     name: 'WooCommerce',
     description: {
       es: 'Plugin para WordPress. Diseñado para tiendas y comercios en linea que usan WordPress.',
@@ -23,7 +23,7 @@ const plugins = [
     action: { es: 'Ver más', en: 'See more' },
   },
   {
-    href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/magento2-placetopay-1.7.7.zip',
+    href: 'https://placetopay.dev/plugins/magento',
     name: 'Magento',
     description: {
       es: 'Plataforma de código abierto para comercio electrónico escrita en PHP.',
@@ -33,7 +33,7 @@ const plugins = [
     action: { es: 'Ver más', en: 'See more' },
   },
   {
-    href: 'https://dev.placetopay.com/web/wp-content/uploads/2021/03/placetopaypayment_3.4.7.zip',
+    href: 'https://placetopay.dev/plugins/prestashop',
     name: 'PrestaShop',
     description: {
       es: 'Plataforma especializada en la creación y gestión de tiendas online.',
@@ -43,20 +43,24 @@ const plugins = [
     action: { es: 'Ver más', en: 'See more' },
   },
   {
+    href: 'https://placetopay.dev/plugins/jumpseller',
     name: 'Jumpseller',
     description: {
       es: 'Plataforma de comercio electrónico para crear tu tienda en línea.',
       en: 'E-commerce platform to create your online store.',
     },
     logo: logoJumpseller,
+    action: { es: 'Ver más', en: 'See more' },
   },
   {
+    'href': 'https://placetopay.dev/plugins/vtex',
     name: 'Vtex',
     description: {
       es: 'Plataforma de comercio digital para grandes empresas.',
       en: 'Digital commerce platform for large companies.',
     },
     logo: logoVtex,
+    action: { es: 'Ver más', en: 'See more' },
   },
   {
     name: 'Shopify',
