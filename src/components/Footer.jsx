@@ -203,7 +203,7 @@ function SocialLink({ href, icon: Icon, children }) {
 function SmallPrint() {
   return (
     <div className="flex flex-col items-center justify-between gap-5 border-t border-gray-900/5 pt-8 dark:border-white/5 sm:flex-row">
-      <Link href="https://placetopay.dev/" target="_blank" aria-label="Placetopay Web">
+      <Link href="/" aria-label="Home">
         <Logo className="h-6" />
       </Link>
       
@@ -217,12 +217,13 @@ function SmallPrint() {
         <SocialLink href="#" icon={DiscordIcon}>
           Join our Discord server
         </SocialLink> */}
-        <p className="text-gray-300 text-xs">© 2024 PlacetoPay</p>
-        <Link  className="text-gray-300 text-xs" href="https://www.evertecinc.com/wp-content/uploads/2020/12/terminos.pdf" target="_blank" aria-label="Términos y condiciones Placetopay">
-          Términos
-        </Link>
-        <Link  className="text-gray-300 text-xs" href="https://www.placetopay.com/web/politicas-de-privacidad/" target="_blank" aria-label="Política de Privacidad Placetopay">
-          Privacidad
+        <p className="text-xs">
+          <span className='text-gray-300'>© 2024 </span>
+          <Link href="https://placetopay.dev/" target='_blank' aria-label="Home" className='font-semibold text-gray-200 hover:text-primary-500' >Evertec PlacetoPay</Link>
+        </p>
+        
+        <Link  className="text-gray-300 hover:text-primary-500 text-xs" href="https://www.placetopay.com/web/politicas-de-privacidad/" target="_blank" aria-label="Política de Privacidad Placetopay">
+          Política de Privacidad
         </Link>
       </div>
     </div>
