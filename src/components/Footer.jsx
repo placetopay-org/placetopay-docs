@@ -7,6 +7,7 @@ import { Button } from '@/components/Button'
 import { navigation } from '@/components/Navigation'
 import { useNavigation } from '@/hooks/useNavigation'
 import { useLocale } from './LocaleProvider'
+import { Logo } from '@/components/Logo'
 
 function CheckIcon(props) {
   return (
@@ -202,9 +203,10 @@ function SocialLink({ href, icon: Icon, children }) {
 function SmallPrint() {
   return (
     <div className="flex flex-col items-center justify-between gap-5 border-t border-gray-900/5 pt-8 dark:border-white/5 sm:flex-row">
-      <p className="text-xs text-gray-600 dark:text-gray-400">
-        &copy; Copyright {new Date().getFullYear()}. All rights reserved.
-      </p>
+      <Link href="/" aria-label="Home">
+        <Logo className="h-6" />
+      </Link>
+      
       <div className="flex gap-4">
         {/* <SocialLink href="#" icon={TwitterIcon}>
           Follow us on Twitter
@@ -215,6 +217,14 @@ function SmallPrint() {
         <SocialLink href="#" icon={DiscordIcon}>
           Join our Discord server
         </SocialLink> */}
+        <p className="text-xs">
+          <span className='text-gray-300'>© {new Date().getFullYear()} </span>
+          <Link href="https://placetopay.dev/" target='_blank' aria-label="Home" className='font-semibold text-gray-200 hover:text-primary-500' >Evertec PlacetoPay</Link>
+        </p>
+        
+        <Link  className="text-gray-300 hover:text-primary-500 text-xs" href="https://www.placetopay.com/web/politicas-de-privacidad/" target="_blank" aria-label="Política de Privacidad Placetopay">
+          Política de Privacidad
+        </Link>
       </div>
     </div>
   )
