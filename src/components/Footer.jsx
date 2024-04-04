@@ -218,7 +218,7 @@ function SmallPrint() {
           Join our Discord server
         </SocialLink> */}
         <p className="text-xs">
-          <span className='text-gray-300'>© 2024 </span>
+          <span className='text-gray-300'>© {new Date().getFullYear()} </span>
           <Link href="https://placetopay.dev/" target='_blank' aria-label="Home" className='font-semibold text-gray-200 hover:text-primary-500' >Evertec PlacetoPay</Link>
         </p>
         
