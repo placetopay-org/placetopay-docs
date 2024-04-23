@@ -31,6 +31,7 @@ const CHECKOUT_NAVIGATION_ES = [
       },
       { title: 'Historial de cambios', href: '/checkout/changelog' },
       { title: 'Politica de cambios', href: '/checkout/api-policy' },
+      { title: 'Consideraciones de seguridad', href: '/checkout/security-cosiderations'}
     ],
   },
   {
@@ -75,6 +76,7 @@ const CHECKOUT_NAVIGATION_EN = [
       },
       { title: 'Changelog', href: '/checkout/changelog' },
       { title: 'API Policy', href: '/checkout/api-policy' },
+      { title: 'Security considerations', href: '/checkout/security-cosiderations'}
     ],
   },
   {
