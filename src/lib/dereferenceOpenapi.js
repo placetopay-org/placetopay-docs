@@ -4,7 +4,7 @@ import fs from 'fs'
 
 const getLocale = (fileUrl) => {
   const possibleLocale = new URL(fileUrl).pathname.split('/src/pages/')[1].split('/')[0];
-  return ['en', 'fr'].includes(possibleLocale) ? possibleLocale : 'es';
+  return ['en'].includes(possibleLocale) ? possibleLocale : 'es';
 }
 
 const getRouteWithLocale = (fileUrl) => {
