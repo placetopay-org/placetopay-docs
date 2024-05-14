@@ -1,0 +1,247 @@
+# Exchange files for invoice collection
+
+## Introduction
+
+PlacetoPay is a platform that communicates directly with financial networks allowing you expeditious collection of your invoices. By using PlacetoPay you can enable collection with all payment methods available in Colombia as well obviates the integration or development processes with the different networks.
+
+## Defining swap files
+
+These files contain the list of invoices or collections authorized to be collected through PlacetoPay.
+
+These formats allow the information to be consulted when the collection is made regardless of the medium (Internet, audio response system or point of care).
+
+## Billing file [Asobancaria 2001 Format]
+
+The format for uploading information for collection is described below. This format is based on the 2001 Asobancaria specification with some modifications using the fill field.
+
+As a general rule, files are of fixed length, so for values numeric the value must have leading zero padding to complete the length. While for alphanumeric values, the padding must be with blanks on the right.
+
+The format has the following structure:
+
+```txt
+File header registration
+    Batch Header Record No. 1
+    Detail record 1
+    ....
+    Detail record n
+    Batch control record No. 1
+    Batch Header Record No. n
+    Detail record 1
+    ....
+    Detail record n
+    Batch control record No. n
+File control record
+```
+
+The length of each record is 220 characters and its content is specified below:
+
+### File header registration
+
+Field | Name | Long | Type | Req | Value | Description
+---------|----------|----------|----------|----------|----------|----------
+1 | Record Type | 2 | NUM | YES | 01 [constant] | Indicates the type of record
+2 | NIT collection company | 10 | NUM | YES | | NIT of the company that presents the billing
+3 | NIT additional collector | 10 | NUM | NOT | | NIT of the additional company that invoices jointly with the main one. **Not used by PlacetoPay**
+4 | Code of the originating entity | 3 | NUM | NOT | | Code of the financial institution where the Company has an account and wishes to have the collection paid by direct debit. This field corresponds to the transit code of the financial institution. **Not used by PlacetoPay**
+5 | File date | 8 | NUM | YES | YYYYMMDD | File creation date
+6 | File recording time | 4 | NUM | YES | HHMM | Recording time of the file in military time format, that is, from 0001 to 2400 hours.
+7 | File Modifier | 1 | ALF | YES | A-Z,0-9 | Character that reflects the chronological order of file recording and allows differentiating several files generated on the same day. The capital letters (AZ) must be used first and then the numbers.
+8 | Reserved | 182 | ALF | | |
+
+### Batch header record
+
+Field | Name | Long | Type | Req | Value | Description
+---------|----------|----------|----------|----------|----------|----------
+1 | Record Type | 2 | NUM | YES | 05 [constant] | Indicates the type of record
+2 | Billed service code | 13 | NUM | YES | EAN or NIT code | The EAN 13 code is assigned by the IAC and is used when the company invoices two or more services that must be differentiated or discriminated against the receiving customer. The EAN 13 code identifies the country (3 positions), the main company that invoices (6), the type of service billed (3) and characteristics of each agreement (1). The NIT can only be used by those Companies that invoice a single service or that do not handle EAN-13 code.
+3 | Batch number | 4 | NUM | YES | | Consecutive of the batch within the file. Each file has its own batch numbering sequence.
+4 | Description of the service Billed | 15 | ALF | YES | | Name of the billed service displayed to the receiving customer.
+5 | Reserved | 186 | ALF | | |
+
+### Detail record
+
+Field | Name | Long | Type | Req | Value | Description
+---------|----------|----------|----------|----------|----------|----------
+1 | Record Type | 2 | NUM | YES | 06 [constant] | Indicates the type of record
+2 | Primary User Reference | 48 | NUM | YES | | It is the main code with which the document to be paid is identified in each Company. It may refer to the invoice number or to the one designated by the Originating Company.
+3 | Secondary user reference | 30 | ALF | NOT | |It is the code with which the client is identified in the Company.
+4 | Billed periods | 2 | NUM | NOT | | Indicates the billed period
+5 | Cycle | 3 | ALF | NOT | | Indicates the cycle/zone
+6 | Main value of the service | 14 | NUM | YES | | Value of the main Company's service invoice. 12 integers, 2 decimals.
+7 | Code of the service billed by Additional Company | 13 | NUM | NOT | EAN13 code | In cases of companies with joint billing, the additional company and its service are identified. ****Not used by PlacetoPay****.
+8 | Additional service value | 14 | NUM | NOT | | Value of the invoice for the additional Company service. 12 integers, 2 decimals. **Not used by PlacetoPay**.
+9 | Expiration Date | 8 | NUM | YES | YYYYMMDD | Invoice due date without surcharge
+10 | Identification of the EFR (client's bank) | 8 | NUM | NOT | | Code that identifies the financial institution where the domiciled client has their account. **Not used by PlacetoPay**.
+11 | Paying customer account number | 17 | ALF | NOT | | Account or credit card number of the customer paying for the service. **Not used by PlacetoPay**
+12 | Paying customer account type | 2 | NUM | NOT | | Indicates whether the account number corresponds to savings, checking or credit card. **Not used by PlacetoPay**.
+13 | No. Identification of the paying client | 10 | ALF | NOT | | No. Client identification.
+14 | Paying customer name | 22 | ALF | NOT | |
+15 | Originating Financial Entity Code | 3 | NUM | NOT | | Code of the financial institution where the Company has an account and wishes to have the collection paid by direct debit. This field corresponds to the transit code of the financial institution. For collections through other channels, this field must have spaces. **Not used by PlacetoPay**.
+16 | Increase at maturity | 10 | NUM | YES | | Value of the daily increase to the invoice, when it is paid after expiration and until the cut-off. 6 integers, 4 decimals. If the value is less than one, it is assumed to be a percentage, otherwise a fixed value applied daily. Ex: 0000000150, represents 1.5%.
+17 | Cut-off date | 8 | NUM | YES | YYYYMMDD | It corresponds to the date until which payment of the invoice is received. This date must be greater than or equal to the expiration date.
+18 | Rate of increase at maturity | 1 | NUM | YES | 0 / 1 | Indicates if the increase at expiration is a fixed value [1] or if it is a daily value [0].
+19 | Reserved | 5 | ALF | NOT | |
+
+### Batch control record
+
+Field | Name | Long | Type | Req | Value | Description
+---------|----------|----------|----------|----------|----------|----------
+1 | Record Type | 2 | NUM | YES | 08 [constant] | Indicates the type of record
+2 | Total batch records | 9 | NUM | YES | | Total number of records recorded in the batch
+3 | Main service value | 18 | NUM | YES | | Value of the main company's turnover for the lot. 16 integers, 2 decimals.
+4 | Additional service value | 18 | NUM | NOT | | Additional company turnover value for the lot. 16 integers, 2 decimals. **Not used by PlacetoPay**
+5 | Batch number | 4 | NUM | YES | | Consecutive of the batch within the file. Each file has its own batch numbering sequence. It must be the same as field 3, of the batch header record.
+6 | Reserved | 169 | ALF | | |
+
+### File control record
+
+Field | Name | Long | Type | Req | Value | Description
+---------|----------|----------|----------|----------|----------|----------
+1 | Record Type | 2 | NUM | YES | 09 [constant] | Indicates the type of record
+2 | Total detail records | 9 | NUM | YES | | Total number of type "6" records recorded in the file
+3 | Main service value | 18 | NUM | YES | | Value of the main company's turnover for the lot. 16 integers, 2 decimals.
+4 | Additional service value | 18 | NUM | NOT | | Additional company turnover value for the lot. 16 integers, 2 decimals. **Not used by PlacetoPay**
+5 | Reserved | 173 | ALF | | |
+
+## Collection file [Asobancaria 2001 Format]
+
+The format corresponding to the information generated as a result of the collection process, whose recipient is the billing company, is described below.
+
+As a general rule, files are of fixed length, so for values numeric the value must have leading zero padding to complete the length. While for alphanumeric values, the padding must be with blanks on the right.
+
+The format has the following structure:
+
+```txt
+File header registration
+    Batch Header Record No. 1
+        Detail record 1
+        Detail record n
+        ….
+    Batch control record No. 1
+    Batch Header Record No. n
+        Detail record 1
+        ….
+        Detail record n
+        Batch control record No. n
+    File control record
+```
+
+The length of each record is 162 characters and its content is detailed below:
+
+### File header registration
+
+Field | Name | Long | Type | Req | Value | Description
+---------|----------|----------|----------|----------|----------|----------
+1 | Record Type | 2 | NUM | YES | 05 [constant] | Indicates the type of record
+2 | NIT billing company | 10 | NUM | YES | | NIT of the company to which the collection is made
+3 | Collection date | 8 | NUM | YES | YYYYMMDD | Date of the collection operation.
+4 | Collection financial entity code | 3 | NUM | YES | TTT | Compensation (transit) code of the collecting financial entity.
+5 | Account number | 17 | ALF | YES | | Account into which the collecting entity pays the money collected to the Company
+6 | File date | 8 | NUM | YES | YYYYMMDD | File creation date
+7 | File recording time | 4 | NUM | YES | HHMM | Recording time of the file in military time format, that is, from 0001 to 2400 hours.
+8 | File Modifier | 1 | ALF | YES | A-Z,0-9 | Character that reflects the chronological order of file recording and allows differentiating several files generated on the same day. Capital letters (A-Z) are used first and then numbers.
+9 | Account type | 2 | NUM | | | Indicates whether the account number corresponds to savings or checking. 01 SAVINGS 02 CURRENT 03 CREDIT CARD
+10 | Reserved | 107 | ALF | | |
+
+### Batch header record
+
+Field | Name | Long | Type | Req | Value | Description
+---------|----------|----------|----------|----------|----------|----------
+1 | Record Type | 2 | NUM | YES | 05 [constant] | Indicates the type of record
+2 | Collected service code | 13 | NUM | YES | EAN or NIT code | The EAN 13 code is assigned by the IAC and is used when the company invoices two or more services that must be differentiated or discriminated against the receiving customer. The EAN 13 code identifies the country (3 positions), the main company that invoices (6), the type of service billed (3) and characteristics of each agreement (1). The NIT can only be used by those Companies that invoice a single service or that do not handle EAN-13 code.
+3 | Batch number | 4 | NUM | YES | | Consecutive of the batch within the file. Each file has its own batch numbering sequence.
+4 | Reserved | 143 | ALF | | |
+
+### Detail record
+
+
+Field | Name | Long | Type | Req | Value | Description
+---------|----------|----------|----------|----------|----------|----------
+1 | Record Type | 2 | NUM | YES | 06 [constant] | Indicates the type of record
+2 | Primary User Reference | 48 | NUM | YES | | It is the main code with which the document to be paid is identified in each Company. It may refer to the invoice number or to the one designated by the Originating Company.
+3 | Value collected | 14 | NUM | YES | | Collected value. 12 integers, 2 decimals.
+4 | Origin of payment | 2 | NUM | YES | | Indicates the type of institution that received the customer's payment. 01 PAYMENT THROUGH BANKS 02 PAYMENT THROUGH CORPORATION OF SAVINGS AND HOUSING 03 PAYMENT THROUGH ACH COLOMBIA 04 PAYMENT THROUGH ASCREDIBANCO 05 PAYMENT THROUGH ATH 06 PAYMENT THROUGH CENIT 07 PAYMENT THROUGH RED MULTICOLOR 08 PAYMENT THROUGH SERVIBANCA
+5 | Payment methods | 2 | NUM | YES | | Indicates the means by which the payment was received. 11 ACCOUNT DEBIT BY AUDIORESPONSE SYSTEM 15 ACCOUNT DEBIT BY INTERNET 21 CREDIT CARD BY AUDIORESPONSE SYSTEM 25 CREDIT CARD BY INTERNET
+6 | No. of operation | 6 | NUM | NOT | | Check number or number that identifies the transaction on electronic devices. Corresponds to the consecutive number assigned by electronic devices
+7 | Authorization number | 6 | NUM | NOT | | Authorization number given by the client's entity (issuer or authorizer), when payment is made through electronic channels (ATM, POS, audio service).
+8 | Code of the debited financial entity | 3 | NUM | NOT | 000 | Clearing code of the client's financial institution where the debit was made. Not used by PlacetoPay.
+9 | Branch code | 4 | NUM | YES | 0000 | Code that identifies the branch, city or terminal (ATM, POS) where the payment was made. **PlacetoPay will always report 000**.
+10 | Sequence | 7 | NUM | YES | | Log recording sequence; starts at 2
+11 | Reason for return | 3 | ALF | NOT | | **Not used by PlacetoPay**.
+12 | Reserved | 65 | ALF | NOT | |
+
+### Batch control record
+
+Field | Name | Long | Type | Req | Value | Description
+---------|----------|----------|----------|----------|----------|----------
+1 | Record Type | 2 | NUM | YES | 08 [constant] | Indicates the type of record
+2 | Total batch records | 9 | NUM | YES | | Total number of records recorded in the batch
+3 | Total value collected in lot | 18 | NUM | YES | | Total sum of the payment values ​​of the detail records in the batch. 16 integers, 2 decimals.
+4 | Batch number | 4 | NUM | YES | | Consecutive of the batch within the file. Each file has its own batch numbering sequence.
+5 | Reserved | 129 | ALF | | |
+
+### File control record
+
+Field | Name | Long | Type | Req | Value | Description
+---------|----------|----------|----------|----------|----------|----------
+1 | Record Type | 2 | NUM | YES | 09 [constant] | Indicates the type of record
+2 | Total records collected on file | 9 | NUM | YES | | Total number of type "6" records recorded in the file
+3 | Total value collected in lot | 18 | NUM | YES | | Total sum of the payment values ​​of the detail records. 16 integers, 2 decimals.
+4 | Reserved | 133 | ALF | | |
+
+## Billing File [CSV-Proprietary Format]
+
+This format was born from the requirement of our clients to facilitate the uploading of invoices, in a more intuitive mechanism that can be easily adjusted to the size of the company that wishes to upload it, without involving greater efforts and with the possibility of using a spreadsheet. as a generation engine.
+
+The file itself contains the basic fields used by the platform for the invoice payment process.
+
+As a general rule, the file is of variable length, using the comma (,) as a field separator and the double quote as a field delimiter for character strings. In cases where a field does not have a value, it must be left blank (,,). When you need to establish a decimal number for a numerical value, you must use the period. A possible variation to this format is to use the semicolon (;) to separate the fields and the comma (,) for decimal figures. Please note that the order of the fields is strict.
+
+The format has the following structure:
+
+```txt
+File control record
+    Detail record 1
+    ….
+    Detail record n
+```
+
+### File control record
+
+Field | Name | Long | Type | Req | Value | Description
+---------|----------|----------|----------|----------|----------|----------
+1 | File date | 8 | NUM | YES | YYYYMMDD | File creation date
+2 | File recording time | 4 | NUM | YES | HHMM | File recording time in military time format, i.e. from 0001 to 2400 hours
+3 | File Modifier | 1 | ALF | YES | A-Z,0-9 |Character that reflects the chronological order of file recording and allows differentiating several files generated on the same day. The capital letters (AZ) must be used first and then the numbers.
+4 | NIT collection company | 10 | NUM | YES | | NIT of the company that presents the billing
+5 | Total records on file | 9 | NUM | YES | | Total number of detail records recorded in the file.
+6 | Billed service code | 13 | NUM | YES | EAN or NIT code | The EAN 13 code is assigned by the IAC and is used when the company invoices two or more services that must be differentiated or discriminated against the receiving customer. The EAN 13 code identifies the country (3 positions), the main company that invoices (6), the type of service billed (3) and characteristics of each agreement (1). The NIT can only be used by those Companies that invoice a single service or that do not handle EAN-13 code.
+7 | Description of the service Billed | 15 | ALF | YES | | Name of the billed service displayed to the receiving customer.
+8 | Total invoiced value on file | 18 | NUM | YES | | Total sum of the payment values ​​of the detail records. 16 integers, 2 decimals.
+
+### Detail record
+
+Field | Name | Long | Type | Req | Value | Description
+---------|----------|----------|----------|----------|----------|----------
+1 | Primary User Reference | 48 | NUM | YES | | It is the main code with which the document to be paid is identified in each Company. It may refer to the invoice number or to the one designated by the Originating Company.
+2 | Secondary user reference | 30 | ALF | NOT | |It is the code with which the client is identified in the Company.
+3 | No. Identification of the paying client | 10 | ALF | NOT | | No. Client identification.
+4 | Paying customer name | 22 | ALF | NOT | |
+5 | Main value of the service | 14 | NUM | YES | | Value of the main Company's service invoice. 12 integers, 2 decimals
+6 | Expiration date | 8 | NUM | YES | YYYYMMDD | Invoice due date without surcharge
+7 | Increase at maturity | 10 | NUM | YES | | Value of the daily increase to the invoice, when it is paid after expiration and until the cut-off. 6 integers, 4 decimals. If the value is less than one, it is assumed to be a percentage, otherwise a fixed value applied daily. Ex: 0000000150, represents 1.5%.
+8 | Cut-off date | 8 | NUM | YES | YYYYMMDD | It corresponds to the date until which payment of the invoice is received. This date must be greater than or equal to the expiration date.
+9 | Rate of increase at maturity | 1 | NUM | YES | 0 / 1 | Indicates if the increase at expiration is a fixed value [1] or if it is a daily value [0].
+10 | Return basis | 14 | NUM | NOT | | Value on which VAT is calculated. 12 integers, 2 decimals.
+11 | VAT | 14 | NUM | NOT | | VAT value applied to the value of the refund base. 12 integers, 2 decimals.
+12 | Expiration time | 14 | ALF | NOT | H:i:s | Invoice due time.
+
+## Billing File [ UBL-Invoice 1.0 Format ]
+
+Since its adoption as a W3C recommendation in 1998, XML has been adopted in a number of industries as a framework for defining message exchanges in electronic commerce. The widespread use of XML has led to the development of multiple XML versions of basic documents, such as purchase orders, shipping notes, and invoices.
+
+Although the use of specific formats for each industry or need has the advantage of maximum optimization for the business context, the existence of different formats to achieve the same purpose in different business areas generates a series of disadvantages.
+
+The OASIS Universal Business Language (UBL) is intended to help solve these problems by defining a generic XML interchange format for business documents that can be extended to meet the needs of certain industries.
+
+PlacetoPay uses the proposed OASIS model in its implementation of UBL-Invoice in version 1.0.
