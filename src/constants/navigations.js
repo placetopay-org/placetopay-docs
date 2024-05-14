@@ -106,6 +106,18 @@ const GATEWAY_NAVIGATION_ES = [
       { title: 'Procesamiento con cuentas bancarias', href: '/gateway/processing-with-bank-accounts' },
     ]
   },
+  {
+    title: 'API',
+    links: [
+      { title: 'Obtener información', href: '/gateway/api-reference/information' },
+      { title: 'Transacciones', href: '/gateway/api-reference/transaction' },
+      { title: 'Tokenizacón de tarjetas', href: '/gateway/api-reference/tokenize' },
+      { title: 'Proceso 3DS', href: '/gateway/api-reference/3ds' },
+      { title: 'Proceso OTP', href: '/gateway/api-reference/otp' },
+      { title: 'Operaciones con PinPad', href: '/gateway/api-reference/pinpad' },
+      { title: 'Reporte de operaciones realizadas', href: '/gateway/api-reference/report' },
+    ],
+  }
 ]
 
 const GATEWAY_NAVIGATION_EN = [
