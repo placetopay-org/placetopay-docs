@@ -100,6 +100,9 @@ const GATEWAY_NAVIGATION_ES = [
     title: 'Integración',
     links: [
       { title: 'Autenticación', href: '/gateway/authentication' },
+      { title: 'Números de tarjetas de pruebas', href: '/gateway/testing-card' },
+      { title: 'Código de aerolíneas', href: '/gateway/airline-codes' },
+      { title: 'Tipos de documentos', href: '/gateway/document-types' },
       { title: 'Tipos de transacciones', href: '/gateway/transaction-types' },
       { title: 'Control de idempotencia', href: '/gateway/idempotency' },
       { title: 'Importación ordenes de pago', href: '/gateway/import-payment-orders' },
@@ -111,7 +114,7 @@ const GATEWAY_NAVIGATION_ES = [
     links: [
       { title: 'Obtener información', href: '/gateway/api-reference/information' },
       { title: 'Transacciones', href: '/gateway/api-reference/transaction' },
-      { title: 'Tokenizacón de tarjetas', href: '/gateway/api-reference/tokenize' },
+      { title: 'Tokenización de tarjetas', href: '/gateway/api-reference/tokenize' },
       { title: 'Proceso 3DS', href: '/gateway/api-reference/3ds' },
       { title: 'Proceso OTP', href: '/gateway/api-reference/otp' },
       { title: 'Operaciones con PinPad', href: '/gateway/api-reference/pinpad' },
@@ -133,12 +136,27 @@ const GATEWAY_NAVIGATION_EN = [
     title: 'Integration',
     links: [
       { title: 'Authentication', href: '/gateway/authentication' },
+      { title: 'Test card numbers', href: '/gateway/testing-card' },
+      { title: 'Airline codes', href: '/gateway/airline-codes' },
+      { title: 'Document types', href: '/gateway/document-types' },
       { title: 'Transaction types', href: '/gateway/transaction-types' },
       { title: 'Idempotency control', href: '/gateway/idempotency' },
       { title: 'Import payment orders', href: '/gateway/import-payment-orders' },
       { title: 'Processing with bank accounts', href: '/gateway/processing-with-bank-accounts' },
     ]
   },
+  {
+    title: 'API',
+    links: [
+      { title: 'Get information', href: '/gateway/api-reference/information' },
+      { title: 'Transactions', href: '/gateway/api-reference/transaction' },
+      { title: 'Card tokenization', href: '/gateway/api-reference/tokenize' },
+      { title: '3DS process', href: '/gateway/api-reference/3ds' },
+      { title: 'OTP process', href: '/gateway/api-reference/otp' },
+      { title: 'PinPad Operations', href: '/gateway/api-reference/pinpad' },
+      { title: 'Report of operations carried out', href: '/gateway/api-reference/report' },
+    ],
+  }
 ]
 
 export const CHECKOUT_NAVIGATION = {
