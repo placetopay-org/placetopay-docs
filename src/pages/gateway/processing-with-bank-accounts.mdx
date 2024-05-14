@@ -1,0 +1,123 @@
+# Procesamiento con cuentas bancarias
+
+ Para procesar transacciones utilizando como instumento de pago una cuenta bancaria se requiere implementar el instrumento de pago account que permite definir los datos de la cuenta a utilizar, asi como los mecanismos para hacer validacion de la cuanta utilizando servicios de validacion de cuentas como: Account Validator.
+
+
+## Recursos
+
+#### [API de procesamiento](/gateway/api-reference/processing-api)
+#### [API de validador de cuentas](/gateway/api-reference/account-validator)
+
+<pre>
+</pre>
+
+## Instrumento cuenta bancaria
+
+```json
+ "account": {
+  "bankName": "Test Bank",
+  "bankCode": "0001234",
+  "accountType": "SAV",
+  "accountNumber": "4111111111111111"
+}
+```
+
+### Tipo de cuentas bancarias
+
+Tipo | Descripción
+---------|----------
+ SAV | Cuenta personal de ahorro 
+ DDA | Cuenta cheque personal 
+ CCD | Cuenta comercial
+
+
+##  Validación de cuentas 
+
+Para garantizar la seguridad en el procesamiento de cuentas bancarias se recomienda utilizar el servicio de validación de cuentas bancarias Account Validator.
+
+Con este servicio antes de iniciar el pago se requiere que el dueño de la cuenta realice una operación de verificación en una interfaz gráfica.
+
+Una vez que el dueño de la cuenta completa este proceso se consulta el servicio via API y se obtiene el objeto Account con un código de verificación entregado por el servicio.
+
+La API de procesamiento se encargará de validar este código entregado por Account Validator y determinar si la cuenta a pasado las validaciones, de no ser así no se continuará con el procesamiento.
+
+### Ejemplo de cuenta con código de validación
+
+```json
+{
+  "bankCode": "0001234",
+  "bankName": "Banco NO Popular",
+  "accountType": "SAV",
+  "accountNumber": "4111111111111111",
+  "franchise": "_0001234_",
+  "verificationCode": "eyJhbGciOiJSUzI1NiJ9.eyJhY2NvdW50SGFzaCI6IjhlM2Q0NDg0ZjIwOTc2ODBmNDA4YzEyMmQ0ZjJiZTdiMDM3YTUzMzIzNmEwNTdmZjdjMzJhMDYwNjFkY2M5MTU0YmRmNGEyOTViNmE4MDUwMmE5N2RiYWFmZGU0YTE2ZmU1MDM0MTQzMTQ2MmFjY2I0N2I5MmIyN2I3MDM2YjQ4Iiwib25UZXN0IjpmYWxzZSwic2VydmljZSI6InBsYWlkIiwiZXhwIjoxNzEzNTYxMDE1fQ.FcEj-HRdf1V6Ypl8db5p7auI_6MTdMrGK34H2u3LeA0KBLzJHc86rFufRsdCqlRoCLc2TuKmxzWVin6QEMtqtxasoeMUqhXo81rhBtHEA0Flj_XNiAFhcP8IEn2dJV8-60oscvSfbVRBKN_5Lk3HqLWNqe0ECDJROWm9lXdYf2tZCukuMWPvVPc91Fg9kO2qHH1wrcc7G_JRdy09LQlAs_MS5_sLdEkFLsS5o5RxwNsknWUkUZuljMlz8Z8vd8GxKg7V5iaBh8r3djsQXJ_EFzk9XLv8P0Ca2MoQ9X1yEVa8HHEdRjlB9OKm7u7_1HyjqAKb_XwWYaRESHrAXC0opQ"
+}
+```
+
+## Tokenización
+
+Una cuenta bancaria puede ser tokenizada de tal manera que se pueden hacer cobros a dicha cuenta sin que el dueño de la cuenta esté presente.
+
+En este flujo una vez la cuenta se ha validado se puede generar un token que representa a la cuenta y puede usarse para realizar nuevas transacciones.
+
+Revisa la sección de  [Tokenization](/gateway/api-reference/tokenization) de la API.
+
+## Entorno de pruebas
+
+Placetopay cuenta con un entorno de pruebas en el que se pueden realizar los flujos de integración antes de pasar al entorno productivo.
+
+Para simular distintos flujos de transacciones (aprobada, rechazada, fallidas) se proporciona un simulador de transacciones con las siguientes cuentas habilitadas:
+
+
+### Cuentas de prueba
+
+Número | Comportamiento
+----------|---------
+4111111111111111 | Aprueba
+5180300000000005 | Aprueba
+5180300000000039 | Rechaza
+4110760000000008 | Aprueba
+5292594382060745 | Rechaza
+36545400000008 | Aprueba
+36545400000248 | Rechaza
+36545400000701 | Deja la transacción en procesamiento manual y si se procesa queda en estado aprobado
+36545407030701 | Deja la transacción en estado pendiente y se resuelve a rechazado
+36545407032814 | Arroja una excepción en el proceso
+36545400000438 | Se tarda 180 segundos en responder y queda en estado aprobado
+36545407032780 | Deja la transacción en procesamiento manual y si se procesa queda en estado aprobado
+36545407032806 | Deja la transacción en estado pendiente y se resuelve a aprobado
+36545407032848 | Aprueba
+4110760000000016 | Rechaza
+4048370000000037 | Deja la transacción en estado pendiente y se resuelve a rechazado
+4110760000000073 | Deja la transacción en estado pendiente y se resuelve a aprobado
+4110760000000024 | Se tarda 180 segundos en responder y queda en estado aprobado
+4110760000000115 | Se tarda 180 segundos en responder y queda en estado rechazado
+4110760000000057 | Aprueba si el monto es inferior a 200USD de lo contrario rechaza
+4110760000000081 | Aprueba
+4381080000000003 | Deja la transacción en estado pendiente y se resuelve a rechazado
+4005580000000040 | Rechaza
+4110770010002837 | Aprueba
+4716375184092180 | Rechaza
+4666666666666669 | Se tarda 180 segundos en responder y queda en estado aprobado
+6550590000000001 | Aprueba
+6550590000000019 | Rechaza
+6759649826438453 | Aprueba
+6557351234543156 | Aprueba
+6557351234543164 | Rechaza
+5367680000000005 | Aprueba
+5367680000000013 | Rechaza
+4381080000000029 | Aprueba
+4381080000000011 | Rechaza
+8810060001592705 | Aprueba
+5903090000000000 | Aprueba
+5903120000000000 | Aprueba
+9391111111111111 | Aprueba
+9395555555555555 | Rechaza
+6377470107014851 | Rechaza
+6377470106963215 | Aprueba
+6377470100506457 | Aprueba
+6377470106672139 | Rechaza
+0215020177972730 | Aprueba
+2215714777972730 | Aprueba
+2215719446775653 | Arroja una excepción en el proceso
+0215026116775785 | Rechaza

@@ -87,7 +87,54 @@ const CHECKOUT_NAVIGATION_EN = [
   },
 ]
 
+const GATEWAY_NAVIGATION_ES = [
+  {
+    title: 'Gateway',
+    links: [
+      { title: 'Introducción', href: '/gateway' },
+      { title: 'Flujo de una transacción', href: '/gateway/transaction-flow' },
+      { title: 'Obligaciones', href: '/gateway/obligations' },
+    ]
+  },
+  {
+    title: 'Integración',
+    links: [
+      { title: 'Autenticación', href: '/gateway/authentication' },
+      { title: 'Tipos de transacciones', href: '/gateway/transaction-types' },
+      { title: 'Control de idempotencia', href: '/gateway/idempotency' },
+      { title: 'Importación ordenes de pago', href: '/gateway/import-payment-orders' },
+      { title: 'Procesamiento con cuentas bancarias', href: '/gateway/processing-with-bank-accounts' },
+    ]
+  },
+]
+
+const GATEWAY_NAVIGATION_EN = [
+  {
+    title: 'Gateway',
+    links: [
+      { title: 'Introduction', href: '/gateway' },
+      { title: 'Transaction flow', href: '/gateway/transaction-flow' },
+      { title: 'Obligations', href: '/gateway/obligations' },
+    ]
+  },
+  {
+    title: 'Integration',
+    links: [
+      { title: 'Authentication', href: '/gateway/authentication' },
+      { title: 'Transaction types', href: '/gateway/transaction-types' },
+      { title: 'Idempotency control', href: '/gateway/idempotency' },
+      { title: 'Import payment orders', href: '/gateway/import-payment-orders' },
+      { title: 'Processing with bank accounts', href: '/gateway/processing-with-bank-accounts' },
+    ]
+  },
+]
+
 export const CHECKOUT_NAVIGATION = {
   [LANGUAGES_CODES.ES]: CHECKOUT_NAVIGATION_ES,
   [LANGUAGES_CODES.EN]: CHECKOUT_NAVIGATION_EN,
+}
+
+export const GATEWAY_NAVIGATION = {
+  [LANGUAGES_CODES.ES]: GATEWAY_NAVIGATION_ES,
+  [LANGUAGES_CODES.EN]: GATEWAY_NAVIGATION_EN,
 }

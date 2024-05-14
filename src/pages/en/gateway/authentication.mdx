@@ -1,0 +1,75 @@
+export const description = 'Learn about the Gateway API authentication protocol and how to generate your authentication.';
+
+# Authentication
+
+The Webcheckout Placetopay API uses *Web Services Security UsernameToken Profile 1.1* to authenticate all requests.
+
+Authentication to the service must be sent over the `auth` object, which must contain the attributes described in the Authentication model
+
+Worth | Description
+---------|----------
+ **login** | Site identifier. 
+ **tranKey** | Value formed by the following operation: `Base64(SHA-256(nonce + seed + secretkey))`. (The nonce inside the operation is the original, that is, the one that is not in Base64.)
+ **nonce** | Random value for each request encoded in Base64.
+ **seed** | Current date, which is generated in ISO 8601 format. 
+ 
+> AVISO IMPORTANTE:
+>
+> Your API keys have many privileges, make sure you keep them secure. Do not share your API secret keys in publicly accessible areas like GitHub, client-side code, etc.
+
+## Possible mistakes
+
+Code | Cause 
+---------|----------
+ 100 | UsernameToken not provided (Malformed authorization header).
+ 101 | Site identifier does not exist (Login incorrect or not found in the environment). 
+ 102 | TranKey hash does not match (bad or malformed Trankey).
+ 103 | Seed date greater than 5 minutes.
+ 104 | Inactive site.
+ 105 | Expired site. 
+ 106 | Expired credentials.
+ 107 | Bad definition of the UsernameToken (Does not comply with the WSSE header).
+ 200 | Skip the SOAP authentication header.
+ 10001 | Contact Support.
+
+## Frequent errors
+
+- #### **Error message “Malformed authentication”**
+
+It occurs when the system does not detect that login, tranKey, seed or nonce is being sent in the sent auth structure. It can also occur if this data is sent but incorrectly, that is, without the content-type parameter “application/json” so the server interprets the request as text instead of an array of data. You can validate this by making the request to the URL https://dnetix.co/p2p/client and capturing the response, it is a kind of mirror of the request that will allow you to check the parameters and the *body* of the message.
+
+- #### **Error conectando al servicio con el mensaje ERROR: javax.net.ssl.SSLHandshakeException: Remote host closed connection during handshake**
+
+Your servers require TLSv1.2 to receive the request, due to the PCI standard. Please review the encryption and protocol used to connect to the server. If you use Java, keep in mind that only versions after 8 have full support.
+
+- #### **Authentication Failed 103**
+
+In the authentication process, Placetopay we check the Created field, this field must be in GMT time or local time using zone time. If you get this response, it is because your time is not accurate with real time. We only allow 5 minutes difference between times. You can use NTP to maintain clock accuracy.
+
+- #### **By giving the EXACT same values ​​as in the previous examples to BASE64(SHA1($Nonce + $Created . $tranKey)) I am getting a different password digest.**
+
+Keep in mind that BASE64 should be for the raw output of SHA1 and according to all programming languages ​​this may be required to configure this option.
+
+### Example of authentication generation in PHP
+
+```php
+<?php
+
+class Authentication
+{
+    public static function generate(string $login, string $tranKey): array
+    {
+        $nonce = random_bytes(16);
+        $seed = date('c');
+        $digest = base64_encode(hash('sha256', $nonce . $seed . $tranKey, true));
+        return [
+            'login' => $login,
+            'tranKey' => $digest,
+            'nonce' => base64_encode($nonce),
+            'seed' => $seed,
+        ];
+    }
+}
+
+$auth = Authentication::generate('YOUR_LOGIN', 'YOUR_TRANKEY');
+```
