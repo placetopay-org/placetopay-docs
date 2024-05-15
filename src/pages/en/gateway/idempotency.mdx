@@ -1,0 +1,38 @@
+# Idempotence Control
+
+Our service can help you ensure that you do not make more than one approved transaction for a single process in a predetermined time period. This is done by identifying that process with a **unique value** that would be sent in the `idempotenceKey` parameter, this will prevent a transaction from being processed again if there is already a previously executed transaction in “pending” or “approved” status. with the same **single value** in the predetermined time period.
+
+The **unique value** will depend on the process flow of the user who is executing the payment and the way the merchant's collection system works, the merchant must define the **unique value** taking into consideration the necessary aspects to take advantage of the `idempotenceKey` functionality offered by the service.
+
+For example. Client A is going to pay for service B, the client has an account number in that business, therefore the business must assign the **unique value** of the transaction to be executed based on the specific service that is being paid for in that business. moment for that account number.
+
+> It is imperative and the merchant's responsibility to define the **single value** as necessary based on their business logic or use cases. If all the necessary parameters that make a transaction unique in the generation are not considered, duplicates could occur if the same value is not sent, or transactions that should be carried out if the same value are sent could stop.
+
+```json
+{
+    ...
+    "idempotenceKey": "ABCD1234",
+    "instrument": {
+    ...
+    }
+}
+```
+
+## Basic flow
+
+The first transaction is made with an `idempotenceKey` and the response will be, for example, an approval, or a pending one.
+
+![IdempotenceFirst.png](/IdempotenceFirst.png)
+
+If the transaction is requested again with the same value, exactly the same value as the first time will be returned but with an HTTP Code 208 instead of 200
+
+![IdempotenceSecond.png](/IdempotenceSecond.png)
+
+
+## Observations
+
+* The parameter is located at the root of the authorization request and is an alphanumeric number of 32.
+
+* It is the only value that affects this behavior, that is, the reference, the amount and the instrument can vary and even so, if the `idempotenceKey` is the same, a new transaction will not be made.
+
+> This service is not intended and should not be taken as a change to the integration flow established in [integration flow](/gateway/transaction-flow) particularly point 4 thereof. This is an additional control that can be implemented

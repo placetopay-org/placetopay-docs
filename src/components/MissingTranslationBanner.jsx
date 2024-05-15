@@ -8,7 +8,7 @@ const MISSING_TRADUCTION_BANNER_TEXTS = {
   },
 }
 
-export const MissingTraductionBanner = ({ locale = 'en' }) => {
+export const MissingTranslationBanner = ({ locale = 'en' }) => {
   return (
     <article className="not-prose -mt-6 mb-6 w-full rounded border-l-2 border-gray-400 bg-white/[0.2] shadow-lg shadow-gray-700/60 backdrop-blur-sm dark:bg-gray-900/[0.2] dark:text-white/90 dark:backdrop-blur dark:hover:text-white">
       <div className="mx-auto max-w-7xl p-3">

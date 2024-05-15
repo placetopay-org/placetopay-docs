@@ -1,0 +1,85 @@
+# Types of transactions
+
+## Authorization
+An authorization refers to the process that is executed after the user enters the requested information and it is sent to the network to make the payment.
+
+## Recurring payment
+It is a periodic charge made by PlacetoPay for the same value with an interval (daily, monthly, annual) according to the indication given in the request.
+
+To make use of this functionality, in the payment structure of the Recurring Payment it is necessary to send the mandatory data for this structure in the recurring object.
+
+## Pre-authorization
+These types of transactions are used in order to reserve (checkin) an amount of money on a credit card to later debit it (checkout). This amount may change over time (reauthorization) according to the needs of the merchant or changes in the services chosen by the cardholder.
+
+## Check-In
+The CHECKIN type transaction is used to obtain authorization from the bank (provider). This is defined as: Making a debit to a credit/debit card which is used as a guarantee deposit for the use of a good or service.
+
+![Flujo](/GatewayFlow.png)
+
+### Checkin Request
+
+To allow quick integration by merchants, requests of this type are similar to the one described in the `processTransaction` method with some differences mentioned below:
+
+- Verify the `action` equal to `checkin`.
+- The payment reference used here will also be used in subsequent REAUTHORIZATION and CHECKOUT.
+- The payment currency used here is also used in subsequent REAUTHORIZATION and CHECKOUT.
+- Dispersion details will not be taken into account in the application. (Multiple transactions to different collectors with the same cardholder information).
+- Recurrence details will not be taken into account in the application. (Recurring charges from a proprietary database).
+
+IMPORTANT: Pay special attention to the node: “preAuthorization”, these are the data that will be used in subsequent REAUTHORIZATION and CHECKOUT operations. Additionally, this section shows the general status of the preauthorization process.
+
+## Re-Authorization
+
+> No aplica a Puerto Rico
+
+The REAUTHORIZATION type transaction is used to modify the amount defined as a security deposit previously separated with a CHECKIN type transaction. This performs a new authorization (reauthorization) by the bank (provider).
+
+### Reauthorization Request
+
+It is necessary to first make a CHECKIN request to process a REAUTHORIZATION since:
+
+- The payment reference for REAUTHORIZATION cases is overwritten by the original CHECKIN session
+- The payment currency for REAUTHORIZATION cases is overwritten by the original CHECKIN session
+- The data used in the “internalReference” and “authorization” of the request correspond to the data delivered by the CHECKIN response in the “preAuthorization” node
+- It is possible to do n (several) REAUTHORIZATION, of course, all before the CHECKOUT operation
+- Reauthorizations must always be for a value greater than 0
+
+To highlight that after this operation the pre-authorization process is still in a pending state, this is because it is still waiting for a CHECKOUT operation.
+
+## Check-out
+
+The CHECKOUT type transaction is used to confirm the previously separated security deposit amount with a CHECKIN/REAUTHORIZATION type transaction. This formalizes the transaction (purchase/settlement) at the (supplier).
+
+### Checkout Request
+
+According to this definition, within Evertec these types of transactions:
+
+- You can do a CHECKOUT without having to do a REAUTHORIZATION
+- The payment reference for CHECKOUT cases is overwritten by the original CHECKIN session
+- The payment currency for CHECKOUT cases is overwritten by the original CHECKIN session
+- The data used in the “internalReference” and “authorization” correspond to the data delivered by the CHECKIN process in the “preAuthorization” node
+- If the CHECKOUT value is 0, the pre-authorization is canceled and the amount retained in previous requests is released
+
+IMPORTANT: Note that the "status", "authorization" and "receipt" of the "preAuthorization" node change during a successful CHECKOUT, so, in REVERSE requests, these new values ​​must be used in the request.
+
+## Dispersion
+
+This type of transaction is used to split the payment between different entities besides the main site. That is, when making a transaction, part of the value is directed to the site authenticated in the transaction, and another part is sent to an airline or other sites. Additionally, this allows each part of the transaction to be processed by different providers.
+
+The dispersal transaction is made up of a parent session of type `DISPERSION` that contains the total value of the transaction and the general state of the process, and also by daughter sessions of type `AUTH_ONLY` that contain the information of each of the parties. scattered. The authorization and receipt data of the parent transaction will be the same as the first transaction processed.
+
+In the event that a transaction remains pending, the other pending transactions will not be processed until it is resolved, leaving a status of `PENDING_PROCESS`. The parent transaction will maintain its `PENDING` state until all child sessions are resolved.
+
+In the event that a transaction fails or is rejected, other pending transactions will automatically be rejected as well, without establishing contact with the network. If a child transaction has already been approved previously, it maintains its state and the parent transaction will change its state to `APPROVED_PARTIAL`.
+
+Transactions can be reversed together or separately. If a rollback is sent to a child transaction, only the child transaction will be rolled back. If a rollback is sent to the parent transaction, all transactions will be rolled back.
+
+### Airline dispersion
+
+When a dispersal is made to an airline, it will be prioritized and processed first. If 3DS or credit is configured, this configuration will be used only in processing the airline transaction.
+
+Airline dispersions are limited to just two parties: one from the main business and one from the airline. It is also possible to perform a spread in which the total value of the transaction is redirected to the airline, by not sending the trade spread or sending it with a zero value.
+
+### Business dispersion
+
+Merchant spreads allow a split transaction to be made across up to 3 sites, including the authenticated site. Child transactions will be processed in the order sent in the transaction. 
