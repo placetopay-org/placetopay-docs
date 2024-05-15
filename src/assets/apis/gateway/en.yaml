@@ -1,0 +1,3292 @@
+---
+openapi: "3.0.0"
+info: 
+  title: "Gateway"
+  version: "1.0"
+  license: 
+    name: "Privative"
+    description: "This web service and its architecture allows any application to connect to Placetopay to process transactions, independent of the development language.
+
+      To use the web service, you will need to have a programming language that can communicate with a REST service.
+
+      The integration method contemplates the basic operations for the processing of non-face-to-face cards, that is, types of credit, interest, OTP generation, authorization, reverse.
+
+      Each of the uses and the data required in the plot for each of the cases will be described below. The response for each operation is unified into a single resulting frame type.
+
+      By default the language of the responses is in Spanish, if you wish to change it is necessary to send the `locale` parameter in the requests.
+
+      ### Services
+
+      All consumption is made to the base URL, which will be provided by the operations area and the endpoint of the service to be consumed is added to said URL.
+
+      For example, if the base URL was https://placetopay.com, to consume the service and request information, a POST is made with the data from the example to the URL https://placetopay.com/gateway/information"
+  contact: 
+    name: "Diego Calle"
+    email: "desarrollo@evertecinc.com"
+servers: 
+  - url: "https://api-co-dev.placetopay.ws"
+    description: "Colombia Tests"
+  - url: "https://api-ec-dev.placetopay.ws"
+    description: "Ecuador Tests"
+tags: 
+  - name: "Get information"
+    description: "Once you have the card data, it allows you to determine the flow to follow"
+  - name: "Transaction processing"
+    description: "Different ways to process a request"
+  - name: "Query a transaction"
+    description: "Search for information about one or more transactions carried out"
+  - name: "Actions on transactions"
+    description: "Allows you to perform operations such as cancellation, checkout, processing a manual transaction"
+  - name: "Card tokenization"
+    description: "Allows you to securely store a card for automatic payment processes later"
+  - name: "3DS process"
+    description: "Validate the transaction using 3DS"
+  - name: "OTP process"
+    description: "Allows you to generate and subsequently validate a One Time Password when required"
+  - name: "Pinpad Operations"
+    description: "Allows PIN validation with a secure Pinpad"
+  - name: "Report of operations carried out"
+    description: "Allows you to obtain a report of all transactions carried out in a period of time for the site used"
+paths: 
+  /gateway/information: 
+    post: 
+      summary: "Information request"
+      operationId: "post-rest-gateway-information"
+      description: "This service provides information about the user's card that is going to be processed, such as what services will be used for it and the types of credit, if applicable, that are available for it. If there are no types of credit, an arrangement is returned. empty and if there are, each type of credit must be iterated with the installments found in the arrangement."
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              type: "object"
+              properties: 
+                locale: 
+                  type: "string"
+                  description: "Determine the language of the response"
+                  example: "es-CO"
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                instrument: 
+                  $ref: "#/components/schemas/Instrument"
+                payment: 
+                  $ref: "#/components/schemas/Payment"
+                subscription: 
+                  $ref: "#/components/schemas/Subscription"
+            examples: 
+              Ejemplo: 
+                value: 
+                  auth: 
+                    login: "c51ce410c124a10e0db5e4b97fc2af39"
+                    tranKey: "VQOcRcVH2DfL6Y4B4SaK6yhoH/VOUveZ3xT16OQnvxE="
+                    nonce: "NjE0OWVkODgwYjNhNw=="
+                    seed: "2021-09-21T09:34:48-05:00"
+                  payment: 
+                    reference: "1234567890"
+                    description: "Testing Payment"
+                    amount: 
+                      currency: "COP"
+                      total: "3000"
+                  instrument: 
+                    card: 
+                      number: "4110760000000008"
+                  ipAddress: "127.0.0.1"
+                  userAgent: "Testing"
+      tags: 
+        - "Get information"
+      responses: 
+        200: 
+          description: "OK"
+          content: 
+            application/json: 
+              schema: 
+                type: "object"
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+                  provider: 
+                    type: "string"
+                    example: "EBUS"
+                    description: "Indicates which provider will be used in the transaction"
+                  serviceCode: 
+                    type: "string"
+                    description: "Indicates the code of the service that will process the transaction"
+                    example: "EB_VS"
+                  cardTypes: 
+                    type: "array"
+                    description: "Indicates the card types supported by the provider"
+                    items: 
+                      $ref: "#/components/schemas/CardType"
+                  cardType: 
+                    $ref: "#/components/schemas/CardType"
+                  requiereOtp: 
+                    type: "boolean"
+                    description: "Indicates if it is necessary to perform the OTP flow"
+                  requiereCvv2: 
+                    type: "boolean"
+                    description: "Indicates whether it is required to send CVV for transaction processing"
+                  threeDS: 
+                    type: "string"
+                    enum: 
+                    - "optional"
+                    - "required"
+                    - "unsupported"
+                    description: "Indicates if 3DS is necessary"
+                  credits: 
+                    type: "array"
+                    description: "Indicates the credits available per supplier"
+                    items: 
+                      $ref: "#/components/schemas/Credit"
+                  requirePockets: 
+                    type: "boolean"
+                    description: "Indicates if a pocket is required for processing the transaction"
+                  pockets: 
+                    type: "array"
+                    description: "Structure containing the card pockets"
+                    items: 
+                      $ref: "#/components/schemas/Pocket"
+                  requireAvs: 
+                    type: "boolean"
+                    description: "Indicates whether zip code information is required"
+                  zipCodeFormat: 
+                    type: "string"
+                    description: "Format to be used for postal code validation"
+                    nullable: "true"
+                  accountVerification: 
+                    type: "boolean"
+                    description: "Indicates whether it is necessary to perform the account verification flow"
+                  requirePin: 
+                    type: "boolean"
+                    description: "Indicates if a pin is necessary to process the transaction"
+                  requireRedirection: 
+                    type: "boolean"
+                    description: "Indicates if the payment method is of the redirect type"
+                  bankList: 
+                    type: "array"
+                    description: "List of banks available to process a payment with PSE"
+                    items: 
+                      $ref: "#/components/schemas/BankItem"
+                required: 
+                  - "status"
+                  - "provider"
+                  - "serviceCode"
+              examples: 
+                Ejemplo: 
+                  value: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "The request has been processed successfully"
+                      date: "2021-09-21T09:26:11-05:00"
+                    provider: "CREDIBANCO"
+                    serviceCode: "CR_VS"
+                    cardType: "C"
+                    cardTypes: 
+                      - "C"
+                      - "R"
+                      - "A"
+                    displayInterest: "false"
+                    requireOtp: "false"
+                    requireCvv2: "true"
+                    threeDS: "optional"
+                    credits: 
+                      - description: "Cuotas"
+                        code: "0"
+                        groupCode: "C"
+                        type: "00"
+                        installments: 
+                          - "1"
+                          - "2"
+                          - "3"
+                          - "4"
+                          - "5"
+                          - "6"
+                          - "7"
+                          - "8"
+                          - "9"
+                          - "10"
+                          - "11"
+                          - "12"
+                          - "13"
+                          - "14"
+                          - "15"
+                          - "16"
+                          - "17"
+                          - "18"
+                          - "19"
+                          - "20"
+                          - "21"
+                          - "22"
+                          - "23"
+                          - "24"
+                          - "25"
+                          - "26"
+                          - "27"
+                          - "28"
+                          - "29"
+                          - "30"
+                          - "31"
+                          - "32"
+                          - "33"
+                          - "34"
+                          - "35"
+                          - "36"
+  /gateway/process: 
+    post: 
+      summary: "Transaction processing"
+      operationId: "post-gateway-process"
+      description: "This service allows the payment to be made to the user's card, the parameters of the instrument are variables, if type of credit or OTP is not requested, it is not necessary to send these variables, payer is always required, buyer is optional but recommended."
+      tags: 
+        - "Transaction processing"
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              type: "object"
+              properties: 
+                action: 
+                  type: "string"
+                  enum: 
+                    - "checkin"
+                  description: "This field should only be sent when a checkin process is carried out, otherwise it should not be sent in the request."
+                locale: 
+                  type: "string"
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                payment: 
+                  $ref: "#/components/schemas/Payment"
+                instrument: 
+                  $ref: "#/components/schemas/Instrument"
+                payer: 
+                  $ref: "#/components/schemas/Person"
+                buyer: 
+                  $ref: "#/components/schemas/Person"
+                ipAddress: 
+                  type: "string"
+                userAgent: 
+                  type: "string"
+                additional: 
+                  type: "object"
+                  description: "Dynamic object key value information that you want to save with the transaction. The following keys are **NOT** allowed: `_accountNumber`, `userAgent`, `fingerprint`, `sourcePlatform`, `tokenizationID`, `trazabilyCode`, `transactionCycle`, `RequestId`, `PartnerAuthCode`, `onTest` , `threeDSEnrolled`, `threeDSAuthenticated`."
+            examples: 
+              Simple: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "cgqVhiaKSUSJmYQsXMsBqpfjz155nyKk54I66xyfuDI="
+                    nonce: "NjBhZTllMjZjYmQxYg=="
+                    seed: "2021-05-26T14:14:46-05:00"
+                  payer: 
+                    name: "Ms. Nelle Beahan DVM"
+                    surname: "Spencer"
+                    email: "gsteuber@kling.com"
+                    documentType: "CC"
+                    document: "3154383838"
+                    mobile: "3006108300"
+                  payment: 
+                    reference: "TEST_20210526_141005"
+                    description: "Cum vitae et consequatur quas adipisci ut rem."
+                    amount: 
+                      currency: "COP"
+                      total: "32030"
+                  instrument: 
+                    card: 
+                      number: "36545400000008"
+                      expiration: "12/20"
+                      cvv: "123"
+                      installments: "2"
+                  ipAddress: "190.85.90.130"
+                  userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+              Complex: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "cgqVhiaKSUSJmYQsXMsBqpfjz155nyKk54I66xyfuDI="
+                    nonce: "NjBhZTllMjZjYmQxYg=="
+                    seed: "2021-05-26T14:14:46-05:00"
+                  locale: "es_CO"
+                  buyer: 
+                    name: "Ms. Nelle Beahan DVM"
+                    surname: "Spencer"
+                    email: "gsteuber@kling.com"
+                    documentType: "CC"
+                    document: "1040035000"
+                    mobile: "3006108300"
+                    address: 
+                      street: "Carrera 65 #45 20"
+                      city: "Estherborough"
+                      state: "Antioquia"
+                      postalCode: "48107"
+                      country: "CO"
+                      phone: "5695155708"
+                  payment: 
+                    reference: "TEST_20210526_141005"
+                    description: "Cum vitae et consequatur quas adipisci ut rem."
+                    amount: 
+                      taxes: 
+                        - kind: "ice"
+                          amount: "2.76"
+                        - kind: "valueAddedTax"
+                          amount: "4.37"
+                      details: 
+                        - kind: "shipping"
+                          amount: "1.15"
+                        - kind: "tip"
+                          amount: "1.15"
+                        - kind: "subtotal"
+                          amount: "23"
+                      currency: "USD"
+                      total: "32.43"
+                    recurring: 
+                      periodicity: "D"
+                      interval: "7"
+                      nextPayment: "2021-05-28"
+                      maxPeriods: "4"
+                      notificationUrl: "https://dnetix.co/ping/recurring_notification"
+                    shipping: 
+                      name: "Ms. Nelle Beahan DVM"
+                      surname: "Spencer"
+                      email: "gsteuber@kling.com"
+                      documentType: "CC"
+                      document: "3154383838"
+                      mobile: "3006108300"
+                      address: 
+                        street: "278 Megane Road Apt. 109"
+                        city: "Estherborough"
+                        state: "Antioquia"
+                        postalCode: "48107"
+                        country: "US"
+                        phone: "569-515-5708 x98389"
+                  instrument: 
+                    card: 
+                      number: "36545400000008"
+                      expiration: "12/20"
+                      cvv: "123"
+                      installments: "2"
+                    credit: 
+                      code: "1"
+                      type: "02"
+                      groupCode: "P"
+                      installment: "24"
+                  ipAddress: "190.85.82.130"
+                  userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+                  additional: 
+                    some_key: "Value to be stored"
+                    another_key: "Another value to be stored"
+              Recurring: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "cgqVhiaKSUSJmYQsXMsBqpfjz155nyKk54I66xyfuDI="
+                    nonce: "NjBhZTllMjZjYmQxYg=="
+                    seed: "2021-05-26T14:14:46-05:00"
+                  payer: 
+                    name: "Ms. Nelle Beahan DVM"
+                    surname: "Spencer"
+                    email: "gsteuber@kling.com"
+                    documentType: "CC"
+                    document: "1040035000"
+                    mobile: "3006108300"
+                  payment: 
+                    reference: "TEST_20210526_141005"
+                    description: "Cum vitae et consequatur quas adipisci ut rem."
+                    amount: 
+                      currency: "USD"
+                      total: "32.43"
+                    recurring: 
+                      periodicity: "D"
+                      interval: "7"
+                      nextPayment: "2021-05-28"
+                      maxPeriods: "4"
+                      notificationUrl: "https://dnetix.co/ping/recurring_notification"
+                  instrument: 
+                    card: 
+                      number: "36545400000008"
+                      expiration: "12/20"
+                      cvv: "123"
+                      installments: "2"
+                  ipAddress: "190.85.82.130"
+                  userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+                  additional: 
+                    some_key: "Value to be stored"
+                    another_key: "Another value to be stored"
+              3DS: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "DrpP1WcVprW55o8ireLXXWMLNP6bnEymZ9Q9W4gKioM="
+                    nonce: "NjE0YTE5YjAwNWQ4Nw=="
+                    seed: "2021-09-21T12:43:12-05:00"
+                  payer: 
+                    name: "Diego"
+                    email: "diego.calle@placetopay.com"
+                  payment: 
+                    reference: "1234567890"
+                    amount: 
+                      currency: "USD"
+                      total: "57.8"
+                  instrument: 
+                    card: 
+                      number: "5180300000000005"
+                      expiration: "12/20"
+                      cvv: "123"
+                    credit: 
+                      code: "1"
+                      type: "02"
+                      groupCode: "P"
+                      installment: "24"
+                    threeDS: 
+                      id: "6700"
+                      cavv: "AJkBCSdAQQAAAsrYFSA2dDJ0eJI="
+                      xid: "5da38c1e-def7-4085-b159-50da623d909f"
+                      eci: "02"
+                      enrolled: "Y"
+                      authenticated: "Y"
+                      version: "v2"
+                      extra: 
+                        transStatusReason: 
+                        acsTransId: "eebcce31-abe6-4f21-bbaa-7a907d8fc187"
+                        threeDSServerTransID: "8859b5b5-f3b1-4deb-a6e5-c97e198596a5"
+                  ipAddress: "127.0.0.1"
+                  userAgent: "Testing"
+              Airline Dispersion: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "cgqVhiaKSUSJmYQsXMsBqpfjz155nyKk54I66xyfuDI="
+                    nonce: "NjBhZTllMjZjYmQxYg=="
+                    seed: "2021-05-26T14:14:46-05:00"
+                  payer: 
+                    name: "Diego"
+                    email: "diego.calle@placetopay.com"
+                  payment: 
+                    reference: "ON1434012-PN1433129"
+                    description: "Vuelo 50 AV2020"
+                    amount: 
+                      taxes: 
+                        - kind: "airportTax"
+                          amount: "63"
+                        - kind: "valueAddedTax"
+                          amount: "158.47"
+                      currency: "USD"
+                      total: "1161.12"
+                    dispersion: 
+                    - agreement: "2"
+                      agreementType: "AIRLINE"
+                      amount: 
+                        taxes: 
+                          - kind: "airportTax"
+                            amount: "163"
+                          - kind: "valueAddedTax"
+                            amount: "142.5"
+                        currency: "USD"
+                        total: "1055.5"
+                    -
+                      agreement: 
+                      agreementType: "MERCHANT"
+                      amount: 
+                        taxes: 
+                          - kind: "valueAddedTax"
+                            amount: "15.97"
+                        currency: "USD"
+                        total: "105.62"
+                  instrument: 
+                    card: 
+                      number: "4110760000000032"
+                      expiration: "12/20"
+                      cvv: "123"
+                  ipAddress: "190.85.90.130"
+                  userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+              Merchant Dispersion: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "cgqVhiaKSUSJmYQsXMsBqpfjz155nyKk54I66xyfuDI="
+                    nonce: "NjBhZTllMjZjYmQxYg=="
+                    seed: "2021-05-26T14:14:46-05:00"
+                  payer: 
+                    name: "Diego"
+                    email: "diego.calle@placetopay.com"
+                  payment: 
+                    reference: "Ref"
+                    description: "Description"
+                    amount: 
+                      taxes: 
+                        - kind: "valueAddedTax"
+                          amount: "158.47"
+                      currency: "USD"
+                      total: "1161.12"
+                    dispersion: 
+                    -
+                      agreement: 
+                      agreementType: "MERCHANT"
+                      amount: 
+                        taxes: 
+                          - kind: "valueAddedTax"
+                            amount: "142.5"
+                        currency: "USD"
+                        total: "855.5"
+                    - agreement: "7"
+                      agreementType: "MERCHANT"
+                      amount: 
+                        taxes: 
+                          - kind: "valueAddedTax"
+                            amount: "15.97"
+                        currency: "USD"
+                        total: "105.62"
+                    - agreement: "3"
+                      agreementType: "MERCHANT"
+                      amount: 
+                        currency: "USD"
+                        total: "200"
+                  instrument: 
+                    card: 
+                      number: "4110760000000032"
+                      expiration: "12/20"
+                      cvv: "123"
+                  ipAddress: "190.85.90.130"
+                  userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+              Pinblock and AVS: 
+                value: 
+                  auth: 
+                    login: "613822f45568191a8cdf4ad2299f6d23"
+                    tranKey: "hvWqtfpuh4Vlbw+iqiRnDGvOJJdr+tKj3fWoh5nz+l8="
+                    nonce: "NjE1ZTIxZDMzZmMyNA=="
+                    seed: "2021-10-06T17:23:15-05:00"
+                  payer: 
+                    name: "Diego"
+                    email: "diego.calle@evertecinc.com"
+                  payment: 
+                    reference: "1234567890"
+                    description: "Testing Payment"
+                    amount: 
+                      currency: "USD"
+                      total: "17.2"
+                  instrument: 
+                    pin: "0B880E2326F6409E"
+                    card: 
+                      number: "4111111111111111"
+                      expiration: "12/21"
+                      address: 
+                        postalCode: "55555"
+              Botón Bancolombia: 
+                value: 
+                  locale: "es_CO"
+                  payer: 
+                    name: "Dr. Wilfredo Cole Sr."
+                    surname: "Corwin"
+                    email: "jewell32@abbott.com"
+                    documentType: "CC"
+                    document: "2504950080"
+                    mobile: "3006108300"
+                  payment: 
+                    reference: "TEST_TRANSACTION"
+                    description: "Pago de prueba"
+                    amount: 
+                      total: "10000"
+                      currency: "COP"
+                  instrument: 
+                    redirection: 
+                      paymentMethod: "BTNBC"
+                      returnURL: "https://your-site.com/your-return-path"
+                  ipAddress: "127.0.0.1"
+                  userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+                  auth: 
+                    login: "6dd490faf9cb87a9862245da41170ff2"
+                    tranKey: "iVrCs2xc60jWqW9bAD0rEHdqZG1O0y+jh9s+urOlkzI="
+                    seed: "2021-10-14T19:44:06.820Z"
+                    nonce: "NHJqNXcz"
+              Kount: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "cgqVhiaKSUSJmYQsXMsBqpfjz155nyKk54I66xyfuDI="
+                    nonce: "NjBhZTllMjZjYmQxYg=="
+                    seed: "2021-05-26T14:14:46-05:00"
+                  payer: 
+                    name: "Ms. Nelle Beahan DVM"
+                    surname: "Spencer"
+                    email: "gsteuber@kling.com"
+                    documentType: "CC"
+                    document: "3154383838"
+                    mobile: "3006108300"
+                  payment: 
+                    reference: "TEST_20210526_141005"
+                    description: "Cum vitae et consequatur quas adipisci ut rem."
+                    amount: 
+                      currency: "COP"
+                      total: "32030"
+                  instrument: 
+                    card: 
+                      number: "36545400000008"
+                      expiration: "12/20"
+                      cvv: "123"
+                      installments: "2"
+                    kount: 
+                      session: "11032"
+                  ipAddress: "190.85.90.130"
+                  userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+              Preauthorization: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "cgqVhiaKSUSJmYQsXMsBqpfjz155nyKk54I66xyfuDI="
+                    nonce: "NjBhZTllMjZjYmQxYg=="
+                    seed: "2021-05-26T14:14:46-05:00"
+                  action: "checkin"
+                  payer: 
+                    name: "Ms. Nelle Beahan DVM"
+                    surname: "Spencer"
+                    email: "gsteuber@kling.com"
+                    documentType: "CC"
+                    document: "3154383838"
+                    mobile: "3006108300"
+                  payment: 
+                    reference: "TEST_20210526_141005"
+                    description: "Cum vitae et consequatur quas adipisci ut rem."
+                    amount: 
+                      currency: "COP"
+                      total: "32030"
+                  instrument: 
+                    card: 
+                      number: "36545400000008"
+                      expiration: "12/20"
+                      cvv: "123"
+                      installments: "2"
+                  ipAddress: "190.85.90.130"
+                  userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+      responses: 
+        200: 
+          description: "OK"
+          content: 
+            application/json: 
+              schema: 
+                $ref: "#/components/schemas/Transaction"
+              examples: 
+                Ejemplo: 
+                  value: 
+                    status: 
+                      status: "APPROVED"
+                      reason: "00"
+                      message: "Aprobada"
+                      date: "2021-09-20T21:07:22-05:00"
+                    date: "2021-09-20T21:07:22-05:00"
+                    transactionDate: "2021-09-20T21:07:22-05:00"
+                    internalReference: "3"
+                    reference: "1234567890"
+                    paymentMethod: "ID_VS"
+                    franchise: "visa"
+                    franchiseName: "Visa"
+                    issuerName: "Testing Bank"
+                    amount: 
+                      currency: "USD"
+                      total: "57.8"
+                    conversion: 
+                      from: 
+                        currency: "USD"
+                        total: "57.8"
+                      to: 
+                        currency: "USD"
+                        total: "57.8"
+                      factor: "1"
+                    authorization: "999999"
+                    receipt: "3"
+                    type: "AUTH_ONLY"
+                    refunded: "false"
+                    lastDigits: "1111"
+                    provider: "INTERDIN"
+                    discount: 
+                    processorFields: 
+                      id: "86c6eb268c7086ec8a3201b0ec0c984a"
+                      b24: "000"
+                    additional: 
+                      merchantCode: "468231"
+                      terminalNumber: "00990101"
+                      credit: 
+                        code: "1"
+                        type: "02"
+                        groupCode: "P"
+                        installments: "24"
+                      totalAmount: "63.58"
+                      interestAmount: "5.78"
+                      installmentAmount: "2.65"
+                      iceAmount: "0"
+                      batch: 
+                      line: 
+                      bin: "411111"
+                      expiration: "1220"
+                APPROVED: 
+                  value: 
+                    status: 
+                      status: "APPROVED"
+                      reason: "00"
+                      message: "Aprobada"
+                      date: "2021-09-24T11:51:31-05:00"
+                    date: "2021-09-24T11:51:31-05:00"
+                    transactionDate: "2021-09-24T11:51:31-05:00"
+                    internalReference: "41"
+                    reference: "ON1434012-PN1433129"
+                    paymentMethod: "CR_VS"
+                    franchise: "visa"
+                    franchiseName: "Visa"
+                    issuerName: "BANCO DE GUAYAQUIL, S.A."
+                    amount: 
+                      taxes: 
+                      - kind: "airportTax"
+                        amount: "63"
+                        base: "0"
+                      - kind: "valueAddedTax"
+                        amount: "158.47"
+                        base: "0"
+                      currency: "USD"
+                      total: "1161.12"
+                    conversion: 
+                      from: 
+                        currency: "USD"
+                        total: "1161.12"
+                      to: 
+                        currency: "USD"
+                        total: "1161"
+                      factor: "1"
+                    authorization: "739877"
+                    receipt: "713329175945"
+                    type: "DISPERSION"
+                    refunded: "false"
+                    lastDigits: "0032"
+                    provider: "CREDIBANCO"
+                    discount: 
+                    processorFields: 
+                      id: "08c0284b20510c8db8dcb29137374718"
+                      b24: "XX"
+                    additional: 
+                      merchantCode: "123456"
+                      terminalNumber: "12345678"
+                      bin: "411076"
+                      expiration: "1220"
+                    dispersion: 
+                    -
+                      status: 
+                        status: "APPROVED"
+                        reason: "00"
+                        message: "Transacción aprobada"
+                        date: "2021-09-24T11:51:31-05:00"
+                      agreement: "1"
+                      type: "AIRLINE"
+                      authorization: "739877"
+                      receipt: "713329175945"
+                      amount: 
+                        currency: "CLP"
+                        total: "638155.3"
+                      refunded: "false"
+                      paymentMethod: "PS_VS"
+                    -
+                      status: 
+                        status: "APPROVED"
+                        reason: "00"
+                        message: "Transacción aprobada"
+                        date: "2021-09-24T11:51:31-05:00"
+                      agreement: 
+                      type: "MERCHANT"
+                      authorization: "000000"
+                      receipt: 
+                      amount: 
+                        currency: "COP"
+                        total: "297580"
+                      refunded: "false"
+                      paymentMethod: "CR_VS"
+                PENDING: 
+                  value: 
+                    status: 
+                      status: "PENDING"
+                      reason: "?-"
+                      message: "Transacción pendiente"
+                      date: "2021-09-24T11:51:31-05:00"
+                    date: "2021-09-24T11:51:31-05:00"
+                    transactionDate: "2021-09-24T11:51:31-05:00"
+                    internalReference: "41"
+                    reference: "ON1434012-PN1433129"
+                    paymentMethod: "CR_VS"
+                    franchise: "visa"
+                    franchiseName: "Visa"
+                    issuerName: "BANCO DE GUAYAQUIL, S.A."
+                    amount: 
+                      taxes: 
+                      - kind: "airportTax"
+                        amount: "63"
+                        base: "0"
+                      - kind: "valueAddedTax"
+                        amount: "158.47"
+                        base: "0"
+                      currency: "USD"
+                      total: "1161.12"
+                    conversion: 
+                      from: 
+                        currency: "USD"
+                        total: "1161.12"
+                      to: 
+                        currency: "USD"
+                        total: "1161"
+                      factor: "1"
+                    authorization: "000000"
+                    receipt: "713329175945"
+                    type: "DISPERSION"
+                    refunded: "false"
+                    lastDigits: "0032"
+                    provider: "CREDIBANCO"
+                    discount: 
+                    processorFields: 
+                      id: "08c0284b20510c8db8dcb29137374718"
+                      b24: "XX"
+                    additional: 
+                      merchantCode: "123456"
+                      terminalNumber: "12345678"
+                      bin: "411076"
+                      expiration: "1220"
+                    dispersion: 
+                    -
+                      status: 
+                        status: "PENDING"
+                        reason: "?-"
+                        message: "Transacción pendiente"
+                        date: "2021-09-24T11:51:31-05:00"
+                      agreement: "1"
+                      type: "AIRLINE"
+                      authorization: "000000"
+                      receipt: "713329175945"
+                      amount: 
+                        currency: "CLP"
+                        total: "638155.3"
+                      refunded: "false"
+                      paymentMethod: "PS_VS"
+                    -
+                      status: 
+                        status: "PENDING_PROCESS"
+                        reason: "?-"
+                        message: "Transaccion aprobada"
+                        date: "2021-09-24T11:51:31-05:00"
+                      agreement: 
+                      type: "MERCHANT"
+                      authorization: "000000"
+                      receipt: 
+                      amount: 
+                        currency: "COP"
+                        total: "297580"
+                      refunded: "false"
+                      paymentMethod: "CR_VS"
+                APPROVED_PARTIAL: 
+                  value: 
+                    status: 
+                      status: "APPROVED_PARTIAL"
+                      reason: "XX"
+                      message: "Comercio no configurado propiamente para la franquicia seleccionada"
+                      date: "2021-09-24T11:51:31-05:00"
+                    date: "2021-09-24T11:51:31-05:00"
+                    transactionDate: "2021-09-24T11:51:31-05:00"
+                    internalReference: "41"
+                    reference: "ON1434012-PN1433129"
+                    paymentMethod: "CR_VS"
+                    franchise: "visa"
+                    franchiseName: "Visa"
+                    issuerName: "BANCO DE GUAYAQUIL, S.A."
+                    amount: 
+                      taxes: 
+                      - kind: "airportTax"
+                        amount: "63"
+                        base: "0"
+                      - kind: "valueAddedTax"
+                        amount: "158.47"
+                        base: "0"
+                      currency: "USD"
+                      total: "1161.12"
+                    conversion: 
+                      from: 
+                        currency: "USD"
+                        total: "1161.12"
+                      to: 
+                        currency: "USD"
+                        total: "1161"
+                      factor: "1"
+                    authorization: "739877"
+                    receipt: "713329175945"
+                    type: "DISPERSION"
+                    refunded: "false"
+                    lastDigits: "0032"
+                    provider: "CREDIBANCO"
+                    discount: 
+                    processorFields: 
+                      id: "08c0284b20510c8db8dcb29137374718"
+                      b24: "XX"
+                    additional: 
+                      merchantCode: "123456"
+                      terminalNumber: "12345678"
+                      bin: "411076"
+                      expiration: "1220"
+                    dispersion: 
+                    -
+                      status: 
+                        status: "APPROVED"
+                        reason: "00"
+                        message: "Transacción aprobada"
+                        date: "2021-09-24T11:51:31-05:00"
+                      agreement: "1"
+                      type: "AIRLINE"
+                      authorization: "739877"
+                      receipt: "713329175945"
+                      amount: 
+                        currency: "CLP"
+                        total: "638155.3"
+                      refunded: "false"
+                      paymentMethod: "PS_VS"
+                    -
+                      status: 
+                        status: "FAILED"
+                        reason: "XX"
+                        message: "Transacción aprobada"
+                        date: "2021-09-24T11:51:31-05:00"
+                      agreement: 
+                      type: "MERCHANT"
+                      authorization: "000000"
+                      receipt: 
+                      amount: 
+                        currency: "COP"
+                        total: "297580"
+                      refunded: "false"
+                      paymentMethod: "CR_VS"
+                Botón Bancolombia: 
+                  value: 
+                    status: 
+                      status: "PENDING"
+                      reason: "?-"
+                      message: "Transacción pendiente. Por favor consulte con su entidad financiera si el débito fue realizado"
+                      date: "2021-10-14T14:44:09-05:00"
+                    date: "2021-10-14T14:44:07-05:00"
+                    transactionDate: "2021-10-14T14:44:07-05:00"
+                    internalReference: "1521428660"
+                    reference: "TEST_TRANSACTION"
+                    paymentMethod: "BTNBC"
+                    franchise: "bancolombia"
+                    franchiseName: "Botón Bancolombia"
+                    issuerName: 
+                    amount: 
+                      currency: "USD"
+                      total: "100"
+                    conversion: 
+                      from: 
+                        currency: "USD"
+                        total: "100"
+                      to: 
+                        currency: "COP"
+                        total: "372575"
+                      factor: "3725.75"
+                    authorization: "000000"
+                    receipt: "1634240649"
+                    type: "AUTH_ONLY"
+                    refunded: "false"
+                    lastDigits: 
+                    provider: "BANCOLOMBIA"
+                    discount: 
+                    processorFields: 
+                      id: "22c96234f5f04e53d1c1a4e5f5a59592"
+                      b24: "?-"
+                    additional: 
+                    redirection: 
+                      paymentMethod: "BTNBC"
+                      processURL: "https://sandbox-boton-dev.apps.ambientesbc.com/web/transfer-gateway/checkout/_lDjXRIRMK1"
+                      returnURL: "https://your-site.com/your-return-path"
+  /gateway/tokenize: 
+    post: 
+      summary: "Tokenization (tokenize)"
+      operationId: "post-gateway-tokenize"
+      description: "This service allows you to store a payment instrument such as: credit cards or bank account safely, through a request that contains its information, a token will be generated that can be used in the processing service and for all Indeed, in PlacetoPay it is equivalent to a credit card or bank account, the difference is that the token structure is sent instead of card or account.
+
+        Prior to consuming this service, the information must be consulted to know whether or not it is necessary to generate an OTP for the client and, if necessary, request the token from the person and send it during consumption."
+      tags: 
+        - "Card tokenization"
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              type: "object"
+              required: 
+                - "instrument"
+              properties: 
+                locale: 
+                  type: "string"
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                payer: 
+                  $ref: "#/components/schemas/Person"
+                instrument: 
+                  $ref: "#/components/schemas/Instrument"
+                payment: 
+                  $ref: "#/components/schemas/Payment"
+                subscription: 
+                  $ref: "#/components/schemas/Subscription"
+                ipAddress: 
+                  type: "string"
+                userAgent: 
+                  type: "string"
+            examples: 
+              Tarjeta de crédito : 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "ytIEiMHa8W4V09lBjztshdczGcv4SvJh6VclvVa1/hI="
+                    nonce: "NjBjYjc3YTYwZGZhYw=="
+                    seed: "2021-06-17T11:26:14-05:00"
+                  payer: 
+                    name: "Diego"
+                    surname: "Calle"
+                    email: "dnetix@yopmail.com"
+                  instrument: 
+                    card: 
+                      number: "5180300000000005"
+                      expiration: "12/18"
+                      cvv: "123"
+                      installments: "3"
+                  ipAddress: "127.0.0.1"
+                  userAgent: "Testing"
+              Cuenta bancaria: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "ytIEiMHa8W4V09lBjztshdczGcv4SvJh6VclvVa1/hI="
+                    nonce: "NjBjYjc3YTYwZGZhYw=="
+                    seed: "2021-06-17T11:26:14-05:00"
+                  payer: 
+                    name: "Diego"
+                    surname: "Calle"
+                    email: "dnetix@yopmail.com"
+                  instrument: 
+                    account: 
+                      bankName: "Test Bank"
+                      bankCode: "0001234"
+                      accountType: "SAV"
+                      accountNumber: "4111111111111111"
+                  ipAddress: "127.0.0.1"
+                  userAgent: "Testing"
+              Con cobro: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "ytIEiMHa8W4V09lBjztshdczGcv4SvJh6VclvVa1/hI="
+                    nonce: "NjBjYjc3YTYwZGZhYw=="
+                    seed: "2021-06-17T11:26:14-05:00"
+                  payer: 
+                    name: "Diego"
+                    surname: "Calle"
+                    email: "dnetix@yopmail.com"
+                  instrument: 
+                    card: 
+                      number: "5180300000000005"
+                      expiration: "12/18"
+                      cvv: "123"
+                      installments: "3"
+                  payment: 
+                    reference: "TEST_PAYMENT_12345"
+                    amount: 
+                      currency: "COP"
+                      total: "100"
+                  ipAddress: "127.0.0.1"
+                  userAgent: "Testing"
+      responses: 
+        200: 
+          description: "OK"
+          content: 
+            application/json: 
+              schema: 
+                type: "object"
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+                  provider: 
+                    type: "string"
+                  instrument: 
+                    $ref: "#/components/schemas/Instrument"
+              examples: 
+                Ok: 
+                  value: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "The request has been processed successfully"
+                      date: "2021-06-17T11:29:37-05:00"
+                    provider: "CREDIBANCO"
+                    instrument: 
+                      token: 
+                        token: "ee1d56a192dc07e4e403cdaa2569407118a0e19dc185b1e63bad2b2edc2a3bf0"
+                        subtoken: "5172915969800005"
+                        franchise: "master"
+                        franchiseName: "Mastercard"
+                        lastDigits: "0005"
+                        validUntil: "2018-12-31"
+  /invalidate: 
+    post: 
+      summary: "Tokenization (invalidate)"
+      operationId: "post-gateway-tokenize"
+      description: "This service allows you to invalidate and delete a token associated with a credit card."
+      tags: 
+        - "Card tokenization"
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              type: "object"
+              properties: 
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                instrument: 
+                  required: 
+                    - "token"
+                  type: "object"
+                  properties: 
+                    token: 
+                      type: "object"
+                      required: 
+                        - "token"
+                      properties: 
+                        token: 
+                          type: "string"
+              required: 
+                - "auth"
+                - "instrument"
+            examples: 
+              Ejemplo: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "/svw0VZ1UML5qEmaPbefQO7OXt098zOdfWsc/vHclGM="
+                    nonce: "NjQ0MWFlNGY0MWE1OQ=="
+                    seed: "2023-04-20T16:27:43-05:00"
+                  instrument: 
+                    token: 
+                      token: "239bd2573205e974c4bed7c99cc1125c464f6350a905565333fff041d8f5ef79"
+      responses: 
+        200: 
+          description: "OK"
+          content: 
+            application/json: 
+              schema: 
+                type: "object"
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+              examples: 
+                Ok: 
+                  value: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "The request has been processed successfully"
+                      date: "2021-06-17T11:29:37-05:00"
+  /gateway/transaction: 
+    post: 
+      summary: "Operations on a transaction"
+      operationId: "post-gateway-transaction"
+      responses: 
+        200: 
+          description: ""
+          content: 
+            application/json: 
+              schema: 
+                $ref: "#/components/schemas/Transaction"
+              examples: 
+                Ejemplo: 
+                  value: 
+                    status: 
+                      status: "APPROVED"
+                      reason: "00"
+                      message: "Aprobada"
+                      date: "2021-09-20T21:56:29-05:00"
+                    date: "2021-09-20T21:56:29-05:00"
+                    transactionDate: "2021-09-20T21:56:29-05:00"
+                    internalReference: "455"
+                    reference: "1945768"
+                    paymentMethod: "CR_VS"
+                    franchise: "visa"
+                    franchiseName: "Visa"
+                    issuerName: "Testing Bank"
+                    amount: 
+                      taxes: 
+                      - kind: "valueAddedTax"
+                        amount: "705.66"
+                        base: "0"
+                      currency: "USD"
+                      total: "3714"
+                    conversion: 
+                      from: 
+                        currency: "USD"
+                        total: "3714"
+                      to: 
+                        currency: "USD"
+                        total: "3714"
+                      factor: "1"
+                    authorization: "000000"
+                    receipt: "455"
+                    type: "CREDIT"
+                    refunded: "false"
+                    lastDigits: "0008"
+                    provider: "CREDIBANCO"
+                    discount: 
+                    processorFields: 
+                      id: "f4ec45ea4c83039384b189df2c1a6891"
+                      b24: "000"
+                    additional: 
+                      merchantCode: 
+                      terminalNumber: 
+                      bin: "411076"
+                      expiration: "1228"
+                      installments: "1"
+      description: "Allows you to perform a reversal, re-authorization, refund or cash out on an existing transaction"
+      tags: 
+        - "Actions on transactions"
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              type: "object"
+              properties: 
+                locale: 
+                  type: "string"
+                  example: "es-CO"
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                action: 
+                  type: "string"
+                  description: "Operation to perform on the transaction"
+                  enum: 
+                    - "reverse"
+                    - "refund"
+                    - "process"
+                    - "void"
+                    - "dispersion"
+                    - "checkout"
+                    - "reauthorization"
+                  example: "reverse"
+                internalReference: 
+                  type: "number"
+                authorization: 
+                  type: "string"
+              required: 
+                - "auth"
+                - "action"
+                - "internalReference"
+            examples: 
+              Reverso: 
+                value: 
+                  auth: 
+                    login: "6dd490faf9cb87a9862245da41170ff2"
+                    tranKey: "JUfKi8+W//kX43WZd8FcnNsdl7zkaeAQdmSOudWcVi0="
+                    nonce: "MzgwYWYwMjc2ZWUzODA5YmI1MDQ1YmNjYzdlNzY1MTY="
+                    seed: "2021-03-02T17:03:50+01:00"
+                  internalReference: "1505723583"
+                  authorization: "999999"
+                  action: "reverse"
+              Checkout: 
+                value: 
+                  auth: 
+                    login: "184053a1c192227c2f53964fdb109e00"
+                    tranKey: "JmQcGgEUKPY9NZR9ID4ffH4jmBxLeWkRB6LCPwZp/EY="
+                    nonce: "NjE0ZTNiZGEzZTNlNA=="
+                    seed: "2021-09-24T15:58:02-05:00"
+                  internalReference: "62342"
+                  authorization: "580883"
+                  action: "checkout"
+                  payment: 
+                    amount: 
+                      total: "2000"
+  /gateway/query: 
+    post: 
+      summary: "Transaction query by internal reference"
+      operationId: "post-rest-gateway-query"
+      description: "Allows you to consult a particular transaction using its internal reference"
+      tags: 
+        - "Query a transaction"
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              type: "object"
+              properties: 
+                locale: 
+                  type: "string"
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                internalReference: 
+                  type: "number"
+              required: 
+              - "auth"
+              - "internalReference"
+            examples: 
+              Ejemplo: 
+                value: 
+                  auth: 
+                    login: "6dd490faf9cb87a9862245da41170ff2"
+                    tranKey: "JUfKi8+W//kX43WZd8FcnNsdl7zkaeAQdmSOudWcVi0="
+                    nonce: "MzgwYWYwMjc2ZWUzODA5YmI1MDQ1YmNjYzdlNzY1MTY="
+                    seed: "2021-03-02T17:03:50+01:00"
+                  internalReference: "230364"
+      responses: 
+        200: 
+          description: "OK"
+          content: 
+            application/json: 
+              schema: 
+                $ref: "#/components/schemas/Transaction"
+              examples: 
+                Ejemplo: 
+                  value: 
+                    status: 
+                      status: "APPROVED"
+                      reason: "00"
+                      message: "Aprobada"
+                      date: "2021-09-24T14:04:23-05:00"
+                    date: "2021-09-24T10:02:17-05:00"
+                    transactionDate: "2021-09-24T10:02:18-05:00"
+                    internalReference: "230364"
+                    reference: "800166551"
+                    paymentMethod: "ID_DN"
+                    franchise: "diners"
+                    franchiseName: "Diners"
+                    issuerName: "Diners"
+                    amount: 
+                      taxes: 
+                      - kind: "valueAddedTax"
+                        amount: "0"
+                        base: "0"
+                      currency: "USD"
+                      total: "120"
+                    conversion: 
+                      from: 
+                        currency: "USD"
+                        total: "120"
+                      to: 
+                        currency: "USD"
+                        total: "120"
+                      factor: "1"
+                    authorization: "999999"
+                    receipt: "230364"
+                    type: "AUTH_ONLY"
+                    refunded: "false"
+                    lastDigits: "0008"
+                    provider: "INTERDIN"
+                    discount: 
+                    processorFields: 
+                      id: "cf3e77878a07d6e3ee667c60081dc39d"
+                      b24: "00"
+                    additional: 
+                      merchantCode: "1065152"
+                      terminalNumber: "00990099"
+                      credit: 
+                        code: "1"
+                        type: "03"
+                        groupCode: "X"
+                        installments: "3"
+                      totalAmount: "120"
+                      interestAmount: "0"
+                      installmentAmount: "40"
+                      iceAmount: "0"
+                      batch: 
+                      line: 
+                      bin: "365454"
+                      expiration: "1122"
+                    notificationURL: "https://test.placetopay.ec/redirection/api/notify"
+  /gateway/search: 
+    post: 
+      summary: "Transaction search"
+      operationId: "post-gateway-search"
+      responses: 
+        200: 
+          description: "OK"
+          content: 
+            application/json: 
+              schema: 
+                description: ""
+                type: "object"
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+                  transactions: 
+                    type: "array"
+                    uniqueItems: "true"
+                    minItems: "1"
+                    items: 
+                      $ref: "#/components/schemas/Transaction"
+                required: 
+                  - "status"
+                  - "transactions"
+              examples: 
+                Ejemplo: 
+                  value: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "The request has been processed successfully"
+                      date: "2021-09-20T21:51:59-05:00"
+                    transactions: 
+                    -
+                      status: 
+                        status: "PENDING"
+                        reason: "?-"
+                        message: "Pending transaction"
+                        date: "2021-09-20T21:51:59-05:00"
+                      date: "2021-09-20T21:51:59-05:00"
+                      transactionDate: "2021-09-20T21:51:59-05:00"
+                      internalReference: "453"
+                      reference: "TEST_3"
+                      paymentMethod: "ID_VS"
+                      franchise: "visa"
+                      franchiseName: "Visa"
+                      issuerName: "Testing Bank"
+                      amount: 
+                        taxes: 
+                        - kind: "valueAddedTax"
+                          amount: "3.27"
+                          base: "0"
+                        currency: "USD"
+                        total: "17.2"
+                      conversion: 
+                        from: 
+                          currency: "USD"
+                          total: "17.2"
+                        to: 
+                          currency: "USD"
+                          total: "17.2"
+                        factor: "1"
+                      authorization: 
+                      receipt: 
+                      type: "AUTH_ONLY"
+                      refunded: "false"
+                      lastDigits: "0008"
+                      provider: "INTERDIN"
+                      discount: 
+                      processorFields: 
+                        id: "a9cb4b7a7aa03f681a0545ba6807e1fc"
+                        b24: "?-"
+                      additional: 
+                        merchantCode: "000468232"
+                        terminalNumber: "00990101"
+                        credit: 
+                        totalAmount: "17.2"
+                        interestAmount: "0"
+                        installmentAmount: "0"
+                        iceAmount: "0"
+                        batch: 
+                        line: 
+                        bin: "411076"
+                        expiration: "1228"
+                    -
+                      status: 
+                        status: "PENDING"
+                        reason: "?-"
+                        message: "Pending transaction"
+                        date: "2021-09-20T21:51:59-05:00"
+                      date: "2021-09-20T21:51:59-05:00"
+                      transactionDate: "2021-09-20T21:51:59-05:00"
+                      internalReference: "452"
+                      reference: "TEST_3"
+                      paymentMethod: "ID_VS"
+                      franchise: "visa"
+                      franchiseName: "Visa"
+                      issuerName: "Testing Bank"
+                      amount: 
+                        taxes: 
+                        - kind: "valueAddedTax"
+                          amount: "3.27"
+                          base: "0"
+                        details: 
+                        - kind: "shipping"
+                          amount: "100"
+                        currency: "USD"
+                        total: "17.2"
+                      conversion: 
+                        from: 
+                          currency: "USD"
+                          total: "17.2"
+                        to: 
+                          currency: "USD"
+                          total: "17.2"
+                        factor: "1"
+                      authorization: 
+                      receipt: 
+                      type: "AUTH_ONLY"
+                      refunded: "false"
+                      lastDigits: "0008"
+                      provider: "INTERDIN"
+                      discount: 
+                      processorFields: 
+                        id: "cbc65da9667ca078dc774cad2fd510e4"
+                        b24: "?-"
+                      additional: 
+                        merchantCode: "000468232"
+                        terminalNumber: "00990101"
+                        credit: 
+                        totalAmount: "17.2"
+                        interestAmount: "0"
+                        installmentAmount: "0"
+                        iceAmount: "0"
+                        batch: 
+                        line: 
+                        bin: "411076"
+                        expiration: "1228"
+      tags: 
+        - "Query a transaction"
+      description: "This service allows the search for transactions by reference and amount, it is usually used in case of loss of communication when creating a transaction to obtain the internal reference again."
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              description: ""
+              type: "object"
+              properties: 
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                reference: 
+                  type: "string"
+                  minLength: 1
+                amount: 
+                  $ref: "#/components/schemas/Amount"
+              required: 
+                - "auth"
+                - "reference"
+                - "amount"
+            examples: 
+              Ejemplo: 
+                value: 
+                  auth: 
+                    login: "6dd490faf9cb87a9862245da41170ff2"
+                    tranKey: "+FSGHsW3e6WrrHcIdBmqI+j6FFeUN4bidfPL7LeZgvE="
+                    nonce: "N2YzMGM1M2QxOTU3YzZmMzVlYmIzZTAyOGMwNjNkMmU="
+                    seed: "2021-03-03T19:40:37+01:00"
+                  reference: "TEST_20171108_144400"
+                  amount: 
+                    currency: "COP"
+                    total: "1000"
+  /gateway/interests: 
+    post: 
+      summary: "Interest Calculation (Ecuador only)"
+      operationId: "post-rest-gateway-interests"
+      description: "This service must be consumed if the card requires interest to be displayed (displayInterest to true) and as an example this way the values are displayed in the redirection service."
+      tags: 
+        - "Get information"
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              type: "object"
+              properties: 
+                locale: 
+                  type: "string"
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                instrument: 
+                  $ref: "#/components/schemas/Instrument"
+                payment: 
+                  $ref: "#/components/schemas/Payment"
+            examples: 
+              Consumo: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "E0gHh8C6fceHnbsLlgBq2n7nRNjr8MVPcz0um1ZYCfs="
+                    nonce: "NjE0YjUwZGNlYjJiNA=="
+                    seed: "2021-09-22T10:50:52-05:00"
+                  payer: 
+                    name: "Diego"
+                    email: "diego.calle@placetopay.com"
+                  payment: 
+                    reference: "1234567890"
+                    amount: 
+                      currency: "USD"
+                      total: "1"
+                  instrument: 
+                    card: 
+                      number: "4111111111111111"
+                      expiration: "12/20"
+                      cvv: "123"
+                    credit: 
+                      code: "1"
+                      type: "02"
+                      groupCode: "P"
+                      installment: "24"
+                  ipAddress: "127.0.0.1"
+                  userAgent: "Testing"
+      responses: 
+        200: 
+          description: "OK"
+          content: 
+            application/json: 
+              schema: 
+                type: "object"
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+                  provider: 
+                    type: "string"
+                  values: 
+                    $ref: "#/components/schemas/InterestValues"
+                  conversion: 
+                    $ref: "#/components/schemas/AmountConversion"
+              examples: 
+                Ejemplo: 
+                  value: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "The request has been processed successfully"
+                      date: "2021-09-22T16:08:19-05:00"
+                    provider: "INTERDIN"
+                    values: 
+                      original: "1"
+                      installment: "0.04"
+                      interest: "0.03"
+                      total: "1.03"
+                    conversion: 
+                      from: 
+                        currency: "COP"
+                        total: "3000"
+                      to: 
+                        currency: "USD"
+                        total: "1"
+                      factor: "0.0003333333333333333"
+    parameters: 
+  /gateway/otp/generate: 
+    post: 
+      summary: "Generación de OTP (solo Ecuador)"
+      operationId: "post-rest-otp-generate"
+      description: "This service is consumed if the OTP is required for the card provided by the client (requireOtp is true) and the user must be allowed to enter the OTP to send it later in the processing service, as an example this is captured in the interface redirection"
+      tags: 
+        - "Proceso OTP"
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              type: "object"
+              properties: 
+                locale: 
+                  type: "string"
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                instrument: 
+                  $ref: "#/components/schemas/Instrument"
+            examples: 
+              Ejemplo: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "q/7k0WUshvLEpQ5gqNWqne+ZfWXSXUP/b7T80TuAUSY="
+                    nonce: "NjE0YTM3OGIwNjA2NA=="
+                    seed: "2021-09-21T14:50:35-05:00"
+                  payer: 
+                    name: "Diego"
+                    email: "diego.calle@evertecinc.com"
+                  payment: 
+                    reference: "1234567890"
+                    amount: 
+                      currency: "USD"
+                      total: "3"
+                  instrument: 
+                    card: 
+                      number: "36545400000008"
+                      expiration: "12/20"
+                      cvv: "123"
+                  ipAddress: "127.0.0.1"
+                  userAgent: "Testing"
+      responses: 
+        200: 
+          description: "OK"
+          content: 
+            application/json: 
+              schema: 
+                type: "object"
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+                  provider: 
+                    type: "string"
+              examples: 
+                Ejemplo: 
+                  value: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "La petición se ha procesado correctamente"
+                      date: "2021-09-21T14:52:28-05:00"
+                    provider: "INTERDIN"
+                No Requerido: 
+                  value: 
+                    status: 
+                      status: "REJECTED"
+                      reason: "NR"
+                      message: "OTP is not required with this card"
+                      date: "2021-09-21T14:53:21-05:00"
+                    provider: "INTERDIN"
+  /gateway/otp/validate: 
+    post: 
+      summary: "OTP validation (Ecuador only)"
+      operationId: "post-rest-otp-validate"
+      description: "It allows you to validate that the OTP provided matches the one sent by the provider and will provide a signature that serves to authenticate the transaction
+
+        > Important Note
+        >
+        > It is necessary to send the returned value as `signature` in the response as `instrument.otp` in the processing request so that it is recorded in the transaction"
+      tags: 
+        - "OTP process"
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              type: "object"
+              properties: 
+                locale: 
+                  type: "string"
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                instrument: 
+                  $ref: "#/components/schemas/Instrument"
+                payment: 
+                  $ref: "#/components/schemas/Payment"
+                subscription: 
+                  $ref: "#/components/schemas/Subscription"
+            examples: 
+              Ejemplo: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "q/7k0WUshvLEpQ5gqNWqne+ZfWXSXUP/b7T80TuAUSY="
+                    nonce: "NjE0YTM3OGIwNjA2NA=="
+                    seed: "2021-09-21T14:50:35-05:00"
+                  payer: 
+                    name: "Diego"
+                    email: "diego.calle@evertecinc.com"
+                  payment: 
+                    reference: "1234567890"
+                    amount: 
+                      currency: "USD"
+                      total: "3"
+                  instrument: 
+                    card: 
+                      number: "36545400000008"
+                      expiration: "12/20"
+                      cvv: "123"
+                    otp: "123456"
+                  ipAddress: "127.0.0.1"
+                  userAgent: "Testing"
+      responses: 
+        200: 
+          description: "OK"
+          content: 
+            application/json: 
+              schema: 
+                type: "object"
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+                  provider: 
+                    type: "string"
+                  signature: 
+                    type: "string"
+                    nullable: "true"
+                  validated: 
+                    type: "boolean"
+              examples: 
+                Ejemplo: 
+                  value: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "OTP Validation successful"
+                      date: "2021-09-21T15:12:01-05:00"
+                    provider: "INTERDIN"
+                    signature: "a586077cd77ec2dbcb9b7f68b896368a"
+                    validated: "true"
+                Errado: 
+                  value: 
+                    status: 
+                      status: "FAILED"
+                      reason: "OT1"
+                      message: "The OTP entered does not match the one provided to you"
+                      date: "2021-09-21T15:14:41-05:00"
+                    provider: "INTERDIN"
+                    signature: 
+                    validated: "false"
+  /gateway/report: 
+    post: 
+      summary: "Request a report"
+      operationId: "post-report"
+      responses: 
+        200: 
+          description: ""
+          content: 
+            application/json: 
+              schema: 
+                description: ""
+                type: "object"
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+                  id: 
+                    type: "number"
+                required: 
+                - "status"
+                - "id"
+              examples: 
+                example: 
+                  value: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "The request has been processed successfully"
+                      date: "2020-01-18T18:00:00-05:00"
+                    id: "1231"
+                error: 
+                  value: 
+                    status: 
+                      status: "FAILED"
+                      reason: "BR"
+                      message: "The requested report exceeds 10 days"
+                      date: "2020-01-18T18:00:00-05:00"
+                    id: "0"
+      description: "Allows you to request that a transaction report be generated and returns an identifier for the process, which once the callback is called can be obtained at the following endpoint"
+      tags: 
+        - "Report of operations carried out"
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              type: "object"
+              properties: 
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                filters: 
+                  type: "object"
+                  required: 
+                    - "startDate"
+                    - "endDate"
+                  properties: 
+                    startDate: 
+                      type: "string"
+                      format: "date-time"
+                      example: "2021-01-10T18:01:27-05:00"
+                    endDate: 
+                      type: "string"
+                      format: "date-time"
+                      example: "2021-01-12T18:01:27-05:00"
+                    state: 
+                      type: "array"
+                      description: "It allows you to define the status of the transactions in the report, it is a numerical arrangement where 1: Approved, 2: Rejected, 3: Pending, 4: Manual validation"
+                      items: 
+                        type: "string"
+                        example: "['APPROVED', 'REJECTED']"
+                        enum: 
+                          - "APPROVED"
+                          - "REJECTED"
+                          - "PENDING"
+                          - "FAILED"
+                callbackUrl: 
+                  type: "string"
+                  format: "uri"
+              required: 
+                - "auth"
+                - "filters"
+            examples: 
+              Básico: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "cV5MJlkUgPq/BLG40M1Cp2mSkJcZg7FPL4FBxKo+t5A="
+                    nonce: "NjQ4MjMzMjY0MDIyYw=="
+                    seed: "2023-06-08T14:59:34-05:00"
+                  filters: 
+                    startDate: "2023-06-07 14:59:34"
+                    endDate: "2023-06-08 14:59:34"
+                  callbackUrl: "https://dnetix.co/ping/report"
+              Con estado: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "cV5MJlkUgPq/BLG40M1Cp2mSkJcZg7FPL4FBxKo+t5A="
+                    nonce: "NjQ4MjMzMjY0MDIyYw=="
+                    seed: "2023-06-08T14:59:34-05:00"
+                  filters: 
+                    startDate: "2023-06-07 14:59:34"
+                    endDate: "2023-06-08 14:59:34"
+                    state: 
+                      - "APPROVED"
+                      - "REJECTED"
+                  callbackUrl: "https://dnetix.co/ping/report"
+  /gateway/report/obtain: 
+    post: 
+      summary: "Obtain a previously requested report"
+      operationId: "post-report-obtain"
+      responses: 
+        200: 
+          description: "OK
+
+            Once the report is available, the information is returned, which is a file separated by commas with the following headers
+
+            ```
+            id
+            date
+            transaction_date
+            reference
+            currency_code
+            amount
+            tax
+            payment_method
+            internal_reference
+            status
+            reason
+            merchant
+            terminal
+            authorization
+            refunded
+            installments
+            last_digits
+            bank_currency
+            bank_factor
+            bank_amount
+            issuer_name
+            payer_document
+            payer_first_name
+            payer_last_name
+            payer_email
+            ip_address
+            batch_number
+            line_number
+            ```"
+          content: 
+            text/plain: 
+              schema: 
+                type: "string"
+              examples: 
+                example: 
+                  value: "id,date,transaction_date,reference,currency_code,amount,tax,payment_method,internal_reference,status,reason,merchant,terminal,authorization,refunded,installments,last_digits,bank_currency,bank_factor,bank_amount,issuer_name,payer_document,payer_first_name,payer_last_name,payer_email,ip_address,batch_number,line_number
+                  c42977b5d4ff9d9613320c7ee98e9eb0,2021-01-13T01:54:50-05:00,2021-01-13T01:54:50-05:00,4113943,USD,2327,442.13,ID_VS,221,APPROVED,,000468232,00990101,,,1,0008,USD,1,2327,Testing Bank,32694548,Miss Joanne Fadel MD,Price,blangworth@hotmail.com,237.234.250.30,,
+                  315c9ca9e64bed46f24a2e18bdd76468,2021-01-13T01:54:50-05:00,2021-01-13T01:54:50-05:00,8122,USD,4457,846.83,ID_VS,222,APPROVED,,000468232,00990101,,,1,0008,USD,1,4457,Testing Bank,44056172,Charlotte Maggio,Steuber,drutherford@gmail.com,164.233.22.247,,
+                  fd239e99125c326e92137197fd5d1959,2021-01-13T01:54:50-05:00,2021-01-13T01:54:50-05:00,753446151,USD,3798,721.62,ID_VS,223,APPROVED,,000468232,00990101,,,1,0008,USD,1,3798,Testing Bank,51751981,Mr. Abdiel Schroeder DDS,McKenzie,leonard.beier@runte.com,250.136.231.200,,
+                  be945b27ff13291409b929cc9cb15274,2021-01-13T01:54:50-05:00,2021-01-13T01:54:50-05:00,482657,USD,1401,266.19,ID_VS,224,APPROVED,,000468232,00990101,,,1,0008,USD,1,1401,Testing Bank,98958097,Dr. Mia Abshire,Douglas,antonia.blanda@wyman.com,32.1.213.30,,
+                  3aaa74df49cf3634276675c95e49f2af,2021-01-13T01:54:50-05:00,2021-01-13T01:54:50-05:00,77616851,USD,1921,364.99,ID_VS,225,APPROVED,,000468232,00990101,,,1,0008,USD,1,1921,Testing Bank,6211299,Dr. Marcelina Huel I,Considine,vlangworth@emard.biz,249.218.136.4,,
+                  6e89e692975bb117db78360c8ebf0a00,2021-01-13T01:54:50-05:00,2021-01-13T01:54:50-05:00,74141,USD,773,146.87,ID_VS,226,APPROVED,,000468232,00990101,,,1,0008,USD,1,773,Testing Bank,22736252,Melody Goodwin DDS,Gerlach,iblock@ohara.com,168.87.8.132,,
+                  b50e4e8cca851a578fa40917030397a3,2021-01-13T01:54:50-05:00,2021-01-13T01:54:50-05:00,828,USD,473,89.87,ID_VS,227,APPROVED,,000468232,00990101,,,1,0008,USD,1,473,Testing Bank,9397147,Freeman Kirlin,Aufderhar,drobel@kshlerin.com,21.185.38.170,,
+                  b66ffe1bff91a15986cba677bbaeaa7f,2021-01-13T01:54:50-05:00,2021-01-13T01:54:50-05:00,581122,USD,1767,335.73,ID_VS,228,APPROVED,,000468232,00990101,,,1,0008,USD,1,1767,Testing Bank,62818359,Mrs. Rosina Mann,Schaefer,ctremblay@gmail.com,15.8.188.238,,
+                  135afcb2f872cf55168461e7e874242a,2021-01-13T01:54:50-05:00,2021-01-13T01:54:50-05:00,3896507,USD,7,1.33,ID_VS,229,APPROVED,,000468232,00990101,,,1,0008,USD,1,7,Testing Bank,10597030,Kristy Purdy IV,Mills,clyde68@hotmail.com,148.232.85.97,,
+                  19868ea1110eca766186806ef0e38f71,2021-01-13T01:54:50-05:00,2021-01-13T01:54:50-05:00,68490,USD,4987,947.53,ID_VS,230,APPROVED,,000468232,00990101,,,1,0008,USD,1,4987,Testing Bank,32385057,Mr. Harley Howe,Rogahn,oreilly.onie@hotmail.com,87.121.113.190,,"
+        425: 
+          description: "When the request is made before the report is finished generating"
+          content: 
+            application/json: 
+              schema: 
+                description: ""
+                type: "object"
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+                required: 
+                  - "status"
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              description: ""
+              type: "object"
+              properties: 
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                id: 
+                  type: "number"
+              required: 
+                - "auth"
+                - "id"
+        description: ""
+      description: "Allows you to obtain a previously generated report"
+      tags: 
+        - "Report of operations carried out"
+      parameters: 
+        - schema: 
+            type: "string"
+            enum: 
+              - "gzip"
+          in: "header"
+          name: "accept-encoding"
+          description: "Allows to provide gzip as a compression format"
+  /gateway/mpi/lookup: 
+    post: 
+      summary: "3DS Lookup"
+      operationId: "post-mpi-lookup"
+      responses: 
+        200: 
+          description: "OK"
+          content: 
+            application/json: 
+              schema: 
+                description: ""
+                type: "object"
+                x-examples: 
+                  example-1: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "The request has been processed successfully"
+                      date: "2021-09-21T11:40:03-05:00"
+                    data: 
+                      version: "v1"
+                      enrolled: "N"
+                      redirectUrl: 
+                      identifier: 
+                      eci: "07"
+                      formData: 
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+                  data: 
+                    type: "object"
+                    required: 
+                    - "version"
+                    properties: 
+                      version: 
+                        type: "string"
+                        minLength: "1"
+                        enum: 
+                          - "v1"
+                          - "v2"
+                        maxLength: "2"
+                      enrolled: 
+                        type: "string"
+                        minLength: "1"
+                        enum: 
+                          - "N"
+                          - "Y"
+                          - "U"
+                        maxLength: "1"
+                      redirectUrl: 
+                        type: "string"
+                        description: "URL to send to the user to continue with the process"
+                        nullable: "true"
+                      identifier: 
+                        type: "string"
+                        description: "Process identifier in 3DS"
+                        nullable: "true"
+                      eci: 
+                        type: "string"
+                        minLength: "1"
+                        nullable: "true"
+                      formData: 
+                        type: "object"
+                        nullable: "true"
+                required: 
+                  - "status"
+                  - "data"
+              examples: 
+                Ejemplo v1: 
+                  value: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "The request has been processed successfully"
+                      date: "2021-09-21T11:50:46-05:00"
+                    data: 
+                      version: "v1"
+                      enrolled: "Y"
+                      redirectUrl: "https://3ds-server-to-authenticate.com/3ds"
+                      identifier: "1"
+                      eci: 
+                      formData: 
+                Ejemplo v2: 
+                  value: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "La petición se ha procesado correctamente"
+                      date: "2021-09-21T12:09:36-05:00"
+                    data: 
+                      version: "v2"
+                      sessionToken: "60"
+                      redirectUrl: "https://www.google.com"
+                      identifier: "12"
+                No usa 3DS: 
+                  value: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "La petición se ha procesado correctamente"
+                      date: "2021-09-21T11:40:03-05:00"
+                    data: 
+                      version: "v1"
+                      enrolled: "N"
+                      redirectUrl: 
+                      identifier: 
+                      eci: "07"
+                      formData: 
+      description: "Performs the initial 3DS validation process, returning the data so that the user can continue with the process"
+      tags: 
+        - "Proceso 3DS"
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              type: "object"
+              properties: 
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                payment: 
+                  $ref: "#/components/schemas/Payment"
+                instrument: 
+                  $ref: "#/components/schemas/Instrument"
+                returnUrl: 
+                  type: "string"
+                  format: "uri"
+                  maxLength: "250"
+                  description: "Return URL to regain user control"
+                subscription: 
+                  $ref: "#/components/schemas/Subscription"
+            examples: 
+              Ejemplo: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "HRAM4JvfAWrlG16GLR/6yKpctY/OVC1zeekbJLSifFc="
+                    nonce: "NjE0YTA5YjAxMzJkYw=="
+                    seed: "2021-09-21T11:34:56-05:00"
+                  payment: 
+                    reference: "1234567890"
+                    description: "Testing Payment"
+                    amount: 
+                      currency: "USD"
+                      total: "3000"
+                  instrument: 
+                    card: 
+                      number: "4111111111111111"
+                      expiration: "05/24"
+                      cvv: "123"
+                  returnUrl: "https://www.your-site.com/return?reference=1234567890"
+  /gateway/mpi/query: 
+    post: 
+      summary: "3DS Query"
+      operationId: "post-mpi-query"
+      responses: 
+        200: 
+          description: "OK"
+          content: 
+            application/json: 
+              schema: 
+                description: ""
+                type: "object"
+                x-examples: 
+                  example-1: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "The request has been processed successfully"
+                      date: "2021-09-21T11:58:09-05:00"
+                    data: 
+                      id: "1"
+                      enrolled: "Y"
+                      authenticated: "Y"
+                      validSignature: "true"
+                      eci: "05"
+                      cavv: "AAACCZJiUGVlF4U5AmJQEwAAAAA="
+                      xid: "Z8UuHYF8Epz46M8V/MkGJDl2Y5E="
+                      version: "v1"
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+                  data: 
+                    $ref: "#/components/schemas/ThreeDS"
+                required: 
+                  - "status"
+                  - "data"
+              examples: 
+                Ejemplo v2: 
+                  value: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "The request has been processed successfully"
+                      date: "2021-09-21T12:17:32-05:00"
+                    data: 
+                      id: "1"
+                      enrolled: "Y"
+                      authenticated: "Y"
+                      validSignature: "true"
+                      eci: "05"
+                      xid: "de018c08-bd14-426a-9d52-46500a17091e="
+                      cavv: "AAABBZEEBgAAAAAAAAQGAAAAAAA="
+                      version: "v2"
+                      extra: 
+                        transStatusReason: 
+                        acsTransId: "37a7b6e0-fd58-4e38-98de-79c70c526a47"
+                        threeDSServerTransID: "eadd3a60-b870-41d0-977f-921b3dbe6323/MkGJDl2Y5E="
+                Ejemplo v1: 
+                  value: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "The request has been processed successfully"
+                      date: "2021-09-21T12:18:37-05:00"
+                    data: 
+                      id: "1"
+                      enrolled: "Y"
+                      authenticated: "Y"
+                      validSignature: "true"
+                      eci: "05"
+                      cavv: "AAACCZJiUGVlF4U5AmJQEwAAAAA="
+                      xid: "Z8UuHYF8Epz46M8V/MkGJDl2Y5E="
+                      version: "v1"
+      description: "Once the user has completed the authentication process in 3DS, this endpoint is used to obtain the result of their operation
+
+        > ### Important Note
+        >
+        > *When consuming this service **NOT** the transaction is being authenticated by default, the value of \"data\" must be taken from the response and sent in the \"instrument.threeDS\"*"
+      tags: 
+        - "3DS process"
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              description: ""
+              type: "object"
+              x-examples: 
+                example-1: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "TpLQlIz/3/85nk4tC94YOpaKlfspdcBt8PrAWmoJDhM="
+                    nonce: "NjE0YTBlMTljZWU0ZQ=="
+                    seed: "2021-09-21T11:53:45-05:00"
+                  instrument: 
+                    card: 
+                      number: "4532840681197602"
+                      expiration: "12/20"
+                      cvv: "123"
+                  id: "1"
+              properties: 
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                instrument: 
+                  $ref: "#/components/schemas/Instrument"
+                id: 
+                  type: "string"
+                  description: "Identifier returned in the initial lookup about which to consult"
+              required: 
+                - "auth"
+                - "instrument"
+                - "id"
+            examples: 
+              Ejemplo: 
+                value: 
+                  auth: 
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "TpLQlIz/3/85nk4tC94YOpaKlfspdcBt8PrAWmoJDhM="
+                    nonce: "NjE0YTBlMTljZWU0ZQ=="
+                    seed: "2021-09-21T11:53:45-05:00"
+                  instrument: 
+                    card: 
+                      number: "4111111111111111"
+                      expiration: "05/24"
+                      cvv: "123"
+                  id: "1"
+  /security/pinpad/transaction: 
+    post: 
+      summary: "Pinpad Request"
+      operationId: "post-rest-security-transaction"
+      description: "A PINPAD is an electronic device used in a debit, credit, or smart card transaction to accept and encrypt the cardholder's personal identification number (PIN).
+
+        This API provides a PinPad service with encrypted PinBlock generation according to ISO 9564."
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              type: "object"
+              properties: 
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                instrument: 
+                  $ref: "#/components/schemas/Instrument"
+            examples: 
+              Solicitud por tarjeta: 
+                value: 
+                  auth: 
+                    login: "613822f45568191a8cdf4ad2299f6d23"
+                    tranKey: "bHehjzNcMQVQ1zto0GhmZxjeMhwA+3OlFPbOup16HGc="
+                    nonce: "NjE1MWQ4MDE5YWViMw=="
+                    seed: "2021-09-27T09:41:05-05:00"
+                  instrument: 
+                    card: 
+                      number: "4111111111111111"
+              Solicitud por token: 
+                value: 
+                  auth: 
+                    login: "613822f45568191a8cdf4ad2299f6d23"
+                    tranKey: "bHehjzNcMQVQ1zto0GhmZxjeMhwA+3OlFPbOup16HGc="
+                    nonce: "NjE1MWQ4MDE5YWViMw=="
+                    seed: "2021-09-27T09:41:05-05:00"
+                  instrument: 
+                    token: 
+                      token: "4c0886ec949f194f0b535181bb2a707769fd748ff7438d2caab2b0a3e67642a1"
+      responses: 
+        200: 
+          description: "OK"
+          content: 
+            application/json: 
+              schema: 
+                type: "object"
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+                  data: 
+                    type: "object"
+                    properties: 
+                      pinPad: 
+                        $ref: "#/components/schemas/PinPad"
+              examples: 
+                Respuesta exitosa: 
+                  value: 
+                    status: 
+                      status: "APPROVED"
+                      reason: "00"
+                      message: "approved"
+                      date: "2021-09-14T17:43:48-05:00"
+                    data: 
+                      pinPad: 
+                        positions: "7915864032"
+                        transactionId: "b0c62f97-3b06-4c33-b68f-e281e95eb4bb"
+                        pinLength: "4"
+                Error: 
+                  value: 
+                    status: 
+                      status: "FAILED"
+                      reason: "0"
+                      message: ""
+                      date: "2021-09-22T16:53:48-05:00"
+                Rechazo: 
+                  value: 
+                    status: 
+                      status: "REJECTED"
+                      reason: "05"
+                      message: "The required service is not available on the site"
+                      date: "2021-09-27T09:35:03-05:00"
+                Servicio no disponible: 
+                  value: 
+                    status: 
+                      status: "REJECTED"
+                      reason: "SU"
+                      message: "The required service is not available on the site"
+                      date: "2021-09-27T09:35:03-05:00"
+      tags: 
+        - "Pinpad Operations"
+  /security/pinpad/pinblock: 
+    post: 
+      summary: "Generation of PinBlock from Pinpad"
+      operationId: "post-rest-security-pinblock"
+      description: "Allows you to generate the PinBlock with a transaction based on the positions provided by the user that were selected from the PinPad"
+      requestBody: 
+        content: 
+          application/json: 
+            schema: 
+              type: "object"
+              properties: 
+                auth: 
+                  $ref: "#/components/schemas/Authentication"
+                instrument: 
+                  $ref: "#/components/schemas/Instrument"
+            examples: 
+              Solicitud de PinBlock por tarjeta: 
+                value: 
+                  auth: 
+                    login: "613822f45568191a8cdf4ad2299f6d23"
+                    tranKey: "bHehjzNcMQVQ1zto0GhmZxjeMhwA+3OlFPbOup16HGc="
+                    nonce: "NjE1MWQ4MDE5YWViMw=="
+                    seed: "2021-09-27T09:41:05-05:00"
+                  instrument: 
+                    card: 
+                      number: "0215020177972730"
+                    pinPad: 
+                      transactionId: "b0c62f97-3b06-4c33-b68f-e281e95eb4bb"
+                      positions: "0123"
+              Solicitud de Pinblock por token: 
+                value: 
+                  auth: 
+                    login: "613822f45568191a8cdf4ad2299f6d23"
+                    tranKey: "bHehjzNcMQVQ1zto0GhmZxjeMhwA+3OlFPbOup16HGc="
+                    nonce: "NjE1MWQ4MDE5YWViMw=="
+                    seed: "2021-09-27T09:41:05-05:00"
+                  instrument: 
+                    token: 
+                      token: "4c0886ec949f194f0b535181bb2a707769fd748ff7438d2caab2b0a3e67642a1"
+                    pinPad: 
+                      transactionId: "b0c62f97-3b06-4c33-b68f-e281e95eb4bb"
+                      positions: "0123"
+      responses: 
+        200: 
+          description: "OK"
+          content: 
+            application/json: 
+              schema: 
+                type: "object"
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+                  data: 
+                    type: "object"
+                    properties: 
+                      pinPad: 
+                        $ref: "#/components/schemas/PinPad"
+              examples: 
+                Generación exitosa: 
+                  value: 
+                    status: 
+                      status: "APPROVED"
+                      reason: "00"
+                      message: "Aprobada"
+                      date: "2021-09-14T17:43:48-05:00"
+                    data: 
+                      pinPad: 
+                        positions: "0123"
+                        transactionId: "b0c62f97-3b06-4c33-b68f-e281e95eb4bb"
+                        pinBlock: "106C56A4819B68EA"
+                        pinLength: "4"
+                Error: 
+                  value: 
+                    status: 
+                      status: "FAILED"
+                      reason: "0"
+                      message: ""
+                      date: "2021-09-22T16:53:48-05:00"
+                Rechazo: 
+                  value: 
+                    status: 
+                      status: "REJECTED"
+                      reason: "05"
+                      message: "El servicio requerido no se encuentra disponible en el sitio"
+                      date: "2021-09-27T09:35:03-05:00"
+                Servicio no disponible: 
+                  value: 
+                    status: 
+                      status: "REJECTED"
+                      reason: "SU"
+                      message: "El servicio requerido no se encuentra disponible en el sitio"
+                      date: "2021-09-27T09:35:03-05:00"
+            application/xml: 
+              schema: 
+                $ref: "#/components/schemas/Authentication"
+      tags: 
+        - "Operaciones con Pinpad"
+components: 
+  schemas: 
+    Status: 
+      title: "Status"
+      type: "object"
+      description: "Structure that contains information about a request or payment, informing its current status."
+      properties: 
+        status: 
+          type: "string"
+          enum: 
+            - "OK"
+            - "FAILED"
+            - "APPROVED"
+            - "APPROVED_PARTIAL"
+            - "PARTIAL_EXPIRED"
+            - "REJECTED"
+            - "PENDING"
+            - "PENDING_VALIDATION"
+            - "PENDING_PROCESS"
+            - "REFUNDED"
+            - "REVERSED"
+            - "ERROR"
+            - "UNKNOWN"
+            - "MANUAL"
+            - "DISPUTE"
+        reason: 
+          type: "string"
+          minLength: "1"
+          maxLength: "4"
+        message: 
+          type: "string"
+        date: 
+          type: "string"
+          example: "2021-09-21T09:34:48-05:00"
+    Subscription: 
+      title: "Subscription"
+      x-stoplight: 
+        id: "vip3u3guypqyd"
+      type: "object"
+      description: "Structure that contains information about a subscription or transaction that does not require a specific amount"
+      properties: 
+        reference: 
+          type: "string"
+          x-stoplight: 
+            id: "hpkr64f4l7gwo"
+          maxLength: "32"
+        description: 
+          type: "string"
+          minLength: "1"
+          x-stoplight: 
+            id: "cc6z3gqusoy1k"
+          maxLength: "254"
+    Document: 
+      title: "Document"
+      type: "object"
+      description: "Structure that contains information about a document"
+      properties: 
+        type: 
+          type: "string"
+          maxLength: "3"
+          enum: 
+            - "NIT"
+            - "CC"
+            - "CE"
+            - "RUT"
+            - "TI"
+          example: "NIT"
+          description: "Type of identification document. [For more information](/en/gateway/document-types)"
+        number: 
+          type: "string"
+          example: "123456123"
+          description: "Identification document number."
+        expeditionDate: 
+          type: "string"
+          description: "Expedition date"
+        expirationDate: 
+          type: "string"
+          description: "Expiration dat"
+      required: 
+        - "type"
+        - "number"
+    Address: 
+      title: "Address"
+      type: "object"
+      description: "Structure that contains information about a physical address"
+      properties: 
+        street: 
+          type: "string"
+          maxLength: "128"
+          description: "Street"
+        city: 
+          type: "string"
+          maxLength: "30"
+          description: "City"
+        state: 
+          type: "string"
+          description: "State/province/department"
+        postalCode: 
+          type: "string"
+          maxLength: "10"
+          description: "Postal Code"
+        country: 
+          type: "string"
+          maxLength: "2"
+          example: "CO"
+          description: "Country code"
+        phone: 
+          type: "string"
+          maxLength: "20"
+          description: "Phone number"
+    Account: 
+      title: "Account"
+      type: "object"
+      description: "Structure that contains bank account information."
+      required: 
+        - "bankCode"
+        - "accountType"
+        - "accountNumber"
+      properties: 
+        bankName: 
+          type: "string"
+          maxLength: "30"
+          description: "Name of the bank of the account to be processed"
+        bankCode: 
+          type: "string"
+          maxLength: "17"
+          description: "Code that identifies the bank on the network"
+        accountType: 
+          type: "string"
+          description: "Account type"
+          enum: 
+            - "SAV"
+            - "DDA"
+            - "CCD"
+        accountNumber: 
+          type: "string"
+          maxLength: "17"
+          description: "Account number"
+        franchise: 
+          type: "string"
+          x-stoplight: 
+            id: "bhbb4cpy3me8p"
+          maxLength: "20"
+        verificationCode: 
+          type: "string"
+          x-stoplight: 
+            id: "jpxori5mf80z2"
+          example: "eyJhbGciOiJSUzI1NiJ9.eyJhY2NvdW50SGFzaCI6ImM5YWM2ZjFhZDhjNDA3Y2ZjNzMyNDljNTE2MTJjNTdmMWQxZGNiNTA4YjE4ZGJlYWE1MWQ0NDI5NjBjMjUwNDUyMzY4ZTg2YmUzMWQ3MDMxMDY4ZDM2MjM2NzVjYzhkYTUzNzhhODNmMTUwZjg5OTczOTBiZTEyMGU1ZmExN2RhIiwib25UZXN0Ijp0cnVlLCJzZXJ2aWNlIjoibW9jayIsImlkIjo0MDB9.dFMY4EwCrWq9EBmERFkKCoLHExPH4vgaCgnZaqB_mf8n3Sv6Qnu6Pb79onluX1OZecmYmBuHqZ_ykKXWSD4RMZSpckYFCiO3mlcJKI4qb91COhl_c2qXxYJuLEdbLfGlzf0k8-oJgFcO9gAS1Xm0hpTP4iiXF6st1hFwlfR3fpX4rr-bTsKgMvRSReMuxa0Vs92DykfqUR_3udlc0DFCPB9ZTaSqeRNHFAPAWNniUPWURQlW5c9J9xcyKTgKGzfI1_7h2I4ALQeRifptE2nC-HZtEMwtcToNh7hn0oL9lNFXnXGK9sWKORcyWKVfpEChS8z30UfX6kOhU6fp_qUwmA"
+          description: "The verificationCode is a JSON Web Signature (JWS). It is intended to be the instrument for verifying the status of the account"
+    Person: 
+      title: "Person"
+      type: "object"
+      description: "Structure that reflects the information of a person involved in a transaction."
+      properties: 
+        documentType: 
+          type: "string"
+          description: "[Type of identification document](/gateway/document-types)"
+          enum: 
+            - "CC"
+            - "NIT"
+            - "RUT"
+            - "TI"
+            - "PNN"
+          example: "CC"
+          maxLength: "3"
+        Document: 
+          type: "string"
+          description: "Identification document number."
+        name: 
+          type: "string"
+          description: "Names"
+        surname: 
+          type: "string"
+          description: "Surnames"
+        company: 
+          type: "string"
+          description: "Company"
+        email: 
+          type: "string"
+          description: "Email."
+        address: 
+          $ref: "#/components/schemas/Address"
+          description: "Object that contains information about a person's address."
+        mobile: 
+          type: "string"
+          description: "Mobile phone"
+    Authentication: 
+      title: "Autenticación"
+      type: "object"
+      properties: 
+        login: 
+          type: "string"
+        tranKey: 
+          type: "string"
+        nonce: 
+          type: "string"
+        seed: 
+          type: "string"
+      description: "Structure that contains the site authentication information generated according to the WSSE UsernameToken Profile 1.1"
+    Instrument: 
+      title: "Instrument"
+      type: "object"
+      description: "Structure that contains information about the means of payment to be used in a transaction. This structure is variable according to the request that is generated. Each service requires that one or another data be used."
+      properties: 
+        card: 
+          $ref: "#/components/schemas/Card"
+        account: 
+          $ref: "#/components/schemas/Account"
+        token: 
+          $ref: "#/components/schemas/Token"
+        credit: 
+          $ref: "#/components/schemas/Credit"
+        threeDS: 
+          $ref: "#/components/schemas/ThreeDS"
+        otp: 
+          type: "string"
+        pinPad: 
+          $ref: "#/components/schemas/PinPad"
+        pin: 
+          type: "string"
+          example: "0B880E2326F6409E"
+          minLength: "2"
+          maxLength: "20"
+          description: "Receives the PIN code when it is flat or when it is a PinBlock"
+        redirection: 
+          $ref: "#/components/schemas/Redirection"
+        kount: 
+          $ref: "#/components/schemas/Kount"
+        pocket: 
+          type: "string"
+          description: "Card pocket used for payment"
+    Card: 
+      title: "Card"
+      type: "object"
+      description: "Structure containing card information."
+      properties: 
+        number: 
+          type: "string"
+          maxLength: "20"
+        expiration: 
+          type: "string"
+          example: "12/22"
+          pattern: "^[01]\\d\\/\\d{2}$"
+        cvv: 
+          type: "string"
+        installments: 
+          type: "number"
+      required: 
+        - "number"
+    Token: 
+      title: "Token"
+      type: "object"
+      description: "Structure that contains the token information associated with the card.
+
+        For entry, only the token or subtoken and the cvv are necessary if it is an operation where the user is present.
+        
+        For output if all data is returned when tokenizing."
+      properties: 
+        token: 
+          type: "string"
+          maxLength: "64"
+          minLength: "64"
+          description: "Code generated to identify the card in the system"
+        subtoken: 
+          type: "string"
+          maxLength: "16"
+          minLength: "16"
+          description: "Alternate code generated to identify the card"
+        franchise: 
+          type: "string"
+          enum: 
+            - "visa"
+            - "visa_electron"
+            - "amex"
+            - "master"
+            - "codensa"
+            - "diners"
+            - "jbc"
+            - "discover"
+            - "ris"
+            - "credencial"
+            - "comfama"
+            - "colsubsidio"
+            - "falabella"
+            - "elo"
+            - "somos"
+            - "tuya"
+            - "exito"
+            - "alkosto"
+            - "maestro"
+            - "mefia"
+            - "ath_card"
+          description: "Franchise code associated with the token (Only as a response, it is not necessary to send it)"
+        franchiseName: 
+          type: "string"
+        issuerName: 
+          type: "string"
+        lastDigits: 
+          type: "string"
+        validUntil: 
+          type: "string"
+        cvv: 
+          type: "string"
+          minLength: 3
+          maxLength: 4
+          description: "CVV requested from the user in case it is present in the operation"
+      x-examples: 
+        Ejemplo respuesta: 
+          value: 
+            token: "e61da2ce4863a45b6491aab2964cd9c97b1d7cd508da2e813b728c88adb5f198"
+            subtoken: "1120437249520005"
+            franchise: "master"
+            franchiseName: "Mastercard"
+            lastDigits: "0005"
+            validUntil: "2018-12-31"
+            installments: "3"
+        Ejemplo en solicitud: 
+          value: 
+            token: "e61da2ce4863a45b6491aab2964cd9c97b1d7cd508da2e813b728c88adb5f198"
+            cvv: "123"
+    Credit: 
+      title: "Credit"
+      type: "object"
+      description: "Structure that contains information on the type of credit"
+      properties: 
+        code: 
+          type: "string"
+        type: 
+          type: "string"
+        groupCode: 
+          type: "string"
+        installment: 
+          type: "integer"
+    Pocket: 
+      title: "Pocket"
+      type: "object"
+      description: "Structure containing card pocket information"
+      properties: 
+        code: 
+          type: "string"
+          description: "Pocket value"
+        description: 
+          type: "string"
+          description: "Pocket description"
+      x-examples: 
+    Payment: 
+      title: "Payment"
+      type: "object"
+      description: "Structure that contains the information about the payment of the transaction required to the web service"
+      properties: 
+        reference: 
+          type: "string"
+          minLength: 1
+          maxLength: 32
+        description: 
+          type: "string"
+          maxLength: 250
+        amount: 
+          $ref: "#/components/schemas/Amount"
+        dispersion: 
+          type: "array"
+          items: 
+            $ref: "#/components/schemas/Dispersion"
+        modifiers: 
+          type: "array"
+          description: "Structure containing payment modifiers"
+          items: 
+            $ref: "#/components/schemas/PaymentModifier"
+    Amount: 
+      title: "Amount"
+      type: "object"
+      description: "Structure that contains the information about the payment of the transaction required to the web service"
+      properties: 
+        currency: 
+          type: "string"
+          enum: 
+            - "USD"
+            - "COP"
+            - "CRC"
+            - "EUR"
+            - "CAD"
+            - "AUD"
+            - "GBP"
+            - "MXN"
+            - "CLP"
+          example: "COP"
+          minLength: 3
+          maxLength: 3
+        total: 
+          type: "number"
+        taxes: 
+          type: "array"
+          items: 
+            $ref: "#/components/schemas/TaxDetail"
+        details: 
+          type: "array"
+          items: 
+            $ref: "#/components/schemas/AmountDetail"
+    TaxDetail: 
+      title: "TaxDetail"
+      type: "object"
+      description: "Structure to store information about a tax."
+      properties: 
+        kind: 
+          type: "string"
+          example: "valueAddedTax"
+          description: "Tipo de impuesto reportado"
+          enum: 
+            - valueAddedTax
+            - exciseDuty
+            - ice
+            - airportTax
+            - stateTax
+            - reducedStateTax
+            - municipalTax
+        amount: 
+          type: "number"
+        base: 
+          type: "number"
+    PaymentModifier: 
+      title: "PaymentModifier"
+      type: "object"
+      description: "Structure to store information about a payment modifier.
+
+        NOTE: If a modifier that applies a discount is sent, discounts configured for promotions on the site will not be taken."
+      x-examples: 
+        law-discount: 
+          type: "FEDERAL_GOVERNMENT"
+          code: "17934"
+          additional: 
+            invoice: "123456"
+      properties: 
+        type: 
+          type: "string"
+          enum: 
+          - "FEDERAL_GOVERNMENT"
+          description: "Modifier type"
+        code: 
+          type: "string"
+          example: "17934"
+          description: "Modifier code. When the type is FEDERAL_GOVERMENT, it represents the law number for discount."
+        additional: 
+          type: "object"
+          description: "Additional modifier information"
+          properties: 
+            invoice: 
+              type: "string"
+              description: "Invoice number. Required when type is FEDERAL_GOVERMENT."
+    AmountDetail: 
+      title: "AmountDetail"
+      type: "object"
+      description: "Structure to store information about an additional value."
+      properties: 
+        kind: 
+          type: "string"
+        amount: 
+          type: "number"
+    Dispersion: 
+      title: "Dispersion"
+      type: "object"
+      description: "Structure containing the information required for a scatter payment"
+      properties: 
+        agreement: 
+          type: "number"
+          description: "Transaction recipient identifier. For the primary transaction site, the value must be null."
+          nullable: true
+        agreementType: 
+          type: "string"
+          enum: 
+            - "AIRLINE"
+            - "MERCHANT"
+        amount: 
+          $ref: "#/components/schemas/Amount"
+    InterestValues: 
+      title: "InterestValues"
+      type: "object"
+      description: "Structure that contains the interest calculation information for a type of credit and amount"
+      properties: 
+        original: 
+          type: "number"
+        installment: 
+          type: "number"
+        interest: 
+          type: "number"
+        total: 
+          type: "number"
+    AmountConversion: 
+      title: "AmountConversion"
+      type: "object"
+      description: "Structure to define the conversion factor and values."
+      properties: 
+        from: 
+          $ref: "#/components/schemas/AmountBase"
+        to: 
+          $ref: "#/components/schemas/AmountBase"
+        factor: 
+          type: "number"
+    AmountBase: 
+      title: "AmountBase"
+      type: "object"
+      description: "Structure that represents an amount that defines the currency and the total."
+      properties: 
+        currency: 
+          type: "string"
+        total: 
+          type: "number"
+    Transaction: 
+      description: "Contains information about a transaction"
+      type: "object"
+      x-examples: 
+        Ejemplo: 
+          status: 
+            status: "APPROVED"
+            reason: "00"
+            message: "approved"
+            date: "2021-09-20T20:10:57-05:00"
+          date: "2021-09-20T20:10:56-05:00"
+          transactionDate: "2021-09-20T20:10:56-05:00"
+          internalReference: "2"
+          reference: "1234567890"
+          paymentMethod: "DF_VS"
+          franchise: "visa"
+          franchiseName: "Visa"
+          issuerName: "Testing Bank"
+          amount: 
+            currency: "USD"
+            total: "1"
+          conversion: 
+            from: 
+              currency: "USD"
+              total: "1"
+            to: 
+              currency: "USD"
+              total: "1"
+            factor: "1"
+          authorization: "000000"
+          receipt: "2"
+          type: "AUTH_ONLY"
+          refunded: "false"
+          lastDigits: "0008"
+          provider: "DATAFAST"
+          discount: 
+          processorFields: 
+            id: "de7c331a0f5bebdd1996250296cdaf37"
+            b24: "000"
+          additional: 
+            merchantCode: "1000000505"
+            terminalNumber: "PY100404"
+            credit: 
+              code: "0"
+              type: "00"
+              groupCode: "C"
+              installments: "0"
+            totalAmount: "1"
+            iceAmount: "0"
+            batch: 
+            line: 
+            bin: "411076"
+            expiration: "1221"
+      title: ""
+      properties: 
+        status: 
+          $ref: "#/components/schemas/Status"
+        provider: 
+          type: "string"
+          enum: 
+            - "CREDIBANCO"
+            - "REDEBAN"
+            - "INTERDIN"
+            - "DATAFAST"
+            - "TUYA-DIRECT"
+            - "BRASPAG"
+            - "TRANSERVER"
+            - "SABRE"
+            - "EVERTEC"
+            - "ACH"
+            - "ATH-AVALNET"
+            - "SUPERGIROS"
+            - "TECNICARD"
+            - "MEDIANET"
+            - "AUSTRO"
+            - "COMFANDI"
+            - "PAYSTUDIO"
+            - "FLAMINGO"
+            - "ATH-MOVIL"
+            - "EBUS"
+            - "BANCOLOMBIA"
+        internalReference: 
+          type: "number"
+        reference: 
+          type: "string"
+          minLength: 1
+        paymentMethod: 
+          type: "string"
+          minLength: 1
+        franchise: 
+          type: "string"
+          minLength: 1
+        franchiseName: 
+          type: "string"
+          minLength: 1
+        issuerName: 
+          type: "string"
+          minLength: 1
+          nullable: true
+        amount: 
+          $ref: "#/components/schemas/Amount"
+        conversion: 
+          $ref: "#/components/schemas/AmountConversion"
+        authorization: 
+          type: "string"
+          minLength: 1
+          nullable: true
+        receipt: 
+          type: "string"
+          maxLength: 16
+          nullable: true
+        type: 
+          type: "string"
+          minLength: 1
+        refunded: 
+          type: "boolean"
+        lastDigits: 
+          type: "string"
+          minLength: 1
+          nullable: true
+        additional: 
+          type: "object"
+        processorFields: 
+          type: "object"
+        dispersion: 
+          type: "array"
+          items: 
+            type: "object"
+            properties: 
+              status: 
+                $ref: "#/components/schemas/Status"
+              agreement: 
+                type: "integer"
+                nullable: true
+              agreementType: 
+                type: "string"
+                enum: 
+                  - "AIRLINE"
+                  - "MERCHANT"
+              authorization: 
+                type: "string"
+                minLength: 1
+                nullable: true
+              receipt: 
+                type: "string"
+                minLength: 1
+                nullable: true
+              amount: 
+                $ref: "#/components/schemas/Amount"
+              refunded: 
+                type: "boolean"
+              paymentMethod: 
+                type: "string"
+      required: 
+        - "status"
+        - "provider"
+        - "internalReference"
+        - "reference"
+        - "paymentMethod"
+        - "franchise"
+        - "franchiseName"
+        - "issuerName"
+        - "amount"
+        - "conversion"
+        - "authorization"
+        - "receipt"
+        - "type"
+        - "refunded"
+        - "lastDigits"
+    ThreeDS: 
+      type: "object"
+      x-examples: 
+        example-1: 
+          id: "1"
+          enrolled: "Y"
+          authenticated: "Y"
+          validSignature: "true"
+          eci: "05"
+          cavv: "AAACCZJiUGVlF4U5AmJQEwAAAAA="
+          xid: "Z8UuHYF8Epz46M8V/MkGJDl2Y5E="
+          version: "v1"
+      properties: 
+        id: 
+          type: "number"
+          description: "This value only applies if the validation was done with the Placetopay 3DS service"
+        enrolled: 
+          type: "string"
+          minLength: 1
+          enum: 
+            - "Y"
+            - "N"
+            - "U"
+          description: "Informs if the card is registered in 3DS"
+        authenticated: 
+          type: "string"
+          minLength: 1
+          enum: 
+            - "Y"
+            - "N"
+            - "U"
+            - "A"
+            - "I"
+            - "C"
+            - "D"
+            - "R"
+          maxLength: 1
+        validSignature: 
+          type: "boolean"
+        eci: 
+          type: "string"
+          minLength: 1
+          enum: 
+            - "02"
+            - "01"
+            - "00"
+            - "05"
+            - "06"
+            - "07"
+        cavv: 
+          type: "string"
+          minLength: 1
+          nullable: true
+        xid: 
+          type: "string"
+          minLength: 1
+        version: 
+          type: "string"
+          minLength: 1
+          enum: 
+            - "v1"
+            - "v2"
+        extra: 
+          type: "object"
+          nullable: true
+      required: 
+        - "enrolled"
+        - "authenticated"
+        - "eci"
+        - "cavv"
+        - "xid"
+        - "version"
+    PinPad: 
+      title: "PinPad"
+      type: "object"
+      description: "Structure containing PinPad service information"
+      properties: 
+        transactionId: 
+          type: "string"
+        positions: 
+          type: "string"
+        pinBlock: 
+          type: "string"
+        length: 
+          type: "integer"
+    Redirection: 
+      title: "Redirection"
+      type: "object"
+      description: "It represents a redirect payment method, meaning that it requires the user to be sent to another URL to complete the process."
+      properties: 
+        paymentMethod: 
+          type: "string"
+          enum: 
+            - "BTNBC"
+            - "PGEFT"
+        returnURL: 
+          type: "string"
+          format: "uri"
+          example: "http://your-site.com/your-return-route"
+          maxLength: 250
+          description: "URL so that once the payment process is completed, control is returned (when applicable)"
+        processURL: 
+          type: "string"
+          format: "uri"
+          maxLength: 250
+          description: "URL to which the client must be sent to continue the process, it is provided by the service"
+    Kount: 
+      title: "Kount"
+      x-stoplight: 
+        id: "qevzv57mju2tp"
+      type: "object"
+      description: "Manages specific information to use with the Kount risk filter"
+      properties: 
+        session: 
+          type: "string"
+          description: "Identifier of this operation in Kount, it must be unique per transaction"
+        type: 
+          type: "string"
+          description: "Describes the type of operation that is being handled in the session to define the additional fields to be sent"
+          enum: 
+            - "airline"
+            - "soat"
+      required: 
+        - "session"
+    CardType: 
+      title: "CardType"
+      x-stoplight: 
+        id: "x4y03rkspgz0b"
+      type: "string"
+      enum: 
+        - "C"
+        - "R"
+        - "A"
+      description: "Indicates the type of the card. C = credit, R = debit, A = savings"
+    BankItem: 
+      title: "BankItem"
+      x-stoplight: 
+        id: "60487hsjhovs9"
+      type: "object"
+      properties: 
+        code: 
+          type: "string"
+          description: "Banking entity code"
+        description: 
+          type: "string"
+          description: "Name of the banking entity"

@@ -6,7 +6,7 @@ import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
 
 
 import { useLocalizePath } from '@/hooks/useLocalizePath'
-import { useNavigation } from '@/hooks/useNavigation'
+import { useNamespaceRoute, useNavigation } from '@/hooks/useNavigation'
 import { useIsInsideMobileNavigation } from '@/components/MobileNavigation'
 import { useSectionStore } from '@/components/SectionProvider'
 import { Tag } from '@/components/Tag'
@@ -194,7 +194,7 @@ function NavigationGroup({ group, className }) {
 }
 
 export function Navigation(props) {
-  let navigation = useNavigation('checkout');
+  let navigation = useNavigation(useNamespaceRoute());
 
   return (
     <nav {...props}>
