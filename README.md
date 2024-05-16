@@ -37,7 +37,7 @@ so `http://localhost:3000/my-folder/my-file` corresponds to a file called `my-fi
     - Being MDX format, HTML tags are completely accepted and their functionality is the same as in a `.html` file.
     - The images used must be inside the `public/` folder, here they can be added directly to the root of the folder or create subfolders to have better order.
 
-3. To add the route to the navigation panel you must follow the steps in this [section](#).
+3. To add the route to the navigation panel you must follow the steps in this [section](#navigation).
 
 4. Make sure you have saved all the changes made and enter the new route that was created.
 
