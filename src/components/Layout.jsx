@@ -1,17 +1,30 @@
 import Link from 'next/link'
 import { motion, useScroll, useTransform } from 'framer-motion'
+import clsx from 'clsx'
 
-import { useIsInsideMobileNavigation } from '@/components/MobileNavigation'
-import { useMobileNavigationStore } from '@/components/MobileNavigation'
+// import { useIsInsideMobileNavigation } from '@/components/MobileNavigation'
+// import { useMobileNavigationStore } from '@/components/MobileNavigation'
 import { Footer } from '@/components/Footer'
 import { Header, HeaderHome } from '@/components/Header'
 import { Logo } from '@/components/Logo'
-import { Navigation } from '@/components/Navigation'
+import { Navigation, ContentNavigation } from '@/components/Navigation'
 import { Prose } from '@/components/Prose'
-import { SectionProvider } from '@/components/SectionProvider'
-import clsx from 'clsx'
+import { SectionProvider, useSectionStore } from '@/components/SectionProvider'
 
-export function Layout({ isHome, children, sections = [] }) {
+function Content({ sectionMode, children }) {
+  let hasSections = useSectionStore((state) => state.visibleSections.length > 0)
+  let showSections = sectionMode === 'content' && hasSections
+  return (
+    <div className={clsx("flex py-16 justify-start", showSections && '2xl:justify-center gap-4')}>
+      <main>
+        <Prose as="article">{children}</Prose>
+      </main>
+      {showSections && <ContentNavigation />}
+    </div>
+  )
+}
+
+export function Layout({ isHome, children, sections = [], sectionMode = 'content' }) {
   return (
     <SectionProvider sections={sections}>
       <div className="lg:ml-72 xl:ml-80">
@@ -23,13 +36,11 @@ export function Layout({ isHome, children, sections = [] }) {
               </Link>
             </div>
             <Header />
-            <Navigation className="hidden lg:mt-8 lg:block" />
+            <Navigation withSections={sectionMode === 'nav'} className="hidden lg:mt-8 lg:block" />
           </div>
         </motion.header>
         <div className="relative mx-auto px-4 pt-14 sm:px-6 lg:px-8">
-          <main className="py-16">
-            <Prose as="article">{children}</Prose>
-          </main>
+          <Content sectionMode={sectionMode}>{children}</Content>
           <Footer />
         </div>
       </div>
