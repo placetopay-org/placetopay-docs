@@ -249,7 +249,7 @@ export function ContentNavigation(props) {
   if (sections.length === 0) return null
 
   return (
-    <aside as="aside" role="navigation" aria-label="Page navigation" className="sticky hidden lg:block top-20 h-full w-44 min-w-[160px]">
+    <aside as="aside" role="navigation" aria-label="Page navigation" className="hidden lg:sticky lg:block lg:top-20 lg:h-full lg:w-44 lg:min-w-[160px]">
       <div className="block overflow-y-auto">
         <div className="">
           <h5 className="whitespace-normal pb-3 font-semibold uppercase text-gray-900 dark:text-gray-100">
