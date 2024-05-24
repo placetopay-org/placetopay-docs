@@ -15,7 +15,7 @@ function Content({ sectionMode, children }) {
   let hasSections = useSectionStore((state) => state.visibleSections.length > 0)
   let showSections = sectionMode === 'content' && hasSections
   return (
-    <div className={clsx("flex py-16 justify-start", showSections && '2xl:justify-center gap-4')}>
+    <div className={clsx("flex py-16 justify-start", showSections && 'gap-4')}>
       <main>
         <Prose as="article">{children}</Prose>
       </main>
