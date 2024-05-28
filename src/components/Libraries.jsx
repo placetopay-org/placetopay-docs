@@ -63,9 +63,14 @@ const plugins = [
     action: { es: 'Ver más', en: 'See more' },
   },
   {
+    'href': 'https://placetopay.dev/plugins/shopify',
     name: 'Shopify',
-    description: { es: 'En desarrollo...', en: 'In development...' },
+    description: { 
+      es: 'Plataforma de comercio electrónico para crear tu tienda en línea.',
+      en: 'E-commerce platform to create your online store.',
+    },
     logo: logoShopify,
+    action: { es: 'Ver más', en: 'See more' },
   },
 ]
 
