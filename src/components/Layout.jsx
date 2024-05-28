@@ -15,11 +15,17 @@ function Content({ sectionMode, children }) {
   let hasSections = useSectionStore((state) => state.visibleSections.length > 0)
   let showSections = sectionMode === 'content' && hasSections
   return (
-    <div className={clsx("py-16 lg:justify-start lg:flex", showSections && 'lg:gap-4')}>
-      <main>
-        <Prose as="article">{children}</Prose>
-      </main>
-      {showSections && <ContentNavigation />}
+    <div className="max-w-2xl lg:max-w-5xl mx-auto">
+      <div className="w-full box-border">
+        <div className="w-full py-16 box-border">
+          <div className={clsx('w-full', showSections && 'lg:flex box-border')}>
+            <main className={clsx('min-w-[200px]', showSections && 'flex-1')}>
+              <Prose as="article" className={clsx(!showSections && 'max-w-none')}>{children}</Prose>
+            </main>
+            {showSections && <ContentNavigation />}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -39,7 +45,7 @@ export function Layout({ isHome, children, sections = [], sectionMode = 'content
             <Navigation withSections={sectionMode === 'nav'} className="hidden lg:mt-8 lg:block" />
           </div>
         </motion.header>
-        <div className="relative mx-auto px-4 pt-14 sm:px-6 lg:px-8">
+        <div className="px-4 pt-14 sm:px-6 lg:px-8">
           <Content sectionMode={sectionMode}>{children}</Content>
           <Footer />
         </div>
