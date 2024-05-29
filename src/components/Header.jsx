@@ -49,7 +49,7 @@ const ActiveTabMarker = ({ offsets }) => {
   return (
     <motion.div
       layout
-      className="absolute h-px top-14 bg-primary-500"
+      className="absolute h-px top-10 bg-primary-500"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
