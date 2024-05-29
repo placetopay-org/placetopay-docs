@@ -5,7 +5,7 @@ import { Transition } from '@headlessui/react'
 
 import { Button } from '@/components/Button'
 import { navigation } from '@/components/Navigation'
-import { useNavigation } from '@/hooks/useNavigation'
+import { useNamespaceRoute, useNavigation } from '@/hooks/useNavigation'
 import { useLocale } from './LocaleProvider'
 import { Logo } from '@/components/Logo'
 
@@ -129,7 +129,7 @@ function PageLink({ label, page, previous = false }) {
 }
 
 function PageNavigation() {
-  let navigation = useNavigation('checkout');
+  let navigation = useNavigation(useNamespaceRoute());
   let router = useRouter()
   let allPages = navigation.flatMap((group) => group.links)
   let currentPageIndex = allPages.findIndex(
@@ -230,13 +230,13 @@ function SmallPrint() {
   )
 }
 
-export function Footer() {
+export function Footer({ withouLinks }) {
   let router = useRouter()
 
   return (
     <footer className="mx-auto max-w-2xl space-y-10 pb-16 lg:max-w-5xl">
       <Feedback />
-      <PageNavigation />
+      {!withouLinks && <PageNavigation />}
       <SmallPrint />
     </footer>
   )
