@@ -1,5 +1,6 @@
 import { useLocale } from "@/components/LocaleProvider";
-import { CHECKOUT_NAVIGATION, GATEWAY_NAVIGATION } from "@/constants/navigations";
+import { useTabRouter } from "@/components/TabProvider";
+import { TAB_NAVIGATION } from "@/constants/navigations";
 import { useRouter } from "next/router";
 
 export const useNamespaceRoute = () => {
@@ -10,13 +11,14 @@ export const useNamespaceRoute = () => {
 }
 
 export const useNavigation = (namespaces) => {
+  const tabRouter = useTabRouter();
   const {locale} = useLocale();
 
   switch (namespaces) {
     case 'checkout':
-      return CHECKOUT_NAVIGATION[locale];
+      return TAB_NAVIGATION.checkout[locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     case 'gateway':
-      return GATEWAY_NAVIGATION[locale];
+      return TAB_NAVIGATION.gateway[locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     default:
       throw new Error(`The namespace navigation '${namespaces}' is not defined`);
   }
