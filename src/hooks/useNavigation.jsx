@@ -23,3 +23,17 @@ export const useNavigation = (namespaces) => {
       throw new Error(`The namespace navigation '${namespaces}' is not defined`);
   }
 }
+
+export const useAllNavigation = () => {
+  const {locale} = useLocale();
+
+  let navigations = [];
+
+  for (const namespace in TAB_NAVIGATION) {
+    TAB_NAVIGATION[namespace][locale].forEach((item) => {
+      navigations.push(...item.links);
+    });
+  }
+
+  return navigations;
+}
