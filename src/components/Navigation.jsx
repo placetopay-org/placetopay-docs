@@ -11,6 +11,8 @@ import { useSectionStore } from '@/components/SectionProvider'
 import { Tag } from '@/components/Tag'
 import { remToPx } from '@/lib/remToPx'
 import { useLocale } from './LocaleProvider'
+import { NamespaceSelector } from './SelectMenu'
+
 function useInitialValue(value, condition = true) {
   let initialValue = useRef(value).current
   return condition ? initialValue : value
@@ -210,26 +212,29 @@ export function Navigation({ withSections, ...props }) {
   let navigation = useNavigation(useNamespaceRoute())
 
   return (
-    <nav {...props}>
-      <ul role="list">
-        {/* <TopLevelNavItem href="/">API</TopLevelNavItem> */}
-        {/* <TopLevelNavItem href="#">Documentation</TopLevelNavItem> */}
-        {/* <TopLevelNavItem href="#">Support</TopLevelNavItem> */}
-        {navigation.map((group, groupIndex) => (
-          <NavigationGroup
-            key={group.title}
-            group={group}
-            className={groupIndex === 0 && 'md:mt-0'}
-            withSections={withSections}
-          />
-        ))}
-        {/* <li className="sticky bottom-0 z-10 mt-6 min-[416px]:hidden">
-          <Button href="#" variant="filled" className="w-full">
-            Sign in
-          </Button>
-        </li> */}
-      </ul>
-    </nav>
+    <>
+      <NamespaceSelector />
+      <nav {...props}>
+        <ul role="list">
+          {/* <TopLevelNavItem href="/">API</TopLevelNavItem> */}
+          {/* <TopLevelNavItem href="#">Documentation</TopLevelNavItem> */}
+          {/* <TopLevelNavItem href="#">Support</TopLevelNavItem> */}
+          {navigation.map((group, groupIndex) => (
+            <NavigationGroup
+              key={group.title}
+              group={group}
+              className={groupIndex === 0 && 'md:mt-0'}
+              withSections={withSections}
+            />
+          ))}
+          {/* <li className="sticky bottom-0 z-10 mt-6 min-[416px]:hidden">
+            <Button href="#" variant="filled" className="w-full">
+              Sign in
+            </Button>
+          </li> */}
+        </ul>
+      </nav>
+    </>
   )
 }
 
