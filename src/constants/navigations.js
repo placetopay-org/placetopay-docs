@@ -70,40 +70,40 @@ export const TAB_NAVIGATION = {
           {
             title: 'Checkout',
             links: [
-              { title: 'Introduction', href: '/en/checkout' },
-              { title: 'How it works', href: '/en/checkout/how-checkout-works' },
-              { title: 'Plugins', href: '/en/checkout/plugins' },
-              { title: 'Lightbox', href: '/en/checkout/lightbox' },
+              { title: 'Introduction', href: '/checkout' },
+              { title: 'How it works', href: '/checkout/how-checkout-works' },
+              { title: 'Plugins', href: '/checkout/plugins' },
+              { title: 'Lightbox', href: '/checkout/lightbox' },
             ],
           },
           {
             title: 'Integration',
             links: [
-              { title: 'Authentication', href: '/en/checkout/authentication' },
-              { title: 'Create Session', href: '/en/checkout/create-session' },
-              { title: 'Notification', href: '/en/checkout/notification' },
-              { title: 'Localization', href: '/en/checkout/localization' },
-              { title: 'Document Types', href: '/en/checkout/document-types' },
+              { title: 'Authentication', href: '/checkout/authentication' },
+              { title: 'Create Session', href: '/checkout/create-session' },
+              { title: 'Notification', href: '/checkout/notification' },
+              { title: 'Localization', href: '/checkout/localization' },
+              { title: 'Document Types', href: '/checkout/document-types' },
 
               {
                 title: 'Additional Fields',
-                href: '/en/checkout/additional-fields',
+                href: '/checkout/additional-fields',
               },
               {
                 title: 'Amounts and Currencies',
-                href: '/en/checkout/tax-details',
+                href: '/checkout/tax-details',
               },
-              { title: 'Payment Methods', href: '/en/checkout/payment-methods' },
+              { title: 'Payment Methods', href: '/checkout/payment-methods' },
               {
                 title: 'How to integrate with mobile',
-                href: '/en/checkout/integration/mobile',
+                href: '/checkout/integration/mobile',
               },
               {
                 title: 'Test your integration',
-                href: '/en/checkout/test-your-integration',
+                href: '/checkout/test-your-integration',
               },
-              { title: 'Changelog', href: '/en/checkout/changelog' },
-              { title: 'API Policy', href: '/en/checkout/api-policy' },
+              { title: 'Changelog', href: '/checkout/changelog' },
+              { title: 'API Policy', href: '/checkout/api-policy' },
             ],
           },
         ],
@@ -111,7 +111,7 @@ export const TAB_NAVIGATION = {
       {
         title: 'API',
         identifier: 'checkout/api-reference',
-        href: '/en/checkout/api-reference/session',
+        href: '/checkout/api-reference/session',
         links: [
           {
             title: 'API',
@@ -218,32 +218,32 @@ export const TAB_NAVIGATION = {
           {
             title: 'Gateway',
             links: [
-              { title: 'Introduction', href: '/en/gateway' },
-              { title: 'Transaction flow', href: '/en/gateway/transaction-flow' },
-              { title: 'Obligations', href: '/en/gateway/obligations' },
+              { title: 'Introduction', href: '/gateway' },
+              { title: 'Transaction flow', href: '/gateway/transaction-flow' },
+              { title: 'Obligations', href: '/gateway/obligations' },
             ],
           },
           {
             title: 'Integration',
             links: [
-              { title: 'Authentication', href: '/en/gateway/authentication' },
-              { title: 'Test card numbers', href: '/en/gateway/testing-card' },
-              { title: 'Airline codes', href: '/en/gateway/airline-codes' },
-              { title: 'Document types', href: '/en/gateway/document-types' },
+              { title: 'Authentication', href: '/gateway/authentication' },
+              { title: 'Test card numbers', href: '/gateway/testing-card' },
+              { title: 'Airline codes', href: '/gateway/airline-codes' },
+              { title: 'Document types', href: '/gateway/document-types' },
               {
                 title: 'Transaction types',
-                href: '/en/gateway/transaction-types',
+                href: '/gateway/transaction-types',
               },
-              { title: 'Idempotency control', href: '/en/gateway/idempotency' },
+              { title: 'Idempotency control', href: '/gateway/idempotency' },
               {
                 title: 'Import payment orders',
-                href: '/en/gateway/import-payment-orders',
+                href: '/gateway/import-payment-orders',
               },
               {
                 title: 'Processing with bank accounts',
-                href: '/en/gateway/processing-with-bank-accounts',
+                href: '/gateway/processing-with-bank-accounts',
               },
-              { title: 'API Policy', href: '/en/gateway/api-policy' },
+              { title: 'API Policy', href: '/gateway/api-policy' },
             ],
           },
         ],
@@ -251,32 +251,32 @@ export const TAB_NAVIGATION = {
       {
         title: 'API',
         identifier: 'gateway/api-reference',
-        href: '/en/gateway/api-reference/information',
+        href: '/gateway/api-reference/information',
         links: [
           {
             title: 'API',
             links: [
               {
                 title: 'Get information',
-                href: '/en/gateway/api-reference/information',
+                href: '/gateway/api-reference/information',
               },
               {
                 title: 'Transactions',
-                href: '/en/gateway/api-reference/transaction',
+                href: '/gateway/api-reference/transaction',
               },
               {
                 title: 'Card tokenization',
-                href: '/en/gateway/api-reference/tokenize',
+                href: '/gateway/api-reference/tokenize',
               },
-              { title: '3DS process', href: '/en/gateway/api-reference/3ds' },
-              { title: 'OTP process', href: '/en/gateway/api-reference/otp' },
+              { title: '3DS process', href: '/gateway/api-reference/3ds' },
+              { title: 'OTP process', href: '/gateway/api-reference/otp' },
               {
                 title: 'PinPad Operations',
-                href: '/en/gateway/api-reference/pinpad',
+                href: '/gateway/api-reference/pinpad',
               },
               {
                 title: 'Report of operations carried out',
-                href: '/en/gateway/api-reference/report',
+                href: '/gateway/api-reference/report',
               },
             ],
           },
