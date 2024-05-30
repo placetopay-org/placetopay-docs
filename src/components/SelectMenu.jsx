@@ -41,7 +41,7 @@ export const NamespaceSelector = () => {
   return (
     <Listbox value={selected} onChange={onChange}>
       {({ open }) => (
-        <div className="relative mt-8">
+        <div className="relative mt-2 lg:mt-8 lg:mb-8">
           <Listbox.Button className="relative w-full cursor-default rounded-lg bg-gray-50 dark:bg-gray-900 py-2 pl-12 text-left dark:text-white shadow-sm ring-1 ring-inset ring-black/20 dark:ring-white/20 focus:outline-none focus:ring-2 focus:ring-primary-600 sm:text-sm sm:leading-6">
             <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center pr-2">
               <MonitorMobbile
