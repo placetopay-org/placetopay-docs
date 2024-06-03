@@ -1,0 +1,178 @@
+export const description = 
+    'Conoce el proceso de reembolsos de transacciones aprobadas de manera rápida y segura utilizando.'
+
+# Reversos
+Puedes revertir las transacciones previamente aprobadas utilizando una referencia interna proporcionada en la respuesta al [consultar una sessión](/checkout/api-reference/session#query-a-session), en la propiedad `payment.internalReference`.
+
+## Crear una trasacción type reveso 
+Para realizar un reverso, se debe efectuar un llamado al endpoint [Reversos](/checkout/api-reference/payment#reverse-payment) y especificar la transacción a reembolsar.
+Al revertir transacciones, tiene la opción de revertir una parte de la transacción. Puede hacerlo tantas veces como sea necesario hasta que se haya revertido el monto total de la transacción aprobada inicialmente.
+
+Una vez que una transacción se ha reembolsado por completo, no puede ser reembolsada nuevamente. Este método devolverá un error si se intenta revertir una transacción ya completamente revertida, o si se intenta revertir más dinero del que queda en la transacción.
+
+### Objecto Reverso de Trasacción
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="auth" type="Authentication">
+        La autenticación del sitio. Ver más [Autenticación](/checkout/authentication)
+      </Property>
+      <Property name="internalReference" type="integer">
+        Referencia interna única de la transacción
+        EJ: `543423`
+      </Property>
+      <Property name="amount" type="Amount">
+        Información del monto a cobrar. 
+        Esta propiedad se envía cuando se desea realizar un reverso con un valor menor al monto total de la transacción.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+
+    ```json {{ 'title': 'Autenticación de Ejemplo' }}
+    {
+        "auth": {
+            "login": "c51ce410c124a10e0db5e4b97fc2af39",
+            "tranKey": "VQOcRcVH2DfL6Y4B4SaK6yhoH/VOUveZ3xT16OQnvxE=",
+            "nonce": "NjE0OWVkODgwYjNhNw==",
+            "seed": "2021-09-21T09:34:48-05:00"
+        },
+        "internalReference": 543423
+    }
+    ```
+
+    ```json {{ 'title': 'Respuesta' }}
+   {
+                "status": {
+                    "status": "APPROVED",
+                    "reason": "00",
+                    "message": "Aprobada",
+                    "date": "2021-12-07T16:01:19-05:00"
+                },
+                "payment": {
+                    "status": {
+                    "status": "APPROVED",
+                    "reason": "00",
+                    "message": "Aprobada",
+                    "date": "2021-12-07T16:01:18-05:00"
+                    },
+                    "internalReference": 1,
+                    "paymentMethod": "visa",
+                    "paymentMethodName": "Visa",
+                    "issuerName": "JPMORGAN CHASE BANK, N.A.",
+                    "amount": {
+                    "from": {
+                        "currency": "USD",
+                        "total": 100
+                    },
+                    "to": {
+                        "currency": "USD",
+                        "total": 100
+                    },
+                    "factor": 1
+                    },
+                    "authorization": "123456",
+                    "reference": "12345",
+                    "receipt": "230955511860",
+                    "franchise": "PS_VS",
+                    "refunded": false,
+                    "processorFields": [
+                        {
+                            "keyword": "merchantCode",
+                            "value": "1465675",
+                            "displayOn": "none"
+                        },
+                        ...
+                    ]
+                }
+            }
+    ```
+  </Col>    
+</Row>
+
+## Consultar reverso
+Para verificar el reverso de la transacción, se debe [consultar la sesión](/checkout/api-reference/session#query-a-session) cuya transacción fue reversada. 
+Encontraremos  la propiedad `payment.refunded` en `true` la cual indica que la transacción fue reversada correctamente.
+
+```json {{ 'title': 'Respuesta' }}
+{
+      "requestId": 1,
+      "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "La petición ha sido aprobada exitosamente",
+        "date": "2022-07-27T14:51:27-05:00"
+      },
+      "request": {
+        "locale": "es_CO",
+        "payer": {
+          "document": "1122334455",
+          "documentType": "CC",
+          "name": "John",
+          "surname": "Doe",
+          "company": "Evertec",
+          "email": "johndoe@app.com",
+          "mobile": "+5731111111111",
+        },
+        "payment": {
+          "reference": "12345",
+          "description": "Prueba de pago",
+          "amount": {
+            "currency": "COP",
+            "total": 2000,
+          },
+          "allowPartial": false,
+          "subscribe": false,
+        },
+        "paymentMethod": "visa",
+        "expiration": "2019-08-24T14:15:22Z",
+        "returnUrl": "https://commerce.test/return",
+        "cancelUrl": "https://commerce.test/cancel",
+        "ipAddress": "127.0.0.1",
+        "userAgent": "PlacetoPay Sandbox",
+        "skipResult": false,
+        "noBuyerFill": false,
+      },
+      "payment": [
+        {
+          "status": {
+            "status": "APPROVED",
+            "reason": "00",
+            "message": "La petición ha sido aprobada exitosamente",
+            "date": "2022-07-27T14:51:27-05:00"
+          },
+          "internalReference": 12345,
+          "reference": "12345",
+          "paymentMethod": "visa",
+          "paymentMethodName": "Visa",
+          "issuerName": "JPMORGAN CHASE BANK, N.A.",
+          "amount": {
+            "from": {
+              "currency ": "COP",
+              "total ": 2000
+            },
+            "to": {
+              "currency ": "COP",
+              "total ": 2000
+            },
+            "factor": 1
+          },
+          "receipt": "052617800175",
+          "franchise": "PS_VS",
+          "refunded": true,
+          "authorization": "965960",
+          "processorFields": [
+            {
+              "keyword": "1111",
+              "value": "lastDigits",
+              "displayOn": "none"
+            }
+            ...
+          ],
+          "subscription": null
+        }
+      ],
+    }
+```
+
