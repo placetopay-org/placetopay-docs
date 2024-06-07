@@ -1,4 +1,5 @@
 import { LANGUAGES_CODES } from '@/components/LocaleProvider'
+import { Book, DocumentCode } from 'iconsax-react'
 
 export const TAB_NAVIGATION = {
   checkout: {
@@ -7,6 +8,7 @@ export const TAB_NAVIGATION = {
         title: 'Documentación',
         identifier: 'checkout',
         href: '/checkout',
+        icon: Book,
         links: [
           {
             title: 'Checkout',
@@ -47,6 +49,7 @@ export const TAB_NAVIGATION = {
         title: 'API',
         identifier: 'checkout/api',
         href: '/checkout/api/reference/session',
+        icon: DocumentCode,
         links: [
           {
             title: 'Introducción',
@@ -71,6 +74,7 @@ export const TAB_NAVIGATION = {
         title: 'Documentation',
         identifier: 'checkout',
         href: '/en/checkout',
+        icon: Book,
         links: [
           {
             title: 'Checkout',
@@ -115,6 +119,7 @@ export const TAB_NAVIGATION = {
         title: 'API',
         identifier: 'checkout/api',
         href: '/checkout/api/reference/session',
+        icon: DocumentCode,
         links: [
           {
             title: 'Introduction',
@@ -141,6 +146,7 @@ export const TAB_NAVIGATION = {
         title: 'Documentación',
         identifier: 'gateway',
         href: '/gateway',
+        icon: Book,
         links: [
           {
             title: 'Gateway',
@@ -187,6 +193,7 @@ export const TAB_NAVIGATION = {
         title: 'API',
         identifier: 'gateway/api',
         href: '/gateway/api/reference/information',
+        icon: DocumentCode,
         links: [
           {
             title: 'Introducción',
@@ -229,6 +236,7 @@ export const TAB_NAVIGATION = {
         title: 'Documentation',
         identifier: 'gateway',
         href: '/en/gateway',
+        icon: Book,
         links: [
           {
             title: 'Gateway',
@@ -266,6 +274,7 @@ export const TAB_NAVIGATION = {
         title: 'API',
         identifier: 'gateway/api',
         href: '/gateway/api/reference/information',
+        icon: DocumentCode,
         links: [
           {
             title: 'Introduction',

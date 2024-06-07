@@ -91,7 +91,7 @@ export const NamespaceSelector = () => {
     <Listbox value={selected} onChange={onChange}>
       {({ open }) => (
         <div className="relative mt-2 lg:mb-8 lg:mt-8">
-          <Listbox.Button className="flex max-h-16 w-full cursor-pointer items-center gap-3 rounded-lg bg-transparent p-2 text-left transition-colors hover:bg-gray-100 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-600 dark:text-white hover:dark:bg-gray-800">
+          <Listbox.Button className="flex max-h-16 w-full cursor-pointer items-center gap-3 rounded-lg bg-transparent p-2 pl-0 text-left transition-colors hover:bg-gray-100 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-600 dark:text-white hover:dark:bg-gray-800">
             <OptionSelector item={selected} iconClass="text-gray-400" />
             <span className="pointer-events-none flex items-center">
               <ChevronDownIcon
