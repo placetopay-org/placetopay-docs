@@ -38,16 +38,30 @@ const LINKS = {
   ],
 }
 
-const OptionSelector = ({ item, active, selected, iconClass = "" }) => (
+const OptionSelector = ({ item, active, selected, iconClass = '' }) => (
   <>
-    <span className="pointer-events-none flex items-center rounded-lg bg-gray-100 dark:bg-gray-800 p-2" >
-      <MonitorMobbile size="32" className={twMerge(iconClass, "dark:text-white", selected && "text-gray-400 dark:text-gray-400")} />
+    <span className="pointer-events-none flex items-center rounded-lg bg-gray-100 p-2 dark:bg-gray-800">
+      <item.icon
+        size="32"
+        className={twMerge(
+          iconClass,
+          'dark:text-white',
+          selected && 'text-gray-400 dark:text-gray-400'
+        )}
+      />
     </span>
-    <div className="flex-1 pt-2 py-1 flex h-full justify-center flex-col">
-      <span className={twMerge("block truncate text-base font-medium leading-3 dark:text-white", selected && "text-gray-400 dark:text-gray-400")}>
+    <div className="flex h-full flex-1 flex-col justify-center py-1 pt-2">
+      <span
+        className={twMerge(
+          'block truncate text-base font-medium dark:text-white',
+          selected && 'text-gray-400 dark:text-gray-400'
+        )}
+      >
         {item.title}
       </span>
-      <p className="text-xs text-gray-400 line-clamp-1">{item.description}</p>
+      <p className="line-clamp-1 text-xs leading-3 text-gray-400">
+        {item.description}
+      </p>
     </div>
   </>
 )
@@ -77,7 +91,7 @@ export const NamespaceSelector = () => {
     <Listbox value={selected} onChange={onChange}>
       {({ open }) => (
         <div className="relative mt-2 lg:mb-8 lg:mt-8">
-          <Listbox.Button className="flex max-h-16 w-full cursor-pointer items-center gap-3 rounded-lg bg-transparent p-2 text-left transition-colors hover:bg-gray-100 hover:dark:bg-gray-800 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-600 dark:text-white">
+          <Listbox.Button className="flex max-h-16 w-full cursor-pointer items-center gap-3 rounded-lg bg-transparent p-2 text-left transition-colors hover:bg-gray-100 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-600 dark:text-white hover:dark:bg-gray-800">
             <OptionSelector item={selected} iconClass="text-gray-400" />
             <span className="pointer-events-none flex items-center">
               <ChevronDownIcon
@@ -100,10 +114,17 @@ export const NamespaceSelector = () => {
               {LINKS[locale].map((linkItem) => (
                 <Listbox.Option
                   key={linkItem.href}
-                  className="flex w-full gap-3 relative cursor-pointer select-none p-2 hover:bg-primary-300/10"
+                  className="relative flex w-full cursor-pointer select-none gap-3 p-2 hover:bg-primary-300/10"
                   value={linkItem}
                 >
-                  {({ selected, active }) => <OptionSelector item={linkItem} active={active} iconClass="text-gray-900" selected={selected} />}
+                  {({ selected, active }) => (
+                    <OptionSelector
+                      item={linkItem}
+                      active={active}
+                      iconClass="text-gray-900"
+                      selected={selected}
+                    />
+                  )}
                 </Listbox.Option>
               ))}
             </Listbox.Options>
