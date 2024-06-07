@@ -50,16 +50,16 @@ const OptionSelector = ({ item, active, selected, iconClass = '' }) => (
         )}
       />
     </span>
-    <div className="flex h-full flex-1 flex-col justify-center py-1 pt-2">
+    <div className="flex h-full flex-1 flex-col justify-center py-1">
       <span
         className={twMerge(
-          'block truncate text-base font-medium dark:text-white',
+          'block truncate text-base font-medium dark:text-white leading-5',
           selected && 'text-gray-400 dark:text-gray-400'
         )}
       >
         {item.title}
       </span>
-      <p className="line-clamp-1 text-xs leading-3 text-gray-400">
+      <p className="line-clamp-1 text-xs leading-4 text-gray-400">
         {item.description}
       </p>
     </div>
