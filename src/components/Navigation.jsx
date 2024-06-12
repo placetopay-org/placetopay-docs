@@ -1,8 +1,10 @@
 import { useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { twMerge } from 'tailwind-merge'
 import clsx from 'clsx'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
+import { TAB_NAVIGATION } from '@/constants/navigations'
 
 import { useLocalizePath } from '@/hooks/useLocalizePath'
 import { useNamespaceRoute, useNavigation } from '@/hooks/useNavigation'
@@ -12,18 +14,22 @@ import { Tag } from '@/components/Tag'
 import { remToPx } from '@/lib/remToPx'
 import { useLocale } from './LocaleProvider'
 import { NamespaceSelector } from './SelectMenu'
+import { useTabRouter } from './TabProvider'
 
 function useInitialValue(value, condition = true) {
   let initialValue = useRef(value).current
   return condition ? initialValue : value
 }
 
-function TopLevelNavItem({ href, children }) {
+function TopLevelNavItem({ href, children, isActive }) {
   return (
     <li className="md:hidden">
       <Link
         href={href}
-        className="block py-1 text-sm text-gray-600 transition hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+        className={twMerge(
+          'flex gap-2 w-full py-1 text-gray-600 font-medium text-base transition hover:text-gray-900 dark:text-gray-400 dark:hover:text-white',
+          isActive && 'text-primary-500 dark:text-primary-400'
+        )}
       >
         {children}
       </Link>
@@ -71,9 +77,10 @@ function VisibleSectionHighlight({ group, pathname, withSections = false }) {
     )
   )
   let itemHeight = remToPx(2)
-  let height = isPresent && withSections
-    ? Math.max(1, visibleSections.length) * itemHeight
-    : itemHeight
+  let height =
+    isPresent && withSections
+      ? Math.max(1, visibleSections.length) * itemHeight
+      : itemHeight
   let top = group.links.findIndex((link) => link.href === pathname) * itemHeight
 
   if (withSections) {
@@ -208,13 +215,36 @@ function NavigationGroup({ group, className, withSections = false }) {
   )
 }
 
+function SubSectionNavigation() {
+  const { tab, active } = useTabRouter()
+  if (tab === undefined) return null
+
+  const navs = TAB_NAVIGATION[tab.basePath][tab.locale]
+
+  return (
+    <>
+      {navs.map((item) => (
+        <TopLevelNavItem
+          key={item.href}
+          href={item.href}
+          isActive={active === item.identifier}
+        >
+          <item.icon size="24" />
+          {item.title}
+        </TopLevelNavItem>
+      ))}
+    </>
+  )
+}
+
 export function Navigation({ withSections, ...props }) {
   let navigation = useNavigation(useNamespaceRoute())
 
   return (
     <nav {...props}>
       <NamespaceSelector />
-      <ul role="list">
+      <ul role="list" className="mt-6 md:mt-0">
+        <SubSectionNavigation />
         {/* <TopLevelNavItem href="/">API</TopLevelNavItem> */}
         {/* <TopLevelNavItem href="#">Documentation</TopLevelNavItem> */}
         {/* <TopLevelNavItem href="#">Support</TopLevelNavItem> */}
@@ -252,7 +282,12 @@ export function ContentNavigation(props) {
   if (sections.length === 0) return null
 
   return (
-    <aside as="aside" role="navigation" aria-label="Page navigation" className="hidden sticky lg:block top-20 h-full w-52 xl:w-60 min-w-[160px] flex-none pl-8 pb-2">
+    <aside
+      as="aside"
+      role="navigation"
+      aria-label="Page navigation"
+      className="sticky top-20 hidden h-full w-52 min-w-[160px] flex-none pb-2 pl-8 lg:block xl:w-60"
+    >
       <div className="block overflow-y-auto">
         <div className="">
           <h5 className="whitespace-normal pb-3 font-semibold uppercase text-gray-900 dark:text-gray-100">
