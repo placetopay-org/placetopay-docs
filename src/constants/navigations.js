@@ -1,4 +1,5 @@
 import { LANGUAGES_CODES } from '@/components/LocaleProvider'
+import { Book, DocumentCode } from 'iconsax-react'
 
 export const TAB_NAVIGATION = {
   checkout: {
@@ -7,6 +8,7 @@ export const TAB_NAVIGATION = {
         title: 'Documentación',
         identifier: 'checkout',
         href: '/checkout',
+        icon: Book,
         links: [
           {
             title: 'Checkout',
@@ -39,24 +41,30 @@ export const TAB_NAVIGATION = {
                 title: 'Prueba tu integración',
                 href: '/checkout/test-your-integration',
               },
-              { title: 'Reversos', href: '/checkout/reverse'},
-              { title: 'Historial de cambios', href: '/checkout/changelog' },
-              { title: 'Politica de cambios', href: '/checkout/api-policy' },
+              { title: 'Reversos', href: '/checkout/reverse'}
             ],
           },
         ],
       },
       {
         title: 'API',
-        identifier: 'checkout/api-reference',
-        href: '/checkout/api-reference/session',
+        identifier: 'checkout/api',
+        href: '/checkout/api/reference/session',
+        icon: DocumentCode,
         links: [
+          {
+            title: 'Introducción',
+            links: [
+              { title: 'Politica de cambios', href: '/checkout/api/policy' },
+              { title: 'Historial de cambios', href: '/checkout/api/changelog' },
+            ],
+          },
           {
             title: 'API',
             links: [
-              { title: 'Sesión', href: '/checkout/api-reference/session' },
-              { title: 'Pagos', href: '/checkout/api-reference/payment' },
-              { title: 'Token', href: '/checkout/api-reference/token' },
+              { title: 'Sesión', href: '/checkout/api/reference/session' },
+              { title: 'Pagos', href: '/checkout/api/reference/payment' },
+              { title: 'Token', href: '/checkout/api/reference/token' },
             ],
           },
         ],
@@ -67,6 +75,7 @@ export const TAB_NAVIGATION = {
         title: 'Documentation',
         identifier: 'checkout',
         href: '/en/checkout',
+        icon: Book,
         links: [
           {
             title: 'Checkout',
@@ -104,23 +113,29 @@ export const TAB_NAVIGATION = {
                 href: '/checkout/test-your-integration',
               },
               { title: 'Reverse', href: '/checkout/reverse'},
-              { title: 'Changelog', href: '/checkout/changelog' },
-              { title: 'API Policy', href: '/checkout/api-policy' },
             ],
           },
         ],
       },
       {
         title: 'API',
-        identifier: 'checkout/api-reference',
-        href: '/checkout/api-reference/session',
+        identifier: 'checkout/api',
+        href: '/checkout/api/reference/session',
+        icon: DocumentCode,
         links: [
+          {
+            title: 'Introduction',
+            links: [
+              { title: 'API Policy', href: '/checkout/api/policy' },
+              { title: 'Changelog', href: '/checkout/api/changelog' },
+            ],
+          },
           {
             title: 'API',
             links: [
-              { title: 'Session', href: '/checkout/api-reference/session' },
-              { title: 'Payments', href: '/checkout/api-reference/payment' },
-              { title: 'Token', href: '/checkout/api-reference/token' },
+              { title: 'Session', href: '/checkout/api/reference/session' },
+              { title: 'Payments', href: '/checkout/api/reference/payment' },
+              { title: 'Token', href: '/checkout/api/reference/token' },
             ],
           },
         ],
@@ -133,6 +148,7 @@ export const TAB_NAVIGATION = {
         title: 'Documentación',
         identifier: 'gateway',
         href: '/gateway',
+        icon: Book,
         links: [
           {
             title: 'Gateway',
@@ -171,40 +187,46 @@ export const TAB_NAVIGATION = {
                 title: 'Procesamiento con cuentas bancarias',
                 href: '/gateway/processing-with-bank-accounts',
               },
-              { title: 'Politica de cambios', href: '/gateway/api-policy' },
             ],
           },
         ],
       },
       {
         title: 'API',
-        identifier: 'gateway/api-reference',
-        href: '/gateway/api-reference/information',
+        identifier: 'gateway/api',
+        href: '/gateway/api/reference/information',
+        icon: DocumentCode,
         links: [
+          {
+            title: 'Introducción',
+            links: [
+              { title: 'Politica de cambios', href: '/gateway/api/policy' },
+            ],
+          },
           {
             title: 'API',
             links: [
               {
                 title: 'Obtener información',
-                href: '/gateway/api-reference/information',
+                href: '/gateway/api/reference/information',
               },
               {
                 title: 'Transacciones',
-                href: '/gateway/api-reference/transaction',
+                href: '/gateway/api/reference/transaction',
               },
               {
                 title: 'Tokenización de tarjetas',
-                href: '/gateway/api-reference/tokenize',
+                href: '/gateway/api/reference/tokenize',
               },
-              { title: 'Proceso 3DS', href: '/gateway/api-reference/3ds' },
-              { title: 'Proceso OTP', href: '/gateway/api-reference/otp' },
+              { title: 'Proceso 3DS', href: '/gateway/api/reference/3ds' },
+              { title: 'Proceso OTP', href: '/gateway/api/reference/otp' },
               {
                 title: 'Operaciones con PinPad',
-                href: '/gateway/api-reference/pinpad',
+                href: '/gateway/api/reference/pinpad',
               },
               {
                 title: 'Reporte de operaciones realizadas',
-                href: '/gateway/api-reference/report',
+                href: '/gateway/api/reference/report',
               },
             ],
           },
@@ -216,6 +238,7 @@ export const TAB_NAVIGATION = {
         title: 'Documentation',
         identifier: 'gateway',
         href: '/en/gateway',
+        icon: Book,
         links: [
           {
             title: 'Gateway',
@@ -245,40 +268,46 @@ export const TAB_NAVIGATION = {
                 title: 'Processing with bank accounts',
                 href: '/gateway/processing-with-bank-accounts',
               },
-              { title: 'API Policy', href: '/gateway/api-policy' },
             ],
           },
         ],
       },
       {
         title: 'API',
-        identifier: 'gateway/api-reference',
-        href: '/gateway/api-reference/information',
+        identifier: 'gateway/api',
+        href: '/gateway/api/reference/information',
+        icon: DocumentCode,
         links: [
+          {
+            title: 'Introduction',
+            links: [
+              { title: 'API Policy', href: '/gateway/api/policy' },
+            ],
+          },
           {
             title: 'API',
             links: [
               {
                 title: 'Get information',
-                href: '/gateway/api-reference/information',
+                href: '/gateway/api/reference/information',
               },
               {
                 title: 'Transactions',
-                href: '/gateway/api-reference/transaction',
+                href: '/gateway/api/reference/transaction',
               },
               {
                 title: 'Card tokenization',
-                href: '/gateway/api-reference/tokenize',
+                href: '/gateway/api/reference/tokenize',
               },
-              { title: '3DS process', href: '/gateway/api-reference/3ds' },
-              { title: 'OTP process', href: '/gateway/api-reference/otp' },
+              { title: '3DS process', href: '/gateway/api/reference/3ds' },
+              { title: 'OTP process', href: '/gateway/api/reference/otp' },
               {
                 title: 'PinPad Operations',
-                href: '/gateway/api-reference/pinpad',
+                href: '/gateway/api/reference/pinpad',
               },
               {
                 title: 'Report of operations carried out',
-                href: '/gateway/api-reference/report',
+                href: '/gateway/api/reference/report',
               },
             ],
           },
