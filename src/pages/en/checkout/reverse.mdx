@@ -1,95 +1,23 @@
 export const description = 
-    'Conoce el proceso de reembolsos de transacciones aprobadas de manera rápida y segura utilizando.'
+    'Learn about the process of refunding approved transactions quickly and securely using.'
 
 # Reverse
-You can revert previously approved transactions using an internal reference provided in the response [query a session](/en/checkout/api-reference/session#query-a-session), in the `payment.internalReference` property.
+You can process refunds for previously approved transactions using the internal reference `payment.internalReference`, which is provided in the response when [query a session](/en/checkout/api/reference/session#query-a-session).
 
-## Create a transfer reversal
-To reverse a transaction, you must make a request on the [Reverse](/checkout/api-reference/payment#reverse-payment) endpoint and specify the transaction to be refunded.
-When you reverse transactions,you have the option to reverse a partial amount of the transaction. You can do this as many times as necessary until the full amount of the initially approved transaction has been reversed.
+## How to process a reverse?
+To process a reverse, you need to make a request to the [Reverse](/checkout/api/reference/payment#reverse-payment) endpoint. There are two types of refunds: full or partial.
 
-Once a transaction has been fully refunded, it cannot be refunded again. This method will return an error `status.status.message` `Transaction already reversed` if an attempt is made to reverse an already fully reversed transaction, or if an attempt is made to reverse more money than is left in the transaction.
+- **Full Reverse** : 
+The entire amount of the approved transaction is reversed.
 
-### Reverse Transaction Object
+- **Partial Reverse** : 
+Only a portion of the total amount of the approved transaction is reversed. To perform partial reverse, the `amount` property must be included in the request. Partial reverse can be made as many times as necessary until the total amount of the transaction has been reversed.  
+Once a transaction has been fully refunded, no further refunds can be made. If a refund request is made for a transaction that has been fully refunded, this method will return an error  
+`status.status.message` `Transaction already reversed`.
 
-<Row>
-  <Col>
-    <Properties>
-        <Property name="auth" type="Authentication">
-            Site authentication. See more in [Authentication](/en/checkout/authentication)
-        </Property>
-        <Property name="internalReference" type="integer">
-            Unique internal reference of the transaction
-            EJ: `543423`
-        </Property>
-        <Property name="amount" type="Amount">
-            Amount Information. This property is sent when you want to make a reversal with a value less than the total amount of the transaction.
-        </Property>
-    </Properties>
-  </Col>
-  <Col sticky>
+<Note>
+    A partial refund is only processed if the transaction has already been settled in the bank network.
+</Note>
 
-    ```json {{ 'title': 'Sample Request' }}
-    {
-        "auth": {
-            "login": "c51ce410c124a10e0db5e4b97fc2af39",
-            "tranKey": "VQOcRcVH2DfL6Y4B4SaK6yhoH/VOUveZ3xT16OQnvxE=",
-            "nonce": "NjE0OWVkODgwYjNhNw==",
-            "seed": "2021-09-21T09:34:48-05:00"
-        },
-        "internalReference": 543423
-    }
-    ```
-    ```json {{ 'title': 'Respuesta' }}
-    {
-        "status": {
-            "status": "APPROVED",
-            "reason": "00",
-            "message": "Aprobada",
-            "date": "2021-12-07T16:01:19-05:00"
-        },
-        "payment": {
-            "status": {
-            "status": "APPROVED",
-            "reason": "00",
-            "message": "Aprobada",
-            "date": "2021-12-07T16:01:18-05:00"
-            },
-            "internalReference": 1,
-            "paymentMethod": "visa",
-            "paymentMethodName": "Visa",
-            "issuerName": "JPMORGAN CHASE BANK, N.A.",
-            "amount": {
-            "from": {
-                "currency": "USD",
-                "total": 100
-            },
-            "to": {
-                "currency": "USD",
-                "total": 100
-            },
-            "factor": 1
-            },
-            "authorization": "123456",
-            "reference": "12345",
-            "receipt": "230955511860",
-            "franchise": "PS_VS",
-            "refunded": false,
-            "processorFields": [
-                {
-                    "keyword": "merchantCode",
-                    "value": "1465675",
-                    "displayOn": "none"
-                },
-                ...
-            ]
-        }
-    }
-    ```
-  </Col>    
-</Row>
-
-## Query a reversed transaction
-To verify a reversed transaction, the session of the reversed transaction must be [consulted](/en/checkout/api-reference/session#query-a-session).
-
-You will find in the response the `payment.refunded` property set to `true` which indicates that the transaction was successfully reversed.
+## Verify a refunded transaction
+To verify whether a transaction has been fully or partially refunded, you need to query the original transaction session, where you will find the `payment.refunded` property with a value of `true` in the response.
