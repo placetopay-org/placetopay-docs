@@ -1,0 +1,39 @@
+export const description = 
+    'Conoce el proceso de reembolsos de transacciones en Placetopay'
+
+# Reembolsos {{ id: 'refunds' }}
+
+Desde nuestro API puedes realizar el reembolso y cancelación de transacciones aprobadas.
+
+Para realizar un reembolso debes conocer la referencia interna de la transacción a reembolsar `payment.internalReference`. Este dato se puede obtener al [consultar una sessión](/checkout/api/reference/session#query-a-session).
+
+## ¿Cómo realizar un reembolso? {{ id: 'how-to-make-a-refund' }}
+
+Para realizar un reembolso se debe hacer una petición al endpoint [Reembolsar Transacción](/checkout/api/reference/payment#reverse-payment). Existen dos tipos de reembolsos *total* o *parcial*:
+
+### Reembolso total
+
+Se utiliza para reembolsar la totalidad del monto aprobado en la transacción.
+
+Si la transacción no ha sido conciliada en la red bancaria, el reembolso será tratado como una "cancelación" de la transacción.
+
+### Reembolso parcial
+
+Se utiliza para reembolsar una parte del monto aprobado en la transacción.
+
+Se debe enviar la propiedad `amount` en la petición, este dato debe corresponder al monto que se quiere reembolsar.
+
+Los reembolsos parciales se pueden realizar tantas veces como sea necesario hasta que se complete el monto total aprobado en la transacción. Una vez que una transacción se ha reembolsado por completo, no es posible realizar otro reembolso. 
+
+Si se realiza una petición de reembolso sobre una transacción completamente reembolsada, este método devolverá un error `status.message` `La transacción ya ha sido reembolsada`
+
+Si la transacción no ha sido conciliada en la red bancaria, no se pueden realizar reembolsos parciales, se debe reliazar un reembolso total.
+
+<Note>
+    La disponibilidad de reembolsos y reembolsos parciales puede variar según el medio de pago, país y/o proveedor usado.  
+    La fecha de conciliación de transacciones puede variar según el medio de pago, país y/o proveedor usado.
+</Note>
+
+## Verificar una transacción reembolsada {{ id: 'verify-a-refund' }}
+
+Para verificar que una transacción fue reembolsada total o parcialmente, se debe [consultar la sesión](/checkout/api-reference/session#query-a-session) de la transacción original donde encontraras en la respuesta la propiedad `payment.refunded` con valor `true`.
