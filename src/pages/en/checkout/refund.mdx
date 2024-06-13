@@ -1,23 +1,39 @@
 export const description = 
-    'Learn about the process of refunding approved transactions quickly and securely using.'
+    'Learn about the refund process for placetopay transactions.'
 
-# Reverse {{ id: 'reverse' }}
-You can process refunds for previously approved transactions using the internal reference `payment.internalReference`, which is provided in the response when [query a session](/en/checkout/api/reference/session#query-a-session).
+# Refund {{ id: 'refunds' }}
 
-## How to process a reverse?
-To process a reverse, you need to make a request to the [Reverse](/checkout/api/reference/payment#reverse-payment) endpoint. There are two types of refunds: full or partial.
+From our API, you can process refunds and cancellations of approved transactions.
 
-- **Full Reverse** : 
-The entire amount of the approved transaction is reversed.
+To process a refund, you need to know the internal reference of the transaction to be refunded, `payment.internalReference`. This information can be obtained by [Query a session](/en/checkout/api/reference/session#query-a-session).
 
-- **Partial Reverse** : 
-Only a portion of the total amount of the approved transaction is reversed. To perform partial reverse, the `amount` property must be included in the request. Partial reverse can be made as many times as necessary until the total amount of the transaction has been reversed.  
-Once a transaction has been fully refunded, no further refunds can be made. If a refund request is made for a transaction that has been fully refunded, this method will return an error  
-`status.status.message` `Transaction already reversed`.
+## How to make a refund? {{ id: 'how-to-make-a-refund' }}
+
+To process a refund, you need to make a request to the [Refund Transaction](/en/checkout/api/reference/payment#reverse-payment) endpoint. There are two types of refunds: *full* or *partial*:
+
+### Full Refund
+
+It is used to refund the entire approved amount of the transaction.
+
+If the transaction has not been settled in the bank network, the refund will be treated as a "cancellation" of the transaction.
+
+### Partial Refund
+
+It is used to refund a portion of the approved transaction amount.
+
+You must include the `amount` property in the request, corresponding to the amount you wish to refund.
+
+Partial refunds can be made as many times as necessary until the total approved amount of the transaction has been refunded. Once a transaction has been fully refunded, no further refunds can be processed.
+
+If a refund request is made for a transaction that has already been fully refunded, this method will return an error `status.message` `Transaction already refunded`.
+
+If the transaction has not been settled in the bank network, partial refunds cannot be made; a full refund must be processed instead.
 
 <Note>
-    A partial refund is only processed if the transaction has already been settled in the bank network.
+    The availability of refunds and partial refunds may vary depending on the payment method, country, and/or provider used.
+    The settlement date of transactions may vary depending on the payment method, country, and/or provider used.
 </Note>
 
-## Verify a refunded transaction
-To verify whether a transaction has been fully or partially refunded, you need to query the original transaction session, where you will find the `payment.refunded` property with a value of `true` in the response.
+## Verify a refunded transaction {{ id: 'verify-a-refund' }}
+
+To verify whether a transaction has been fully or partially refunded, you need to [query the session](/en/checkout/api/reference/session#query-a-session) of the original transaction, where you will find the `payment.refunded` property with a value of `true` in the response.
