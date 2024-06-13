@@ -41,7 +41,7 @@ export const TAB_NAVIGATION = {
                 title: 'Prueba tu integración',
                 href: '/checkout/test-your-integration',
               },
-              { title: 'Reversos', href: '/checkout/reverse'}
+              { title: 'Reembolsos', href: '/checkout/refund'}
             ],
           },
         ],
@@ -112,7 +112,7 @@ export const TAB_NAVIGATION = {
                 title: 'Test your integration',
                 href: '/checkout/test-your-integration',
               },
-              { title: 'Reverse', href: '/checkout/reverse'},
+              { title: 'Refund', href: '/checkout/refund'},
             ],
           },
         ],
