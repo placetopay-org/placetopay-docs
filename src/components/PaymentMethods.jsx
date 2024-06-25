@@ -190,7 +190,7 @@ export function PaymentMethods() {
           <table className="mt-6">
             <thead>
               <tr>
-                <th>{isEn() ? 'Nombre' : 'Name'}</th>
+                <th>{isEn() ? 'Name': 'Nombre'}</th>
                 <th>ID</th>
               </tr>
             </thead>
