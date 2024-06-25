@@ -179,7 +179,7 @@ const groupsByCountry = [
 ]
 
 export function PaymentMethods() {
-  const { locale } = useLocale()
+  const { locale, isEn } = useLocale()
   return (
     <div>
       {groupsByCountry.map((group) => (
@@ -190,7 +190,7 @@ export function PaymentMethods() {
           <table className="mt-6">
             <thead>
               <tr>
-                <th>Nombre</th>
+                <th>{isEn() ? 'Nombre' : 'Name'}</th>
                 <th>ID</th>
               </tr>
             </thead>
