@@ -12,8 +12,8 @@ export const LANGUAGE_DEFAULT = LANGUAGES_CODES.ES
 const LocaleContext = createContext()
 
 export const useLocale = () => {
-  const { locale, changeLocale } = useContext(LocaleContext)
-  return { locale, changeLocale }
+  const { locale, changeLocale, isEn } = useContext(LocaleContext)
+  return { locale, changeLocale , isEn}
 }
 
 const LocaleProvider = ({ children }) => {
@@ -40,8 +40,12 @@ const LocaleProvider = ({ children }) => {
     }
   }
 
+  const isEn = () => {
+    return locale === 'en'
+  }
+
   return (
-    <LocaleContext.Provider value={{ locale, changeLocale }}>
+    <LocaleContext.Provider value={{ locale, changeLocale, isEn }}>
       {children}
     </LocaleContext.Provider>
   )
