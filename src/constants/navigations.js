@@ -120,7 +120,7 @@ export const TAB_NAVIGATION = {
       {
         title: 'API',
         identifier: 'checkout/api',
-        href: '/checkout/api/reference/session',
+        href: '/en/checkout/api/reference/session',
         icon: DocumentCode,
         links: [
           {
@@ -275,7 +275,7 @@ export const TAB_NAVIGATION = {
       {
         title: 'API',
         identifier: 'gateway/api',
-        href: '/gateway/api/reference/information',
+        href: '/en/gateway/api/reference/information',
         icon: DocumentCode,
         links: [
           {
