@@ -136,7 +136,7 @@ export const ApiResponses = ({ responses = {} }) => {
   return (
     <>
       <div className="flex items-baseline justify-between">
-      <h3>{TITLES.response[locale]}</h3>
+        <h3>{TITLES.response[locale]}</h3>
 
         <select
           className="bg-inherit"
@@ -149,6 +149,9 @@ export const ApiResponses = ({ responses = {} }) => {
           ))}
         </select>
       </div>
+
+      {response.description && <ReactMarkdown>{response.description}</ReactMarkdown>}
+
       <ApiProperties
         properties={Object.entries(
           response?.content?.['application/json']?.schema?.properties || {}
