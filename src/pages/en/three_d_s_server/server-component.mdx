@@ -1,0 +1,17 @@
+# Acerca del componente 3DS Server
+
+El componente 3DS Server pertenece al Dominio del Adquiriente. Este componente se comunica con el comercio o pasarela de pagos, para permitir las autenticaciones de las transacciones electrónicas. 
+
+### Este componente se encarga de:
+
+- Recopilar los datos necesarios para los mensajes de 3-D Secure.
+
+- Recibir la petición de sesión enviada por el comercio o pasarela de pagos.
+
+- Responder al comercio o pasarela la petición de sesión. En esta respuesta se incluye la redirectUrl (url de redirección), en la cual el cliente realiza el proceso de autenticación.
+
+- Recibir la petición de información enviada por el comercio o pasarela de pagos.
+
+- Solicitar a la franquicia emisora, la validación del tarjetahabiente.
+
+- Responder al comercio o pasarela de pagos la petición de información. En esta respuesta se incluye el estado final de la autenticación.
