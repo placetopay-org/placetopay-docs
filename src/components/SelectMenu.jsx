@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Listbox, Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import { DocumentCode, MonitorMobbile } from 'iconsax-react'
+import { DocumentCode, MonitorMobbile, Activity } from 'iconsax-react'
 import { LANGUAGES_CODES, useLocale } from './LocaleProvider'
 import clsx from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -21,6 +21,12 @@ const LINKS = {
       href: '/gateway',
       icon: DocumentCode,
     },
+    {
+      title: '3DS Server',
+      description: 'Pagos más seguros',
+      href: '/three-d-s-server',
+      icon: Activity,
+    },
   ],
   [LANGUAGES_CODES.EN]: [
     {
@@ -34,6 +40,12 @@ const LINKS = {
       description: 'Receive payments via API.',
       href: '/en/gateway',
       icon: DocumentCode,
+    },
+    {
+      title: '3DS Server',
+      description: 'Safer payments.',
+      href: 'en/three-d-s-server',
+      icon: Activity,
     },
   ],
 }
