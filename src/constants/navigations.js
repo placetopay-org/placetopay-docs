@@ -372,14 +372,37 @@ export const TAB_NAVIGATION = {
       {
         title: 'API',
         identifier: 'three-d-s-server/api',
-        href: '/three-d-s-server/api/',
+        href: '/three-d-s-server/api',
         icon: DocumentCode,
         links: [
           {
-            title: '',
+            title: 'Introducción',
             links: [
-              { title: '', href: '' },
-              { title: '', href: '' },
+                { title: 'Inicio', href: '/three-d-s-server/api' },
+                { title: 'Teléfono', href: '/three-d-s-server/api/phone-properties' },
+                { title: 'Información de Autenticación 3DS', href: '/three-d-s-server/api/three-d-s-authentication-info' },
+                { title: 'Información de Cuenta', href: '/three-d-s-server/api/acct-info' },
+                { title: 'Indicador de Riesgo del Comerciante', href: '/three-d-s-server/api/risk-indicator' },
+                { title: 'Información de Autenticación Previa 3DS', href: '/three-d-s-server/api/requestor-prior-authentication-info' }
+            ],
+          },
+          {
+            title: 'Sesiones',
+            links: [
+              { title: 'Gestor de sesiones', href: '/three-d-s-server/api/sessions/session' },
+            ],
+          },
+          {
+            title: 'Transacciones',
+            links: [
+              { title: 'Gestor de transacciones', href: '/three-d-s-server/api/transactions/show' },
+            ],
+          },
+          {
+            title: 'Comercios',
+            links: [
+              { title: 'Gestor de comercios', href: '/three-d-s-server/api/merchants/create' },
+              { title: 'Gestor de sucursales', href: '/three-d-s-server/api/merchants/branch' },
             ],
           },
         ],
@@ -443,15 +466,31 @@ export const TAB_NAVIGATION = {
         title: "API",
         identifier: "three-d-s-server/api",
         href: "/three-d-s-server/api/",
-        icon: "DocumentCode",
+        icon: DocumentCode,
         links: [
           {
-            title: "",
+            title: 'Sessions',
             links: [
-              { "title": "", "href": "" },
-              { "title": "", "href": "" }
-            ]
-          }
+              { title: 'Home', href: '/three-d-s-server/api' },
+              { title: 'Phone Properties', href: '/three-d-s-server/api/phone-properties' },
+              { title: '3DS Authentication Info', href: '/three-d-s-server/api/three-d-s-authentication-info' },
+              { title: 'Account Info', href: '/three-d-s-server/api/acct-info' },
+              { title: 'Merchant Risk Indicator', href: '/three-d-s-server/api/risk-indicator' },
+              { title: '3DS Prior Authentication Info', href: '/three-d-s-server/api/requestor-prior-authentication-info' }            ],
+          },
+          {
+            title: 'Transactions',
+            links: [
+              { title: 'Transaction manager', href: '/three-d-s-server/api/transactions/show' },
+            ],
+          },
+          {
+            title: 'Merchants',
+            links: [
+              { title: 'Merchants manager', href: '/three-d-s-server/api/merchants/create' },
+              { title: 'Branches manager', href: '/three-d-s-server/api/merchants/branch' },
+            ],
+          },
         ]
       }
     ]
