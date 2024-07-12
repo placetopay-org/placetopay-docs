@@ -7,8 +7,14 @@ export const useNamespaceRoute = () => {
   const router = useRouter();
   const paths = router.pathname.split('/', 3);
   const namespace = paths[1] && paths[1].length > 2 ? paths[1] : paths[2];
-  return namespace === 'checkout' ? 'checkout' : 'gateway';
-}
+  switch (namespace) {
+    case 'checkout':
+      return 'checkout';
+    case 'three-d-s-server':
+      return 'three-d-s-server';
+    default:
+      return 'gateway';
+  }}
 
 export const useNavigation = (namespaces) => {
   const tabRouter = useTabRouter();
@@ -19,6 +25,8 @@ export const useNavigation = (namespaces) => {
       return TAB_NAVIGATION.checkout[locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     case 'gateway':
       return TAB_NAVIGATION.gateway[locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
+    case 'three-d-s-server':
+      return TAB_NAVIGATION['three-d-s-server'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     default:
       throw new Error(`The namespace navigation '${namespaces}' is not defined`);
   }
