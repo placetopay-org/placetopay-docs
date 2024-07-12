@@ -24,7 +24,7 @@ const LINKS = {
     {
       title: '3DS Server',
       description: 'Pagos más seguros',
-      href: '/three_d_s_server',
+      href: '/three-d-s-server',
       icon: Activity,
     },
   ],
@@ -44,7 +44,7 @@ const LINKS = {
     {
       title: '3DS Server',
       description: 'Safer payments.',
-      href: 'en/three_d_s_server',
+      href: 'en/three-d-s-server',
       icon: Activity,
     },
   ],
