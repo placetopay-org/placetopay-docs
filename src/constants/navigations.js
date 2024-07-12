@@ -94,7 +94,6 @@ export const TAB_NAVIGATION = {
               { title: 'Notification', href: '/checkout/notification' },
               { title: 'Localization', href: '/checkout/localization' },
               { title: 'Document Types', href: '/checkout/document-types' },
-
               {
                 title: 'Additional Fields',
                 href: '/checkout/additional-fields',
@@ -314,5 +313,147 @@ export const TAB_NAVIGATION = {
         ],
       },
     ],
+  },
+  three_d_s_server: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'three_d_s_server',
+        href: '/three_d_s_server',
+        icon: Book,
+        links: [
+          {
+            title: '3DS Server',
+            links: [
+              { title: 'Introducción', href: '/three_d_s_server' },
+              { title: '¿Qué es el Protocolo 3-D Secure?', href: '/three_d_s_server/introduction' },
+              { title: 'Dominios y Componentes', href: '/three_d_s_server/secure-protocol' },
+              { title: 'Acerca del componente 3DS Server', href: '/three_d_s_server/server-component' },
+              { title: 'Códigos de Error', href: '/three_d_s_server/error-codes' },
+              { title: 'Preguntas frecuentes sobre el funcionamiento 3DS Server', href: '/three_d_s_server/f-a-q' },
+              { title: 'Códigos HTTP en el proceso de autenticación', href: '/three_d_s_server/http-codes' },
+              { title: 'Flujo del servicio de 3DS Server', href: '/three_d_s_server/service-flow' },
+              { title: 'Tarjetas de Prueba', href: '/three_d_s_server/test-cards' },
+            ],
+          },
+          {
+            title: 'Integración',
+            links: [
+              { title: 'Obtener información de una autenticación', href: '/three_d_s_server/integration/authentication-info' },
+              { title: 'Autorización', href: '/three_d_s_server/integration/authorization' },
+              { title: 'Requerimientos para el cliente que va a integrarse', href: '/three_d_s_server/integration/client-requirements' },
+              { title: 'Sesión', href: '/three_d_s_server/integration/session' },
+              { title: 'Sesión con Digital Authentication Framework', href: '/three_d_s_server/integration/session-daf' },
+              { title: 'Sesión desacoplada', href: '/three_d_s_server/integration/session-decoupled'},
+              { title: 'Sesión con información previa', href: '/three_d_s_server/integration/session-prior-info' },
+              { title: 'Sesión transacción recurrente', href: '/three_d_s_server/integration/session-recurrent' },
+              { title: 'Sesión transacciones de no pago', href: '/three_d_s_server/integration/session-subscription'},
+              { title: 'Términos y Definiciones', href: '/three_d_s_server/integration/terms-and-definitions'},
+              { title: 'Datos del proceso de autenticación', href: '/three_d_s_server/integration/transaction-status'}
+            ],
+          },
+          {
+            title: 'Panel',
+            links: [
+              { title: 'Autenticaciones', href: '/three_d_s_server/panel/authentications' },
+              { title: 'Franquicias en 3DS Server', href: '/three_d_s_server/panel/franchise-configuration' },
+              { title: 'Página de Inicio (Home)', href: '/three_d_s_server/panel/home' },
+              { title: 'Categorías de actividad económica', href: '/three_d_s_server/panel/configurations' },
+              { title: 'Funcionalidades', href: '/three_d_s_server/panel/functionalities' },
+              { title: '¿Cómo configurar 3DS Server?', href: '/three_d_s_server/panel/general-configuration'},
+              { title: 'Tokens', href: '/three_d_s_server/panel/security' },
+              { title: 'Comercios en 3DS Server', href: '/three_d_s_server/panel/merchant-configuration' },
+              { title: 'Métricas', href: '/three_d_s_server/panel/metrics'},
+              { title: 'Reportes', href: '/three_d_s_server/panel/reports'},
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'three_d_s_server/api',
+        href: '/three_d_s_server/api/',
+        icon: DocumentCode,
+        links: [
+          {
+            title: '',
+            links: [
+              { title: '', href: '' },
+              { title: '', href: '' },
+            ],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: "Documentation",
+        identifier: "three_d_s_server",
+        href: "/three_d_s_server",
+        icon: "Book",
+        links: [
+          {
+            title: "3DS",
+            links: [
+              { title: "Introduction", "href": "/three_d_s_server" },
+              { title: "What is the 3-D Secure Protocol?", "href": "/three_d_s_server/introduction" },
+              { title: "Domains and Components", "href": "/three_d_s_server/secure-protocol" },
+              { title: "About the 3DS Server Component", "href": "/three_d_s_server/server-component" },
+              { title: "Error Codes", "href": "/three_d_s_server/error-codes" },
+              { title: "Frequently Asked Questions about MPI Functioning", "href": "/three_d_s_server/f-a-q" },
+              { title: "HTTP Codes in the Authentication Process", "href": "/three_d_s_server/http-Codes" },
+              { title: "3DS Server Service Flow", "href": "/three_d_s_server/service-flow" },
+              { title: "Test Cards", "href": "/three_d_s_server/test-cards" }
+            ]
+          },
+          {
+            title: "Integration",
+            links: [
+              { title: "Obtain Authentication Information", "href": "/three_d_s_server/integration/authentication-info" },
+              { title: "Authorization", "href": "/three_d_s_server/integration/authorization" },
+              { title: "Client Integration Requirements", "href": "/three_d_s_server/integration/client-requirements" },
+              { title: "Session", "href": "/three_d_s_server/integration/session" },
+              { title: "Session with Digital Authentication Framework", "href": "/three_d_s_server/integration/session-daf" },
+              { title: "Decoupled Session", "href": "/three_d_s_server/integration/session-decoupled" },
+              { title: "Session with Prior Information", "href": "/three_d_s_server/integration/session-prior-info" },
+              { title: "Recurrent Transaction Session", "href": "/three_d_s_server/integration/session-recurrent" },
+              { title: "Non-payment Transaction Session", "href": "/three_d_s_server/integration/session-subscription" },
+              { title: "Terms and Definitions", "href": "/three_d_s_server/integration/terms-and-definitions" },
+              { title: "Authentication Process Data", "href": "/three_d_s_server/integration/transaction-status" }
+            ]
+          },
+          {
+            title: "Panel",
+            links: [
+              { title: "Authentications", "href": "/three_d_s_server/panel/authentications" },
+              { title: "3DS Server Franchises", "href": "/three_d_s_server/panel/franchise-configuration" },
+              { title: "Home Page", "href": "/three_d_s_server/panel/home" },
+              { title: "Economic Activity Categories", "href": "/three_d_s_server/panel/configurations" },
+              { title: "Functionalities", "href": "/three_d_s_server/panel/functionalities" },
+              { title: "How to Configure MPI?", "href": "/three_d_s_server/panel/general-configuration" },
+              { title: "Tokens", "href": "/three_d_s_server/panel/security" },
+              { title: "Merchants in 3DS Server", "href": "/three_d_s_server/panel/merchant-configuration" },
+              { title: "Metrics", "href": "/three_d_s_server/panel/metrics" },
+              { title: "Reports", "href": "/three_d_s_server/panel/reports" }
+            ]
+          }
+        ]
+      },
+      {
+        title: "API",
+        identifier: "three_d_s_server/api",
+        href: "/three_d_s_server/api/",
+        icon: "DocumentCode",
+        links: [
+          {
+            title: "",
+            links: [
+              { "title": "", "href": "" },
+              { "title": "", "href": "" }
+            ]
+          }
+        ]
+      }
+    ]
   },
 }
