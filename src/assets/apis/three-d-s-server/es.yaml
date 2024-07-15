@@ -13,7 +13,7 @@ servers:
   - url: 'https://3ds-mpi.placetopay.com/api'
     description: Producción
 paths:
-  /threeds/v2/sessions:
+  /threeds/v2x/sessions:
     post:
       summary: Crear una nueva sesión
       operationId: post-sessions
@@ -40,7 +40,7 @@ paths:
                   redirectURL:
                     type: string
                     description: URL de redirección para continuar el proceso de autenticación.
-                    example: 'https://3dss-test.placetopay.com/threeds/v2/sessions/8e580eb1948ae1b13e614aac04c75ad31d6431ef2ea7b1a85573979b7ec4e656'
+                    example: 'https://3dss-test.placetopay.com/threeds/v2x/sessions/8e580eb1948ae1b13e614aac04c75ad31d6431ef2ea7b1a85573979b7ec4e656'
                     minLength: 1
                     maxLength: 256
                   transactionID:
@@ -57,7 +57,7 @@ paths:
                 Respuesta exitosa:
                   value:
                     sessionToken: 8e580eb1948ae1b13e614aac04c75ad31d6431ef2ea7b1a85573979b7ec4e656
-                    redirectURL: 'https://3dss-test.placetopay.com/threeds/v2/sessions/8e580eb1948ae1b13e614aac04c75ad31d6431ef2ea7b1a85573979b7ec4e656'
+                    redirectURL: 'https://3dss-test.placetopay.com/threeds/v2x/sessions/8e580eb1948ae1b13e614aac04c75ad31d6431ef2ea7b1a85573979b7ec4e656'
                     transactionID: 9071
         '401':
           $ref: '#/components/responses/unauthorized-response'
@@ -350,6 +350,62 @@ paths:
                   example: 'Y'
                 threeDSRequestorPriorAuthenticationInfo:
                   $ref: '#/components/schemas/threeDSRequestorPriorAuthenticationInfo'
+                threeDSReqPriorAuthMethod:
+                  type: string
+                  description: |-
+                    Método que fue usado por el tarjetahabiente para la autenticación previa.
+
+                    > **Valores aceptados:** 
+                    > - `01` sin fricción
+                    > - `02` con fricción
+                    > Consulta la sesión [Obtener los datos del threeDSRequestorPriorAuthenticationInfo](https://example.com)
+                  example: '01'
+                threeDSReqPriorAuthTimestamp:
+                  type: string
+                  description: |-
+                    Fecha y hora en formato UTC de la autenticación previa.
+
+                    > El formato es C, por ejemplo `2024-07-15T10:00:00Z`.
+                    > Consulta la sesión [Obtener los datos del threeDSRequestorPriorAuthenticationInfo](https://example.com)
+                  example: '2024-07-15T10:00:00Z'
+                threeDSReqPriorRef:
+                  type: string
+                  description: |-
+                    El ID otorgado por el ACS en la transacción previa (primera autenticación).
+
+                    > Consulta la sesión [Obtener los datos del threeDSRequestorPriorAuthenticationInfo](https://example.com)
+                  example: 'abc123'
+                threeDSReqPriorAuthData:
+                  type: string
+                  description: |-
+                    El ID otorgado por el DS en la transacción previa (primera autenticación). Si este dato no es enviado, MPI lo asigna.
+                    Consulta la sesión
+                  example: 'xyz789'
+                threeRIInd:
+                  type: string
+                  description: |-
+                    Indica si la transacción es recurrente.
+                    
+                       **Valores aceptados:**
+                     - 01 al 99
+                    
+                    **significado:**
+                    - '01' = recurring transaction
+                    - '02' = instalment transaction
+                    - '03' = add card
+                    - '04' = maintain card information
+                    - '05' = account verification
+                    - '06' = split or delayed shipment
+                    - '07' = top up
+                    - '08 = mail order
+                    - '09' = telephone order
+                    - '10' = whitelist status check
+                    - '11' = other payment
+                    - '12' = billing agreement
+                    - '85' = mastercard 3ri is for an agent payment transaction
+                    - '86' = mastercard 3ri for unknown or undefined final amount before purchase transaction
+                    - '81' = visa unscheduled credential on file
+                  example: '01'
               required:
                 - acctNumber
                 - cardExpiryDate
@@ -507,14 +563,14 @@ paths:
         - Authorization: []
       tags:
         - Sessions
-  '/v2/transactions/{transactionID}':
+  '/v2x/transactions/{transactionID}':
     parameters:
       - schema:
           type: string
         name: transactionID
         in: path
         required: true
-        description: ' Identificador de la transacción obtenido en la respuesta del endpoint api/threeds/v2/sessions'
+        description: ' Identificador de la transacción obtenido en la respuesta del endpoint api/threeds/v2x/sessions'
     get:
       summary: Obtener información de una transacción
       operationId: get-transactions-transactionID
@@ -550,10 +606,10 @@ paths:
 
         Los siguientes pasos le darán una guía para la utilización del mismo:
 
-          **1.** Cree una solicitud HTTP de tipo GET en su servidor y con el endpoint /api/v2/transactions/{transactionID}
+          **1.** Cree una solicitud HTTP de tipo GET en su servidor y con el endpoint /api/v2x/transactions/{transactionID}
           
           **2.** Adjunte al final de la url, como parámetro, el identificador de la transacción, el cual corresponde al campo
-          transactionID que se obtiene en la respuesta del servicio con el endpoint api/threeds/v2/sessions
+          transactionID que se obtiene en la respuesta del servicio con el endpoint api/threeds/v2x/sessions
           
           **3.** En el encabezado de la petición, ingrese el Bearer token, el cual puede crear dirigiéndose al comercio y luego a la sección de Tokens. Este le permitirá registrarse como un usuario autorizado y es obligatorio.
           
@@ -1496,8 +1552,7 @@ components:
     success-response-transactions:
       description: |-
         > Respuesta recibida: 200 Ok
-
-
+        
             Esta es una respuesta satisfactoria para el servicio de
               consulta de información de transacciones.
       content:
@@ -1605,7 +1660,9 @@ components:
                 enum:
                   - 2.1.0
                   - 2.2.0
-                description: Es el número de versión del protocolo 3DS que utiliza el sistema para ejecutar el flujo de autenticación. Esta versión la establece el servidor 3DS con el mensaje AReq y no cambia durante todo el flujo de una transacción.
+                description: Es el número de versión del protocolo 3DS que utiliza el sistema para ejecutar
+                  el flujo de autenticación. Esta versión la establece el servidor 3DS con el mensaje AReq 
+                  y no cambia durante todo el flujo de una transacción.
               messageCategory:
                 type: string
                 minLength: 2
@@ -1660,7 +1717,9 @@ components:
       description: |
         > Respuesta recibida: 401 Unauthorized
 
-            Este mensaje de error puede aparecer cuando en la petición, el token aportado no permite autenticarse satisfactoriamente:
+            Este mensaje de error puede aparecer cuando en la petición,
+              el token aportado no permite autenticarse
+              satisfactoriamente:
               - Token ausente, expirado o inválido
       content:
         application/json:
