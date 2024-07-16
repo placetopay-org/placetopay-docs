@@ -1,0 +1,190 @@
+export const sectionMode = 'nav';
+
+export const apiRefs = ['/threeds/v2x/sessions']
+
+**Este es el servicio para iniciar una sesión en el flujo de autenticación de 3DS Server.**
+
+Los siguientes pasos le darán una guía en la utilización del mismo:
+
+**1.** Cree una solicitud HTTP de tipo POST en su servidor y con el endpoint /sessions
+
+**2.** En el encabezado de la petición, ingrese el bearer token, el cual le permitirá registrarse como un usuario autorizado. Este encabezado es obligatorio.
+
+**3.** El encabezado deberá contener también, en el Content-Type, el valor de "application/json".
+
+**4.** Ingrese en el cuerpo de la petición los campos mínimos requeridos, los cuales son:
+  - acctNumber
+  - cardExpiryDate
+  - purchaseAmount
+  - redirectURI
+  - purchaseCurrency
+
+> La descripción de los campos de las peticiones y de las respuestas, el tipo de dato, longitud y demás especificaciones, puede visualizarse en el apartado de respuestas, en el esquema de datos.
+
+**5.** Envíe la petición y obtenga una respuesta.
+
+**6.** Puede visualizar el estado de la autenticación, redirigiéndose a la "redirectURI", dato arrojado en una respuesta exitosa o con estado "Y".
+
+> Para obtener estados en la autenticación diferentes al "Y", puede modificar el campo "acctNumber" de la petición, con los números de tarjetas de prueba dados en esta documentación.
+
+---
+# Implementación del Contrato v2x
+
+Se recomienda la implementación de un nuevo contrato que proporciona el siguiente conjunto de resultados:
+
+| Canal | Indicador del Canal | Acción    | Categoría de Mensaje | Información                                                                                               |
+|-----------|--------------------|-----------|----------------------|-----------------------------------------------------------------------------------------------------------|
+| **APP**   | “01”               | continue  | PA, NPA              | Esta nueva acción permite retornar el resultado de la transacción y no necesita intervención del usuario para ser completada. |
+| **3RI**   | “02”               | continue  | PA, NPA              | Esta nueva acción permite retornar el resultado de la transacción y no necesita intervención del usuario para ser completada. |
+| **BWS**   | “03”               | redirect  | PA, NPA              | Esta acción se ejecuta en los flujos para dispositivos BWS, en el cual retornamos una URL `redirectURL`, para iniciar el flujo de autenticación. |
+
+Para más detalles sobre la acción "redirect" y su implementación, puedes consultar la documentación específica del flujo de autenticación de BWS.
+
+---
+
+---
+
+## Crear una sesión BWS o RI {{ id: 'create-a-session', tag: 'POST', label: '/threeds/v2x/sessions' }}
+
+<Row>
+  <Col>
+    Este endpoint te permite crear una nueva sesión para la autenticación del titular de la tarjeta.
+
+    <ApiReader
+      path="/threeds/v2x/sessions"
+      method="post"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/threeds/v2x/sessions">
+        ```bash {{ title: 'BRW' }}
+        curl -X "POST" https://3dss-test.placetopay.com/threeds/v2x/sessions \
+        -H "Content-Type: application/json" \
+        -d '{
+             "acctNumber": "4005580000000040",
+             "cardExpiryDate": "2506",
+             "purchaseAmount": "20.5",
+             "purchaseCurrency": "USD",
+             "redirectURI": "https://www.placetopay.com",
+             "threeDSAuthenticationInd": "01",
+             "reference": "12345"
+          }'
+        ```
+        ```bash {{ title: 'RI' }}
+        curl -X "POST" https://3dss-test.placetopay.com/threeds/v2x/sessions \
+        -H "Content-Type: application/json" \
+        -d '{
+             "deviceChannel": "03",
+             "threeRIInd": "01",
+             "threeDSRequestorPriorAuthenticationInfo": {
+                "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+                "threeDSReqPriorAuthTimestamp": "2024-05-09T19:11:24+00:00",
+                "threeDSReqPriorRef": "a491ce47-c8c1-4ffc-8306-0f2f7f1a143a"
+             },
+             "acctNumber": "4005580000000040",
+             "cardExpiryDate": "2506",
+             "purchaseAmount": "20.5",
+             "purchaseCurrency": "USD",
+             "redirectURI": "https://www.placetopay.com",
+             "threeDSAuthenticationInd": "01",
+             "reference": "12345",
+             "messageVersion": "2.2.0"
+          }'
+        ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/threeds/v2x/sessions"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Respuesta">
+    ```json {{ title: '200 BRW' }}
+    {
+      "action":"redirect",
+      "sessionToken": "8e580eb1948ae1b13e614aac04c75ad31d6431ef2ea7b1a85573979b7ec4e656",
+      "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/8e580eb1948ae1b13e614aac04c75ad31d6431ef2ea7b1a85573979b7ec4e656",
+      "transactionID": 9099
+    }
+    ```
+    ```json {{ title: '200 RI' }}
+    {
+      "action":"continue",
+      "sessionToken": "8e580eb1948ae1b13e614aac04c75ad31d6431ef2ea7b1a85573979b7ec4e656",
+      "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/8e580eb1948ae1b13e614aac04c75ad31d6431ef2ea7b1a85573979b7ec4e656",
+      "transactionID": 9099
+    }
+    ```
+    ```json {{ title: '401' }}
+    {
+      "error_number": "1011",
+      "error_description": "Invalid arguments to initiate request",
+      "errors": {
+        "acctNumber": [
+          "The acct number field is required."
+        ],
+        "cardExpiryDate": [
+          "The card expiry date field is required."
+        ],
+        "purchaseAmount": [
+          "The purchase amount field is required."
+        ],
+        "redirectURI": [
+          "The redirect URI field is required."
+        ],
+        "purchaseCurrency": [
+          "The purchase currency field is required."
+        ]
+      }
+    }
+    ```
+    ```json {{ title: '422' }}
+    {
+      "error_number": "1003",
+      "error_description": "No se encontró un comercio asociado",
+      "errors": {}
+    }
+    ```
+    </CodeGroup>
+  </Col>
+</Row>
+---
+
+## Reglas a Tener en Consideración
+
+A continuación se detallan las reglas para cada uno de los elementos de datos a tener en consideración.
+
+| Data Element                     | Field Name                     | Device Channel | Message Category | Rule                                                                                                                                                                                                   | Values                                                                                                                                         |
+|----------------------------------|--------------------------------|----------------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| **threeRIInd**                   | **3RI Indicator**              | RI             | PA, NPA          | Requerido si `deviceChannel` es igual a `03 “3RI”`                                                                                                                                                     | 01 al 99                                                                                                                                       |
+| **purchaseInstalData**           | **Instalment Payment Data**    | BRW, RI, APP   | PA, NPA          | Requerido cuando `threeRIInd` es igual a `02 “INSTALMENT_TRANSACTION“`                                                                                                                                 | Máximo 3 caracteres. Ejemplo: `02`, `002`                                                                                                      |
+| **purchaseCurrency**             | **Purchase Currency**          | BRW, RI, APP   | PA, NPA          | Requerido cuando `messageCategory` es igual a `02 “NPA”`, si es `messageCategory=02` valida si `threeRIInd` es igual a `01, 02, 06, 07, 08, 09, 11, 15`                                                | 3 caracteres numéricos. ISO 4217 three-digit currency code                                                                                     |
+| **purchaseAmount**               | **Purchase Amount**            | BRW, RI, APP   | PA, NPA          | Requerido cuando `messageCategory` es igual a `02 “NPA”`, si es `messageCategory=02` valida si `threeRIInd` es igual a `01, 02, 06, 07, 08, 09, 11, 15`                                                | Máximo 48 caracteres                                                                                                                           |
+| **purchaseExponent**             | **Purchase Currency Exponent** | BRW, RI, APP   | PA, NPA          | Requerido cuando `messageCategory` es igual a `02 “NPA”`, si es `messageCategory=02` valida si `threeRIInd` es igual a `01, 02, 06, 07, 08, 09, 11, 15`                                                | 1 carácter. Ejemplo: `2` (indica número de decimales en la moneda)                                                                             |
+| **purchaseDate**                 | **Purchase Date & Time**       | BRW, RI, APP   | PA, NPA          | Requerido cuando `messageCategory` es igual a `02 “NPA”`, si es `messageCategory=02` valida si `threeRIInd` es igual a `01, 02, 06, 07, 08, 09, 11, 15`                                                | Formato `YmdHis`. Ejemplo: `20230715123045`                                                                                                    |
+| **recurringExpiry**              | **Recurring Expiry**           | BRW, RI, APP   | PA, NPA          | El `recurringExpiry` y el `recurringFrequency` son campos requeridos para procesamiento recurrente para PA y NPA. En caso de no enviarlos, MPI calculará estos dos valores.                            | Formato `YmdHis`. Ejemplo: `20230715123045`                                                                                                    |
+| **recurringFrequency**           | **Recurring Frequency**        | BRW, RI, APP   | PA, NPA          | El `recurringExpiry` y el `recurringFrequency` son campos requeridos para procesamiento recurrente para PA y NPA. En caso de no enviarlos, MPI calculará estos dos valores.                            | Máximo 4 caracteres. Ejemplo: `31`, `031`, `0031`                                                                                              |
+| **deviceChannel**                | **Device Channel**             | BRW, RI, APP   | PA, NPA          | Si este campo no se envía, por defecto será BRW=02                                                                                                                                                     | `"03"`, `"02"`, `"01"`                                                                                                                         |
+| **threeDSReqPriorAuthMethod**    | **Prior Auth Method**          | BRW, RI, APP   | PA, NPA          | Mecanismo utilizado por el Titular de la Tarjeta para autenticarse previamente ante el Solicitante 3DS.                                                                                                | `"FRICTIONLESS_AUTHENTICATION"`, `"CARDHOLDER_CHALLENGE_OCCURRED"`, `"AVS_VERIFIED"`, `"OTHER_ISSUER_METHODS"`, `"01"`, `"02"`, `"03"`, `"04"` |
+| **threeDSReqPriorAuthTimestamp** | **Prior Auth Timestamp**       | BRW, RI, APP   | PA, NPA          | Fecha y hora en formato UTC de la autenticación previa. El formato es `YmdHis` (consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo)                                     | Formato `YmdHis`. Ejemplo: `20230715123045`                                                                                                    |
+| **threeDSReqPriorRef**           | **Prior Ref**                  | BRW, RI, APP   | PA, NPA          | El ID otorgado por el ACS en la transacción previa (primera autenticación). Consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo                                          | Ejemplo: `a1b2c3d4e5f6`                                                                                                                        |
+| **threeDSReqPriorAuthData**      | **Prior Auth Data**            | BRW, RI, APP   | PA, NPA          | El ID otorgado por el DS en la transacción previa (primera autenticación), si este dato no es enviado MPI lo asigna. Consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo | Ejemplo: `a1b2c3d4e5f6`                                                                                                                        |
+
+### Notas
+
+- **Formato de Fechas**: Para `threeDSReqPriorAuthTimestamp` y `recurringExpiry`, usa el formato `YmdHis`, por ejemplo, `20230715123045` para 15 de julio de 2023 a las 12:30:45.
+- **Valores Aceptados**: Los valores aceptados para cada campo se especifican en la columna `Values`. Asegúrate de que los datos enviados cumplan con estas especificaciones.
+- **Reglas**: La columna `Rule` especifica las condiciones bajo las cuales cada campo es obligatorio, basándose en otros campos o categorías de mensajes.
+
+Esta tabla te ayudará a verificar los requisitos y valores aceptados para cada campo en función del `deviceChannel` y `messageCategory`, así como a entender las reglas específicas que se deben seguir.
+
