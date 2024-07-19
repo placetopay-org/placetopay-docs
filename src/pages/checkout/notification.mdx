@@ -7,6 +7,33 @@ Cuando una sesión es finalizada, una notificación HTTP (Webhook) es enviada al
 
 Para recibir notificaciones debes configurar en tu aplicación una URL de notificación. Cada vez que una sesión finalice se hará una petición HTTP a ese endpoint con información útil sobre el estado de la sesión.
 
+## Recepción de Notificación {{ id: 'notification-reception'}}
+
+Para aprovechar esta notificación, en tu aplicación debes:
+
+**Identificar la sesión:** Con el `requestId` y `reference` buscar el pago en tu sistema, debe coincidir con una sesión que hayas creado previamente.
+
+**Validar firma del mensaje:** Puedes validar que se trate de un mensaje confiable de Placetopay generando y comparando el `signature`.
+
+El signature se genera con la siguiente fórmula: `SHA-1(requestId + status.status + status.date + secretKey)`
+
+Si el `signature` generado es igual al `signature` que llegó en el mensaje, entonces la notificación es auténtica.
+
+**Actualizar Información** Si todo lo que necesitas es el estado final de la sesión, entonces puedes actualizar el estado en tu sistema y eso sería todo.
+
+Además, si deseas obtener más información sobre la sesión y las transacciones relacionadas, debes consultar la sesión y obtener todos los detalles de esta.
+
+## Campos adicionales:
+
+## *Pago Recurrente: {{ className: 'lead' }}
+
+**Información de la sesión:** En el campo `internalReference` puedes identificar la refencia de la transacción desde nuestra plataforma.
+
+**Información de la recurrencia del pago:**  El campo `tries` indica la cantidad de veces que se va a realizar el cobro y el campo `enabled` si éste cobro está habilitado o deshabilitado.
+
+
+## Ejemplos de respuestas:
+
 ```json {{ 'title': 'Notificación Pago Básico' }}
 {
   "status": {
@@ -38,22 +65,3 @@ Para recibir notificaciones debes configurar en tu aplicación una URL de notifi
   }
 }
 ```
-
-## Recepción de Notificación {{ id: 'notification-reception'}}
-
-Para aprovechar esta notificación, en tu aplicación debes:
-
-**Identificar la sesión:** Con el `requestId` y `reference` buscar el pago en tu sistema, debe coincidir con una sesión que hayas creado previamente.
-Para el caso de los Pagos Recurrentes con el campo `internalReference` puedes identificar la refencia de la transacción desde nuestra plataforma.
-
-**Validar firma del mensaje:** Puedes validar que se trate de un mensaje confiable de Placetopay generando y comparando el `signature`.
-
-El signature se genera con la siguiente fórmula: `SHA-1(requestId + status.status + status.date + secretKey)`
-
-Si el `signature` generado es igual al `signature` que llegó en el mensaje, entonces la notificación es auténtica.
-
-**Información de la recurrencia del pago:**  El campo `tries` indica la cantidad de veces que se va a realizar el cobro y el campo `enabled` si éste cobro está habilitado o deshabilitado.
-
-**Actualizar Información** Si todo lo que necesitas es el estado final de la sesión, entonces puedes actualizar el estado en tu sistema y eso sería todo.
-
-Además, si deseas obtener más información sobre la sesión y las transacciones relacionadas, debes consultar la sesión y obtener todos los detalles de esta.
