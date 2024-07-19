@@ -495,4 +495,108 @@ export const TAB_NAVIGATION = {
       }
     ]
   },
+  'token-requestor': {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'token-requestor',
+        href: '/token-requestor',
+        icon: Book,
+        links: [
+          {
+            title: 'Token requestor',
+            links: [
+              { title: 'Introducción', href: '/token-requestor' },
+              { title: 'Tipos de identificación', href: '/token-requestor/business-identification-types' },
+              { title: 'Codigos de respuesta', href: '/token-requestor/response-codes' },
+            ],
+          },
+          {
+            title: 'Integración',
+            links: [
+              { title: 'Autenticación', href: '/token-requestor/integration/authentication' },
+              { title: 'Notificaciones', href: '/token-requestor/integration/notifications' },
+              { title: 'Prueba tu integración', href: '/token-requestor/integration/testing' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'token-requestor/api',
+        href: '/token-requestor/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introducción',
+            links: [
+              { title: 'Inicio', href: '/token-requestor/api' },
+            ],
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Onboarding', href: '/token-requestor/api/onboarding' },
+              { title: 'Enroll card', href: '/token-requestor/api/enroll-card' },
+              { title: 'Checkout', href: '/token-requestor/api/checkout' },
+              { title: 'Get token status', href: '/token-requestor/api/get-token-status' },
+              { title: 'Onboarding status', href: '/token-requestor/api/onboarding-status' },
+              { title: 'Get Keys', href: '/token-requestor/api/keys' },
+            ],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentación',
+        identifier: 'token-requestor',
+        href: '/token-requestor',
+        icon: Book,
+        links: [
+          {
+            title: 'Token requestor',
+            links: [
+              { title: 'Introduction', href: '/token-requestor' },
+              { title: 'Merchant Identification Types', href: '/token-requestor/business-identification-types' },
+              { title: 'Response Codes', href: '/token-requestor/response-codes' },
+            ],
+          },
+          {
+            title: 'Integration',
+            links: [
+              { title: 'Authentication', href: '/token-requestor/integration/authentication' },
+              { title: 'Notifications', href: '/token-requestor/integration/notifications' },
+              { title: 'Test Your Integration', href: '/token-requestor/integration/testing' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'token-requestor/api',
+        href: '/token-requestor/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introduction',
+            links: [
+              { title: 'Home', href: '/token-requestor/api' },
+            ],
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Onboarding', href: '/token-requestor/api/onboarding' },
+              { title: 'Enroll card', href: '/token-requestor/api/enroll-card' },
+              { title: 'Checkout', href: '/token-requestor/api/checkout' },
+              { title: 'Get token status', href: '/token-requestor/api/get-token-status' },
+              { title: 'Onboarding status', href: '/token-requestor/api/onboarding-status' },
+              { title: 'Get Keys', href: '/token-requestor/api/keys' },
+            ],
+          },
+        ],
+      }
+    ]
+  }
 }
