@@ -1,0 +1,123 @@
+# Notificaciones
+
+***Token requestor Services*** envía notificaciones de cambio de estado de tokens y comercios. Cuando recibes una notificación, llama a la api correspondiente para tener información del cambio.
+
+El cliente de Token requestor Services debe configurar un PostBackURL para recibir notificaciones.
+
+Una notificación es una llamada REST (HTTPS POST message) desde Token requestor Services a tu post-back-url. La cual consiste de headers, query-parameters y un request-body, los cuales serán determinados por el tipo de evento.
+
+Los datos se entregarán frimados en un JWS para lo cual se tiene disponible la llave pública en el endpoint [GET key](https://evertectsp.stoplight.io/docs/tsp-api-doc/af51838b19685-get-public-key)
+
+<Row>
+  <Col sticky>
+    <CodeGroup title="Endpoint" tag="POST" label="https://postBackURL/tsp/notifications?eventType=type">
+    ```bash {{ title: 'cURL' }}
+    curl -X "POST" https://postBackURL/tsp/notifications?eventType=type \
+    ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+
+
+### Query parameters
+
+| Parametro  | Descripción    | Formato                                                      |
+| :--------- | :------------  |:-------------------------------------------------------------|
+| eventType  | tipo de evento |string con uno de los tipos de evento (TOKEN_UPDATED, etc...) |
+
+### Token Updates
+
+- TOKEN_UPDATED  notificación relacionada con la actualización del estado de un token
+
+
+##### Request body
+| Parametro             | Descripción                            | Formato                                 |
+| :---------------------| :--------------------------------------|:----------------------------------------|
+| date                  | fecha de creación del evento           | UNIX_UTC_Timestamp ej. 1585741817000    |
+| service               | nombre de la marca que envía el evento | string ej. mastercard                   |
+| data                  | json                                   | data relacionada con el evento          |
+| data.merchantId       | string                                 | id del comercio                         |
+| data.token            | json                                   | data relacionada con el token           |
+| data.token.token      | string                                 | Id del token entregado                  |
+| data.token.status     | string                                 | Estado del token ACTIVE INACTIVE DELETED|
+| data.token.validUntil | date                                   | fecha de expiración del token           |
+
+### Token Statuses
+
+- ACTIVE token disponible para procesar
+- INACTIVE el token fué inhabilitado por el emisor y no está disponible
+- DELETED el token ya fué eliminado, debe generar uno nuevo
+
+#### Ejemplo notificación
+
+#### JWS
+```json
+{
+  "data": "eyJhbGciOiJSUzI1NiJ9.eyJkYXRlIjoxNjc4ODEyOTU1MjUyLCJzZXJ2aWNlIjoidmlzYSIsImRhdGEiOnsibWVyY2hhbnRJZCI6IjJlOTg4MzA1LTQwYmItNGU3Ny1hOTkyLWMwZGNlMzMwM2RiMSIsInRva2VuIjp7InRva2VuIjoiOWNkZjMwYjYzN2MzODcyMDEzYWYxNTcxMjVhMDc3MDIiLCJzdGF0dXMiOiJBQ1RJVkUiLCJleHBpcmF0aW9uIjp7InllYXIiOiIyMDIzIiwibW9udGgiOiIxMiJ9fX19.L4S-u3DB_0sMoDk3-o3weBSIRNrbo33sYmDyCg2Ibpr1Nr361NbMBR_J-3k3HfkLSGdnz7s5tveugSl5N8czXfJplRnMjKm7CM394DQcVvCXnyD6K7cM7muVOB3pB14u1vejCaaI2S6u2YwTtKDuZKRDPeOQTOJT9Ecr7W7_3daiIxQ-J8x12BZEB72MltTMgj43T4UMBz54BfNnShW4kQ04HkDut26Y-26s3OiIztq69yfvzA1VubWgrgbRoPVpU_V_JmDeHSshS49urLcbBJUCyY_qM0yjiLfn9sLwQAQDJ2HMJrhK6p6Mbk6GX_xPcwUlasvj_EBNzp7qkUZFBw",
+}
+```
+#### Payload
+```json
+{
+  "date": "2023-01-19 15:57:23",
+  "service": "visa",
+  "data": {
+    "token": {
+      "token": "cc400a23227c5294cc0c1fb21a6c5a02",
+      "status": "ACTIVE",
+      "validUntil": "2026-01-31"
+    }
+  }
+}
+```
+### Merchant Updates
+
+- MERCHANT_UPDATED  notificación relacionada con la creación del comercio
+
+
+##### Request body
+| Campo            | DESCRIPCIÓN                            | Formato                                    |
+| :--------------- | :--------------------------------------|:-------------------------------------------|
+| date             | fecha de creación del evento           | UNIX_UTC_Timestamp ej. 1585741817000       |
+| service          | nombre de la marca que envía el evento | string ej. mastercard                      |
+| data             | json                                   | data relacionada con el evento             |
+| data.requestId   | string                                 | identificador entregado al hacer onboarding|
+| data.merchantId  | string                                 | id del comercio                            |
+| data.name        | string                                 | nombre del comercio                        |
+
+
+#### Ejemplo notificación
+#### JWS
+```json
+{
+  "data": "eyJhbGciOiJSUzI1NiJ9.eyJkYXRlIjoxNjc4ODEyOTU1MjUyLCJzZXJ2aWNlIjoidmlzYSIsImRhdGEiOnsibWVyY2hhbnRJZCI6IjJlOTg4MzA1LTQwYmItNGU3Ny1hOTkyLWMwZGNlMzMwM2RiMSIsInRva2VuIjp7InRva2VuIjoiOWNkZjMwYjYzN2MzODcyMDEzYWYxNTcxMjVhMDc3MDIiLCJzdGF0dXMiOiJBQ1RJVkUiLCJleHBpcmF0aW9uIjp7InllYXIiOiIyMDIzIiwibW9udGgiOiIxMiJ9fX19.L4S-u3DB_0sMoDk3-o3weBSIRNrbo33sYmDyCg2Ibpr1Nr361NbMBR_J-3k3HfkLSGdnz7s5tveugSl5N8czXfJplRnMjKm7CM394DQcVvCXnyD6K7cM7muVOB3pB14u1vejCaaI2S6u2YwTtKDuZKRDPeOQTOJT9Ecr7W7_3daiIxQ-J8x12BZEB72MltTMgj43T4UMBz54BfNnShW4kQ04HkDut26Y-26s3OiIztq69yfvzA1VubWgrgbRoPVpU_V_JmDeHSshS49urLcbBJUCyY_qM0yjiLfn9sLwQAQDJ2HMJrhK6p6Mbk6GX_xPcwUlasvj_EBNzp7qkUZFBw",
+}
+```
+#### Payload
+```json
+{
+  "date": "2023-01-19 15:57:23",
+  "service": "visa",
+  "data": {
+    "requestId": "b39857ad-4ba3-4b51-b11e-e175c7b9fd2b",
+    "merchant" : {
+      "id": "12d3b300-fd9b-43b4-ac40-f3f93b73f381",
+      "name": "new Merchant"
+    }
+  }
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
