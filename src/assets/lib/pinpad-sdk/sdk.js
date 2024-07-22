@@ -2,7 +2,7 @@ const c = {
   modal: {
     "../components/number-pad/number-pad": () => import("./number-pad-c4c77f76.js"),
     "../components/panel-pad/panel-pad": () => import("./panel-pad-0a96c0d1.js"),
-    "../components/pinpad-modal/pinpad-modal": () => import("./pinpad-modal-ebaa81b1.js")
+    "../components/pinpad-modal/pinpad-modal": () => import("./pinpad-modal-d4680a0c.js")
   },
   static: {
     "../components/number-pad/number-pad": () => import("./number-pad-c4c77f76.js"),
@@ -26,7 +26,7 @@ class r {
     let t;
     const e = new Promise((n) => {
       t = n;
-    }), i = c[this.#t], s = [
+    }), i = c[this.#t], a = [
       import("./app-81cc88bd.js").then((n) => {
         n.define();
       }),
@@ -35,19 +35,18 @@ class r {
       })
     ];
     for (let n in i)
-      s.push(
-        i[n]().then((a) => {
-          a.define();
+      a.push(
+        i[n]().then((s) => {
+          s.define();
         })
       );
-    return Promise.all(s).then(() => {
+    return Promise.all(a).then(() => {
       t();
     }), e;
   }
 }
 class d {
   #t;
-  #e = /* @__PURE__ */ new Set();
   constructor(t) {
     this.#t = Object.assign({
       locale: document.documentElement.lang,
@@ -60,11 +59,6 @@ class d {
   get mask() {
     return typeof this.#t.mask == "string" ? this.#t.mask ?? "*" : this.#t.mask ? "*" : "";
   }
-  destroy() {
-    this.#e.forEach((t) => {
-      document.querySelector(t).querySelector("ptp-pinpad-context").remove();
-    }), this.#e.clear();
-  }
   /**
    * Render the pinpad
    * 
@@ -74,13 +68,13 @@ class d {
    * @param onBack callback to delete last character
    */
   render(t, e, i = () => {
-  }, s = () => {
+  }, a = () => {
   }) {
     const n = document.querySelector(t);
     if (!n)
       return null;
     r.make(this.#t.mode).define().then(() => {
-      this._render(n, e, s), this.#e.add(t);
+      this._render(n, e, a);
     });
   }
   _setAttributes(t, e) {
@@ -99,12 +93,12 @@ class d {
   }
   _render(t, e, i = () => {
   }) {
-    const s = document.createElement("ptp-pinpad-context");
-    this._setAttributes(s, e);
+    const a = document.createElement("ptp-pinpad-context");
+    this._setAttributes(a, e);
     const n = document.createElement("ptp-pinpad");
-    this.#t.pin && n.setAttribute("pin", this.#t.pin), n.setAttribute("mode", this.#t.mode), s.appendChild(n);
-    let a;
-    this.#t.mode === "modal" ? a = this._renderModal() : this.#t.mode === "static" ? a = this._renderStatic(i) : a = this._renderFloat(i), n.append(a), t.appendChild(s);
+    this.#t.pin && n.setAttribute("pin", this.#t.pin), n.setAttribute("mode", this.#t.mode), a.appendChild(n);
+    let s;
+    this.#t.mode === "modal" ? s = this._renderModal() : this.#t.mode === "static" ? s = this._renderStatic(i) : s = this._renderFloat(i), n.append(s), t.appendChild(a);
   }
 }
 class p {
