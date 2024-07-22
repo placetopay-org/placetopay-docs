@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Listbox, Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import { DocumentCode, MonitorMobbile, Activity } from 'iconsax-react'
+import { DocumentCode, MonitorMobbile, Activity, SecurityCard } from 'iconsax-react'
 import { LANGUAGES_CODES, useLocale } from './LocaleProvider'
 import clsx from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -27,6 +27,12 @@ const LINKS = {
       href: '/three-d-s-server',
       icon: Activity,
     },
+    {
+      title: 'Token Requestor',
+      description: 'Servicio de tokenización publica',
+      href: '/token-requestor',
+      icon: SecurityCard,
+    },
   ],
   [LANGUAGES_CODES.EN]: [
     {
@@ -46,6 +52,12 @@ const LINKS = {
       description: 'Safer payments.',
       href: 'en/three-d-s-server',
       icon: Activity,
+    },
+    {
+      title: 'Token Requestor',
+      description: 'Public tokenization service',
+      href: '/token-requestor',
+      icon: SecurityCard,
     },
   ],
 }
