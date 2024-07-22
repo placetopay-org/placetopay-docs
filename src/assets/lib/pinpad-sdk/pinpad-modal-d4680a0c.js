@@ -27,7 +27,7 @@ function s({ open: e = !1 }) {
 s.props = {
   open: Boolean
 };
-s.styles = c`:host{display:block;position:fixed}*,*:before,*:after{box-sizing:border-box}.backdrop{position:fixed;inset:0;z-index:50;height:100vh;background-color:#6b7280;opacity:.75}.container{overflow-y:auto;position:fixed;inset:0;z-index:50}.modal{overflow:hidden;position:absolute;z-index:50;border-top-left-radius:.75rem;border-top-right-radius:.75rem;width:100%;bottom:0}@media (min-width: 768px){.modal{border-bottom-right-radius:.75rem;border-bottom-left-radius:.75rem;max-width:20rem;bottom:auto;top:50%;left:50%;transform:translateY(-50%) translate(-50%)}}`;
+s.styles = c`:host{display:block;position:fixed}*,*:before,*:after{box-sizing:border-box}.backdrop{position:fixed;inset:0;z-index:999;height:100vh;background-color:#6b7280;opacity:.75}.container{overflow-y:auto;position:fixed;inset:0;z-index:999}.modal{overflow:hidden;position:absolute;z-index:999;border-top-left-radius:.75rem;border-top-right-radius:.75rem;width:100%;bottom:0}@media (min-width: 768px){.modal{border-bottom-right-radius:.75rem;border-bottom-left-radius:.75rem;max-width:20rem;bottom:auto;top:50%;left:50%;transform:translateY(-50%) translate(-50%)}}`;
 const w = p(s), j = () => {
   customElements.get("ptp-pinpad-modal") || customElements.define("ptp-pinpad-modal", w);
 };
