@@ -186,6 +186,10 @@ export const TAB_NAVIGATION = {
                 title: 'Procesamiento con cuentas bancarias',
                 href: '/gateway/processing-with-bank-accounts',
               },
+              {
+                title: 'Datos adicionales',
+                href: '/gateway/additional-data',
+              },
             ],
           },
         ],
@@ -266,6 +270,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Processing with bank accounts',
                 href: '/gateway/processing-with-bank-accounts',
+              },
+              {
+                title: 'Additional data',
+                href: '/gateway/additional-data',
               },
             ],
           },
