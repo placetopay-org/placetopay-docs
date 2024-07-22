@@ -1,0 +1,216 @@
+import { PinpadPlayground } from '@/components/PinpadPlayground';
+
+# PinPad SDK
+
+El SDK de PinPad está diseñado para simplificar la integración de dispositivos de entrada segura de PIN en tu aplicación.
+
+## Introducción {{ id: 'introduction' }}
+
+Un PIN pad, o dispositivo de entrada de PIN (PED), es un dispositivo electrónico utilizado en transacciones con tarjetas de débito, crédito o tarjetas inteligentes para aceptar y encriptar el número de identificación personal (PIN) del titular de la tarjeta. Este SDK proporciona una manera sencilla de crear y gestionar estos dispositivos en el frontend con solo una instancia de clase y la ejecución de un método.
+
+## Instalación {{ id: 'installation' }}
+
+Para instalar el SDK de PinPad, simplemente ejecuta el siguiente comando en tu terminal:
+
+```bash
+npm install @placetopay/pinpad
+```
+
+## Uso {{ id: 'usage' }}
+
+Para comenzar a utilizar el SDK de PinPad, primero debes importar la clase `PinPad` desde el paquete `@placetopay/pinpad`:
+
+```javascript
+import { PinPad } from '@placetopay/pinpad'
+```
+
+Luego, crea una instancia de la clase `PinPad`:
+
+```javascript
+const pinpad = new PinPad()
+```
+
+Una vez tengas la instancia, puedes ejectuar el metodo `render` para mostrar el `input` para el PinPad. Este método recibe un selector CSS para el contenedor donde se renderizarán los componentes del PinPad y como segundo parámetro las posiciones ([obtenidas del Backend](#backend-connection)) de los botones de acción:
+
+```javascript
+pinpad.render('#your-pinpad-container', positions)
+```
+
+El pinpad renderizado contiene un input para el PIN, asi podrás obtener el valor ingresado por el usuario al momento de enviar el formulario:
+
+```javascript
+const form = document.querySelector('#your-form')
+
+form.addEventListener('submit', (event) => {
+  event.preventDefault()
+
+  const formData = new FormData(form)
+
+  const pin = formData.get('pin')
+})
+```
+
+## Conexión con el Backend {{ id: 'backend-connection' }}
+
+Para obtener las posiciones de los botones de acción del PinPad, debes conectarte con el Backend de PlacetoPay. Para esto, puedes utilizar el SDK de PlacetoPay:
+
+```javascript
+const client = new PinPadClient(API_URL, AUTH_TOKEN)
+const response = await client.createTransaction()
+const positions = response.data.data.positions
+```
+
+La respuesta que obtiene de la solicitud tiene la siguiente estructura:
+
+```json
+{
+    "data": {
+        "status": {
+          "status": "OK",
+          "message": "The Transaction has been successfully generated"
+        },
+        "data": {
+            "positions": "1,2,3,4,5,6,7,8,9,0",
+            "transactionId": "1234567890"
+        }
+    }
+}
+```
+
+## Enviar el PIN para encriptar {{ id: 'encrypt-pin' }}
+
+Una vez que el usuario haya ingresado el PIN, puedes enviarlo al Backend para encriptarlo:
+
+```javascript
+const data = {
+    transactionId,
+    format,
+    pin,
+    pan,
+}
+
+client.generatePinBlock(data)
+    .then(res => {
+        return res.data
+    }).catch(err => {
+        return err
+    })
+```
+
+Obtendrás una respuesta como esta:
+
+```json
+{
+    "status": {
+        "status": "OK",
+        "message": "The PIN has been successfully encrypted"
+    },
+    "data": {
+        "pinBlock": "1234567890ABCDEF"
+    }
+}
+```
+
+## Full example
+
+```javascript
+import { PinPad, PinPadClient } from '@placetopay/pinpad'
+
+const pinpad = new PinPad()
+const client = new PinPadClient(API_URL, AUTH_TOKEN)
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const response = await client.createTransaction()
+  const positions = response.data.data.positions
+
+  pinpad.render('#your-pinpad-container', positions)
+})
+
+const form = document.querySelector('#your-form')
+form.addEventListener('submit', async (event) => {
+  event.preventDefault()
+
+  const formData = new FormData(form)
+
+  // ...
+
+  const pin = formData.get('pin')
+  const data = {
+    transactionId,
+    format,
+    pin,
+    pan,
+  }
+
+  const encryptedPin = await client.generatePinBlock(data)
+  console.log(encryptedPin)
+
+  // ...
+})
+```
+
+## Integración Avanzada {{ id: 'advanced-integration' }}
+
+Conoce en detalle los métodos y eventos disponibles
+
+### PinPad
+
+#### Constructor
+
+```javascript
+const pinpad = new PinPad(options);
+```
+
+| Propiedad | Tipo | Descripción |
+| --- | --- | --- |
+| `locale` | `string` | `optional` <br/> Idioma del PinPad <br/> Por defecto: `document.documentElement.lang` <br/> Posibles valores: `es`, `en` |
+| `mask` | `string` o `boolean` | `optional` <br/> Máscara para el input del PinPad <br/> Por defecto: `*` |
+| `mode` | `string` | `optional` <br/> Modo de visualización del PinPad <br/> Por defecto: `float` <br/> Posibles valores: `modal`, `float`, `static` |
+| `pinLength` | `number` | `optional` <br/> Longitud del PIN <br/> Por defecto: `4` |
+| `theme` | `object` | `optional` <br/> Tema del PinPad <br/> Por defecto: `{}` |
+| `theme.inputBorderColorFocus` | `string` | `optional` <br/> Color de fondo del PinPad <br/> Por defecto: `rgba(17, 24, 39, 1)` |
+| `theme.inputOutlineColorFocus` | `string` | `optional` <br/> Color de borde del PinPad <br/> Por defecto: `rgba(209, 213, 219, 1)` |
+
+#### PinPad.render
+
+Renderiza el PinPad en el contenedor especificado.
+
+```javascript
+pinpad.render(selector, positions);
+```
+
+| Propiedad | Tipo | Descripción |
+| --- | --- | --- |
+| `selector` | `string` | `required` <br/> Selector CSS del contenedor donde se renderizará el PinPad |
+| `positions` | `string` | `required` <br/> Posiciones de los botones de acción del PinPad |
+
+### PinPadClient
+
+#### PinPadClient.createTransaction
+
+Método para crear obtener el `transactionId` y las `positions` de los botones.
+
+```javascript
+const response = await client.createTransaction();
+const { transactionId, positions } = response.data.data;
+```
+
+#### PinPadClient.generatePinBlock
+
+Método para encriptar el PIN ingresado por el usuario.
+
+```javascript
+const data = {
+  transactionId,
+  format,
+  pin,
+  pan,
+}
+
+const response = await client.generatePinBlock(data);
+const { pinBlock } = response.data.data;
+```
+
+## Playground
+
+<PinpadPlayground />
