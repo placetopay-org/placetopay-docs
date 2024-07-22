@@ -12,6 +12,8 @@ export const useNamespaceRoute = () => {
       return 'checkout';
     case 'three-d-s-server':
       return 'three-d-s-server';
+    case 'sdks':
+      return 'sdks';
     default:
       return 'gateway';
   }}
@@ -27,6 +29,8 @@ export const useNavigation = (namespaces) => {
       return TAB_NAVIGATION.gateway[locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     case 'three-d-s-server':
       return TAB_NAVIGATION['three-d-s-server'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
+    case 'sdks':
+      return TAB_NAVIGATION.sdks[locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     default:
       throw new Error(`The namespace navigation '${namespaces}' is not defined`);
   }

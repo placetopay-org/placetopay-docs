@@ -41,7 +41,7 @@ export const TAB_NAVIGATION = {
                 title: 'Prueba tu integración',
                 href: '/checkout/test-your-integration',
               },
-              { title: 'Reembolsos', href: '/checkout/refund'}
+              { title: 'Reembolsos', href: '/checkout/refund' }
             ],
           },
         ],
@@ -111,7 +111,7 @@ export const TAB_NAVIGATION = {
                 title: 'Test your integration',
                 href: '/checkout/test-your-integration',
               },
-              { title: 'Refund', href: '/checkout/refund'},
+              { title: 'Refund', href: '/checkout/refund' },
             ],
           },
         ],
@@ -352,12 +352,12 @@ export const TAB_NAVIGATION = {
               { title: 'Requerimientos para el cliente que va a integrarse', href: '/three-d-s-server/integration/client-requirements' },
               { title: 'Sesión', href: '/three-d-s-server/integration/session' },
               { title: 'Sesión con Digital Authentication Framework', href: '/three-d-s-server/integration/session-daf' },
-              { title: 'Sesión desacoplada', href: '/three-d-s-server/integration/session-decoupled'},
+              { title: 'Sesión desacoplada', href: '/three-d-s-server/integration/session-decoupled' },
               { title: 'Sesión con información previa', href: '/three-d-s-server/integration/session-prior-info' },
               { title: 'Sesión transacción recurrente', href: '/three-d-s-server/integration/session-recurrent' },
-              { title: 'Sesión transacciones de no pago', href: '/three-d-s-server/integration/session-subscription'},
-              { title: 'Términos y Definiciones', href: '/three-d-s-server/integration/terms-and-definitions'},
-              { title: 'Datos del proceso de autenticación', href: '/three-d-s-server/integration/transaction-status'}
+              { title: 'Sesión transacciones de no pago', href: '/three-d-s-server/integration/session-subscription' },
+              { title: 'Términos y Definiciones', href: '/three-d-s-server/integration/terms-and-definitions' },
+              { title: 'Datos del proceso de autenticación', href: '/three-d-s-server/integration/transaction-status' }
             ],
           },
           {
@@ -368,11 +368,11 @@ export const TAB_NAVIGATION = {
               { title: 'Página de Inicio (Home)', href: '/three-d-s-server/panel/home' },
               { title: 'Categorías de actividad económica', href: '/three-d-s-server/panel/configurations' },
               { title: 'Funcionalidades', href: '/three-d-s-server/panel/functionalities' },
-              { title: '¿Cómo configurar 3DS Server?', href: '/three-d-s-server/panel/general-configuration'},
+              { title: '¿Cómo configurar 3DS Server?', href: '/three-d-s-server/panel/general-configuration' },
               { title: 'Tokens', href: '/three-d-s-server/panel/security' },
               { title: 'Comercios en 3DS Server', href: '/three-d-s-server/panel/merchant-configuration' },
-              { title: 'Métricas', href: '/three-d-s-server/panel/metrics'},
-              { title: 'Reportes', href: '/three-d-s-server/panel/reports'},
+              { title: 'Métricas', href: '/three-d-s-server/panel/metrics' },
+              { title: 'Reportes', href: '/three-d-s-server/panel/reports' },
             ],
           },
         ],
@@ -502,5 +502,37 @@ export const TAB_NAVIGATION = {
         ]
       }
     ]
+  },
+  sdks: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'sdks',
+        href: '/sdks/pinpad',
+        icon: Book,
+        links: [
+          {
+            title: 'SDKs', links: [
+              { title: 'PinPad', href: '/sdks/pinpad' }
+            ]
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentation',
+        identifier: 'sdks',
+        href: '/sdks/pinpad',
+        icon: Book,
+        links: [
+          {
+            title: 'SDKs', links: [
+              { title: 'PinPad', href: '/sdks/pinpad' }
+            ]
+          },
+        ],
+      },
+    ],
   },
 }
