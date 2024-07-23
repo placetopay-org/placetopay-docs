@@ -41,7 +41,11 @@ export const TAB_NAVIGATION = {
                 title: 'Prueba tu integración',
                 href: '/checkout/test-your-integration',
               },
-              { title: 'Reembolsos', href: '/checkout/refund'}
+              { title: 'Reembolsos', href: '/checkout/refund'},
+              {
+                title: 'Campos de procesamiento',
+                href: '/checkout/processor-fields',
+              },
             ],
           },
         ],
@@ -112,6 +116,10 @@ export const TAB_NAVIGATION = {
                 href: '/checkout/test-your-integration',
               },
               { title: 'Refund', href: '/checkout/refund'},
+              {
+                title: 'Processor Fields',
+                href: '/checkout/processor-fields',
+              },
             ],
           },
         ],
