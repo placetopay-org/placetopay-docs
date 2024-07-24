@@ -28,6 +28,12 @@ const LINKS = {
       icon: Activity,
     },
     {
+      title: 'ACS',
+      description: 'Pagos más seguros',
+      href: '/acs',
+      icon: Activity,
+    },
+    {
       title: 'Token Requestor',
       description: 'Servicio de tokenización publica',
       href: '/token-requestor',
@@ -51,6 +57,12 @@ const LINKS = {
       title: '3DS Server',
       description: 'Safer payments.',
       href: 'en/three-d-s-server',
+      icon: Activity,
+    },
+    {
+      title: 'ACS',
+      description: 'Safer payments.',
+      href: 'en/acs',
       icon: Activity,
     },
     {
