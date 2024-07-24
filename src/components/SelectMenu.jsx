@@ -56,19 +56,19 @@ const LINKS = {
     {
       title: '3DS Server',
       description: 'Safer payments.',
-      href: 'en/three-d-s-server',
+      href: '/en/three-d-s-server',
       icon: Activity,
     },
     {
       title: 'ACS',
       description: 'Safer payments.',
-      href: 'en/acs',
+      href: '/en/acs',
       icon: Activity,
     },
     {
       title: 'Token Requestor',
       description: 'Public tokenization service',
-      href: '/token-requestor',
+      href: '/en/token-requestor',
       icon: SecurityCard,
     },
   ],

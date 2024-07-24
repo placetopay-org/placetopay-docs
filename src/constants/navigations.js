@@ -380,7 +380,7 @@ export const TAB_NAVIGATION = {
       {
         title: 'API',
         identifier: 'three-d-s-server/api',
-        href: '/three-d-s-server/api',
+        href: 'three-d-s-server/api',
         icon: DocumentCode,
         links: [
           {
@@ -420,7 +420,7 @@ export const TAB_NAVIGATION = {
       {
         title: "Documentation",
         identifier: "three-d-s-server",
-        href: "/three-d-s-server",
+        href: "/en/three-d-s-server",
         icon: "Book",
         links: [
           {
@@ -473,7 +473,7 @@ export const TAB_NAVIGATION = {
       {
         title: "API",
         identifier: "three-d-s-server/api",
-        href: "/three-d-s-server/api/",
+        href: "en/three-d-s-server/api/",
         icon: DocumentCode,
         links: [
           {
@@ -559,7 +559,7 @@ export const TAB_NAVIGATION = {
       {
         title: 'Documentación',
         identifier: 'token-requestor',
-        href: '/token-requestor',
+        href: '/en/token-requestor',
         icon: Book,
         links: [
           {
@@ -583,7 +583,7 @@ export const TAB_NAVIGATION = {
       {
         title: 'API',
         identifier: 'token-requestor/api',
-        href: '/token-requestor/api',
+        href: '/en/token-requestor/api',
         icon: DocumentCode,
         links: [
           {
@@ -639,7 +639,7 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
-  'acs': {
+  acs: {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'Documentación',
@@ -694,47 +694,47 @@ export const TAB_NAVIGATION = {
       {
         title: "Documentation",
         identifier: "acs",
-        href: "/acs",
+        href: "en/acs",
         icon: "Book",
         links: [
           {
             "title": "ACS",
             "links": [
-              { "title": "Introduction", "href": "/acs" },
-              { "title": "What is the 3-D Secure Protocol?", "href": "/acs/3-d-s-secure-protocol" },
-              { "title": "How to configure ACS?", "href": "/acs/a-c-s-general-configuration" },
-              { "title": "Account Management", "href": "/acs/account" },
-              { "title": "Fraud Control Engine", "href": "/acs/antifraud" },
-              { "title": "Authentication Process Status", "href": "/acs/authentication-status" },
-              { "title": "Authentications", "href": "/acs/authentications" },
-              { "title": "Brand Subscriptions", "href": "/acs/brands-subscriptions" },
-              { "title": "Card Ranges", "href": "/acs/card-ranges" },
-              { "title": "Certificates", "href": "/acs/certificates-configurations" },
-              { "title": "Configurations", "href": "/acs/configuration-fields" },
-              { "title": "Countries in ACS", "href": "/acs/countries-configurations" },
-              { "title": "Currencies Used in ACS", "href": "/acs/currencies-configurations" },
-              { "title": "Decoupled Authentications", "href": "/acs/decoupled-authentications" },
-              { "title": "Disputes", "href": "/acs/disputes" },
-              { "title": "Error Codes", "href": "/acs/error-codes" },
-              { "title": "FAQs about ACS Functionality", "href": "/acs/f-a-q" },
-              { "title": "Configuration Fields", "href": "/acs/fields-configurations" },
-              { "title": "Brands in ACS", "href": "/acs/franchise-creation" },
-              { "title": "HTTP Codes in the Authentication Process", "href": "/acs/http-codes" },
-              { "title": "Amounts", "href": "/acs/imports-configurations" },
-              { "title": "User Invitations", "href": "/acs/invitations" },
-              { "title": "Issuers in ACS", "href": "/acs/issuer-configuration" },
-              { "title": "Issuer Services", "href": "/acs/issuer-services" },
-              { "title": "Language Management", "href": "/acs/language-configurations" },
-              { "title": "Security Logs", "href": "/acs/logs" },
-              { "title": "Merchant Category Codes", "href": "/acs/merchant-codes-configurations" },
-              { "title": "Metrics", "href": "/acs/metrics" },
-              { "title": "Profiles", "href": "/acs/profiles" },
-              { "title": "Reports", "href": "/acs/reports" },
-              { "title": "Roles", "href": "/acs/roles" },
-              { "title": "Service Alerts", "href": "/acs/service-alerts" },
-              { "title": "Terms and Definitions", "href": "/acs/terms-and-definitions" },
-              { "title": "Test Cards", "href": "/acs/test-cards" },
-              { "title": "Users", "href": "/acs/users" }
+              { title: "Introduction", "href": "/acs" },
+              { title: "What is the 3-D Secure Protocol?", "href": "/acs/3-d-s-secure-protocol" },
+              { title: "How to configure ACS?", "href": "/acs/a-c-s-general-configuration" },
+              { title: "Account Management", "href": "/acs/account" },
+              { title: "Fraud Control Engine", "href": "/acs/antifraud" },
+              { title: "Authentication Process Status", "href": "/acs/authentication-status" },
+              { title: "Authentications", "href": "/acs/authentications" },
+              { title: "Brand Subscriptions", "href": "/acs/brands-subscriptions" },
+              { title: "Card Ranges", "href": "/acs/card-ranges" },
+              { title: "Certificates", "href": "/acs/certificates-configurations" },
+              { title: "Configurations", "href": "/acs/configuration-fields" },
+              { title: "Countries in ACS", "href": "/acs/countries-configurations" },
+              { title: "Currencies Used in ACS", "href": "/acs/currencies-configurations" },
+              { title: "Decoupled Authentications", "href": "/acs/decoupled-authentications" },
+              { title: "Disputes", "href": "/acs/disputes" },
+              { title: "Error Codes", "href": "/acs/error-codes" },
+              { title: "FAQs about ACS Functionality", "href": "/acs/f-a-q" },
+              { title: "Configuration Fields", "href": "/acs/fields-configurations" },
+              { title: "Brands in ACS", "href": "/acs/franchise-creation" },
+              { title: "HTTP Codes in the Authentication Process", "href": "/acs/http-codes" },
+              { title: "Amounts", "href": "/acs/imports-configurations" },
+              { title: "User Invitations", "href": "/acs/invitations" },
+              { title: "Issuers in ACS", "href": "/acs/issuer-configuration" },
+              { title: "Issuer Services", "href": "/acs/issuer-services" },
+              { title: "Language Management", "href": "/acs/language-configurations" },
+              { title: "Security Logs", "href": "/acs/logs" },
+              { title: "Merchant Category Codes", "href": "/acs/merchant-codes-configurations" },
+              { title: "Metrics", "href": "/acs/metrics" },
+              { title: "Profiles", "href": "/acs/profiles" },
+              { title: "Reports", "href": "/acs/reports" },
+              { title: "Roles", "href": "/acs/roles" },
+              { title: "Service Alerts", "href": "/acs/service-alerts" },
+              { title: "Terms and Definitions", "href": "/acs/terms-and-definitions" },
+              { title: "Test Cards", "href": "/acs/test-cards" },
+              { title: "Users", "href": "/acs/users" }
             ]
           }
         ]
