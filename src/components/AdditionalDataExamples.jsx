@@ -45,8 +45,8 @@ const examples = [
       key: "line",
       example: 123,
       description: {
-        es: "Línea.",
-        en: "Line."
+        es: "Posición en el archivo de cierre (Línea).",
+        en: "Position in the closing file (Line)."
       }
     },
     {
@@ -147,10 +147,10 @@ const examples = [
     },
     {
       key: "pocket",
-      example: "Subsidio Educativo",
+      example: "80",
       description: {
-        es: "Bolsillo.",
-        en: "Pocket."
+        es: "Número de identificación del bolsillo dependiendo del proveedor.",
+        en: "Pocket identification number depending on the provider."
       }
     },
     {
