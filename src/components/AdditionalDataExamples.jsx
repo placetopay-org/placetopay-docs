@@ -43,7 +43,7 @@ const examples = [
     },
     {
       key: "line",
-      example: null,
+      example: 123,
       description: {
         es: "Línea.",
         en: "Line."
@@ -197,7 +197,7 @@ export function AdditionalDataExamples({extraExamples}) {
             </td>
           </tr>
         ))}
-        {extraExamples.map((example) => (
+        {extraExamples && extraExamples.map((example) => (
           <tr key={example.key} className="">
             <td className="align-middle">
              <code>{example.key}</code> 
