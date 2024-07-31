@@ -473,7 +473,7 @@ export const TAB_NAVIGATION = {
       {
         title: "API",
         identifier: "three-d-s-server/api",
-        href: "en/three-d-s-server/api/",
+        href: "/en/three-d-s-server/api/",
         icon: DocumentCode,
         links: [
           {
@@ -694,7 +694,7 @@ export const TAB_NAVIGATION = {
       {
         title: "Documentation",
         identifier: "acs",
-        href: "en/acs",
+        href: "/en/acs",
         icon: "Book",
         links: [
           {
