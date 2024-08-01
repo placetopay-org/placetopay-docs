@@ -757,4 +757,104 @@ export const TAB_NAVIGATION = {
       },
     ]
   },
+  'payment-links': {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'payment-links',
+        href: '/payment-links',
+        icon: Book,
+        links: [
+          {
+            title: 'Links de pago',
+            links: [
+              { title: 'Introducción', href: '/payment-links' },
+              {
+                title: 'Cómo Funciona',
+                href: '/payment-links/how-payment-links-works'
+              },
+            ],
+          },
+          {
+            title: 'Integración',
+            links: [
+              { title: 'Autenticación', href: '/payment-links/authentication' },
+              { title: 'Notificación', href: '/payment-links/notification' },
+              { title: 'Localización', href: '/payment-links/localization' },
+              {
+                title: 'Prueba tu integración',
+                href: '/payment-links/test-your-integration',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'payment-links/api',
+        href: '/payment-links/api/reference/payment-links',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'Links de pago',
+                href: '/payment-links/api/reference/payment-links',
+              },
+            ],
+          }
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentation',
+        identifier: 'payment-links',
+        href: '/en/payment-links',
+        icon: Book,
+        links: [
+          {
+            title: 'Payment Links',
+            links: [
+              { title: 'Introduction', href: '/payment-links' },
+              {
+                title: 'How does it work?',
+                href: '/payment-links/how-payment-links-works'
+              },
+            ],
+          },
+          {
+            title: 'Integration',
+            links: [
+              { title: 'Authentication', href: '/payment-links/authentication' },
+              { title: 'Notification', href: '/payment-links/notification' },
+              { title: 'Localization', href: '/payment-links/localization' },
+              {
+                title: 'Test your integration',
+                href: '/payment-links/test-your-integration',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'payment-links/api',
+        href: '/en/payment-links/api/reference/payment-links',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'Links de pago',
+                href: '/payment-links/api/reference/payment-links',
+              },
+            ],
+          }
+        ],
+      },
+    ],
+  }
 }

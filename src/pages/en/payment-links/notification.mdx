@@ -1,0 +1,153 @@
+export const description =
+  'Learn how the notification system for Payment Link API works and how to use it correctly.';
+
+# Notification
+
+We have a notification system that allows merchants to receive notifications through a URL they configure themselves. Notifications are sent in JSON format and contain information about the event that has occurred on the associated link, allowing merchants to take necessary actions automatically. {{ className: 'lead' }}
+
+## Types of Notifications {{ id: 'events-notify' }}
+
+There are several events that can trigger notifications, including:
+
+- **PAID:** Sent when a payment associated with the link has been completed with an ``Approved`` status. We handle this notification so that the merchant is aware that they can now check the link to verify the payment and release the associated product or service.
+    ```json
+    {
+        "status": {
+            "status": "PAID",
+            "reason": 200,
+            "message": "You have a transaction in approved status",
+            "date": "2024-06-25T00:43:21-05:00"
+        },
+        "linkId": 2,
+        "reference": "#5321",
+        "signature": "e1ab3b5d25dd2c81c3386a2e4c3a2818911e5d09f012005c21f8e20c6e0d5ab6"
+    }
+    ```
+
+- **EXPIRED:** Sent when a payment link has expired. It is important for the merchant to know that their payment link will no longer receive payments and take actions accordingly, such as generating a new payment link.
+    ```json
+    {
+        "status": {
+            "status": "EXPIRED",
+            "reason": 200,
+            "message": "The link has expired.",
+            "date": "2024-06-25T00:53:36-05:00"
+        },
+        "linkId": 2,
+        "reference": "#5321",
+        "signature": "a02e7afa8f8313ccaa29edf056bc95a243671ec5e995c0dac5953c17f8bc529f"
+    }
+    ```
+
+Although these are the most common events, it is possible that more events triggering notifications will be added in the future.
+
+## Notification Security
+
+To ensure the security of notifications, each notification includes a digital signature that allows the merchant to verify the authenticity of the notification. The signature is generated from the notification information and the merchant's ``secretKey``.
+
+The signature is sent in the `signature` field of the notification. To verify the signature, the merchant must follow these steps:
+
+1. Concatenate the values of the notification fields in the following order: `linkId`, `status`, `date`, ``secretKey``.
+2. Calculate the SHA-256 hash of the resulting string.
+3. Compare the generated signature with the signature received in the notification.
+
+Here is an example of what the signature verification process would look like in a programming language:
+
+<CodeGroup title="Compare signature">
+
+```php
+$secretKey = "mySiteSecretKey";
+
+$notification = [
+    "status" => [
+        "status" => "PAID",
+        "reason" => 200,
+        "message" => "You have a transaction in approved status",
+        "date" => "2024-06-25T00:43:21-05:00"
+    ],
+    "linkId" => 2,
+    "reference" => "#5321",
+    "signature" => "e1ab3b5d25dd2c81c3386a2e4c3a2818911e5d09f012005c21f8e20c6e0d5ab6"
+];
+
+$string = sprintf(
+    '%s%s%s%s',
+    $notification['linkId'],
+    $notification['status']['status'],
+    $notification['status']['date'],
+    $secretKey
+);
+
+$signature = hash('sha256', $string);
+
+if ($signature === $notification['signature']) {
+    // The notification is authentic
+} else {
+    // The notification is not authentic
+}
+```
+
+```js
+const crypto = require('crypto');
+
+const secretKey = "mySiteSecretKey";
+
+const notification = {
+    status: {
+        status: "PAID",
+        reason: 200,
+        message: "You have a transaction in approved status",
+        date: "2024-06-25T00:43:21-05:00"
+    },
+    linkId: 2,
+    reference: "#5321",
+    signature: "e1ab3b5d25dd2c81c3386a2e4c3a2818911e5d09f012005c21f8e20c6e0d5ab6"
+};
+
+const string = `${notification.linkId}${notification.status.status}${notification.status.date}${secretKey}`;
+
+const signature = crypto.createHash('sha256').update(string).digest('hex');
+
+if (signature === notification.signature) {
+    // The notification is authentic
+} else {
+    // The notification is not authentic
+}
+```
+
+``` python
+import hashlib
+
+secret_key = "mySiteSecretKey"
+
+notification = {
+    "status": {
+        "status": "PAID",
+        "reason": 200,
+        "message": "You have a transaction in approved status",
+        "date": "2024-06-25T00:43:21-05:00"
+    },
+    "linkId": 2,
+    "reference": "#5321",
+    "signature": "e1ab3b5d25dd2c81c3386a2e4c3a2818911e5d09f012005c21f8e20c6e0d5ab6"
+}
+
+string = f"{notification['linkId']}{notification['status']['status']}{notification['status']['date']}{secret_key}"
+
+signature = hashlib.sha256(string.encode()).hexdigest()
+
+if signature == notification['signature']:
+    # The notification is authentic
+    pass
+else:
+    # The notification is not authentic
+    pass
+```
+
+</CodeGroup>
+
+If the signatures match, the notification is authentic and the merchant can trust the information received. Otherwise, the notification is not authentic, and the merchant should ignore it.
+
+<Note>
+  It is important that the merchant keeps their ``secretKey`` secure and does not share it with third parties. The ``secretKey`` is necessary to verify the authenticity of notifications and protect the integrity of the data.
+</Note>
