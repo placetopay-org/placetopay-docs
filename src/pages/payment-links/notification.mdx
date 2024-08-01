@@ -1,0 +1,157 @@
+export const description =
+  'Conoce como funciona la notificacion para Link de pagos API y como hacer un uso adecuado.';
+  
+# Notificación
+
+Contamos con un sistema de notificaciones, que permite a los comercios recibir notificaciones a través de una URL que ellos mismos configuran. Las notificaciones se envían en formato JSON y contienen información sobre el evento que ha ocurrido en el link asociado, permitiendo a los comercios tomar las acciones necesarias de manera automática. {{ className: 'lead' }}
+
+
+## Tipos de Notificaciones {{ id: 'events-notify' }}
+
+Existen varios eventos que pueden disparar notificaciones, entre ellos:
+
+- **PAID:** Se envía cuando un pago asociado al link ha concluido en estado ``Aprobado``. Manejamos esta notificación para que el comercio este enterado de que ya puede consultar el link con el fin de verificar el pago y liberar el producto o servicio asociado. 
+    ```json
+    {
+        "status": {
+            "status": "PAID",
+            "reason": 200,
+            "message": "Tienes una transacción en estado aprobado",
+            "date": "2024-06-25T00:43:21-05:00"
+        },
+        "linkId": 2,
+        "reference": "#5321",
+        "signature": "e1ab3b5d25dd2c81c3386a2e4c3a2818911e5d09f012005c21f8e20c6e0d5ab6"
+    }
+    ```
+
+- **EXPIRED**: Se envía cuando un link de pago ha expirado. Es importante que el comercio esté al tanto de que su link de pago ya no recibirá más pagos y, según esto, tome acciones como generar un nuevo link de pago.
+    ```json
+    {
+        "status": {
+            "status": "EXPIRED",
+            "reason": 200,
+            "message": "El link ha caducado.",
+            "date": "2024-06-25T00:53:36-05:00"
+        },
+        "linkId": 2,
+        "reference": "#5321",
+        "signature": "a02e7afa8f8313ccaa29edf056bc95a243671ec5e995c0dac5953c17f8bc529f"
+    }
+    ```
+
+Aunque estos son los eventos más comunes, es posible que en el futuro se agreguen más eventos que disparen notificaciones.
+
+
+## Seguridad de las Notificaciones
+
+Para garantizar la seguridad de las notificaciones, cada notificación incluye una firma digital que permite al comercio verificar la autenticidad de la notificación. La firma se genera a partir de la información de la notificación y la ``secretKey`` del comercio.
+
+La firma se envía en el campo `signature` de la notificación. Para verificar la firma, el comercio debe seguir los siguientes pasos:
+
+1. Concatenar los valores de los campos de la notificación en el siguiente orden: `linkId`, `status`, `date`, ``secretKey``.
+2. Calcular el hash SHA-256 de la cadena resultante.
+3. Comparar la firma generada con la firma recibida en la notificación.
+
+Aqui hay un ejemplo de cómo se vería el proceso de verificación de la firma en un lenguaje de programación:
+
+<CodeGroup title="Compare signature">
+
+```php
+$secretKey = "mySiteSecretKey";
+
+$notification = [
+    "status" => [
+        "status" => "PAID",
+        "reason" => 200,
+        "message" => "Tienes una transacción en estado aprobado",
+        "date" => "2024-06-25T00:43:21-05:00"
+    ],
+    "linkId" => 2,
+    "reference" => "#5321",
+    "signature" => "e1ab3b5d25dd2c81c3386a2e4c3a2818911e5d09f012005c21f8e20c6e0d5ab6"
+];
+
+$string = sprintf(
+    '%s%s%s%s',
+    $notification['linkId'],
+    $notification['status']['status'],
+    $notification['status']['date'],
+    $secretKey
+);
+
+$signature = hash('sha256', $string);
+
+if ($signature === $notification['signature']) {
+    // La notificación es auténtica
+} else {
+    // La notificación no es auténtica
+}
+
+```
+
+```js
+const crypto = require('crypto');
+
+const secretKey = "mySiteSecretKey";
+
+const notification = {
+    status: {
+        status: "PAID",
+        reason: 200,
+        message: "Tienes una transacción en estado aprobado",
+        date: "2024-06-25T00:43:21-05:00"
+    },
+    linkId: 2,
+    reference: "#5321",
+    signature: "e1ab3b5d25dd2c81c3386a2e4c3a2818911e5d09f012005c21f8e20c6e0d5ab6"
+};
+
+const string = `${notification.linkId}${notification.status.status}${notification.status.date}${secretKey}`;
+
+const signature = crypto.createHash('sha256').update(string).digest('hex');
+
+if (signature === notification.signature) {
+    // La notificación es auténtica
+} else {
+    // La notificación no es auténtica
+}
+
+```
+
+``` python
+import hashlib
+
+secret_key = "mySiteSecretKey"
+
+notification = {
+    "status": {
+        "status": "PAID",
+        "reason": 200,
+        "message": "Tienes una transacción en estado aprobado",
+        "date": "2024-06-25T00:43:21-05:00"
+    },
+    "linkId": 2,
+    "reference": "#5321",
+    "signature": "e1ab3b5d25dd2c81c3386a2e4c3a2818911e5d09f012005c21f8e20c6e0d5ab6"
+}
+
+string = f"{notification['linkId']}{notification['status']['status']}{notification['status']['date']}{secret_key}"
+
+signature = hashlib.sha256(string.encode()).hexdigest()
+
+if signature == notification['signature']:
+    # La notificación es auténtica
+    pass
+else:
+    # La notificación no es auténtica
+    pass
+```
+
+</CodeGroup>
+
+Si las firmas coinciden, la notificación es auténtica y el comercio puede confiar en la información recibida. En caso contrario, la notificación no es auténtica y el comercio debe ignorarla.
+
+<Note>
+  Es importante que el comercio mantenga su ``secretKey`` segura y no la comparta con terceros. La ``secretKey`` es necesaria para verificar la autenticidad de las notificaciones y proteger la integridad de los datos.
+</Note>

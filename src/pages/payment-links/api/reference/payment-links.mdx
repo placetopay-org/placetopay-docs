@@ -1,0 +1,332 @@
+export const sectionMode = 'nav';
+export const description =
+    'En esta página, aprenderás a crear un enlace de pago y explorarás las diversas opciones disponibles para configurarlo de acuerdo a tus necesidades';
+
+export const apiRefs = ['/api/payment-link', '/api/payment-link/{link_id}', '/api/payment-link/disable/{link_id}']
+
+
+# Links de pago
+
+Un link de pago es una URL que permite a los usuarios completar un pago de forma rápida y fácil. Puede ser compartido por correo, redes sociales o mensajes de texto. {{ className: 'lead' }}
+
+---
+
+## Crear un link {{ id: 'create-a-link', tag: 'POST', label: '/api/payment-link' }}
+
+
+<Row>
+    <Col>
+
+        Este endpoint permite crear un link de pago y configurarlo de acuerdo a tus necesidades
+
+        <ApiReader
+            path="/api/payment-link"
+            method="post"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <CodeGroup title="Solicitud" tag="POST" label="/api/payment-link">
+            ```bash {{ title: 'cURL' }}
+            curl -X "POST"	https://sites.placetopay.com/api/payment-link \
+            -H "Content-Type: application/json" \
+            -d '{
+                "auth": {
+                    "login":"c51ce410c124a10e0db5e4b97fc2af39",
+                    "tranKey":"VQOcRcVH2DfL6Y4B4SaK6yhoH/VOUveZ3xT16OQnvxE=",
+                    "nonce":"NjE0OWVkODgwYjNhNw==",
+                    "seed":"2021-09-21T09:34:48-05:00"
+                },
+                "notificationUrl": "https://webhook-test.com",
+                "locale": "es_CO",
+                "name": "Prueba",
+                "paymentsAllowed": 7,
+                "expirationDate": "2024-08-12 08:10:50",
+                "paymentExpiration": 15,
+                "currency": "COP",
+                "amount": 100000,
+                "reference": "#5321",
+                "description": "Pago por infraccion",
+                "paymentMethod": ["_PSE_"],
+                "receiverEmails": ["correo1@example.com", "correo2@example.com"],
+                "additional": {
+                    "buyer_email": "myBuyer@email.com",
+                    "buyer_name": "Billy"
+                }
+        }'
+            ```
+        </CodeGroup>
+    </Col>
+</Row>
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/api/payment-link"
+            method="post"
+            type="response"
+            api={props.refs}
+        />
+    </Col>
+
+    <Col sticky>
+        <br />
+        <CodeGroup title="Respuesta">
+            ```json {{ title: '201' }}
+            {
+                "status": {
+                    "status": "OK",
+                    "reason": 201,
+                    "message": "Link de pago creado y correos electrónicos enviados correctamente.",
+                    "date": "2024-07-31T11:36:23-05:00"
+                },
+                "id": 1,
+                "url": "http://microsites.test/link/show?genid=22&code=190"
+            }
+            ```
+            ```json {{ title: '401' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": 401,
+                    "message": "La autenticación no contiene todos los parámetros requeridos (login, tranKey, seed, nonce)",
+                    "date": "2024-07-31T11:50:02-05:00"
+                }
+            }
+            ```
+            ```json {{ title: '422' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": 422,
+                    "message": "Error de validación.",
+                    "date": "2024-07-31T11:45:25-05:00"
+                },
+                "errors": {
+                    "expirationDate": [
+                        "expiration date no corresponde al formato Y-m-d H:i:s.",
+                        "expiration date debe ser una fecha posterior a 2024-07-31 11:45:25."
+                    ]
+                }
+            }
+            ```
+        </CodeGroup>
+    </Col>
+</Row>
+
+---
+
+## Consultar un link {{ id: 'get-a-link', tag: 'POST', label: '/api/payment-link/{link_id}' }}
+
+<Row>
+    <Col>
+
+        Este endpoint permite consultar un link de pago y obtener información detallada sobre el mismo. Si el link contiene pagos, también se mostrarán en la respuesta.
+
+        <ApiReader
+            path="/api/payment-link/{link_id}"
+            method="post"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <CodeGroup title="Solicitud" tag="POST" label="/api/payment-link/{link_id}">
+            ```bash {{ title: 'cURL' }}
+            curl -X "POST" https://sites.placetopay.com/api/payment-link/{link_id}k\
+            -H "Content-Type: application/json" \
+            -d '{
+                "auth": {
+                    "login":"c51ce410c124a10e0db5e4b97fc2af39",
+                    "tranKey":"VQOcRcVH2DfL6Y4B4SaK6yhoH/VOUveZ3xT16OQnvxE=",
+                    "nonce":"NjE0OWVkODgwYjNhNw==",
+                    "seed":"2021-09-21T09:34:48-05:00"
+                }
+            }'
+            ```
+        </CodeGroup>
+    </Col>
+</Row>
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/api/payment-link/{link_id}"
+            method="post"
+            type="response"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <br />
+        <CodeGroup title="Respuesta">
+            ```json {{ title: '200' }}
+            {
+                "id": 21,
+                "status": "ACTIVE",
+                "url": "http://microsites.test/link/show?genid=21&code=ce350a956700cee9e29446a552201ddd55c6a477",
+                "expirationDate": "2024-08-12 08:10:50",
+                "name": "Prueba",
+                "reference": "#5321",
+                "description": "Pago por infraccion",
+                "totalPayments": 7,
+                "availablePayments": 6,
+                "paymentExpiration": 15,
+                "currency": "COP",
+                "amount": 100000,
+                "site": {
+                    "id": 1469,
+                    "name": "Evertec - API Link de pagos"
+                },
+                "notificationUrl": "https://webhook-test.com/dc45064451b3b0fdc61d8d5be632d450",
+                "locale": "es_CO",
+                "allowedPaymentMethods": [
+                    "CR_VS",
+                    "CR_AM"
+                ],
+                "payments": [
+                    {
+                        "id": 8,
+                        "requestId": 84076,
+                        "status": "APPROVED",
+                        "message": "La petición ha sido aprobada exitosamente",
+                        "processUrl": "https://checkout-co.placetopay.dev/spa/session/84076/79e4267e26771ed8ecffdab18d4c5f69",
+                        "amount": {
+                            "currency": "COP",
+                            "total": "100000.00"
+                        },
+                        "receipt": "99900100",
+                        "franchise": "CR_VS",
+                        "paymentMethod": "visa",
+                        "paymentDate": "2024-07-26 08:21:40",
+                        "internalReference": 434915,
+                        "authorization": "000000",
+                        "issuerName": "JPMORGAN CHASE BANK, N.A.",
+                        "merchantCode": "012988341",
+                        "terminalNumber": "00022645",
+                        "installments": 1,
+                        "lastDigits": "1111",
+                        "payer": {
+                            "name": "Andres",
+                            "surname": "Zea",
+                            "email": "myBuyer@email.com",
+                            "phone": "+573135911356",
+                            "document": "1001221123",
+                            "documentType": "CC"
+                        }
+                    }
+                ]
+            }
+            ```
+            ```json {{ title: '401' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": 401,
+                    "message": "No tienes permisos para acceder a este sitio",
+                    "date": "2024-07-31T14:07:42-05:00"
+                }
+            }
+            ```
+            ```json {{ title: '404' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": 404,
+                    "message": "Recurso no encontrado",
+                    "date": "2024-07-31T14:13:11-05:00"
+                }
+            }
+            ```
+        </CodeGroup>
+    </Col>
+</Row>
+
+---
+
+## Deshabilitar un link {{ id: 'disable-a-link', tag: 'POST', label: '/api/payment-link/disable/{link_id}' }}
+
+<Row>
+    <Col>
+
+        Este endpoint permite desactivar un link de pago lo que impedira que se realicen mas pagos a traves de el
+
+        <ApiReader
+            path="/api/payment-link/disable/{link_id}"
+            method="post"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <CodeGroup title="Solicitud" tag="POST" label="/api/payment-link/disalbe/{link_id}">
+            ```bash {{ title: 'cURL' }}
+            curl -X "POST" https://sites.placetopay.com/api/payment-link/disalbe/{link_id} \
+            -H "Content-Type: application/json" \
+            -d '{
+                "auth": {
+                    "login":"c51ce410c124a10e0db5e4b97fc2af39",
+                    "tranKey":"VQOcRcVH2DfL6Y4B4SaK6yhoH/VOUveZ3xT16OQnvxE=",
+                    "nonce":"NjE0OWVkODgwYjNhNw==",
+                    "seed":"2021-09-21T09:34:48-05:00"
+                }
+            }'
+            ```
+        </CodeGroup>
+    </Col>
+</Row>
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/api/payment-link/disable/{link_id}"
+            method="post"
+            type="response"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <br />
+        <CodeGroup title="Respuesta">
+            ```json {{ title: '200' }}
+            {
+                "status": {
+                    "status": "OK",
+                    "reason": 200,
+                    "message": "Link de pago desactivado correctamente.",
+                    "date": "2024-07-31T14:19:22-05:00"
+                },
+                "id": 24
+            }
+            ```
+            ```json {{ title: '400' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": 400,
+                    "message": "El link de pago con ID 14 está desactivado. No se puede realizar ninguna operación.",
+                    "date": "2024-06-07T05:17:40-05:00"
+                }
+            }
+            ```
+            ```json {{ title: '401' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": 401,
+                    "message": "No tienes permisos para acceder a este sitio",
+                    "date": "2024-06-07T05:18:49-05:00"
+                }
+            }
+            ```
+            ```json {{ title: '404' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": 404,
+                    "message": "Recurso no encontrado",
+                    "date": "2024-07-31T14:25:07-05:00"
+                }
+            }
+            ```
+        </CodeGroup>
+    </Col>
+</Row>
