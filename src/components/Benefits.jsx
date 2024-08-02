@@ -8,6 +8,7 @@ import { WalletTwoToneIcon } from '@/components/iconsax/WalletTwoToneIcon'
 import { SecuritySafeTwoToneIcon } from '@/components/iconsax/SecuritySafeTwoToneIcon'
 import { LampChargeTwoToneIcon } from '@/components/iconsax/LampChargeTwoToneIcon'
 import { useLocale } from './LocaleProvider'
+import { useMouseMove } from '@/hooks/useMouseMove'
 
 const resources = [
   {
@@ -140,14 +141,7 @@ function ResourcePattern({ mouseX, mouseY, ...gridProps }) {
 }
 
 function Resource({ resource }) {
-  let mouseX = useMotionValue(0)
-  let mouseY = useMotionValue(0)
-
-  function onMouseMove({ currentTarget, clientX, clientY }) {
-    let { left, top } = currentTarget.getBoundingClientRect()
-    mouseX.set(clientX - left)
-    mouseY.set(clientY - top)
-  }
+  const { mouseX, mouseY, onMouseMove } = useMouseMove()
 
   return (
     <div
