@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Switch } from '@headlessui/react'
-import { PinPad } from '@/assets/lib/pinpad-sdk/sdk'
 import { useLocale } from './LocaleProvider'
 import { twJoin, twMerge } from 'tailwind-merge'
 
@@ -92,7 +91,7 @@ function Toggle({ value, onChange, label }) {
 const Select = ({ id, value, onChange, options }) => (
   <select
     id={id}
-    className="rounded-md border p-2 text-base outline-none border-gray-200"
+    className="rounded-md border border-gray-200 p-2 text-base outline-none"
     value={value}
     onChange={onChange}
   >
@@ -137,16 +136,40 @@ export const PinpadPlayground = () => {
     }))
   }
 
-  useEffect(() => {
-    const container = pinpadContainerRef.current
-    const pinpad = new PinPad({
-      mode: config.mode,
-      mask: config.mask ? config.maskChar : false,
-      locale: config.locale,
-      theming: config.customTheming ? config.theming : undefined,
+  const onLoad = (configValues) => {
+    if (!window.PinPadSDK) {
+      console.error('PinPadSDK not found')
+      return;
+    }
+    const pinpad = new PinPadSDK.PinPad({
+      mode: configValues.mode,
+      mask: configValues.mask ? configValues.maskChar : false,
+      locale: configValues.locale,
+      theming: configValues.customTheming ? configValues.theming : undefined,
     })
 
     pinpad.render('#pinpad-container', '1,2,3,4,5,6,7,8,9,0')
+  }
+
+  useEffect(() => {
+    const src =
+      'https://unpkg.com/@placetopay/pinpad-sdk@2.0.1-beta.2/dist/pinpad-sdk.umd.js'
+    const container = pinpadContainerRef.current
+
+    if (document.querySelector(`script[src="${src}"]`)) {
+      onLoad(config)
+      return () => {
+        container.innerHTML = ''
+      }
+    }
+
+    const script = document.createElement('script')
+    script.src = src
+    script.async = true
+
+    script.onload = () => onLoad(config)
+
+    document.head.appendChild(script);
 
     return () => {
       container.innerHTML = ''
@@ -155,7 +178,7 @@ export const PinpadPlayground = () => {
 
   return (
     <div className="rounded-xl border border-gray-300 dark:border-gray-700">
-      <div className="flex w-full min-h-[24rem] divide-x divide-gray-300 dark:divide-gray-700">
+      <div className="flex min-h-[24rem] w-full divide-x divide-gray-300 dark:divide-gray-700">
         <div className="w-1/3 px-3 py-4">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col">
@@ -208,7 +231,7 @@ export const PinpadPlayground = () => {
                       maskChar: e.target.value.slice(0, 1),
                     })
                   }
-                  className="rounded-md border px-2 py-1 text-base outline-none border-gray-200"
+                  className="rounded-md border border-gray-200 px-2 py-1 text-base outline-none"
                 />
               </div>
             )}
@@ -241,7 +264,7 @@ export const PinpadPlayground = () => {
                         },
                       }))
                     }
-                    className="h-10 w-full rounded-md border px-2 py-1 text-base outline-none border-gray-200"
+                    className="h-10 w-full rounded-md border border-gray-200 px-2 py-1 text-base outline-none"
                   />
                 </div>
                 <div className="flex flex-col">
@@ -264,7 +287,7 @@ export const PinpadPlayground = () => {
                         },
                       }))
                     }
-                    className="h-10 w-full rounded-md border px-2 py-1 text-base outline-none border-gray-200"
+                    className="h-10 w-full rounded-md border border-gray-200 px-2 py-1 text-base outline-none"
                   />
                 </div>
               </>
