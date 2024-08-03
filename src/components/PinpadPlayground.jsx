@@ -153,7 +153,7 @@ export const PinpadPlayground = () => {
 
   useEffect(() => {
     const src =
-      'https://unpkg.com/@placetopay/pinpad-sdk@2.0.1-beta.2/dist/pinpad-sdk.umd.js'
+      'https://unpkg.com/@placetopay/pinpad-sdk@2/dist/pinpad-sdk.umd.js'
     const container = pinpadContainerRef.current
 
     if (document.querySelector(`script[src="${src}"]`)) {
