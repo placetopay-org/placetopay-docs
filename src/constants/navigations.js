@@ -868,7 +868,7 @@ export const TAB_NAVIGATION = {
           {
             title: 'Micrositios',
             links: [
-              { title: 'introducción', href: '/microsites' },
+              { title: 'Introducción', href: '/microsites' },
             ],
           },
           {
