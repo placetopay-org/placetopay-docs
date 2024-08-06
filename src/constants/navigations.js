@@ -60,7 +60,10 @@ export const TAB_NAVIGATION = {
             title: 'Introducción',
             links: [
               { title: 'Politica de cambios', href: '/checkout/api/policy' },
-              { title: 'Historial de cambios', href: '/checkout/api/changelog' },
+              {
+                title: 'Historial de cambios',
+                href: '/checkout/api/changelog',
+              },
             ],
           },
           {
@@ -201,7 +204,7 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Datos adicionales',
                 href: '/gateway/additional-data',
-              }
+              },
             ],
           },
         ],
@@ -290,7 +293,7 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Additional data',
                 href: '/gateway/additional-data',
-              }
+              },
             ],
           },
         ],
@@ -303,9 +306,7 @@ export const TAB_NAVIGATION = {
         links: [
           {
             title: 'Introduction',
-            links: [
-              { title: 'API Policy', href: '/gateway/api/policy' },
-            ],
+            links: [{ title: 'API Policy', href: '/gateway/api/policy' }],
           },
           {
             title: 'API',
@@ -350,43 +351,122 @@ export const TAB_NAVIGATION = {
             title: '3DS Server',
             links: [
               { title: 'Introducción', href: '/three-d-s-server' },
-              { title: '¿Qué es el Protocolo 3-D Secure?', href: '/three-d-s-server/introduction' },
-              { title: 'Dominios y Componentes', href: '/three-d-s-server/secure-protocol' },
-              { title: 'Acerca del componente 3DS Server', href: '/three-d-s-server/server-component' },
-              { title: 'Códigos de Error', href: '/three-d-s-server/error-codes' },
-              { title: 'Preguntas frecuentes sobre el funcionamiento 3DS Server', href: '/three-d-s-server/f-a-q' },
-              { title: 'Códigos HTTP en el proceso de autenticación', href: '/three-d-s-server/http-codes' },
-              { title: 'Flujo del servicio de 3DS Server', href: '/three-d-s-server/service-flow' },
-              { title: 'Tarjetas de Prueba', href: '/three-d-s-server/test-cards' },
+              {
+                title: '¿Qué es el Protocolo 3-D Secure?',
+                href: '/three-d-s-server/introduction',
+              },
+              {
+                title: 'Dominios y Componentes',
+                href: '/three-d-s-server/secure-protocol',
+              },
+              {
+                title: 'Acerca del componente 3DS Server',
+                href: '/three-d-s-server/server-component',
+              },
+              {
+                title: 'Códigos de Error',
+                href: '/three-d-s-server/error-codes',
+              },
+              {
+                title:
+                  'Preguntas frecuentes sobre el funcionamiento 3DS Server',
+                href: '/three-d-s-server/f-a-q',
+              },
+              {
+                title: 'Códigos HTTP en el proceso de autenticación',
+                href: '/three-d-s-server/http-codes',
+              },
+              {
+                title: 'Flujo del servicio de 3DS Server',
+                href: '/three-d-s-server/service-flow',
+              },
+              {
+                title: 'Tarjetas de Prueba',
+                href: '/three-d-s-server/test-cards',
+              },
             ],
           },
           {
             title: 'Integración',
             links: [
-              { title: 'Obtener información de una autenticación', href: '/three-d-s-server/integration/authentication-info' },
-              { title: 'Autorización', href: '/three-d-s-server/integration/authorization' },
-              { title: 'Requerimientos para el cliente que va a integrarse', href: '/three-d-s-server/integration/client-requirements' },
-              { title: 'Sesión', href: '/three-d-s-server/integration/session' },
-              { title: 'Sesión con Digital Authentication Framework', href: '/three-d-s-server/integration/session-daf' },
-              { title: 'Sesión desacoplada', href: '/three-d-s-server/integration/session-decoupled' },
-              { title: 'Sesión con información previa', href: '/three-d-s-server/integration/session-prior-info' },
-              { title: 'Sesión transacción recurrente', href: '/three-d-s-server/integration/session-recurrent' },
-              { title: 'Sesión transacciones de no pago', href: '/three-d-s-server/integration/session-subscription' },
-              { title: 'Términos y Definiciones', href: '/three-d-s-server/integration/terms-and-definitions' },
-              { title: 'Datos del proceso de autenticación', href: '/three-d-s-server/integration/transaction-status' }
+              {
+                title: 'Obtener información de una autenticación',
+                href: '/three-d-s-server/integration/authentication-info',
+              },
+              {
+                title: 'Autorización',
+                href: '/three-d-s-server/integration/authorization',
+              },
+              {
+                title: 'Requerimientos para el cliente que va a integrarse',
+                href: '/three-d-s-server/integration/client-requirements',
+              },
+              {
+                title: 'Sesión',
+                href: '/three-d-s-server/integration/session',
+              },
+              {
+                title: 'Sesión con Digital Authentication Framework',
+                href: '/three-d-s-server/integration/session-daf',
+              },
+              {
+                title: 'Sesión desacoplada',
+                href: '/three-d-s-server/integration/session-decoupled',
+              },
+              {
+                title: 'Sesión con información previa',
+                href: '/three-d-s-server/integration/session-prior-info',
+              },
+              {
+                title: 'Sesión transacción recurrente',
+                href: '/three-d-s-server/integration/session-recurrent',
+              },
+              {
+                title: 'Sesión transacciones de no pago',
+                href: '/three-d-s-server/integration/session-subscription',
+              },
+              {
+                title: 'Términos y Definiciones',
+                href: '/three-d-s-server/integration/terms-and-definitions',
+              },
+              {
+                title: 'Datos del proceso de autenticación',
+                href: '/three-d-s-server/integration/transaction-status',
+              },
             ],
           },
           {
             title: 'Panel',
             links: [
-              { title: 'Autenticaciones', href: '/three-d-s-server/panel/authentications' },
-              { title: 'Franquicias en 3DS Server', href: '/three-d-s-server/panel/franchise-configuration' },
-              { title: 'Página de Inicio (Home)', href: '/three-d-s-server/panel/home' },
-              { title: 'Categorías de actividad económica', href: '/three-d-s-server/panel/configurations' },
-              { title: 'Funcionalidades', href: '/three-d-s-server/panel/functionalities' },
-              { title: '¿Cómo configurar 3DS Server?', href: '/three-d-s-server/panel/general-configuration' },
+              {
+                title: 'Autenticaciones',
+                href: '/three-d-s-server/panel/authentications',
+              },
+              {
+                title: 'Franquicias en 3DS Server',
+                href: '/three-d-s-server/panel/franchise-configuration',
+              },
+              {
+                title: 'Página de Inicio (Home)',
+                href: '/three-d-s-server/panel/home',
+              },
+              {
+                title: 'Categorías de actividad económica',
+                href: '/three-d-s-server/panel/configurations',
+              },
+              {
+                title: 'Funcionalidades',
+                href: '/three-d-s-server/panel/functionalities',
+              },
+              {
+                title: '¿Cómo configurar 3DS Server?',
+                href: '/three-d-s-server/panel/general-configuration',
+              },
               { title: 'Tokens', href: '/three-d-s-server/panel/security' },
-              { title: 'Comercios en 3DS Server', href: '/three-d-s-server/panel/merchant-configuration' },
+              {
+                title: 'Comercios en 3DS Server',
+                href: '/three-d-s-server/panel/merchant-configuration',
+              },
               { title: 'Métricas', href: '/three-d-s-server/panel/metrics' },
               { title: 'Reportes', href: '/three-d-s-server/panel/reports' },
             ],
@@ -402,31 +482,58 @@ export const TAB_NAVIGATION = {
           {
             title: 'Introducción',
             links: [
-                { title: 'Inicio', href: '/three-d-s-server/api' },
-                { title: 'Teléfono', href: '/three-d-s-server/api/phone-properties' },
-                { title: 'Información de Autenticación 3DS', href: '/three-d-s-server/api/three-d-s-authentication-info' },
-                { title: 'Información de Cuenta', href: '/three-d-s-server/api/acct-info' },
-                { title: 'Indicador de Riesgo del Comerciante', href: '/three-d-s-server/api/risk-indicator' },
-                { title: 'Información de Autenticación Previa 3DS', href: '/three-d-s-server/api/requestor-prior-authentication-info' }
+              { title: 'Inicio', href: '/three-d-s-server/api' },
+              {
+                title: 'Teléfono',
+                href: '/three-d-s-server/api/phone-properties',
+              },
+              {
+                title: 'Información de Autenticación 3DS',
+                href: '/three-d-s-server/api/three-d-s-authentication-info',
+              },
+              {
+                title: 'Información de Cuenta',
+                href: '/three-d-s-server/api/acct-info',
+              },
+              {
+                title: 'Indicador de Riesgo del Comerciante',
+                href: '/three-d-s-server/api/risk-indicator',
+              },
+              {
+                title: 'Información de Autenticación Previa 3DS',
+                href: '/three-d-s-server/api/requestor-prior-authentication-info',
+              },
             ],
           },
           {
             title: 'Sesiones',
             links: [
-              { title: 'Gestor de sesiones', href: '/three-d-s-server/api/sessions/session' },
+              {
+                title: 'Gestor de sesiones',
+                href: '/three-d-s-server/api/sessions/session',
+              },
             ],
           },
           {
             title: 'Transacciones',
             links: [
-              { title: 'Gestor de transacciones', href: '/three-d-s-server/api/transactions/show' },
+              {
+                title: 'Gestor de transacciones',
+                href: '/three-d-s-server/api/transactions/show',
+              },
             ],
           },
           {
             title: 'Comercios',
             links: [
-              { title: 'Gestor de comercios', href: '/three-d-s-server/api/merchants/create' },
-              { title: 'Gestor de sucursales', href: '/three-d-s-server/api/merchants/branch' },
+              {
+                title: 'Gestor de comercios',
+                href: '/three-d-s-server/api/merchants/create',
+              },
+              {
+                title: 'Gestor de sucursales',
+                href: '/three-d-s-server/api/merchants/branch',
+              },
             ],
           },
         ],
@@ -434,90 +541,184 @@ export const TAB_NAVIGATION = {
     ],
     [LANGUAGES_CODES.EN]: [
       {
-        title: "Documentation",
-        identifier: "three-d-s-server",
-        href: "/en/three-d-s-server",
-        icon: "Book",
+        title: 'Documentation',
+        identifier: 'three-d-s-server',
+        href: '/en/three-d-s-server',
+        icon: 'Book',
         links: [
           {
-            title: "3DS",
+            title: '3DS',
             links: [
-              { title: "Introduction", "href": "/three-d-s-server" },
-              { title: "What is the 3-D Secure Protocol?", "href": "/three-d-s-server/introduction" },
-              { title: "Domains and Components", "href": "/three-d-s-server/secure-protocol" },
-              { title: "About the 3DS Server Component", "href": "/three-d-s-server/server-component" },
-              { title: "Error Codes", "href": "/three-d-s-server/error-codes" },
-              { title: "Frequently Asked Questions about MPI Functioning", "href": "/three-d-s-server/f-a-q" },
-              { title: "HTTP Codes in the Authentication Process", "href": "/three-d-s-server/http-Codes" },
-              { title: "3DS Server Service Flow", "href": "/three-d-s-server/service-flow" },
-              { title: "Test Cards", "href": "/three-d-s-server/test-cards" }
-            ]
+              { title: 'Introduction', href: '/three-d-s-server' },
+              {
+                title: 'What is the 3-D Secure Protocol?',
+                href: '/three-d-s-server/introduction',
+              },
+              {
+                title: 'Domains and Components',
+                href: '/three-d-s-server/secure-protocol',
+              },
+              {
+                title: 'About the 3DS Server Component',
+                href: '/three-d-s-server/server-component',
+              },
+              { title: 'Error Codes', href: '/three-d-s-server/error-codes' },
+              {
+                title: 'Frequently Asked Questions about MPI Functioning',
+                href: '/three-d-s-server/f-a-q',
+              },
+              {
+                title: 'HTTP Codes in the Authentication Process',
+                href: '/three-d-s-server/http-Codes',
+              },
+              {
+                title: '3DS Server Service Flow',
+                href: '/three-d-s-server/service-flow',
+              },
+              { title: 'Test Cards', href: '/three-d-s-server/test-cards' },
+            ],
           },
           {
-            title: "Integration",
+            title: 'Integration',
             links: [
-              { title: "Obtain Authentication Information", "href": "/three-d-s-server/integration/authentication-info" },
-              { title: "Authorization", "href": "/three-d-s-server/integration/authorization" },
-              { title: "Client Integration Requirements", "href": "/three-d-s-server/integration/client-requirements" },
-              { title: "Session", "href": "/three-d-s-server/integration/session" },
-              { title: "Session with Digital Authentication Framework", "href": "/three-d-s-server/integration/session-daf" },
-              { title: "Decoupled Session", "href": "/three-d-s-server/integration/session-decoupled" },
-              { title: "Session with Prior Information", "href": "/three-d-s-server/integration/session-prior-info" },
-              { title: "Recurrent Transaction Session", "href": "/three-d-s-server/integration/session-recurrent" },
-              { title: "Non-payment Transaction Session", "href": "/three-d-s-server/integration/session-subscription" },
-              { title: "Terms and Definitions", "href": "/three-d-s-server/integration/terms-and-definitions" },
-              { title: "Authentication Process Data", "href": "/three-d-s-server/integration/transaction-status" }
-            ]
+              {
+                title: 'Obtain Authentication Information',
+                href: '/three-d-s-server/integration/authentication-info',
+              },
+              {
+                title: 'Authorization',
+                href: '/three-d-s-server/integration/authorization',
+              },
+              {
+                title: 'Client Integration Requirements',
+                href: '/three-d-s-server/integration/client-requirements',
+              },
+              {
+                title: 'Session',
+                href: '/three-d-s-server/integration/session',
+              },
+              {
+                title: 'Session with Digital Authentication Framework',
+                href: '/three-d-s-server/integration/session-daf',
+              },
+              {
+                title: 'Decoupled Session',
+                href: '/three-d-s-server/integration/session-decoupled',
+              },
+              {
+                title: 'Session with Prior Information',
+                href: '/three-d-s-server/integration/session-prior-info',
+              },
+              {
+                title: 'Recurrent Transaction Session',
+                href: '/three-d-s-server/integration/session-recurrent',
+              },
+              {
+                title: 'Non-payment Transaction Session',
+                href: '/three-d-s-server/integration/session-subscription',
+              },
+              {
+                title: 'Terms and Definitions',
+                href: '/three-d-s-server/integration/terms-and-definitions',
+              },
+              {
+                title: 'Authentication Process Data',
+                href: '/three-d-s-server/integration/transaction-status',
+              },
+            ],
           },
           {
-            title: "Panel",
+            title: 'Panel',
             links: [
-              { title: "Authentications", "href": "/three-d-s-server/panel/authentications" },
-              { title: "3DS Server Franchises", "href": "/three-d-s-server/panel/franchise-configuration" },
-              { title: "Home Page", "href": "/three-d-s-server/panel/home" },
-              { title: "Economic Activity Categories", "href": "/three-d-s-server/panel/configurations" },
-              { title: "Functionalities", "href": "/three-d-s-server/panel/functionalities" },
-              { title: "How to Configure MPI?", "href": "/three-d-s-server/panel/general-configuration" },
-              { title: "Tokens", "href": "/three-d-s-server/panel/security" },
-              { title: "Merchants in 3DS Server", "href": "/three-d-s-server/panel/merchant-configuration" },
-              { title: "Metrics", "href": "/three-d-s-server/panel/metrics" },
-              { title: "Reports", "href": "/three-d-s-server/panel/reports" }
-            ]
-          }
-        ]
+              {
+                title: 'Authentications',
+                href: '/three-d-s-server/panel/authentications',
+              },
+              {
+                title: '3DS Server Franchises',
+                href: '/three-d-s-server/panel/franchise-configuration',
+              },
+              { title: 'Home Page', href: '/three-d-s-server/panel/home' },
+              {
+                title: 'Economic Activity Categories',
+                href: '/three-d-s-server/panel/configurations',
+              },
+              {
+                title: 'Functionalities',
+                href: '/three-d-s-server/panel/functionalities',
+              },
+              {
+                title: 'How to Configure MPI?',
+                href: '/three-d-s-server/panel/general-configuration',
+              },
+              { title: 'Tokens', href: '/three-d-s-server/panel/security' },
+              {
+                title: 'Merchants in 3DS Server',
+                href: '/three-d-s-server/panel/merchant-configuration',
+              },
+              { title: 'Metrics', href: '/three-d-s-server/panel/metrics' },
+              { title: 'Reports', href: '/three-d-s-server/panel/reports' },
+            ],
+          },
+        ],
       },
       {
-        title: "API",
-        identifier: "three-d-s-server/api",
-        href: "/en/three-d-s-server/api/",
+        title: 'API',
+        identifier: 'three-d-s-server/api',
+        href: '/en/three-d-s-server/api/',
         icon: DocumentCode,
         links: [
           {
             title: 'Sessions',
             links: [
               { title: 'Home', href: '/three-d-s-server/api' },
-              { title: 'Phone Properties', href: '/three-d-s-server/api/phone-properties' },
-              { title: '3DS Authentication Info', href: '/three-d-s-server/api/three-d-s-authentication-info' },
-              { title: 'Account Info', href: '/three-d-s-server/api/acct-info' },
-              { title: 'Merchant Risk Indicator', href: '/three-d-s-server/api/risk-indicator' },
-              { title: '3DS Prior Authentication Info', href: '/three-d-s-server/api/requestor-prior-authentication-info' }            ],
+              {
+                title: 'Phone Properties',
+                href: '/three-d-s-server/api/phone-properties',
+              },
+              {
+                title: '3DS Authentication Info',
+                href: '/three-d-s-server/api/three-d-s-authentication-info',
+              },
+              {
+                title: 'Account Info',
+                href: '/three-d-s-server/api/acct-info',
+              },
+              {
+                title: 'Merchant Risk Indicator',
+                href: '/three-d-s-server/api/risk-indicator',
+              },
+              {
+                title: '3DS Prior Authentication Info',
+                href: '/three-d-s-server/api/requestor-prior-authentication-info',
+              },
+            ],
           },
           {
             title: 'Transactions',
             links: [
-              { title: 'Transaction manager', href: '/three-d-s-server/api/transactions/show' },
+              {
+                title: 'Transaction manager',
+                href: '/three-d-s-server/api/transactions/show',
+              },
             ],
           },
           {
             title: 'Merchants',
             links: [
-              { title: 'Merchants manager', href: '/three-d-s-server/api/merchants/create' },
-              { title: 'Branches manager', href: '/three-d-s-server/api/merchants/branch' },
+              {
+                title: 'Merchants manager',
+                href: '/three-d-s-server/api/merchants/create',
+              },
+              {
+                title: 'Branches manager',
+                href: '/three-d-s-server/api/merchants/branch',
+              },
             ],
           },
-        ]
-      }
-    ]
+        ],
+      },
+    ],
   },
   'token-requestor': {
     [LANGUAGES_CODES.ES]: [
@@ -531,16 +732,31 @@ export const TAB_NAVIGATION = {
             title: 'Token requestor',
             links: [
               { title: 'Introducción', href: '/token-requestor' },
-              { title: 'Tipos de identificación', href: '/token-requestor/business-identification-types' },
-              { title: 'Codigos de respuesta', href: '/token-requestor/response-codes' },
+              {
+                title: 'Tipos de identificación',
+                href: '/token-requestor/business-identification-types',
+              },
+              {
+                title: 'Codigos de respuesta',
+                href: '/token-requestor/response-codes',
+              },
             ],
           },
           {
             title: 'Integración',
             links: [
-              { title: 'Autenticación', href: '/token-requestor/integration/authentication' },
-              { title: 'Notificaciones', href: '/token-requestor/integration/notifications' },
-              { title: 'Prueba tu integración', href: '/token-requestor/integration/testing' },
+              {
+                title: 'Autenticación',
+                href: '/token-requestor/integration/authentication',
+              },
+              {
+                title: 'Notificaciones',
+                href: '/token-requestor/integration/notifications',
+              },
+              {
+                title: 'Prueba tu integración',
+                href: '/token-requestor/integration/testing',
+              },
             ],
           },
         ],
@@ -553,18 +769,25 @@ export const TAB_NAVIGATION = {
         links: [
           {
             title: 'Introducción',
-            links: [
-              { title: 'Inicio', href: '/token-requestor/api' },
-            ],
+            links: [{ title: 'Inicio', href: '/token-requestor/api' }],
           },
           {
             title: 'API',
             links: [
               { title: 'Onboarding', href: '/token-requestor/api/onboarding' },
-              { title: 'Enroll card', href: '/token-requestor/api/enroll-card' },
+              {
+                title: 'Enroll card',
+                href: '/token-requestor/api/enroll-card',
+              },
               { title: 'Checkout', href: '/token-requestor/api/checkout' },
-              { title: 'Get token status', href: '/token-requestor/api/get-token-status' },
-              { title: 'Onboarding status', href: '/token-requestor/api/onboarding-status' },
+              {
+                title: 'Get token status',
+                href: '/token-requestor/api/get-token-status',
+              },
+              {
+                title: 'Onboarding status',
+                href: '/token-requestor/api/onboarding-status',
+              },
               { title: 'Get Keys', href: '/token-requestor/api/keys' },
             ],
           },
@@ -582,16 +805,31 @@ export const TAB_NAVIGATION = {
             title: 'Token requestor',
             links: [
               { title: 'Introduction', href: '/token-requestor' },
-              { title: 'Merchant Identification Types', href: '/token-requestor/business-identification-types' },
-              { title: 'Response Codes', href: '/token-requestor/response-codes' },
+              {
+                title: 'Merchant Identification Types',
+                href: '/token-requestor/business-identification-types',
+              },
+              {
+                title: 'Response Codes',
+                href: '/token-requestor/response-codes',
+              },
             ],
           },
           {
             title: 'Integration',
             links: [
-              { title: 'Authentication', href: '/token-requestor/integration/authentication' },
-              { title: 'Notifications', href: '/token-requestor/integration/notifications' },
-              { title: 'Test Your Integration', href: '/token-requestor/integration/testing' },
+              {
+                title: 'Authentication',
+                href: '/token-requestor/integration/authentication',
+              },
+              {
+                title: 'Notifications',
+                href: '/token-requestor/integration/notifications',
+              },
+              {
+                title: 'Test Your Integration',
+                href: '/token-requestor/integration/testing',
+              },
             ],
           },
         ],
@@ -604,24 +842,31 @@ export const TAB_NAVIGATION = {
         links: [
           {
             title: 'Introduction',
-            links: [
-              { title: 'Home', href: '/token-requestor/api' },
-            ],
+            links: [{ title: 'Home', href: '/token-requestor/api' }],
           },
           {
             title: 'API',
             links: [
               { title: 'Onboarding', href: '/token-requestor/api/onboarding' },
-              { title: 'Enroll card', href: '/token-requestor/api/enroll-card' },
+              {
+                title: 'Enroll card',
+                href: '/token-requestor/api/enroll-card',
+              },
               { title: 'Checkout', href: '/token-requestor/api/checkout' },
-              { title: 'Get token status', href: '/token-requestor/api/get-token-status' },
-              { title: 'Onboarding status', href: '/token-requestor/api/onboarding-status' },
+              {
+                title: 'Get token status',
+                href: '/token-requestor/api/get-token-status',
+              },
+              {
+                title: 'Onboarding status',
+                href: '/token-requestor/api/onboarding-status',
+              },
               { title: 'Get Keys', href: '/token-requestor/api/keys' },
             ],
           },
         ],
-      }
-    ]
+      },
+    ],
   },
   sdks: {
     [LANGUAGES_CODES.ES]: [
@@ -631,13 +876,18 @@ export const TAB_NAVIGATION = {
         href: '/sdks/pinpad',
         icon: Book,
         links: [
-          {
-            title: 'SDKs', links: [
-              { title: 'PinPad', href: '/sdks/pinpad' }
-            ]
-          },
+          { title: 'SDKs', links: [{ title: 'PinPad', href: '/sdks/pinpad' }] },
         ],
       },
+      {
+        title: 'API',
+        identifier: 'sdks/api',
+        href: '/sdks/pinpad/api',
+        icon: DocumentCode,
+        links: [
+          { title: 'API SDKs', links: [{ title: 'PinPad', href: '/sdks/pinpad/api' }] }
+        ],
+        }
     ],
     [LANGUAGES_CODES.EN]: [
       {
@@ -647,12 +897,20 @@ export const TAB_NAVIGATION = {
         icon: Book,
         links: [
           {
-            title: 'SDKs', links: [
-              { title: 'PinPad', href: '/sdks/pinpad' }
-            ]
+            title: 'SDKs',
+            links: [{ title: 'PinPad', href: '/sdks/pinpad' }],
           },
         ],
       },
+      {
+        title: 'API',
+        identifier: 'sdks/api',
+        href: '/en/sdks/pinpad/api',
+        icon: DocumentCode,
+        links: [
+          { title: 'API SDKs', links: [{ title: 'PinPad', href: '/sdks/pinpad/api' }] }
+        ],
+        }
     ],
   },
   acs: {
@@ -667,38 +925,77 @@ export const TAB_NAVIGATION = {
             title: 'ACS',
             links: [
               { title: 'Introducción', href: '/acs' },
-              { title: '¿Qué es el Protocolo 3-D Secure?', href: '/acs/3-d-s-secure-protocol' },
-              { title: '¿Cómo configurar ACS?', href: '/acs/a-c-s-general-configuration' },
+              {
+                title: '¿Qué es el Protocolo 3-D Secure?',
+                href: '/acs/3-d-s-secure-protocol',
+              },
+              {
+                title: '¿Cómo configurar ACS?',
+                href: '/acs/a-c-s-general-configuration',
+              },
               { title: 'Gestión de cuenta', href: '/acs/account' },
               { title: 'Motor de Control de Fraude', href: '/acs/antifraud' },
-              { title: 'Estados del proceso de autenticación', href: '/acs/authentication-status' },
+              {
+                title: 'Estados del proceso de autenticación',
+                href: '/acs/authentication-status',
+              },
               { title: 'Autenticaciones', href: '/acs/authentications' },
-              { title: 'Suscripción por marcas', href: '/acs/brands-subscriptions' },
+              {
+                title: 'Suscripción por marcas',
+                href: '/acs/brands-subscriptions',
+              },
               { title: 'Rangos de tarjetas', href: '/acs/card-ranges' },
-              { title: 'Certificados', href: '/acs/certificates-configurations' },
+              {
+                title: 'Certificados',
+                href: '/acs/certificates-configurations',
+              },
               { title: 'Configuraciones', href: '/acs/configuration-fields' },
               { title: 'Países en ACS', href: '/acs/countries-configurations' },
-              { title: 'Monedas utilizadas en ACS', href: '/acs/currencies-configurations' },
-              { title: 'Autenticaciones Desacopladas', href: '/acs/decoupled-authentications' },
+              {
+                title: 'Monedas utilizadas en ACS',
+                href: '/acs/currencies-configurations',
+              },
+              {
+                title: 'Autenticaciones Desacopladas',
+                href: '/acs/decoupled-authentications',
+              },
               { title: 'Disputas', href: '/acs/disputes' },
               { title: 'Códigos de error', href: '/acs/error-codes' },
-              { title: 'Preguntas frecuentes sobre el funcionamiento ACS', href: '/acs/f-a-q' },
-              { title: 'Campos de configuración', href: '/acs/fields-configurations' },
+              {
+                title: 'Preguntas frecuentes sobre el funcionamiento ACS',
+                href: '/acs/f-a-q',
+              },
+              {
+                title: 'Campos de configuración',
+                href: '/acs/fields-configurations',
+              },
               { title: 'Marcas en ACS', href: '/acs/franchise-creation' },
-              { title: 'Códigos HTTP en el proceso de autenticación', href: '/acs/http-codes' },
+              {
+                title: 'Códigos HTTP en el proceso de autenticación',
+                href: '/acs/http-codes',
+              },
               { title: 'Importes', href: '/acs/imports-configurations' },
               { title: 'Invitaciones de usuarios', href: '/acs/invitations' },
               { title: 'Emisores en ACS', href: '/acs/issuer-configuration' },
               { title: 'Servicios del emisor', href: '/acs/issuer-services' },
-              { title: 'Gestión de idioma', href: '/acs/language-configurations' },
+              {
+                title: 'Gestión de idioma',
+                href: '/acs/language-configurations',
+              },
               { title: 'Logs de Seguridad', href: '/acs/logs' },
-              { title: 'Códigos de categoría del comercio', href: '/acs/merchant-codes-configurations' },
+              {
+                title: 'Códigos de categoría del comercio',
+                href: '/acs/merchant-codes-configurations',
+              },
               { title: 'Métricas', href: '/acs/metrics' },
               { title: 'Perfiles', href: '/acs/profiles' },
               { title: 'Reportes', href: '/acs/reports' },
               { title: 'Roles', href: '/acs/roles' },
               { title: 'Alertas del servicio', href: '/acs/service-alerts' },
-              { title: 'Términos y Definiciones', href: '/acs/terms-and-definitions' },
+              {
+                title: 'Términos y Definiciones',
+                href: '/acs/terms-and-definitions',
+              },
               { title: 'Tarjetas de Prueba', href: '/acs/test-cards' },
               { title: 'Usuarios', href: '/acs/users' },
             ],
@@ -708,54 +1005,93 @@ export const TAB_NAVIGATION = {
     ],
     [LANGUAGES_CODES.EN]: [
       {
-        title: "Documentation",
-        identifier: "acs",
-        href: "/en/acs",
-        icon: "Book",
+        title: 'Documentation',
+        identifier: 'acs',
+        href: '/en/acs',
+        icon: 'Book',
         links: [
           {
-            "title": "ACS",
-            "links": [
-              { title: "Introduction", "href": "/acs" },
-              { title: "What is the 3-D Secure Protocol?", "href": "/acs/3-d-s-secure-protocol" },
-              { title: "How to configure ACS?", "href": "/acs/a-c-s-general-configuration" },
-              { title: "Account Management", "href": "/acs/account" },
-              { title: "Fraud Control Engine", "href": "/acs/antifraud" },
-              { title: "Authentication Process Status", "href": "/acs/authentication-status" },
-              { title: "Authentications", "href": "/acs/authentications" },
-              { title: "Brand Subscriptions", "href": "/acs/brands-subscriptions" },
-              { title: "Card Ranges", "href": "/acs/card-ranges" },
-              { title: "Certificates", "href": "/acs/certificates-configurations" },
-              { title: "Configurations", "href": "/acs/configuration-fields" },
-              { title: "Countries in ACS", "href": "/acs/countries-configurations" },
-              { title: "Currencies Used in ACS", "href": "/acs/currencies-configurations" },
-              { title: "Decoupled Authentications", "href": "/acs/decoupled-authentications" },
-              { title: "Disputes", "href": "/acs/disputes" },
-              { title: "Error Codes", "href": "/acs/error-codes" },
-              { title: "FAQs about ACS Functionality", "href": "/acs/f-a-q" },
-              { title: "Configuration Fields", "href": "/acs/fields-configurations" },
-              { title: "Brands in ACS", "href": "/acs/franchise-creation" },
-              { title: "HTTP Codes in the Authentication Process", "href": "/acs/http-codes" },
-              { title: "Amounts", "href": "/acs/imports-configurations" },
-              { title: "User Invitations", "href": "/acs/invitations" },
-              { title: "Issuers in ACS", "href": "/acs/issuer-configuration" },
-              { title: "Issuer Services", "href": "/acs/issuer-services" },
-              { title: "Language Management", "href": "/acs/language-configurations" },
-              { title: "Security Logs", "href": "/acs/logs" },
-              { title: "Merchant Category Codes", "href": "/acs/merchant-codes-configurations" },
-              { title: "Metrics", "href": "/acs/metrics" },
-              { title: "Profiles", "href": "/acs/profiles" },
-              { title: "Reports", "href": "/acs/reports" },
-              { title: "Roles", "href": "/acs/roles" },
-              { title: "Service Alerts", "href": "/acs/service-alerts" },
-              { title: "Terms and Definitions", "href": "/acs/terms-and-definitions" },
-              { title: "Test Cards", "href": "/acs/test-cards" },
-              { title: "Users", "href": "/acs/users" }
-            ]
-          }
-        ]
+            title: 'ACS',
+            links: [
+              { title: 'Introduction', href: '/acs' },
+              {
+                title: 'What is the 3-D Secure Protocol?',
+                href: '/acs/3-d-s-secure-protocol',
+              },
+              {
+                title: 'How to configure ACS?',
+                href: '/acs/a-c-s-general-configuration',
+              },
+              { title: 'Account Management', href: '/acs/account' },
+              { title: 'Fraud Control Engine', href: '/acs/antifraud' },
+              {
+                title: 'Authentication Process Status',
+                href: '/acs/authentication-status',
+              },
+              { title: 'Authentications', href: '/acs/authentications' },
+              {
+                title: 'Brand Subscriptions',
+                href: '/acs/brands-subscriptions',
+              },
+              { title: 'Card Ranges', href: '/acs/card-ranges' },
+              {
+                title: 'Certificates',
+                href: '/acs/certificates-configurations',
+              },
+              { title: 'Configurations', href: '/acs/configuration-fields' },
+              {
+                title: 'Countries in ACS',
+                href: '/acs/countries-configurations',
+              },
+              {
+                title: 'Currencies Used in ACS',
+                href: '/acs/currencies-configurations',
+              },
+              {
+                title: 'Decoupled Authentications',
+                href: '/acs/decoupled-authentications',
+              },
+              { title: 'Disputes', href: '/acs/disputes' },
+              { title: 'Error Codes', href: '/acs/error-codes' },
+              { title: 'FAQs about ACS Functionality', href: '/acs/f-a-q' },
+              {
+                title: 'Configuration Fields',
+                href: '/acs/fields-configurations',
+              },
+              { title: 'Brands in ACS', href: '/acs/franchise-creation' },
+              {
+                title: 'HTTP Codes in the Authentication Process',
+                href: '/acs/http-codes',
+              },
+              { title: 'Amounts', href: '/acs/imports-configurations' },
+              { title: 'User Invitations', href: '/acs/invitations' },
+              { title: 'Issuers in ACS', href: '/acs/issuer-configuration' },
+              { title: 'Issuer Services', href: '/acs/issuer-services' },
+              {
+                title: 'Language Management',
+                href: '/acs/language-configurations',
+              },
+              { title: 'Security Logs', href: '/acs/logs' },
+              {
+                title: 'Merchant Category Codes',
+                href: '/acs/merchant-codes-configurations',
+              },
+              { title: 'Metrics', href: '/acs/metrics' },
+              { title: 'Profiles', href: '/acs/profiles' },
+              { title: 'Reports', href: '/acs/reports' },
+              { title: 'Roles', href: '/acs/roles' },
+              { title: 'Service Alerts', href: '/acs/service-alerts' },
+              {
+                title: 'Terms and Definitions',
+                href: '/acs/terms-and-definitions',
+              },
+              { title: 'Test Cards', href: '/acs/test-cards' },
+              { title: 'Users', href: '/acs/users' },
+            ],
+          },
+        ],
       },
-    ]
+    ],
   },
   'payment-links': {
     [LANGUAGES_CODES.ES]: [
@@ -771,7 +1107,7 @@ export const TAB_NAVIGATION = {
               { title: 'Introducción', href: '/payment-links' },
               {
                 title: 'Cómo Funciona',
-                href: '/payment-links/how-payment-links-works'
+                href: '/payment-links/how-payment-links-works',
               },
             ],
           },
@@ -803,7 +1139,7 @@ export const TAB_NAVIGATION = {
                 href: '/payment-links/api/reference/payment-links',
               },
             ],
-          }
+          },
         ],
       },
     ],
@@ -820,14 +1156,17 @@ export const TAB_NAVIGATION = {
               { title: 'Introduction', href: '/payment-links' },
               {
                 title: 'How does it work?',
-                href: '/payment-links/how-payment-links-works'
+                href: '/payment-links/how-payment-links-works',
               },
             ],
           },
           {
             title: 'Integration',
             links: [
-              { title: 'Authentication', href: '/payment-links/authentication' },
+              {
+                title: 'Authentication',
+                href: '/payment-links/authentication',
+              },
               { title: 'Notification', href: '/payment-links/notification' },
               { title: 'Localization', href: '/payment-links/localization' },
               {
@@ -852,9 +1191,9 @@ export const TAB_NAVIGATION = {
                 href: '/payment-links/api/reference/payment-links',
               },
             ],
-          }
+          },
         ],
       },
     ],
-  }
+  },
 }

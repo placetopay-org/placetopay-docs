@@ -1,0 +1,296 @@
+---
+openapi: 3.0.0
+info:
+  title: pinpad
+  version: '1.0'
+  license:
+    name: propietary
+servers:
+- url: https://pinpad-dev.placetopay.ws
+  description: pinpad dev
+- url: https://pinpad-qa.placetopay.ws
+  description: pinpad qa
+- url: https://pinpad-uat.placetopay.ws
+  description: pinpad uat
+- url: https://pinpad.placetopay.com
+  description: pinpad production
+paths:
+  "/api/pinblock-generator/{transaction}":
+    post:
+      summary: Generar PinBlock
+      tags:
+      - pinblock
+      responses:
+        '200':
+          description: 'La API devuelve una respuesta de estado 200 con el PinBlock generado'
+          content:
+            application/json:
+              schema:
+                type: object
+                description: json
+                properties:
+                  status:
+                    type: object
+                    description: json status
+                    required:
+                    - status
+                    - message
+                    properties:
+                      status:
+                        type: number
+                        description: Código de estado
+                      message:
+                        type: string
+                        description: Descripción de estado
+                  data:
+                    type: object
+                    description: 'data'
+                    required:
+                      - pinblock
+                    properties:
+                      pinblock:
+                        type: string
+                        description: Cadena de caracteres de con longitud de 16
+                required:
+                  - status
+                  - data
+              examples:
+                Example response OK:
+                  value:
+                    status:
+                      status: 1000
+                      message: The PinBlock has been successfully generated.
+                    data:
+                      pinblock: 13434DFJFGRRG54
+        '401':
+          "$ref": "#/components/responses/401-unauthenticated"
+        '403':
+          "$ref": "#/components/responses/403-authorized"
+        '404':
+          description: Transaction Not Found
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    status:
+                      status: 1404
+                      message: Transaction id was not found
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: number
+                      message:
+                        type: string
+              examples:
+                Transaction was not found:
+                  value:
+                    status:
+                      status: 1404
+                      message: Transaction id was not found
+      operationId: post-pinpad
+      description: "> Este punto final es responsable de recibir el PIN ingresado por
+        el titular de la tarjeta y responder con la clave de bloqueo PIN cifrada de la siguiente manera:
+        \n\nDiagrama de Flujo\n\n![Esquema general del servicio](../assets/images/pinblock-generator.png)\n "
+      security:
+        - token: []
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: 'Json'
+              type: object
+              properties:
+                pin:
+                  type: string
+                  description: dígitos numéricos por el titular de la tarjeta [PIN](https://en.wikipedia.org/wiki/Personal_identification_number),
+                    tipo de cadena y longitud de 4 a 12
+                  minLength: 4
+                  maxLength: 12
+                  example: '0123'
+                pan:
+                  type: string
+                  description: 12-19 dígitos del número de tarjeta [PAN](https://en.wikipedia.org/wiki/Payment_card_number)
+                  minLength: 12
+                  maxLength: 19
+                  example: '41111111111111'
+                format:
+                  type: number
+                  description: formato a aplicar al pin, puede ser 0, 1, 2 o 3 más
+                    info [ISO 9564](https://en.wikipedia.org/wiki/ISO_9564)
+                  enum:
+                    - 0
+                    - 1
+                    - 2
+                    - 3
+                  example: 0
+              required:
+                - pin
+                - pan
+                - format
+            examples:
+              example-format 0:
+                value:
+                  pin: '5456'
+                  pan: '123456789123'
+                  format: 0
+        description: "> Envía los datos necesarios para crear el PinBlock"
+    parameters:
+      - schema:
+          type: string
+        name: transaction
+        in: path
+        required: true
+        description: uuid of transaction created
+  "/api/transaction":
+    post:
+      summary: Crear transacción
+      operationId: post-api-transaction
+      responses:
+        '200':
+          description: La API devuelve una respuesta de estado 200 con el ID de transacción y las posiciones generadas
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    status:
+                      status: 1000
+                      message: The token has been successfully validated. PinPad SDK
+                        will be loaded
+                    data:
+                      positions: '6871245903'
+                      transactionId: fdcd769e-c799-494d-a240-1ec80fe6ae06
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: number
+                      message:
+                        type: string
+                  data:
+                    type: object
+                    properties:
+                      positions:
+                        type: string
+                      transactionId:
+                        type: string
+              examples:
+                example response OK:
+                  value:
+                    status:
+                      status: 1000
+                      message: The token has been successfully validated. PinPad SDK
+                        will be loaded
+                    data:
+                      positions: '6871245903'
+                      transactionId: fdcd769e-c799-494d-a240-1ec80fe6ae06
+                example response error:
+                  value:
+                    status:
+                      status: 1002
+                      message: The pin length may not be greater than 12.
+        '401':
+          "$ref": "#/components/responses/401-unauthenticated"
+        '403':
+          "$ref": "#/components/responses/403-authorized"
+      description: Create new transaction
+      security:
+        - token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              x-examples:
+                example-1:
+                  pinLength: 4
+              properties:
+                pinLength:
+                  type: integer
+                  minimum: 4
+                  maximum: 12
+                  description: La longitud del pin debe ser mínima de 4 y máxima de 12.
+              required:
+                - pinLength
+            examples:
+              example request:
+                value:
+                  pinLength: 4
+        description: La consulta debe contener la longitud del pin, que no puede ser un número entero menor que 4 ni mayor que 12.
+      tags:
+        - pinblock
+components:
+  securitySchemes:
+    token:
+      type: http
+      scheme: bearer
+      description: unique user token
+  responses:
+    403-authorized:
+      description: Ejemplo de respuesta cuando el token no está autorizado
+      content:
+        application/json:
+          schema:
+            description: ''
+            type: object
+            properties:
+              status:
+                type: object
+                properties:
+                  status:
+                    type: number
+                  message:
+                    type: string
+                    minLength: 1
+                required:
+                - status
+                - message
+            required:
+            - status
+          examples:
+            Client is not authorized:
+              value:
+                status:
+                  status: 1102
+                  message: Client is not authorized
+    401-unauthenticated:
+      description: Ejemplo de respuesta cuando el token no es válido o es nulo
+      content:
+        application/json:
+          schema:
+            description: ''
+            type: object
+            properties:
+              status:
+                type: object
+                properties:
+                  status:
+                    type: number
+                  message:
+                    type: string
+                    minLength: 1
+                required:
+                - status
+                - message
+            required:
+            - status
+          examples:
+            Client is not authenticated:
+              value:
+                status:
+                  status: 1101
+                  message: Client is not authenticated
+tags:
+- name: Merchant management
+- name: pinblock
+- name: transaction
