@@ -1,0 +1,146 @@
+export const description =
+  'Learn about the authentication protocol for the Microsites API and how to generate your authentication.';
+  
+# Authentication
+
+To interact with the Microsites API, you must authenticate your requests. This way, we identify and validate the information to ensure your operations are secure. The API uses the *Web Services Security UsernameToken Profile 1.1*. {{ className: 'lead' }}
+
+## API Credentials {{ id: 'api-credentials' }}
+
+To integrate with our API as well as Checkout, you need your `login` and `secretKey` credentials.
+
+- **login:** Site identifier, can be considered public as it travels as plain data in API requests.
+- **secretKey:** Site's secret key, should be private. From this data, a new `tranKey` will be generated and sent in the requests.
+
+<Note>
+  These credentials are specific to your site and must be treated securely. Do not share your credentials in public areas such as Github, client-side code, or other places easily accessible by third parties.
+</Note>
+
+## Authentication Object {{ id: 'authentication-object' }}
+
+The `auth` parameter must be sent in all API requests and contains the group of properties necessary to verify authentication.
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="auth.login" type="string">
+        Site identifier
+      </Property>
+      <Property name="auth.tranKey" type="string">
+        Generated tranKey credential. Detailed explanation follows.
+      </Property>
+      <Property name="auth.nonce" type="string">
+        Random value for each request encoded in Base64.
+      </Property>
+      <Property name="auth.seed" type="string">
+        Current date, generated in ISO 8601 format.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+
+    ```json {{ 'title': 'Example Authentication' }}
+    {    
+      "auth": {
+        "login":"1441d14df19ec88431e513bb990326e1",
+        "tranKey":"DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=",
+        "nonce":"enQ4dXh3YWhkMWM=",
+        "seed":"2023-06-21T09:56:06-05:00"
+      },
+      ...
+    }
+
+    ```
+
+  </Col>
+</Row>
+
+
+## How to generate your authentication {{ id: 'how-to-generate-your-authentication' }}
+
+You need to know and prepare the following data:
+
+**login:** `login` credential provided when starting your integration. Site identifier.
+
+**secretKey:** `secretKey` credential provided when starting your integration. Site's secret key.
+
+**seed:** The date when the authentication was generated. The date must be in ISO 8601 format.    
+Example: `2023-06-21T09:56:06-05:00`
+
+**nonce:** Arbitrary value that identifies a request as unique.   
+It is generated and used for other operations.   
+When sent, it must be encoded in base 64.   
+Example: `base64('927342197')`
+
+**tranKey:** It is programmatically generated for each request.   
+It is generated using the following formula: `Base64(SHA-256(nonce + seed + secretKey))`. This formula should be translated according to the programming language used.
+
+
+<CodeGroup title="Generate authentication">
+
+```php
+$login = "siteLogin";
+$secretKey = "siteSecretKey";
+$seed = date('c');
+$rawNonce = rand();
+
+$tranKey = base64_encode(hash('sha256', $rawNonce.$seed.$secretKey, true));
+$nonce = base64_encode($rawNonce);
+
+$body = [
+  "auth" => [
+    "login" => $login,
+    "tranKey" => $tranKey,
+    "nonce" => $nonce,
+    "seed" => $seed,
+  ],
+  // ... other params
+];
+```
+
+```js
+const crypto = require('crypto');
+
+const login = "siteLogin";
+const secretKey = "siteSecretKey";
+const seed = new Date().toISOString();
+const rawNonce = Math.floor(Math.random() * 1000000);
+
+const tranKey = Buffer.from(crypto.createHash('sha256').update(rawNonce + seed + secretKey).digest(), 'binary').toString('base64');
+const nonce = Buffer.from(rawNonce.toString()).toString('base64');
+
+const body = {
+  auth: {
+    login: login,
+    tranKey: tranKey,
+    nonce: nonce,
+    seed: seed,
+  },
+  // ... other params
+};
+```
+
+</CodeGroup>
+
+## Possible Errors {{ id: 'possible-errors' }}
+
+Code | Cause
+---------|----------
+ 101 | Site identifier does not exist (incorrect login or not found in the environment).
+ 102 | TranKey hash does not match (incorrect or malformed tranKey).
+ 103 | Seed date greater than 5 minutes.
+ 104 | Site inactive.
+
+## Frequent Errors {{ id: 'frequent-errors' }}
+
+**Error message “Failed to obtain site information”:**   
+This is likely because you are trying to use credentials in the wrong environment, verify that you are using the correct credentials for the testing or production environment.
+
+**Error message “Malformed authentication”:**   
+This occurs when the system does not detect that login, tranKey, seed, or nonce are being sent in the auth structure, or if these data are sent incorrectly, i.e., without the "application/json" content-type parameter, so the server interprets the request as text instead of a data array. You can validate this by making the request to the URL https://dnetix.co/p2p/client and capturing the response, which acts as a mirror of the request and allows you to verify the parameters and the message body.
+
+**SoapFault responds with the message "Authentication Failed 103":**   
+In the authentication process, Placetopay checks the Created field. This field must be in GMT time or local time using the time zone. If you get this response, it means your time is not accurate with real-time. We only allow a 5-minute difference between times. You can use NTP to keep the clock accurate.
+
+**Getting different password digest using the EXACT values as in previous examples for BASE64(SHA256($Nonce + $Created . $secretKey)):**   
+Keep in mind that BASE64 should be for the raw output of SHA256, and according to all programming languages, this may be required to configure this option, for example. In PHP, base64_encode(hash('sha256' ... , true)) this parameter would return the raw output for the SHA256 algorithm.

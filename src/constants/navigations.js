@@ -856,5 +856,93 @@ export const TAB_NAVIGATION = {
         ],
       },
     ],
-  }
+  },
+  microsites: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'microsites',
+        href: '/microsites',
+        icon: Book,
+        links: [
+          {
+            title: 'Micrositios',
+            links: [
+              { title: 'introducción', href: '/microsites' },
+            ],
+          },
+          {
+            title: 'Integración',
+            links: [
+              { title: 'Autenticación', href: '/microsites/authentication' },
+              {
+                title: 'Prueba tu integración',
+                href: '/microsites/test-your-integration',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'microsites/api',
+        href: '/microsites/api/reference/microsites',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'Microsites',
+                href: '/microsites/api/reference/microsites',
+              },
+            ],
+          }
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentation',
+        identifier: 'microsites',
+        href: '/en/microsites',
+        icon: Book,
+        links: [
+          {
+            title: 'Microsites',
+            links: [
+              { title: 'Introduction', href: '/microsites' },
+            ],
+          },
+          {
+            title: 'Integration',
+            links: [
+              { title: 'Authentication', href: '/microsites/authentication' },
+              {
+                title: 'Test your integration',
+                href: '/microsites/test-your-integration',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'microsites/api',
+        href: '/en/microsites/api/reference/microsites',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'Microsites',
+                href: '/microsites/api/reference/microsites',
+              },
+            ],
+          }
+        ],
+      },
+    ],
+  },
 }
