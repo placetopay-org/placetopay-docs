@@ -902,6 +902,15 @@ export const TAB_NAVIGATION = {
           },
         ],
       },
+      {
+        title: 'API',
+        identifier: 'sdks/api',
+        href: '/en/sdks/pinpad/api',
+        icon: DocumentCode,
+        links: [
+          { title: 'API SDKs', links: [{ title: 'PinPad', href: '/sdks/pinpad/api' }] }
+        ],
+        }
     ],
   },
   acs: {
