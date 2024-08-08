@@ -1,12 +1,34 @@
 import { PinpadPlayground } from '@/components/PinpadPlayground';
+import { PinpadFlow } from '@/components/flowChart';
 
 # PinPad SDK
 
-El SDK de PinPad está diseñado para simplificar la integración de dispositivos de entrada segura de PIN en tu aplicación.
+El SDK de PinPad está diseñado para simplificar la integración de dispositivos de entrada segura de **PIN** en tu aplicación.
 
 ## Introducción {{ id: 'introduction' }}
 
-Un PIN pad, o dispositivo de entrada de PIN (PED), es un dispositivo electrónico utilizado en transacciones con tarjetas de débito, crédito o tarjetas inteligentes para aceptar y encriptar el número de identificación personal (PIN) del titular de la tarjeta. Este SDK proporciona una manera sencilla de crear y gestionar estos dispositivos en el frontend con solo una instancia de clase y la ejecución de un método.
+Un **PIN** pad, o dispositivo de entrada de **PIN** (PED), es un dispositivo electrónico utilizado en transacciones con tarjetas de débito, crédito o tarjetas inteligentes para aceptar y encriptar el número de identificación personal (**PIN**) del titular de la tarjeta. Este SDK proporciona una manera sencilla de crear y gestionar estos componentes en el frontend con solo una instancia de clase y la ejecución de un método.
+
+De igual manera, el SDK de PinPad proporciona una forma sencilla de conectarse con el Backend de PlacetoPay para obtener las posiciones de los botones de acción del PinPad y generar el **Pinblock cifrado** del **PIN** ingresado por el usuario. Por lo tanto, debe conocer los siguientes conceptos:
+
+- **PIN:** número de dígitos del titular de la tarjeta de 4 a 12 dígitos de longitud, consulte **PIN** para obtener más información.
+- **PAN:** el PAN del número de tarjeta para obtener más información.
+- **Formato:** formato a aplicar al PIN, puede ser 0, 1, 2 o 3 más información ISO 9564.
+  - **Formato 0:** el bloque PIN se construye mediante la operación XOR de dos campos de 64 bits: el campo **PIN** de texto sin formato y el campo de número de cuenta, ambos compuestos por 16 nibbles de cuatro bits. Este formato lo utiliza EBUS.
+  - **Formato 1:** este formato se debe utilizar cuando no hay PAN disponible.
+  - **Formato 2:** el formato 2 es solo para uso local con sistemas fuera de línea, por ejemplo, tarjetas inteligentes.
+  - **Formato 3:** el formato 3 es el mismo que el formato 0, excepto que los dígitos de "relleno" son valores aleatorios de 10 a 15, y el primer nibble (que identifica el formato del bloque) tiene el valor 3.
+
+## Cómo funciona {{ id: 'how-it-works' }}
+
+El SDK de PinPad se compone de dos clases principales:
+
+- **PinPad:** clase que se encarga de renderizar el componente del PinPad en el frontend.
+- **PinPadClient:** clase que se encarga de conectarse con el Backend de PlacetoPay para obtener las posiciones de los botones de acción del PinPad y generar el **Pinblock cifrado** del **PIN** ingresado por el usuario.
+
+En el siguiente diagrama se describe de forma visual con mas detalle el ciclo de vida de la integración:
+
+<PinpadFlow class="px-2 -my-5 bg-white" />
 
 ## Instalación {{ id: 'installation' }}
 
@@ -52,6 +74,21 @@ form.addEventListener('submit', (event) => {
 
 ## Conexión con el Backend {{ id: 'backend-connection' }}
 
+URLs de ambientes para conectarte a los servicios de PlacetoPay PinPad:
+
+| Ambiente | URL |
+| --- | --- |
+| DEV | `https://pinpad-dev.placetopay.ws` |
+| QA | `https://pinpad-qa.placetopay.ws` |
+| UAT | `https://pinpad-UAT.placetopay.ws` |
+| PROD | `https://pinpad.placetopay.com` |
+
+<Note> 
+Para conectarte a los servicios de PlacetoPay PinPad, necesitas un token de autenticación. El cual es proporcionado por el personal de PlacetoPay al enrolarte en el servicio.
+</Note>
+
+### Crear transacción y obtener posiciones de los botones {{ id: 'create-transaction' }}
+
 Para obtener las posiciones de los botones de acción del PinPad, debes conectarte con el Backend de PlacetoPay. Para esto, puedes utilizar el SDK de PlacetoPay:
 
 ```javascript
@@ -77,9 +114,16 @@ La respuesta que obtiene de la solicitud tiene la siguiente estructura:
 }
 ```
 
-## Enviar el PIN para encriptar {{ id: 'encrypt-pin' }}
+### Enviar el PIN para encriptar {{ id: 'encrypt-pin' }}
 
-Una vez que el usuario haya ingresado el PIN, puedes enviarlo al Backend para encriptarlo:
+Una vez que el usuario haya ingresado el PIN, debes enviarlo al Backend para encriptarlo, para esto puedes utilizar el SDK de PlacetoPay y el método `generatePinBlock` con los siguientes datos:
+
+| Propiedad | Tipo | Descripción |
+| --- | --- | --- |
+| `transactionId` | `number` | `required` <br/> Identificador de la transacción |
+| `format` | `number` | `required` <br/> Formato de encriptación del PIN <br/> Posibles valores: `ISO-0`, `ISO-1`, `ISO-3` |
+| `pin` | `string` | `required` <br/> PIN ingresado por el usuario |
+| `pan` | `string` | `required` <br/> Número de la tarjeta del usuario |
 
 ```javascript
 const data = {
