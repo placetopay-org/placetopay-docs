@@ -20,7 +20,7 @@ export const CopyContent = ({ content }) => {
       }}
     >
       {content}
-      <ClipboardIcon className="invisible transition duration-300 group-hover/button:visible h-5 w-5 fill-gray-500/20 stroke-gray-500 transition-colors group-hover/button:stroke-gray-400" />
+      <ClipboardIcon className="invisible duration-300 group-hover/button:visible h-5 w-5 fill-gray-500/20 stroke-gray-500 transition-colors group-hover/button:stroke-gray-400" />
 
       <div
         aria-hidden="true"
