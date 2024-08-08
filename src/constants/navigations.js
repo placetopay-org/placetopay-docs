@@ -41,7 +41,7 @@ export const TAB_NAVIGATION = {
                 title: 'Prueba tu integración',
                 href: '/checkout/test-your-integration',
               },
-              { title: 'Reembolsos', href: '/checkout/refund'}
+              { title: 'Reembolsos', href: '/checkout/refund' }
             ],
           },
         ],
@@ -111,7 +111,7 @@ export const TAB_NAVIGATION = {
                 title: 'Test your integration',
                 href: '/checkout/test-your-integration',
               },
-              { title: 'Refund', href: '/checkout/refund'},
+              { title: 'Refund', href: '/checkout/refund' },
             ],
           },
         ],
@@ -186,6 +186,10 @@ export const TAB_NAVIGATION = {
                 title: 'Procesamiento con cuentas bancarias',
                 href: '/gateway/processing-with-bank-accounts',
               },
+              {
+                title: 'Notificación',
+                href: '/gateway/notification',
+              }
             ],
           },
         ],
@@ -267,6 +271,10 @@ export const TAB_NAVIGATION = {
                 title: 'Processing with bank accounts',
                 href: '/gateway/processing-with-bank-accounts',
               },
+              {
+                title: 'Notification',
+                href: '/gateway/notification',
+              }
             ],
           },
         ],
@@ -344,12 +352,12 @@ export const TAB_NAVIGATION = {
               { title: 'Requerimientos para el cliente que va a integrarse', href: '/three-d-s-server/integration/client-requirements' },
               { title: 'Sesión', href: '/three-d-s-server/integration/session' },
               { title: 'Sesión con Digital Authentication Framework', href: '/three-d-s-server/integration/session-daf' },
-              { title: 'Sesión desacoplada', href: '/three-d-s-server/integration/session-decoupled'},
+              { title: 'Sesión desacoplada', href: '/three-d-s-server/integration/session-decoupled' },
               { title: 'Sesión con información previa', href: '/three-d-s-server/integration/session-prior-info' },
               { title: 'Sesión transacción recurrente', href: '/three-d-s-server/integration/session-recurrent' },
-              { title: 'Sesión transacciones de no pago', href: '/three-d-s-server/integration/session-subscription'},
-              { title: 'Términos y Definiciones', href: '/three-d-s-server/integration/terms-and-definitions'},
-              { title: 'Datos del proceso de autenticación', href: '/three-d-s-server/integration/transaction-status'}
+              { title: 'Sesión transacciones de no pago', href: '/three-d-s-server/integration/session-subscription' },
+              { title: 'Términos y Definiciones', href: '/three-d-s-server/integration/terms-and-definitions' },
+              { title: 'Datos del proceso de autenticación', href: '/three-d-s-server/integration/transaction-status' }
             ],
           },
           {
@@ -360,11 +368,11 @@ export const TAB_NAVIGATION = {
               { title: 'Página de Inicio (Home)', href: '/three-d-s-server/panel/home' },
               { title: 'Categorías de actividad económica', href: '/three-d-s-server/panel/configurations' },
               { title: 'Funcionalidades', href: '/three-d-s-server/panel/functionalities' },
-              { title: '¿Cómo configurar 3DS Server?', href: '/three-d-s-server/panel/general-configuration'},
+              { title: '¿Cómo configurar 3DS Server?', href: '/three-d-s-server/panel/general-configuration' },
               { title: 'Tokens', href: '/three-d-s-server/panel/security' },
               { title: 'Comercios en 3DS Server', href: '/three-d-s-server/panel/merchant-configuration' },
-              { title: 'Métricas', href: '/three-d-s-server/panel/metrics'},
-              { title: 'Reportes', href: '/three-d-s-server/panel/reports'},
+              { title: 'Métricas', href: '/three-d-s-server/panel/metrics' },
+              { title: 'Reportes', href: '/three-d-s-server/panel/reports' },
             ],
           },
         ],
@@ -494,5 +502,141 @@ export const TAB_NAVIGATION = {
         ]
       }
     ]
+  },
+  'token-requestor': {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'token-requestor',
+        href: '/token-requestor',
+        icon: Book,
+        links: [
+          {
+            title: 'Token requestor',
+            links: [
+              { title: 'Introducción', href: '/token-requestor' },
+              { title: 'Tipos de identificación', href: '/token-requestor/business-identification-types' },
+              { title: 'Codigos de respuesta', href: '/token-requestor/response-codes' },
+            ],
+          },
+          {
+            title: 'Integración',
+            links: [
+              { title: 'Autenticación', href: '/token-requestor/integration/authentication' },
+              { title: 'Notificaciones', href: '/token-requestor/integration/notifications' },
+              { title: 'Prueba tu integración', href: '/token-requestor/integration/testing' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'token-requestor/api',
+        href: '/token-requestor/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introducción',
+            links: [
+              { title: 'Inicio', href: '/token-requestor/api' },
+            ],
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Onboarding', href: '/token-requestor/api/onboarding' },
+              { title: 'Enroll card', href: '/token-requestor/api/enroll-card' },
+              { title: 'Checkout', href: '/token-requestor/api/checkout' },
+              { title: 'Get token status', href: '/token-requestor/api/get-token-status' },
+              { title: 'Onboarding status', href: '/token-requestor/api/onboarding-status' },
+              { title: 'Get Keys', href: '/token-requestor/api/keys' },
+            ],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentación',
+        identifier: 'token-requestor',
+        href: '/token-requestor',
+        icon: Book,
+        links: [
+          {
+            title: 'Token requestor',
+            links: [
+              { title: 'Introduction', href: '/token-requestor' },
+              { title: 'Merchant Identification Types', href: '/token-requestor/business-identification-types' },
+              { title: 'Response Codes', href: '/token-requestor/response-codes' },
+            ],
+          },
+          {
+            title: 'Integration',
+            links: [
+              { title: 'Authentication', href: '/token-requestor/integration/authentication' },
+              { title: 'Notifications', href: '/token-requestor/integration/notifications' },
+              { title: 'Test Your Integration', href: '/token-requestor/integration/testing' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'token-requestor/api',
+        href: '/token-requestor/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introduction',
+            links: [
+              { title: 'Home', href: '/token-requestor/api' },
+            ],
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Onboarding', href: '/token-requestor/api/onboarding' },
+              { title: 'Enroll card', href: '/token-requestor/api/enroll-card' },
+              { title: 'Checkout', href: '/token-requestor/api/checkout' },
+              { title: 'Get token status', href: '/token-requestor/api/get-token-status' },
+              { title: 'Onboarding status', href: '/token-requestor/api/onboarding-status' },
+              { title: 'Get Keys', href: '/token-requestor/api/keys' },
+            ],
+          },
+        ],
+      }
+    ]
+  },
+  sdks: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'sdks',
+        href: '/sdks/pinpad',
+        icon: Book,
+        links: [
+          {
+            title: 'SDKs', links: [
+              { title: 'PinPad', href: '/sdks/pinpad' }
+            ]
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentation',
+        identifier: 'sdks',
+        href: '/sdks/pinpad',
+        icon: Book,
+        links: [
+          {
+            title: 'SDKs', links: [
+              { title: 'PinPad', href: '/sdks/pinpad' }
+            ]
+          },
+        ],
+      },
+    ],
   },
 }
