@@ -1,0 +1,322 @@
+import { PinpadPlayground } from '@/components/PinpadPlayground';
+import { PinpadFlow } from '@/components/flowChart';
+
+# PinPad SDK
+
+El SDK de PinPad está diseñado para simplificar la integración de dispositivos de entrada segura de **PIN** en tu aplicación.
+
+## Introducción {{ id: 'introduction' }}
+
+Un **PIN** pad, o dispositivo de entrada de **PIN** (PED), es un dispositivo electrónico utilizado en transacciones con tarjetas de débito, crédito o tarjetas inteligentes para aceptar y encriptar el número de identificación personal (**PIN**) del titular de la tarjeta. Este SDK proporciona una manera sencilla de crear y gestionar estos componentes en el frontend con solo una instancia de clase y la ejecución de un método.
+
+De igual manera, el SDK de PinPad proporciona una forma sencilla de conectarse con el Backend de PlacetoPay para obtener las posiciones de los botones de acción del PinPad y generar el **Pinblock cifrado** del **PIN** ingresado por el usuario. Por lo tanto, debe conocer los siguientes conceptos:
+
+- **PIN:** número de dígitos del titular de la tarjeta de 4 a 12 dígitos de longitud.
+- **PAN:** el PAN del número de tarjeta para obtener más información.
+- **Formato:** formato a aplicar al PIN, puede ser 0, 1, 2 o 3 más información ISO 9564.
+  - **Formato 0:** el bloque PIN se construye mediante la operación XOR de dos campos de 64 bits: el campo **PIN** de texto sin formato y el campo de número de cuenta, ambos compuestos por 16 nibbles de cuatro bits. Este formato lo utiliza EBUS.
+  - **Formato 1:** este formato se debe utilizar cuando no hay PAN disponible.
+  - **Formato 2:** el formato 2 es solo para uso local con sistemas fuera de línea, por ejemplo, tarjetas inteligentes.
+  - **Formato 3:** el formato 3 es el mismo que el formato 0, excepto que los dígitos de "relleno" son valores aleatorios de 10 a 15, y el primer nibble (que identifica el formato del bloque) tiene el valor 3.
+
+## Cómo funciona {{ id: 'how-it-works' }}
+
+El SDK de PinPad se compone de dos clases principales:
+
+- **PinPad:** clase que se encarga de renderizar el componente del PinPad en el frontend.
+- **PinPadClient:** clase que se encarga de conectarse con el Backend de PlacetoPay para obtener las posiciones de los botones de acción del PinPad y generar el **Pinblock cifrado** del **PIN** ingresado por el usuario.
+
+En el siguiente diagrama se describe de forma visual con mas detalle el ciclo de vida de la integración:
+
+<PinpadFlow />
+
+## Instalación {{ id: 'installation' }}
+
+Para instalar el SDK de PinPad, simplemente ejecuta el siguiente comando en tu terminal:
+
+```bash
+npm install @placetopay/pinpad
+```
+
+## Uso {{ id: 'usage' }}
+
+Para comenzar a utilizar el SDK de PinPad, primero debes importar la clase `PinPad` desde el paquete `@placetopay/pinpad`:
+
+```javascript
+import { PinPad } from '@placetopay/pinpad'
+```
+
+Luego, crea una instancia de la clase `PinPad`:
+
+```javascript
+const pinpad = new PinPad()
+```
+
+Una vez tengas la instancia, puedes ejectuar el metodo `render` para mostrar el `input` para el PinPad. Este método recibe un selector CSS para el contenedor donde se renderizarán los componentes del PinPad y como segundo parámetro las posiciones ([obtenidas del Backend](#backend-connection)) de los botones de acción:
+
+```javascript
+pinpad.render('#your-pinpad-container', positions)
+```
+
+El pinpad renderizado contiene un input para el PIN, asi podrás obtener el valor ingresado por el usuario al momento de enviar el formulario:
+
+```javascript
+const form = document.querySelector('#your-form')
+
+form.addEventListener('submit', (event) => {
+  event.preventDefault()
+
+  const formData = new FormData(form)
+
+  const pin = formData.get('pin')
+})
+```
+
+## Conexión con el Backend {{ id: 'backend-connection' }}
+
+URLs de ambientes para conectarte a los servicios de PlacetoPay PinPad:
+
+| Ambiente | URL |
+| --- | --- |
+| DEV | `https://pinpad-dev.placetopay.ws` |
+| QA | `https://pinpad-qa.placetopay.ws` |
+| UAT | `https://pinpad-UAT.placetopay.ws` |
+| PROD | `https://pinpad.placetopay.com` |
+
+<Note> 
+Para conectarte a los servicios de PlacetoPay PinPad, necesitas un token de autenticación. El cual es proporcionado por el personal de PlacetoPay al enrolarte en el servicio.
+</Note>
+
+### Crear transacción y obtener posiciones de los botones {{ id: 'create-transaction' }}
+
+Para obtener las posiciones de los botones de acción del PinPad, debes conectarte con el Backend de PlacetoPay. Para esto, puedes utilizar el SDK de PlacetoPay:
+
+```javascript
+const client = new PinPadClient(API_URL, AUTH_TOKEN)
+const response = await client.createTransaction()
+const positions = response.data.data.positions
+```
+
+La respuesta que obtiene de la solicitud tiene la siguiente estructura:
+
+```json
+{
+    "data": {
+        "status": {
+          "status": "OK",
+          "message": "The Transaction has been successfully generated"
+        },
+        "data": {
+            "positions": "1,2,3,4,5,6,7,8,9,0",
+            "transactionId": "1234567890"
+        }
+    }
+}
+```
+
+### Enviar el PIN para encriptar {{ id: 'encrypt-pin' }}
+
+Una vez que el usuario haya ingresado el PIN, debes enviarlo al Backend para encriptarlo, para esto puedes utilizar el SDK de PlacetoPay y el método `generatePinBlock` con los siguientes datos:
+
+| Propiedad | Tipo | Descripción |
+| --- | --- | --- |
+| `transactionId` | `number` | `required` <br/> Identificador de la transacción |
+| `format` | `number` | `required` <br/> Formato de encriptación del PIN <br/> Posibles valores: `0`, `1`, `2`, `3` |
+| `pin` | `string` | `required` <br/> PIN ingresado por el usuario |
+| `pan` | `string` | `required` <br/> El número de tarjeta [PAN para más información](https://en.wikipedia.org/wiki/Payment_card_number) |
+
+```javascript
+const data = {
+    transactionId,
+    format,
+    pin,
+    pan,
+}
+
+client.generatePinBlock(data)
+    .then(res => {
+        return res.data
+    }).catch(err => {
+        return err
+    })
+```
+
+Obtendrás una respuesta como esta:
+
+```json
+{
+    "status": {
+        "status": "OK",
+        "message": "The PIN has been successfully encrypted"
+    },
+    "data": {
+        "pinBlock": "1234567890ABCDEF"
+    }
+}
+```
+
+## Full example
+
+```javascript
+import { PinPad, PinPadClient } from '@placetopay/pinpad'
+
+const pinpad = new PinPad()
+const client = new PinPadClient(API_URL, AUTH_TOKEN)
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const response = await client.createTransaction()
+  const positions = response.data.data.positions
+
+  pinpad.render('#your-pinpad-container', positions)
+})
+
+const form = document.querySelector('#your-form')
+form.addEventListener('submit', async (event) => {
+  event.preventDefault()
+
+  const formData = new FormData(form)
+
+  // ...
+
+  const pin = formData.get('pin')
+  const data = {
+    transactionId,
+    format,
+    pin,
+    pan,
+  }
+
+  const encryptedPin = await client.generatePinBlock(data)
+  console.log(encryptedPin)
+
+  // ...
+})
+```
+
+## Uso con CDN {{ id: 'usage-cdn' }}
+
+Si prefieres utilizar el SDK de PinPad a través de un CDN, puedes hacerlo agregando este script a la cabecera de tu HTML:
+
+```html
+  <script async src="https://unpkg.com/@placetopay/pinpad-sdk@2/dist/pinpad-sdk.umd.js"></script>
+```
+
+Luego, puedes utilizar el SDK de la siguiente manera:
+
+```html
+<script>
+  const pinpad = new PinpadSDK.PinPad()
+  pinpad.render('#your-pinpad-container', '1,2,3,4,5,6,7,8,9,0')
+</script>
+```
+
+Y el cliente para conectarse al API de PlacetoPay:
+
+```html
+<script>
+  const client = new PinpadSDK.PinPadClient(API_URL, AUTH_TOKEN)
+  client.createTransaction()
+    .then(response => {
+      const positions = response.data.data.positions
+      pinpad.render('#your-pinpad-container', positions)
+    })
+</script>
+```
+
+### Uso con CDN en Javascript Environments
+
+Si estás utilizando el SDK de PinPad en un entorno de JavaScript, puedes importar el SDK de la siguiente manera:
+
+```javascript
+const loadScript = (url) => {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = url;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+};
+
+// Load the PinPad SDK and render the PinPad Component
+loadScript('YOUR_CDN_URL')
+  .then(() => {
+    if (!window.PinpadSDK) {
+      throw new Error('PinpadSDK is not available');
+    }
+
+    const pinpad = new PinpadSDK.PinPad()
+    const client = new PinpadSDK.PinPadClient(API_URL, AUTH_TOKEN)
+    client.createTransaction()
+      .then(response => {
+        const positions = response.data.data.positions
+        pinpad.render('#your-pinpad-container', positions)
+      })
+  });
+```
+
+## Integración Avanzada {{ id: 'advanced-integration' }}
+
+Conoce en detalle los métodos y eventos disponibles
+
+### PinPad
+
+#### Constructor
+
+```javascript
+const pinpad = new PinPad(options);
+```
+
+| Propiedad | Tipo | Descripción |
+| --- | --- | --- |
+| `locale` | `string` | `optional` <br/> Idioma del PinPad <br/> Por defecto: `document.documentElement.lang` <br/> Posibles valores: `es`, `en` |
+| `mask` | `string` o `boolean` | `optional` <br/> Máscara para el input del PinPad <br/> Por defecto: `*` |
+| `mode` | `string` | `optional` <br/> Modo de visualización del PinPad <br/> Por defecto: `float` <br/> Posibles valores: `modal`, `float`, `static` |
+| `pinLength` | `number` | `optional` <br/> Longitud del PIN <br/> Por defecto: `4` |
+| `theme` | `object` | `optional` <br/> Tema del PinPad <br/> Por defecto: `{}` |
+| `theme.inputBorderColorFocus` | `string` | `optional` <br/> Color de fondo del PinPad <br/> Por defecto: `rgba(17, 24, 39, 1)` |
+| `theme.inputOutlineColorFocus` | `string` | `optional` <br/> Color de borde del PinPad <br/> Por defecto: `rgba(209, 213, 219, 1)` |
+
+#### PinPad.render
+
+Renderiza el PinPad en el contenedor especificado.
+
+```javascript
+pinpad.render(selector, positions);
+```
+
+| Propiedad | Tipo | Descripción |
+| --- | --- | --- |
+| `selector` | `string` | `required` <br/> Selector CSS del contenedor donde se renderizará el PinPad |
+| `positions` | `string` | `required` <br/> Posiciones de los botones de acción del PinPad |
+
+### PinPadClient
+
+#### PinPadClient.createTransaction
+
+Método para crear obtener el `transactionId` y las `positions` de los botones.
+
+```javascript
+const response = await client.createTransaction();
+const { transactionId, positions } = response.data.data;
+```
+
+#### PinPadClient.generatePinBlock
+
+Método para encriptar el PIN ingresado por el usuario.
+
+```javascript
+const data = {
+  transactionId,
+  format,
+  pin,
+  pan,
+}
+
+const response = await client.generatePinBlock(data);
+const { pinBlock } = response.data.data;
+```
+
+## Playground
+
+<PinpadPlayground />
