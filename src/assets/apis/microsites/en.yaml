@@ -1,0 +1,478 @@
+openapi: 3.0.0
+x-stoplight:
+  id: 77vbitm5d3ufw
+info:
+  version: '1.0'
+  title: Microsites
+  contact: ''
+servers:
+  - url: 'https://dev.placetopay.com/microsites'
+paths:
+  /api/microsites:
+    post:
+      summary: Create microsites
+      responses:
+        '201':
+          $ref: '#/components/responses/Status - OK'
+        '401':
+          $ref: '#/components/responses/Status - Unauthorized'
+        '422':
+          description: Request with incorrect data
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Error'
+                required:
+                  - status
+                  - errors
+              examples:
+                Validation Error:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: '422'
+                      message: Validation error.
+                      date: '2021-03-26T16:39:59-05:00'
+                    errors:
+                      name:
+                        - The value entered in the name field has already been registered.
+                      alias:
+                        - The value entered in the alias field has already been registered.
+      operationId: post-api-microsites
+      description: |
+        Allows creating microsites (Open/Closed), the created microsite is enabled by default (unless otherwise indicated)
+
+        - **auth:** Authentication credentials
+          - **login** Site identifier.
+          - **tranKey** Site transactional key.
+          - **nonce** Random value encoded in base 64.
+          - **seed** Current date in ISO 8601 format.
+
+        - **type:** Type of microsite to create.
+
+        - **categories:** Categories associated with the microsite.
+
+        - **sites:** Sites associated with the microsite in the Admin Panel.
+
+        - **paymentExpiration:** Session expiration time for payment in minutes.
+
+        - Available configuration options for payments. All are _optional_ fields.
+          - allowPartial
+          - allowPayWithDuplicateReference
+          - isNoBuyerFill (only applies for *CLOSED*)
+          - allowDispersion (only applies for *CLOSED*)
+          - allowUnlimitedInstallments (only applies for *CLOSED*)
+          - autoReferenced (only applies for *OPEN*)
+          - allowRecurrence (only applies for *OPEN*)
+          - notSendBuyerAsPayer (only applies for *OPEN*)
+          - onlyPaymentLink (only applies for *OPEN*)
+
+        - Available configuration options for the payment order list (only applies for *CLOSED*). All are _optional_ fields.
+          - exactSearchByReference
+          - showDescription
+          - allowShowDebtorName
+          - allowPayMultipleInvoicesAtOnce
+          - allowSendDebtorCode
+          - allowChangeTotal
+          - olderFirst
+          - allowSeeHistoryPayments
+          - loginFromUrl
+          - flushInvoices
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Microsite creation
+              type: object
+              properties:
+                auth:
+                  type: object
+                  description: Site authentication. See more in [Authentication](/en/microsites/authentication)
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: "Site authentication. See more in Authentication"
+                      examples:
+                        - "1441d14df19ec88431e513bb990326e1"
+                    tranKey:
+                      type: string
+                      description: "Generated **tranKey** credential"
+                      examples:
+                        - "DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY="
+                    nonce:
+                      type: string
+                      description: "Random **value** for each request encoded in **Base64.**"
+                      examples:
+                        - "enQ4dXh3YWhkMWM="
+                    seed:
+                      type: string
+                      description: "Current **date**, generated in **ISO 8601** format."
+                      examples:
+                        - "2023-06-21T09:56:06-05:00"
+                name:
+                  type: string
+                  minLength: 3
+                  maxLength: 64
+                  description: 'Name used in the panel, views and payment forms, and other reports.'
+                alias:
+                  type: string
+                  minLength: 3
+                  maxLength: 32
+                  description: 'URL complement to access the microsite from the internet, for example https://dev.placetopay.com/_my-alias_.'
+                type:
+                  type: string
+                  description: Defines the type of microsite to create. Allowed values "OPEN" or "CLOSED".
+                categories:
+                  type: array
+                  description: 'Aliases of associated categories, these must be created or previously consulted by the system administrator.'
+                  items:
+                    type: string
+                sites:
+                  type: array
+                  description: 'Identifiers of the sites to which the microsite may belong, it can be one or many. At least one must be defined.'
+                  items:
+                    type: integer
+                loginFields:
+                  type: array
+                  minItems: 2
+                  description: 'Defines the access fields to start the payment session. Allowed values document|reference|alt_reference, required when the `type` is CLOSED.'
+                header:
+                  type: string
+                  format: binary
+                  description: Header image shown during the payment process. Allowed file formats jpg|jpeg|png|svg.
+                logo:
+                  type: string
+                  format: binary
+                  description: 'Image shown in the microsite search (if applicable, see `hide`). Allowed file formats jpg|jpeg|png|svg.'
+                footer:
+                  type: string
+                  format: binary
+                  description: Footer image shown during the payment process. Allowed file formats jpg|jpeg|png|svg.
+                paymentExpiration:
+                  type: integer
+                  description: 'Expiration (in minutes) of the payment session once redirection is performed, default is 10 minutes.'
+                disabled:
+                  type: boolean
+                  default: false
+                  description: Determines if the microsite is active (`true`) or inactive (`false`).
+                useWcLightbox:
+                  type: boolean
+                  default: false
+                  description: 'Determines if redirection should be made or a [lightbox](https://docs.placetopay.dev/checkout/lightbox) should be raised during the payment process.'
+                hide:
+                  type: boolean
+                  default: false
+                  description: Configures whether the microsite is available (`true`) or not (`false`) in the public search list.
+                allowPartial:
+                  type: boolean
+                  default: false
+                  description: Configures if partial payments of amounts to complete the total amount using various methods and forms of payment are accepted.
+                isNoBuyerFill:
+                  type: boolean
+                  default: true
+                  description: Pre-fill the payer's data in the payment session or not. Only applies for *CLOSED*.
+                allowDispersion:
+                  type: boolean
+                  default: false
+                  description: Enable fund dispersion payments. Only applies for *CLOSED*.
+                allowPayWithDuplicateReference:
+                  type: boolean
+                  default: false
+                  description: Allow payments with duplicate references.
+                allowUnlimitedInstallments:
+                  type: boolean
+                  default: false
+                  description: Allow unlimited deposits. Only applies for *CLOSED*.
+                autoReferenced:
+                  type: boolean
+                  default: false
+                  description: Generate random references in the payment process. Only applies for *OPEN*.
+                allowRecurrence:
+                  type: boolean
+                  default: false
+                  description: Allow recurrence configuration. Only applies for *OPEN*.
+                notSendBuyerAsPayer:
+                  type: boolean
+                  default: false
+                  description: Normally, the microsite captures the buyer's data (buyer) and the payer's data (payer) are captured in the payment process. This configuration allows defining the buyer as the payer using the same data. Only applies for *OPEN*.
+                onlyPaymentLink:
+                  type: boolean
+                  default: false
+                  description: 'Determines if the microsite can only be consumed using [Payment Links](https://placetopay-api.stoplight.io/docs/payment-links-docs/kl7noeqc5z13m-introduccion). Only applies for *OPEN*.'
+                exactSearchByReference:
+                  type: boolean
+                  default: false
+                  description: Determines if only the payment order associated with the login session data provided should be shown in the payment order list. Only applies for *CLOSED*.
+                allowPayMultipleInvoicesAtOnce:
+                  type: boolean
+                  default: false
+                  description: Allows defining if multiple payment orders can be paid in a single transaction by grouping them into a single payment amount. Only applies for *CLOSED*.
+                showDescription:
+                  type: boolean
+                  default: true
+                  description: Configures if the _description_ information of the payment order is shown in the payment order list after starting a payment session. Only applies for *CLOSED*.
+                allowShowDebtorName:
+                  type: boolean
+                  default: false
+                  description: Configures if the _responsible person_ information of the payment order is shown in the payment order list after starting a payment session. Only applies for *CLOSED*.
+                allowSendDebtorCode:
+                  type: boolean
+                  default: false
+                  description: Configures the _alternate reference_ as _description_ of the payment. Only applies for *CLOSED*.
+                allowChangeTotal:
+                  type: boolean
+                  default: false
+                  description: Allows changing the total amount when paying the payment order. Only applies for *CLOSED*.
+                olderFirst:
+                  type: boolean
+                  default: false
+                  description: Defines if older orders should be paid first (based on the creation/generation date of the order). Only applies for *CLOSED*.
+                allowSeeHistoryPayments:
+                  type: boolean
+                  default: true
+                  description: Determines if the payment history associated can be seen in the payment order list. Only applies for *CLOSED*.
+                loginFromUrl:
+                  type: boolean
+                  default: true
+                  description: Determines if the payment session can be started using the authentication data provided by URL (GET). Only applies for *CLOSED*.
+                flushInvoices:
+                  type: boolean
+                  default: true
+                  description: Enables automatic deletion of expired and unpaid payment orders. Only applies for *CLOSED*.
+                returnUrl:
+                  type: string
+                  description: Optional URL used to redirect the user after logging out from the microsite. This field must contain a valid URL to which the user will be directed after logging out. Applies only to CLOSED
+                fee:
+                  type: integer
+                  description: Additional amount that will be charged for each payment made through the microsite. This field is optional, of type integer, and must be greater than 0 if used. Applies only to CLOSED
+              required:
+                - auth
+                - name
+                - alias
+                - type
+                - categories
+                - sites
+                - loginFields
+            examples:
+              Basic:
+                value:
+                  auth:
+                    login: string
+                    tranKey: string
+                    nonce: string
+                    seed: string
+                  name: string
+                  alias: string
+                  type: string
+                  categories: []
+                  sites: []
+                  loginFields: integer
+                  allowPartial: true
+                  header: string
+              Closed:
+                value:
+                  auth:
+                    login: ''
+                    tranKey: ''
+                    nonce: ''
+                    seed: ''
+                  name: Best Real Estate
+                  alias: the-best
+                  type: CLOSED
+                  categories:
+                    - real_estate
+                  sites:
+                    - 4
+                    - 32
+                  loginFields:
+                    - document
+                    - reference
+                  allowPayMultipleInvoicesAtOnce: true
+                  useWcLightbox: true
+              Open:
+                value:
+                  auth:
+                    login: ''
+                    tranKey: ''
+                    nonce: ''
+                    seed: ''
+                  name: Donations The Boss
+                  alias: help-the-boss
+                  type: OPEN
+                  categories:
+                    - donations_and_help
+                  sites:
+                    - 312
+                  allowRecurrence: true
+                  allowPartial: true
+      x-stoplight:
+        id: 62n1o2rozpmjd
+components:
+  responses:
+    Status - OK:
+      description: Successful
+      content:
+        application/json:
+          schema:
+            description: ''
+            type: object
+            properties:
+              status:
+                $ref: '#/components/schemas/Status'
+            required:
+              - status
+          examples:
+            OK:
+              value:
+                status:
+                  status: OK
+                  reason: '201'
+                  message: Microsite created successfully
+                  date: '2021-03-26T16:19:31-05:00'
+    Status - Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            description: ''
+            type: object
+            properties:
+              status:
+                $ref: '#/components/schemas/Status'
+            required:
+              - status
+          examples:
+            Missing authentication:
+              value:
+                status:
+                  status: FAILED
+                  reason: '401'
+                  message: 'Authentication does not contain all required parameters (login, tranKey, seed, nonce)'
+                  date: '2021-03-26T16:26:03-05:00'
+            Incorrect authentication:
+              value:
+                status:
+                  status: FAILED
+                  reason: '401'
+                  message: Failed authentication 101
+                  date: '2021-03-26T16:29:45-05:00'
+            Inactive user:
+              value:
+                status:
+                  status: FAILED
+                  reason: '401'
+                  message: Failed authentication 104
+                  date: '2021-03-26T16:29:45-05:00'
+            Incorrect TranKey:
+              value:
+                status:
+                  status: FAILED
+                  reason: '401'
+                  message: Failed authentication 102
+                  date: '2021-03-26T16:29:45-05:00'
+            Incorrect seed:
+              value:
+                status:
+                  status: FAILED
+                  reason: '401'
+                  message: Failed authentication 103
+                  date: '2021-03-26T16:29:45-05:00'
+  schemas:
+    Status:
+      description: ''
+      type: object
+      properties:
+        status:
+          type: string
+          minLength: 1
+          description: 'Error status returned in the request. Allowed values "OK", "FAILED"'
+        reason:
+          type: string
+          minLength: 1
+          description: Error code returned in the request.
+        message:
+          type: string
+          minLength: 1
+          description: Description or error detail returned in the request.
+        date:
+          type: string
+          minLength: 25
+          description: Date in ISO 8601 format.
+      required:
+        - status
+        - reason
+        - message
+        - date
+      x-examples:
+        OK:
+          status: OK
+          reason: '201'
+          message: Microsite created successfully
+          date: '2021-03-26T16:19:31-05:00'
+        Unauthorized:
+          status: FAILED
+          reason: '401'
+          message: 'Authentication does not contain all required parameters (login, tranKey, seed, nonce)'
+          date: '2021-03-26T16:26:03-05:00'
+      x-stoplight:
+        id: b28bkxv68v84s
+    Error:
+      title: Error
+      type: object
+      x-examples:
+        example:
+          name:
+            - The value entered in the name field has already been registered.
+      properties:
+        key:
+          type: object
+          properties:
+            key:
+              type: array
+              items:
+                type: string
+      x-stoplight:
+        id: uia57rb56yncs
+    Auth:
+      description: ''
+      type: object
+      x-examples:
+        example:
+          login: testuser
+          tranKey: T9O+x3lNlQUf0ipuEuenPvBPlWs=
+          nonce: Yzkw0DVl0DJkZWJiODJiMDk1NTU9OTA5OGJlM7Q3Y2E=
+          seed: '2021-03-28T18:17:23-04:00'
+      properties:
+        login:
+          type: string
+          minLength: 1
+        tranKey:
+          type: string
+          minLength: 1
+        nonce:
+          type: string
+          minLength: 1
+        seed:
+          type: string
+          minLength: 1
+          format: date-time
+      required:
+        - login
+        - tranKey
+        - nonce
+        - seed
+      x-stoplight:
+        id: mdwjxk2r4vxv4

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Listbox, Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import { DocumentCode, MonitorMobbile, Activity, SecurityCard, Link } from 'iconsax-react'
+import { DocumentCode, MonitorMobbile, Activity, SecurityCard, Link, Calendar } from 'iconsax-react'
 import { LANGUAGES_CODES, useLocale } from './LocaleProvider'
 import clsx from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -45,6 +45,12 @@ const LINKS = {
       href: '/payment-links',
       icon: Link,
     },
+    {
+      title: 'Micrositios',
+      description: 'Creación y gestión de micrositios',
+      href: '/microsites',
+      icon: Calendar,
+    },
   ],
   [LANGUAGES_CODES.EN]: [
     {
@@ -82,7 +88,13 @@ const LINKS = {
       description: 'Create and manage payment links',
       href: '/en/payment-links',
       icon: Link,
-    }
+    },
+    {
+      title: 'Microsites',
+      description: 'Create and manage microsites',
+      href: '/en/microsites',
+      icon: Calendar,
+    },
   ],
 }
 
