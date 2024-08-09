@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Listbox, Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import { DocumentCode, MonitorMobbile, Activity, SecurityCard } from 'iconsax-react'
+import { DocumentCode, MonitorMobbile, Activity, SecurityCard, Link } from 'iconsax-react'
 import { LANGUAGES_CODES, useLocale } from './LocaleProvider'
 import clsx from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -28,10 +28,22 @@ const LINKS = {
       icon: Activity,
     },
     {
+      title: 'ACS',
+      description: 'Pagos más seguros',
+      href: '/acs',
+      icon: Activity,
+    },
+    {
       title: 'Token Requestor',
       description: 'Servicio de tokenización publica',
       href: '/token-requestor',
       icon: SecurityCard,
+    },
+    {
+      title: 'Link de Pago',
+      description: 'Crea y gestiona links de pago',
+      href: '/payment-links',
+      icon: Link,
     },
   ],
   [LANGUAGES_CODES.EN]: [
@@ -50,15 +62,27 @@ const LINKS = {
     {
       title: '3DS Server',
       description: 'Safer payments.',
-      href: 'en/three-d-s-server',
+      href: '/en/three-d-s-server',
+      icon: Activity,
+    },
+    {
+      title: 'ACS',
+      description: 'Safer payments.',
+      href: '/en/acs',
       icon: Activity,
     },
     {
       title: 'Token Requestor',
       description: 'Public tokenization service',
-      href: '/token-requestor',
+      href: '/en/token-requestor',
       icon: SecurityCard,
     },
+    {
+      title: 'Payment Link',
+      description: 'Create and manage payment links',
+      href: '/en/payment-links',
+      icon: Link,
+    }
   ],
 }
 
