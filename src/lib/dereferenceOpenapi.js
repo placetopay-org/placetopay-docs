@@ -7,14 +7,14 @@ const getLocale = (fileUrl) => {
   return ['en'].includes(possibleLocale) ? possibleLocale : 'es';
 }
 
-const getRouteWithLocale = (fileUrl) => {
+const getRouteWithLocale = (fileUrl, assetPath = null) => {
   const locale = getLocale(fileUrl);
-  const folder = new URL(fileUrl).pathname.split(`/src/pages/${locale === 'es' ? '' : locale + '/'}`)[1].split('/')[0];
+  const folder = assetPath ?? new URL(fileUrl).pathname.split(`/src/pages/${locale === 'es' ? '' : locale + '/'}`)[1].split('/')[0];
   return path.join(folder, `${locale}.yaml`)
 }
 
-export const dereferenceOpenapi = async (currentFileUrl, $refs) => {
-  const fileName = getRouteWithLocale(currentFileUrl);
+export const dereferenceOpenapi = async (currentFileUrl, $refs, $assetPath = null) => {
+  const fileName = getRouteWithLocale(currentFileUrl, $assetPath);
   const filePath = path.join(process.cwd(), 'src', 'assets', 'apis', fileName)
 
   if (!fs.existsSync(filePath)) {
