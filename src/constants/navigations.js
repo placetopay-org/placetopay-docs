@@ -476,7 +476,7 @@ export const TAB_NAVIGATION = {
       {
         title: 'API',
         identifier: 'three-d-s-server/api',
-        href: 'three-d-s-server/api',
+        href: '/three-d-s-server/api',
         icon: DocumentCode,
         links: [
           {
