@@ -393,7 +393,22 @@ export const TAB_NAVIGATION = {
           {
             title: 'Introducción',
             links: [
-              { title: 'Inicio', href: '/three-d-s-server/api' },
+              {
+                title: 'Inicio',
+                href: '/three-d-s-server/api'
+              },
+              {
+                title: 'Requerimientos para el cliente que va a integrarse',
+                href: '/three-d-s-server/api/client-requirements',
+              },
+              {
+                title: 'Términos y Definiciones',
+                href: '/three-d-s-server/api/terms-and-definitions',
+              },
+              {
+                title: 'Datos del proceso de autenticación',
+                href: '/three-d-s-server/api/transaction-status',
+              },
             ],
           },
 
@@ -411,18 +426,6 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Obtener información de una autenticación',
                 href: '/three-d-s-server/api/integration/authentication-info',
-              },
-              {
-                title: 'Requerimientos para el cliente que va a integrarse',
-                href: '/three-d-s-server/api/integration/client-requirements',
-              },
-              {
-                title: 'Términos y Definiciones',
-                href: '/three-d-s-server/api/integration/terms-and-definitions',
-              },
-              {
-                title: 'Datos del proceso de autenticación',
-                href: '/three-d-s-server/api/integration/transaction-status',
               },
               {
                 title: 'Tarjetas de Prueba',
@@ -521,7 +524,23 @@ export const TAB_NAVIGATION = {
           {
             title: 'Introducción',
             links: [
-              { title: 'Inicio', href: '/three-d-s-server/api' },
+              {
+                title: 'Inicio',
+                href: '/three-d-s-server/api'
+              },
+
+              {
+                title: 'Requerimientos para el cliente que va a integrarse',
+                href: '/three-d-s-server/api/client-requirements',
+              },
+              {
+                title: 'Términos y Definiciones',
+                href: '/three-d-s-server/api/terms-and-definitions',
+              },
+              {
+                title: 'Datos del proceso de autenticación',
+                href: '/three-d-s-server/api/transaction-status',
+              },
             ],
           },
 
@@ -539,18 +558,6 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Obtener información de una autenticación',
                 href: '/three-d-s-server/api/integration/authentication-info',
-              },
-              {
-                title: 'Requerimientos para el cliente que va a integrarse',
-                href: '/three-d-s-server/api/integration/client-requirements',
-              },
-              {
-                title: 'Términos y Definiciones',
-                href: '/three-d-s-server/api/integration/terms-and-definitions',
-              },
-              {
-                title: 'Datos del proceso de autenticación',
-                href: '/three-d-s-server/api/integration/transaction-status',
               },
               {
                 title: 'Test Cards',
