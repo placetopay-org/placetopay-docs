@@ -522,41 +522,40 @@ export const TAB_NAVIGATION = {
         icon: DocumentCode,
         links: [
           {
-            title: 'Introducción',
+            title: 'Introduction',
             links: [
               {
-                title: 'Inicio',
+                title: 'Home',
                 href: '/three-d-s-server/api'
               },
-
               {
-                title: 'Requerimientos para el cliente que va a integrarse',
+                title: 'Requirements for the client who is going to integrate',
                 href: '/three-d-s-server/api/client-requirements',
               },
               {
-                title: 'Términos y Definiciones',
+                title: 'Terms and Definitions',
                 href: '/three-d-s-server/api/terms-and-definitions',
               },
               {
-                title: 'Datos del proceso de autenticación',
+                title: 'Authentication process data',
                 href: '/three-d-s-server/api/transaction-status',
               },
             ],
           },
 
           {
-            title: 'Integración',
+            title: 'Integration',
             links: [
               {
-                title: 'Autorización',
+                title: 'Authorization',
                 href: '/three-d-s-server/api/integration/authorization',
               },
               {
-                title: 'Sesión',
+                title: 'Session',
                 href: '/three-d-s-server/api/integration/session',
               },
               {
-                title: 'Obtener información de una autenticación',
+                title: 'Get authentication information',
                 href: '/three-d-s-server/api/integration/authentication-info',
               },
               {
