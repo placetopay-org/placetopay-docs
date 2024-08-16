@@ -500,7 +500,7 @@ export const TAB_NAVIGATION = {
               },
               { title: 'Error Codes', href: '/three-d-s-server/error-codes' },
               {
-                title: 'Frequently Asked Questions about MPI Functioning',
+                title: 'Frequently Asked Questions about 3DSS Functioning',
                 href: '/three-d-s-server/faq',
               },
               {
