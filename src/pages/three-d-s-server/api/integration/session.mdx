@@ -130,6 +130,59 @@ Visa Digital Authentication Framework DAF es una extensión de mensaje del proto
 
 ---
 
+## Sesión transacciones de no pago
+
+Las autenticaciones de no pago se refieren a transacciones que necesitan autenticación pero no están directamente vinculadas a una operación de compra o pago. Estas pueden incluir, por ejemplo, la adición de una tarjeta de crédito a una billetera digital, la verificación de la identidad del titular de la tarjeta sin realizar una transacción monetaria.
+
+### Campos requeridos:
+
+**Autenticaciones que se harán por navegador:**
+- messageCategory: 02 (NPA - Transacción de no pago).
+
+- deviceChannel: 02 (BRW - Navegador) Si no se envía, la plataforma lo agregará por defecto en este valor.
+
+- threeDSAuthenticationInd: Las opciones son: 04 (Agregar tarjeta), 05 (Mantener tarjeta) y 06 (Verificar cuenta)
+
+- threeDSChallengeInd: 03 (Se solicita desafío desde el 3DS Requestor) Indica que la preferencia del 3DS Requestor es que se realice el desafío *(este campo es opcional pero recomendado incluir)*.
+
+**Autenticaciones que se harán por RI (Requestor Information):**
+- messageCategory: 02 (NPA - Transacción de no pago).
+
+- deviceChannel: 03 (RI - Requestor Information).
+
+- threeRIInd: Las opciones son: 03 (Agregar tarjeta), 04 (Mantener tarjeta) y 05 (Verificar cuenta)
+
+### Ejemplo
+
+**Autenticación por navegadores**
+
+```json
+{
+  "messageCategory": "02",
+  "acctNumber": "4009000000502",
+  "cardExpiryDate": "2902",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "AUTH_001",
+  "threeDSChallengeInd": "03",
+  "threeDSAuthenticationInd": "04"
+}
+```
+
+**Autenticación por 3RI**
+
+```json
+{
+  "messageCategory": "02",
+  "acctNumber": "4009000000502",
+  "cardExpiryDate": "2902",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "AUTH_001",
+  "threeRIInd": "03"
+}
+```
+
+---
+
 ## Sesión desacoplada
 
 Las autenticaciones desacopladas son aquellas en las que la autenticación del titular de la tarjeta y la autorización de la transacción no ocurren al mismo tiempo.
@@ -151,7 +204,7 @@ Este método es especialmente relevante para casos de uso como las suscripciones
 ```json
 {
   "threeDSRequestorDecReqInd": "Y",
-  "threeDSRequestorDecMaxTime": "5"
+  "threeDSRequestorDecMaxTime": "5",
   "acctNumber": "4009000000502",
   "cardExpiryDate": "2902",
   "purchaseAmount": "10",
@@ -256,7 +309,7 @@ Este tipo de sesiones se presentan cuando el comerciante está iniciando una tra
 | Versión 2.1 | **Soportada** | No soportado |
 | Versión 2.2 | **Soportada**   | No aplica    |
 
-** Mastercard Identity Check 2.1 no soporta los casos 3RI, en estos casos solo se envía la primera transacción recurrente.
+***Mastercard Identity Check 2.1 no soporta los casos 3RI, en estos casos solo se envía la primera transacción recurrente.***
 
 ### Ejemplo
 
@@ -268,13 +321,13 @@ Este tipo de sesiones se presentan cuando el comerciante está iniciando una tra
   "threeDSAuthenticationInd": "02",
   "threeDSChallengeInd": "03",
   "recurringExpiry": "20250201",
-  "recurringFrequency": "30"
+  "recurringFrequency": "30",
   "acctNumber": "4009000000502",
   "cardExpiryDate": "2902",
   "purchaseAmount": "10",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "AUTH_001",
+  "reference": "AUTH_001"
 }
 ```
 
@@ -285,7 +338,7 @@ Este tipo de sesiones se presentan cuando el comerciante está iniciando una tra
   "messageCategory": "01",
   "deviceChannel": "03",
   "recurringExpiry": "20250201",
-  "recurringFrequency": "30"
+  "recurringFrequency": "30",
   "threeDSRequestorPriorAuthenticationInfo": {
     "threeDSReqPriorAuthMethod": "02",
     "threeDSReqPriorAuthTimestamp": "202308172252",
@@ -296,62 +349,94 @@ Este tipo de sesiones se presentan cuando el comerciante está iniciando una tra
   "purchaseAmount": "10",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "AUTH_001",
+  "reference": "AUTH_001"
 }
 ```
 
 ---
 
-## Sesión transacciones de no pago
 
-Las autenticaciones de no pago se refieren a transacciones que necesitan autenticación pero no están directamente vinculadas a una operación de compra o pago. Estas pueden incluir, por ejemplo, la adición de una tarjeta de crédito a una billetera digital, la verificación de la identidad del titular de la tarjeta sin realizar una transacción monetaria.
 
-### Campos requeridos:
+## Sesión transacción con Bridging Message Extension:
 
-**Autenticaciones que se harán por navegador:**
-- messageCategory: 02 (NPA - Transacción de no pago).
+El 3DS v2.3 introduce elementos de datos en la extensión del mensaje que pueden duplicar aquellos presentes en las versiones 3DS v2.1 y v2.2, pero con valores nuevos o diferentes. De acuerdo con la Especificación Básica v2.3, estos valores se establecen en la extensión del mensaje, mientras que en las versiones v2.1 y v2.2 se encuentran en la parte central de los mensajes 3DS. En estos casos, el valor del elemento de datos en la extensión del mensaje prevalece sobre el valor correspondiente en la parte central del mensaje 3DS. Además, el Servidor 3DS genera el mensaje AReq v2.1 o v2.2 bajo la suposición de que el ACS no soporta la Extensión del Mensaje de Puente, y posteriormente, proporciona la información adicional a través de dicha extensión. Si se soporta la Extensión del Mensaje de Puente, el componente 3DS deberá ser compatible al menos con uno de los objetos de datos (como datos recurrentes, datos de desafío, datos adicionales o datos de URL de archivo) de la extensión del mensaje e implementar los requisitos correspondientes de la Especificación Básica v2.3.
 
-- deviceChannel: 02 (BRW - Navegador) Si no se envía, la plataforma lo agregará por defecto en este valor.
+Con el objetivo de mejorar la tasa de aprobación en las autenticaciones, hemos ampliado este requerimiento creando la extensión BMS. Esta extensión facilita el acceso a la información disponible en la versión 2.3.1 del protocolo, que no estaba accesible en versiones anteriores (2.1.0 y 2.2.0). De este modo, tanto el ACS como el servidor de directorios podrán tomar decisiones más informadas.
 
-- threeDSAuthenticationInd: Las opciones son: 04 (Agregar tarjeta), 05 (Mantener tarjeta) y 06 (Verificar cuenta)
+### Especificaciones
 
-- threeDSChallengeInd: 03 (Se solicita desafío desde el 3DS Requestor) Indica que la preferencia del 3DS Requestor es que se realice el desafío *(este campo es opcional pero recomendado incluir)*.
+| Protocolo   | Mastercard    | Visa          |
+|-------------|---------------|---------------|
+| Versión 1.0 | **Soportada** | **Soportada** |
+| Versión 2.0 | En proceso    | En proceso    |
 
-**Autenticaciones que se harán por RI (Requestor Information):**
-- messageCategory: 02 (NPA - Transacción de no pago).
+**Transacción con BME inicial V1**
 
-- deviceChannel: 03 (RI - Requestor Information).
+En esta versión, pondremos a disposición en la API de sesión varios elementos que podrá enviar para optimizar el uso de esta extensión..
 
-- threeRIInd: Las opciones son: 03 (Agregar tarjeta), 04 (Mantener tarjeta) y 05 (Verificar cuenta)
+| **Elemento**                                                                                                                        | **Reglas de inclusión**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | **Contextualización**                                                                                                                                                                                                               | **Ejemplo**                     |
+|-------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|
+| **bridgingMessageExtension**                                                                                                        | Tipo: Array<br/>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Extension del mensaje Bridging                                                                                                                                                                                                      |                                 |
+| **bridgingMessageExtension.<br/>data**                                                                                              | Tipo: Array<br/>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Data de la extension del mensaje Bridging                                                                                                                                                                                           |                                 |
+| **bridgingMessageExtension.<br/>data.addData**                                                                                      | Tipo: Array<br/>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Informacion que vamos a agregar a la extension del mensaje Bridging                                                                                                                                                                 |                                 |
+| **bridgingMessageExtension.<br/>data.addData.cardSecurityCode**  <br/> Card Security Code                                           | Tipo: String<br/> Longitud máxima: 4 caracteres <br/> Longitud minima: 3 caracteres                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Código de seguridad asociado a las tarjetas de crédito o débito                                                                                                                                                                     | **1543**                        |
+| **bridgingMessageExtension.<br/>data.addData.<br/>threeDSRequestorAuthenticationInd**  <br/> 3DS Requestor Authentication Indicator | Tipo: String<br/>Valores aceptados: <br/>**PAYMENT_TRANSACTION** (01) <br/>**RECURRING_TRANSACTION** (02) <br/>**INSTALMENT_TRANSACTION** (03) <br/>**ADD_CARD** (04) <br/>**MAINTAIN_CARD** (05) <br/>**CARDHOLDER_VERIFICATION<br/>_AS_PART_OF_EMV_TOKEN_IDV** (06) <br/>**BILLING_AGREEMENT** (07) <br/>**SPLIT_SHIPMENT** (08) <br/>**DELAYED_SHIPMENT** (09) <br/>**SPLIT_PAYMENT** (10) <br/>**MASTERCARD_THE_PAYMENT_REQUEST<br/>_IS_FOR_AN_AGENT_PAYMENT_TRANSACTION** (85) <br/>**MASTERCARD_FOR_UNKNOWN_OR_UNDEFINED_FINAL<br/>_AMOUNT_BEFORE_PURCHASE_TRANSACTION** (86) <br/>                                                                                                                                                                                                      | Indicador de autenticación solicitado por el 3DS.<br/> **Device Channel:** BRW, APP<br/> **Message Category:** PA, NPA                                                                                                              | **DELAYED_SHIPMENT**            |
+| **bridgingMessageExtension.<br/>data.addData.<br/>threeRIInd**  <br/> 3RI Indicator                                                 | Tipo: String<br/>Valores aceptados:<br/>**01** Transacción Recurrente <br/>**02** Transacción a Plazos <br/>**03** Añadir Tarjeta <br/>**04** Mantener Información de la Tarjeta <br/>**05** Verificación de Cuenta <br/>**06** Envío Parcial o Retrasado <br/>**07** Recarga <br/>**08** Pedido por Correo <br/>**09** Pedido por Teléfono <br/>**10** Verificación de Estado en la Lista Blanca <br/>**11** Otro Pago <br/>**12** Acuerdo de Facturación <br/>**13** Verificación del Estado de la Vinculación del Dispositivo <br/>**14** Verificación del Código de Seguridad de la Tarjeta <br/>**15** Envío Retrasado <br/>**16** Pago Dividido <br/>**17** Eliminación de Credenciales FIDO <br/>**18** Registro de Credenciales FIDO <br/>**19** Autenticación Desacoplada de Respaldo | Indica el tipo de **3RI** pedido. Este elemento de datos proporciona adicional información al ACS para determinar lo mejor enfoque para entregar un Solicitud 3RI.. <br/> **Device Channel:** RI<br/> **Message Category:** PA, NPA | **14**                          |
+| **bridgingMessageExtension.<br/>data.addData.<br/>transChar** <br/> Transaction Characteristics                                     | Tipo: String<br/>Valores aceptados:<br/>**CRYPTOCURRENCY_TRANSACTION** (01) <br/>**NFT_TRANSACTION** (02) <br/>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Indica a la ACS transacciones específicas identificadas por el Comerciante.                                                                                                                                                         | Por defecto **NFT_TRANSACTION** |
 
-### Ejemplo
 
-**Autenticación por navegadores**
+### Ejemplo de los datos en el request
+
+```json
+
+{
+  "acctNumber": "4005580000000040",
+  "cardExpiryDate": "2411",
+  "purchaseAmount": "8.25",
+  "redirectURI": "https://www.placetopay.com",
+  "purchaseCurrency": "USD",
+  "addPriorInformation": "Y",
+  "threeDSAuthenticationInd": "01",
+  "messageCategory": "01",
+  "deviceChannel": "03",
+  "threeRIInd": "01",
+  "recurringFrequency": "031",
+  "recurringExpiry": "20241020",
+  "bridgingMessageExtension": {
+    "data": {
+      "addData": {
+        "transChar": "CRYPTOCURRENCY_TRANSACTION",
+        "threeRIInd": "15",
+        "cardSecurityCode": "123",
+        "threeDSRequestorAuthenticationInd": "SPLIT_PAYMENT"
+      }
+    }
+  }
+}
+
+
+```
+
+### Ejemplo De la extención creada por MPI
 
 ```json
 {
-  "messageCategory": "02",
-  "acctNumber": "4009000000502",
-  "cardExpiryDate": "2902",
-  "redirectURI": "https://www.placetopay.com/web",
-  "reference": "AUTH_001",
-  "threeDSChallengeInd": "03",
-  "threeDSAuthenticationInd": "04"
+  "1": {
+    "id": "A000000802-004",
+    "data": {
+      "addData": {
+        "transChar": "02",
+        "threeRIInd": "15",
+        "cardSecurityCode": "123",
+        "acquirerCountryCode": "170",
+        "acquirerCountryCodeSource": "01",
+        "threeDSRequestorAuthenticationInd": "10"
+      }
+    },
+    "name": "Bridging",
+    "version": "1.0",
+    "criticalityIndicator": false
+  }
 }
 ```
-
-**Autenticación por 3RI**
-
-```json
-{
-  "messageCategory": "02",
-  "acctNumber": "4009000000502",
-  "cardExpiryDate": "2902",
-  "redirectURI": "https://www.placetopay.com/web",
-  "reference": "AUTH_001",
-  "threeRIInd": "03"
-}
-```
-
----
 
