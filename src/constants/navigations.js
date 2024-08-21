@@ -457,6 +457,10 @@ export const TAB_NAVIGATION = {
                 title: 'API Detalle de una transacción',
                 href: '/three-d-s-server/api/transactions',
               },
+              {
+                title: 'Valores devueltos en la respuesta',
+                href: '/three-d-s-server/api/transactions/values',
+              },
             ],
           },
           {
@@ -587,6 +591,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Transaction show',
                 href: '/three-d-s-server/api/transactions',
+              },
+              {
+                title: 'Values returned in the response',
+                href: '/three-d-s-server/api/transactions/values',
               },
             ],
           },
