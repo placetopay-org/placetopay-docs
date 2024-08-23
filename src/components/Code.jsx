@@ -23,6 +23,14 @@ const languageNames = {
   go: 'Go',
 }
 
+function shouldBeTabs(children) {
+  return isGroup(children) && Children.count(children) > 3
+}
+
+function isGroup(children) {
+  return Children.count(children) > 1
+}
+
 function getPanelTitle({ title, language }) {
   return title ?? languageNames[language] ?? 'Code'
 }
@@ -126,7 +134,9 @@ function CodePanel({ tag, label, code, children }) {
         label={child.props.label ?? label}
       />
       <div className="relative">
-        <pre className="overflow-x-auto p-4 text-xs text-white max-h-[600px]">{children}</pre>
+        <pre className="max-h-[600px] overflow-x-auto p-4 text-xs text-white">
+          {children}
+        </pre>
         <CopyButton code={child.props.code ?? code} />
       </div>
     </div>
@@ -137,7 +147,7 @@ function CodeGroupHeader({ title, children, selectedIndex, onChange }) {
   let hasTabs = Children.count(children) > 1
 
   const renderChilds = () => {
-    if (Children.count(children) < 3) {
+    if (shouldBeTabs(children)) {
       return (
         <Tab.List className="-mb-px flex gap-4 text-xs font-medium">
           {Children.map(children, (child, childIndex) => (
@@ -169,7 +179,7 @@ function CodeGroupHeader({ title, children, selectedIndex, onChange }) {
           ))}
         </select>
       </div>
-    );
+    )
   }
 
   if (!title && !hasTabs) {
@@ -189,7 +199,7 @@ function CodeGroupHeader({ title, children, selectedIndex, onChange }) {
 }
 
 function CodeGroupPanels({ children, selectedIndex, ...props }) {
-  let hasTabs = Children.count(children) < 3
+  let hasTabs = shouldBeTabs(children)
 
   if (hasTabs) {
     return (
@@ -203,12 +213,12 @@ function CodeGroupPanels({ children, selectedIndex, ...props }) {
     )
   }
 
-  let content = Children.toArray(children)[selectedIndex];
+  let content = Children.toArray(children)[selectedIndex]
 
   return <CodePanel {...props}>{content}</CodePanel>
 }
 
-function usePreventLayoutShift(hasTabs) {
+function usePreventLayoutShift() {
   let positionRef = useRef()
   let rafRef = useRef()
 
@@ -258,7 +268,7 @@ function useTabGroupProps(availableLanguages) {
     setSelectedIndex(newSelectedIndex)
   }
 
-  let { positionRef, preventLayoutShift } = usePreventLayoutShift(availableLanguages.length < 3)
+  let { positionRef, preventLayoutShift } = usePreventLayoutShift()
 
   return {
     as: 'div',
@@ -277,11 +287,12 @@ const CodeGroupContext = createContext(false)
 export function CodeGroup({ children, title, ...props }) {
   let languages = Children.map(children, (child) => getPanelTitle(child.props))
   let tabGroupProps = useTabGroupProps(languages)
-  let hasTabs = Children.count(children) < 3
+  let hasGroup = isGroup(children)
+  let hasTabs = shouldBeTabs(children)
   let Container = hasTabs ? Tab.Group : 'div'
-  let containerProps = hasTabs ? tabGroupProps : { ref: tabGroupProps.ref };
-  let headerProps = { selectedIndex: tabGroupProps.selectedIndex, onChange: tabGroupProps.onChange };
-  let contentProps = hasTabs ? props : {selectedIndex: tabGroupProps.selectedIndex, ...props};
+  let containerProps = hasTabs ? tabGroupProps : { ref: tabGroupProps.ref }
+  let headerProps = hasGroup ? { selectedIndex: tabGroupProps.selectedIndex, onChange: tabGroupProps.onChange } : {}
+  let contentProps = hasTabs ? props : { selectedIndex: tabGroupProps.selectedIndex, ...props }
 
   return (
     <CodeGroupContext.Provider value={true}>
