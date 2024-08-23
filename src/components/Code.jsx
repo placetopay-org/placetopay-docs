@@ -133,21 +133,12 @@ function CodePanel({ tag, label, code, children }) {
   )
 }
 
-function CodeGroupHeader({ title, children, selectedIndex }) {
+function CodeGroupHeader({ title, children, selectedIndex, onChange }) {
   let hasTabs = Children.count(children) > 1
 
-  if (!title && !hasTabs) {
-    return null
-  }
-
-  return (
-    <div className="flex min-h-[calc(theme(spacing.12)+1px)] flex-wrap items-start gap-x-4 border-b border-gray-700 bg-gray-800 px-4 dark:border-gray-800 dark:bg-transparent">
-      {title && (
-        <h3 className="mr-auto pt-3 text-xs font-semibold text-white">
-          {title}
-        </h3>
-      )}
-      {hasTabs && (
+  const renderChilds = () => {
+    if (Children.count(children) < 3) {
+      return (
         <Tab.List className="-mb-px flex gap-4 text-xs font-medium">
           {Children.map(children, (child, childIndex) => (
             <Tab
@@ -162,13 +153,43 @@ function CodeGroupHeader({ title, children, selectedIndex }) {
             </Tab>
           ))}
         </Tab.List>
+      )
+    }
+
+    return (
+      <div className="mt-2">
+        <select
+          className="bg-inherit"
+          onChange={(evt) => onChange(evt.target.value)}
+        >
+          {Children.map(children, (child, childIndex) => (
+            <option key={`response-${childIndex}`} value={childIndex}>
+              {getPanelTitle(child.props)}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
+  if (!title && !hasTabs) {
+    return null
+  }
+
+  return (
+    <div className="flex min-h-[calc(theme(spacing.12)+1px)] flex-wrap items-start gap-x-4 border-b border-gray-700 bg-gray-800 px-4 dark:border-gray-800 dark:bg-transparent">
+      {title && (
+        <h3 className="mr-auto pt-3 text-xs font-semibold text-white">
+          {title}
+        </h3>
       )}
+      {hasTabs && renderChilds()}
     </div>
   )
 }
 
-function CodeGroupPanels({ children, ...props }) {
-  let hasTabs = Children.count(children) > 1
+function CodeGroupPanels({ children, selectedIndex, ...props }) {
+  let hasTabs = Children.count(children) < 3
 
   if (hasTabs) {
     return (
@@ -182,10 +203,12 @@ function CodeGroupPanels({ children, ...props }) {
     )
   }
 
-  return <CodePanel {...props}>{children}</CodePanel>
+  let content = Children.toArray(children)[selectedIndex];
+
+  return <CodePanel {...props}>{content}</CodePanel>
 }
 
-function usePreventLayoutShift() {
+function usePreventLayoutShift(hasTabs) {
   let positionRef = useRef()
   let rafRef = useRef()
 
@@ -235,7 +258,7 @@ function useTabGroupProps(availableLanguages) {
     setSelectedIndex(newSelectedIndex)
   }
 
-  let { positionRef, preventLayoutShift } = usePreventLayoutShift()
+  let { positionRef, preventLayoutShift } = usePreventLayoutShift(availableLanguages.length < 3)
 
   return {
     as: 'div',
@@ -254,12 +277,11 @@ const CodeGroupContext = createContext(false)
 export function CodeGroup({ children, title, ...props }) {
   let languages = Children.map(children, (child) => getPanelTitle(child.props))
   let tabGroupProps = useTabGroupProps(languages)
-  let hasTabs = Children.count(children) > 1
+  let hasTabs = Children.count(children) < 3
   let Container = hasTabs ? Tab.Group : 'div'
-  let containerProps = hasTabs ? tabGroupProps : {}
-  let headerProps = hasTabs
-    ? { selectedIndex: tabGroupProps.selectedIndex }
-    : {}
+  let containerProps = hasTabs ? tabGroupProps : { ref: tabGroupProps.ref };
+  let headerProps = { selectedIndex: tabGroupProps.selectedIndex, onChange: tabGroupProps.onChange };
+  let contentProps = hasTabs ? props : {selectedIndex: tabGroupProps.selectedIndex, ...props};
 
   return (
     <CodeGroupContext.Provider value={true}>
@@ -270,7 +292,7 @@ export function CodeGroup({ children, title, ...props }) {
         <CodeGroupHeader title={title} {...headerProps}>
           {children}
         </CodeGroupHeader>
-        <CodeGroupPanels {...props}>{children}</CodeGroupPanels>
+        <CodeGroupPanels {...contentProps}>{children}</CodeGroupPanels>
       </Container>
     </CodeGroupContext.Provider>
   )
