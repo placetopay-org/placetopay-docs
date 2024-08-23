@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Disclosure, Transition } from '@headlessui/react'
+import { Disclosure } from '@headlessui/react'
 import ReactMarkdown from 'react-markdown'
 import clsx from 'clsx'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { Properties, Property } from './mdx'
 import { useLocale } from './LocaleProvider'
+import { usePreventLayoutShift } from '@/hooks/usePreventLayoutShift'
 
 const TITLES = {
   request: {
@@ -33,6 +34,7 @@ const ParentProperty = ({
   isRequired = false,
   isChild = false,
 }) => {
+  const {positionRef, preventLayoutShift} = usePreventLayoutShift();
   const properties = property.properties ?? property.items?.properties ?? null
   const requireds = property.required ?? property.items?.required ?? []
   const title = property.title ?? property.items?.title ?? null
@@ -66,6 +68,8 @@ const ParentProperty = ({
             {withChilds && (
               <>
                 <Disclosure.Button
+                  ref={positionRef}
+                  onClick={() => preventLayoutShift(() => void 0)}
                   className={clsx(
                     '-mx-2 -my-1 flex cursor-pointer items-center gap-1 px-2 py-1 text-2xs font-medium text-gray-500 transition hover:text-gray-600 dark:text-gray-400 hover:dark:text-gray-300',
                     { 'mt-2': property.description }
