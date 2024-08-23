@@ -59,7 +59,7 @@ export const Microsites = ({ className }) => {
         d="M117.119 41.632h-7.238c-3.143 0-5.017 1.874-5.017 5.018v7.228c0 3.153 1.874 5.027 5.017 5.027h7.229c3.144 0 5.018-1.874 5.018-5.018V46.65c.008-3.144-1.866-5.018-5.009-5.018ZM113.5 53.62a3.354 3.354 0 0 1-3.351-3.35 3.354 3.354 0 0 1 3.351-3.352 3.354 3.354 0 0 1 3.351 3.351 3.354 3.354 0 0 1-3.351 3.351Zm5.113-7.772a.988.988 0 0 1-.182.285.986.986 0 0 1-.285.181.853.853 0 0 1-.941-.181.985.985 0 0 1-.181-.285.863.863 0 0 1-.069-.329c0-.112.026-.224.069-.328a.882.882 0 0 1 .181-.285.862.862 0 0 1 .941-.181.66.66 0 0 1 .156.078c.043.026.086.069.129.103a.885.885 0 0 1 .182.285.863.863 0 0 1 .069.328.863.863 0 0 1-.069.329Z"
       />
       <g filter="url(#c)">
-        <g clip-path="url(#d)">
+        <g clipPath="url(#d)">
           <path fill="#F3F4F6" d="M34.406 14.337h66.196v13.38H34.406z" />
           <path
             fill="#D1D5DB"
@@ -96,8 +96,10 @@ export const Microsites = ({ className }) => {
             x="39.052"
             y="34.908"
             stroke="#D1D5DB"
-            stroke-width=".891"
+            strokeWidth=".891"
             rx="5.537"
+            className='frame-image'
+            fill='none'
           />
           <path
             fill="#9CA3AF"
@@ -225,10 +227,10 @@ export const Microsites = ({ className }) => {
           height="165.092"
           x="17.658"
           y="-2.412"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
           filterUnits="userSpaceOnUse"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feColorMatrix
             in="SourceAlpha"
             result="hardAlpha"
