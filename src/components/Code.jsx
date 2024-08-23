@@ -11,6 +11,7 @@ import clsx from 'clsx'
 import { create } from 'zustand'
 
 import { Tag } from '@/components/Tag'
+import { usePreventLayoutShift } from '@/hooks/usePreventLayoutShift'
 
 const languageNames = {
   js: 'JavaScript',
@@ -216,31 +217,6 @@ function CodeGroupPanels({ children, selectedIndex, ...props }) {
   let content = Children.toArray(children)[selectedIndex]
 
   return <CodePanel {...props}>{content}</CodePanel>
-}
-
-function usePreventLayoutShift() {
-  let positionRef = useRef()
-  let rafRef = useRef()
-
-  useEffect(() => {
-    return () => {
-      window.cancelAnimationFrame(rafRef.current)
-    }
-  }, [])
-
-  return {
-    positionRef,
-    preventLayoutShift(callback) {
-      let initialTop = positionRef.current.getBoundingClientRect().top
-
-      callback()
-
-      rafRef.current = window.requestAnimationFrame(() => {
-        let newTop = positionRef.current.getBoundingClientRect().top
-        window.scrollBy(0, newTop - initialTop)
-      })
-    },
-  }
 }
 
 const usePreferredLanguageStore = create((set) => ({
