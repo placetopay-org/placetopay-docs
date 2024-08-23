@@ -24,7 +24,7 @@ const languageNames = {
 }
 
 function shouldBeTabs(children) {
-  return isGroup(children) && Children.count(children) > 3
+  return isGroup(children) && Children.count(children) < 3
 }
 
 function isGroup(children) {
