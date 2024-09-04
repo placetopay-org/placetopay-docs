@@ -170,7 +170,7 @@ function CodeGroupHeader({ title, children, selectedIndex, onChange }) {
     return (
       <div className="mt-2">
         <select
-          className="bg-inherit"
+          className="bg-inherit text-white/80 dark:text-white/60"
           onChange={(evt) => onChange(evt.target.value)}
         >
           {Children.map(children, (child, childIndex) => (
