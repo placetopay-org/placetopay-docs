@@ -1179,4 +1179,60 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
+  ticket: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'API',
+        identifier: 'ticket',
+        href: '/ticket',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'Buscar tickets',
+                href: '/ticket/reference/search',
+              },
+              {
+                title: 'Crear ticket',
+                href: '/ticket/reference/create',
+              },
+              {
+                title: 'Remover ticket',
+                href: '/ticket/reference/remove',
+              },
+            ],
+          },
+        ],
+      }
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'API',
+        identifier: 'ticket',
+        href: '/en/ticket/reference',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'Search tickets',
+                href: '/ticket/reference/search',
+              },
+              {
+                title: 'Create ticket',
+                href: '/ticket/reference/create',
+              },
+              {
+                title: 'Remove ticket',
+                href: '/ticket/reference/remove',
+              },
+            ],
+          },
+        ],
+      }
+    ],
+  }
 }
