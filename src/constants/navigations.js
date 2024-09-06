@@ -1191,6 +1191,10 @@ export const TAB_NAVIGATION = {
             title: 'API',
             links: [
               {
+                title: 'URL de ambientes',
+                href: '/ticket/reference',
+              },
+              {
                 title: 'Buscar tickets',
                 href: '/ticket/reference/search',
               },
@@ -1217,6 +1221,10 @@ export const TAB_NAVIGATION = {
           {
             title: 'API',
             links: [
+              {
+                title: 'Environment URLs',
+                href: '/ticket/reference',
+              },
               {
                 title: 'Search tickets',
                 href: '/ticket/reference/search',
