@@ -1,0 +1,367 @@
+---
+openapi: 3.0.0
+info:
+  title: API de Boletos
+  version: '1.0'
+  description: Permite agregar boletos de aerolíneas a una sesión de aerolínea aprobada.
+servers:
+- url: https://test.placetopay.com/rest
+paths:
+  "/ticket/search":
+    post:
+      summary: Búsqueda
+      operationId: post-ticket-search
+      responses:
+        '200':
+          description: Respuesta exitosa de búsqueda de boletos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+                  data:
+                    description: Lista de boletos.
+                    type: array
+                    items:
+                      type: object
+                      description: Estructura del boleto.
+                      properties:
+                        internalReference:
+                          type: number
+                          description: Identificador interno para un boleto dado.
+                        ticket:
+                          type: string
+                          description: Código del boleto.
+                        issuedAt:
+                          type: string
+                          description: Fecha de reserva del boleto. La fecha de reserva debe ser igual o, como máximo, dos semanas después de la fecha de la transacción.
+                        createdAt:
+                          type: string
+                          description: Fecha de creación del boleto.
+                        updatedAt:
+                          type: string
+                          description: Fecha de actualización del boleto.
+                      required:
+                        - internalReference
+                        - ticket
+                        - issuedAt
+                        - createdAt
+                        - updatedAt
+                required:
+                  - status
+              examples:
+                Respuesta exitosa:
+                  value:
+                    status:
+                      status: OK
+                      reason: '00'
+                      message: La solicitud se ha procesado con éxito
+                      date: '2020-09-03T19:17:55-05:00'
+                    data:
+                      - internalReference: 3034
+                        ticket: '1235617070772'
+                        issuedAt: '2020-09-03'
+                        createdAt: '2020-09-03 19:17:55'
+                        updatedAt: '2020-09-03 19:17:55'
+        '400':
+          description: Solicitud incorrecta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+                required:
+                  - status
+              examples:
+                Error de autenticación:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: 401
+                      message: La autenticación no contiene todos los parámetros requeridos (login, tranKey, seed, nonce)
+                      date: '2020-09-03T19:27:27-05:00'
+                Solicitud incorrecta:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: BR
+                      message: Has proporcionado una referencia interna inválida
+                      date: '2020-09-03T20:05:36-05:00'
+      description: Obtener la lista de boletos para una sesión aprobada dada.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  "$ref": "#/components/schemas/Auth"
+                internalReference:
+                  type: number
+                  description: Identificador interno de sesión para una transacción dada.
+              required:
+                - auth
+                - internalReference
+            examples:
+              Solicitud exitosa:
+                value:
+                  auth:
+                    login: 6f3822f45568161a8cdf4ad2299f6d23
+                    tranKey: Y1ED2DzER2MvYBl4uHzJoSmWD6+ivNXzzY1ZZOcAnFM=
+                    nonce: NWY1MTg4ODhjMzFmOQ==
+                    seed: '2020-09-03T19:21:28-05:00'
+                  internalReference: 3557
+          application/xml:
+            schema:
+              type: object
+              properties: {}
+          multipart/form-data:
+            schema:
+              type: object
+              properties: {}
+        description: Solicitud de búsqueda de boletos
+      parameters: []
+    parameters: []
+  "/ticket/create":
+    post:
+      summary: ''
+      operationId: post-ticket-create
+      responses:
+        '200':
+          description: Respuesta exitosa de creación de boletos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+                  count:
+                    type: number
+                    description: Número de registros creados.
+                required:
+                - status
+              examples:
+                Respuesta exitosa:
+                  value:
+                    status:
+                      status: OK
+                      reason: '00'
+                      message: La solicitud se ha procesado con éxito
+                      date: '2020-09-03T20:00:53-05:00'
+                    count: 3
+        '400':
+          description: Solicitud incorrecta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+                required:
+                - status
+              examples:
+                Error de autenticación:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: 401
+                      message: La autenticación no contiene todos los parámetros requeridos (login, tranKey, seed, nonce)
+                      date: '2020-09-03T19:27:27-05:00'
+                Solicitud incorrecta:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: BR
+                      message: Has proporcionado una referencia interna inválida
+                      date: '2020-09-03T20:05:36-05:00'
+      description: Permite agregar boletos a una sesión aprobada.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  "$ref": "#/components/schemas/Auth"
+                tickets:
+                  type: array
+                  description: Lista de boletos.
+                  items:
+                    type: object
+                    properties:
+                      ticket:
+                        type: string
+                        description: Código del boleto. Los primeros tres caracteres deben ser iguales al prefijo IATA de la transacción de la aerolínea.
+                      issuedAt:
+                        type: string
+                        description: Fecha de reserva del boleto en formato Y-m-d. La fecha debe ser igual o máximo dos semanas después de la fecha de la transacción.
+                    required:
+                    - ticket
+                    - issuedAt
+              required:
+              - auth
+              - tickets
+            examples:
+              Solicitud exitosa:
+                value:
+                  auth:
+                    login: 6f3822f45568161a8cdf4ad2299f6d23
+                    tranKey: BxsxQ9xvAT73RQMoQ6jvn5Li7AJev8wFNa1JIcLsPHQ=
+                    nonce: NWY1MTkxMTQ2YmI3Yw==
+                    seed: '2020-09-03T19:57:56-05:00'
+                  internalReference: 3563
+                  tickets:
+                  - ticket: '1234567890115'
+                    issuedAt: '2020-09-03'
+                  - ticket: '1234567890114'
+                    issuedAt: '2020-09-03'
+                  - ticket: '1234567890118'
+                    issuedAt: '2020-09-03'
+        description: Solicitud de creación de boletos
+  "/ticket/remove":
+    post:
+      summary: ''
+      operationId: post-ticket-remove
+      responses:
+        '200':
+          description: Respuesta exitosa de eliminación de boletos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+                  count:
+                    type: number
+                required:
+                - status
+              examples:
+                Respuesta exitosa:
+                  value:
+                    status:
+                      status: OK
+                      reason: '00'
+                      message: La solicitud se ha procesado con éxito
+                      date: '2020-09-03T20:46:30-05:00'
+                    count: 10
+        '400':
+          description: Solicitud incorrecta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Error de autenticación:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: 401
+                      message: La autenticación no contiene todos los parámetros requeridos (login, tranKey, seed, nonce)
+                      date: '2020-09-03T19:27:27-05:00'
+                Solicitud incorrecta:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: BR
+                      message: Has proporcionado una referencia interna inválida
+                      date: '2020-09-03T20:05:36-05:00'
+      description: Permite eliminar boletos de una sesión aprobada.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  "$ref": "#/components/schemas/Auth"
+                tickets:
+                  type: array
+                  description: Arreglo de códigos de boletos.
+                  items:
+                    type: string
+              required:
+              - auth
+              - tickets
+            examples:
+              Solicitud exitosa:
+                value:
+                  auth:
+                    login: 6f3822f45568161a8cdf4ad2299f6d23
+                    tranKey: 4yMjqwdIu84YWq9D25JZkL+b8MPjeP+vAPkYhGLjUkE=
+                    nonce: NWY1MTkxNDY1MmJkYw==
+                    seed: '2020-09-03T20:46:30-05:00'
+                  tickets:
+                    - '1234567890115'
+                    - '1234567890114'
+                    - '1234567890118'
+                    - '1232675218228'
+                    - '1232459118609'
+                    - '1232569662668'
+                    - '1236367572980'
+                    - '1238315951241'
+                    - '1233389977785'
+                    - '1236568039458'
+components:
+  schemas:
+    Auth:
+      title: Autenticación
+      type: object
+      description: |-
+        Estructura de autenticación siguiendo la seguridad de servicios web
+        Perfil UsernameToken 1.1
+
+        https://www.oasis-open.org/committees/download.php/13392/wss-v1.1-spec-pr-UsernameTokenProfile-01.htm
+      properties:
+        login:
+          type: string
+          description: Identificador del sitio.
+        tranKey:
+          type: string
+          description: 'Clave transaccional con el formato dado: Base64(SHA-254(nonce + seed + tranKey)).'
+        nonce:
+          type: string
+          description: Valor aleatorio generado para cada solicitud.
+        seed:
+          type: string
+          description: 'Fecha de generación de la estructura en formato: ISO 8601.'
+      required:
+        - login
+        - tranKey
+        - nonce
+        - seed
+    Status:
+      title: Estado
+      type: object
+      description: Estructura del estado de la operación, que indica el estado actual de la operación.
+      properties:
+        status:
+          type: string
+          description: Estado de la operación.
+        reason:
+          type:
+          - string
+          - number
+          description: Código de estado de la razón de la operación.
+        message:
+          type: string
+          description: Mensaje de la razón de la operación.
+        date:
+          type: string
+          description: Fecha de la operación.
+      required:
+        - status
+        - reason
+        - message
+        - date
+  securitySchemes: {}
+tags: []
