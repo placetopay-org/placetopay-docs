@@ -88,9 +88,10 @@ async function generateAPIDoc(folderPath) {
                 .replace(/STUB_ID/g, methodData.operationId)
                 .replace(/STUB_DESCRIPTION/g, methodData.description);
 
-            if (methodData.requestBody?.content?.['application/json']?.examples) {
+            const requestBodyExample = methodData.requestBody?.content?.['application/json']?.examples ?? methodData.requestBody?.content?.['multipart/form-data']?.schema?.examples;
+            if (requestBodyExample) {
                 let contentRequestExamples = [];
-                for (const [requestTitle, requestExample] of Object.entries(methodData.requestBody.content['application/json'].examples)) {
+                for (const [requestTitle, requestExample] of Object.entries(requestBodyExample)) {
                     contentRequestExamples.push(
                         RequestExampleStub
                             .replace(/STUB_EXAMPLE_TITLE/g, requestTitle)

@@ -194,15 +194,21 @@ export const ApiParams = ({ params = [] }) => {
 
 export const ApiRequest = ({ request = {} }) => {
   const {locale} = useLocale()
+
+  const requestBody = request?.content?.['application/json'] ?? request?.content?.['multipart/form-data'];
+  if (!requestBody?.schema?.properties) {
+    return null
+  }
+
   return (
     <>
       <h3>{TITLES.request[locale]}</h3>
       <ApiProperties
         properties={Object.entries(
-          request?.content?.['application/json']?.schema?.properties || {}
+          requestBody?.schema?.properties || {}
         )}
         requireds={
-          request?.content?.['application/json']?.schema?.required || []
+          requestBody?.schema?.required || []
         }
       />
     </>
