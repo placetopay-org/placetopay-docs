@@ -46,6 +46,10 @@ export const TAB_NAVIGATION = {
                 title: 'Campos de procesamiento',
                 href: '/checkout/processor-fields',
               },
+              {
+                title: 'Fecha de expiración',
+                href: '/checkout/expiration',
+              },
             ],
           },
         ],
@@ -122,6 +126,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Processor Fields',
                 href: '/checkout/processor-fields',
+              },
+              {
+                title: 'Expiration Date',
+                href: '/checkout/expiration',
               },
             ],
           },
