@@ -24,6 +24,8 @@ export const useNamespaceRoute = () => {
         return 'microsites';
     case 'ticket':
       return 'ticket';
+    case 'core':
+      return 'core';
     default:
       return 'gateway';
   }}
@@ -51,6 +53,8 @@ export const useNavigation = (namespaces) => {
         return TAB_NAVIGATION['microsites'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     case 'ticket':
       return TAB_NAVIGATION['ticket'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
+    case 'core':
+      return TAB_NAVIGATION['core'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     default:
       throw new Error(`The namespace navigation '${namespaces}' is not defined`);
   }
