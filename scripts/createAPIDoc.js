@@ -103,7 +103,10 @@ async function generateAPIDoc(folderPath) {
                 }
                 contentPageAPI = contentPageAPI.replace(
                     /STUB_REQUEST_EXAMPLE_SECTION/g,
-                    RequestExampleSectionStub.replace(/STUB_REQUEST_EXAMPLES/g, contentRequestExamples.join('\n'))
+                    RequestExampleSectionStub
+                        .replace(/STUB_METHOD_UPPERCASE/g, method.toUpperCase())
+                        .replace(/STUB_ENDPOINT/g, path)
+                        .replace(/STUB_REQUEST_EXAMPLES/g, contentRequestExamples.join('\n'))
                 );
             } else {
                 contentPageAPI = contentPageAPI.replace(/STUB_REQUEST_EXAMPLE_SECTION/g, '');
