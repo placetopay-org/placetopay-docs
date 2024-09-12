@@ -790,7 +790,7 @@ export const TAB_NAVIGATION = {
         links: [
           { title: 'API SDKs', links: [{ title: 'PinPad', href: '/sdks/pinpad/api' }] }
         ],
-        }
+      }
     ],
     [LANGUAGES_CODES.EN]: [
       {
@@ -813,7 +813,7 @@ export const TAB_NAVIGATION = {
         links: [
           { title: 'API SDKs', links: [{ title: 'PinPad', href: '/sdks/pinpad/api' }] }
         ],
-        }
+      }
     ],
   },
   acs: {
@@ -1250,5 +1250,223 @@ export const TAB_NAVIGATION = {
         ],
       }
     ],
+  },
+  core: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'API',
+        identifier: 'core',
+        href: '/core/reference',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'URL de ambientes',
+                href: '/core/reference',
+              },
+            ]
+          },
+          {
+            title: 'Acciones sobre comercios', links: [
+              { title: 'Creación de un comercio', href: '/core/reference/merchant-create' },
+              { title: 'Editar un comercio', href: '/core/reference/merchant-update' },
+              { title: 'Consulta un comercio', href: '/core/reference/merchant-search' },
+              { title: 'Eliminar un comercio', href: '/core/reference/merchant-delete' },
+              { title: 'Creación de un documento', href: '/core/reference/merchant-document-create' },
+              { title: 'Editar un documento', href: '/core/reference/merchant-document-update' },
+              { title: 'Consulta un documento', href: '/core/reference/merchant-document-search' },
+              { title: 'Eliminar un documento', href: '/core/reference/merchant-document-delete' },
+              { title: 'Descarga del archivo de un documento', href: '/core/reference/merchant-document-download' },
+            ]
+          },
+          {
+            title: 'Acciones sobre lista de preferidos', links: [
+              { title: 'Crear una lista de preferidos', href: '/core/reference/site-prefer-list-create' },
+              { title: 'Actualizar una lista de preferidos', href: '/core/reference/site-prefer-list-update' },
+              { title: 'Consultar una lista de preferidos', href: '/core/reference/site-prefer-list-search' },
+              { title: 'Eliminar una lista de preferidos', href: '/core/reference/site-prefer-list-delete' },
+            ]
+          },
+          {
+            title: 'Acciones sobre medios de pago de sitios', links: [
+              { title: 'Agregar un medio de pago a un sitio', href: '/core/reference/site-payment-methods-create' },
+              { title: 'Actualizar un medio de pago de un sitio', href: '/core/reference/site-payment-methods-update' },
+              { title: 'Consultar los medios de pago de un sitio', href: '/core/reference/site-payment-methods-search' },
+              { title: 'Remover un medio de pago de un sitio', href: '/core/reference/site-payment-methods-delete' },
+            ]
+          },
+          {
+            title: 'Acciones sobre métodos de pago', links: [
+              { title: 'Agregar un método de pago a un comercio', href: '/core/reference/merchant-payment-methods-create' },
+              { title: 'Actualizar un método de pago asociado a un comercio', href: '/core/reference/merchant-payment-methods-update' },
+              { title: 'Consulta de métodos de pago de un comercio', href: '/core/reference/merchant-payment-methods-search' },
+              { title: 'Remover un método de pago asociado a un comercio', href: '/core/reference/merchant-payment-methods-delete' },
+            ]
+          },
+          {
+            title: 'Acciones sobre sitios', links: [
+              { title: 'Crear un sitio', href: '/core/reference/site-create' },
+              { title: 'Actualizar un sitio', href: '/core/reference/site-update-all' },
+              { title: 'Actualizar branding de un sitio', href: '/core/reference/site-update' },
+              { title: 'Actualizar logo del sitio', href: '/core/reference/site-logo-update' },
+              { title: 'Consultar un sitio', href: '/core/reference/site-search' },
+              { title: 'Eliminar un sitio', href: '/core/reference/site-delete' },
+            ]
+          },
+          {
+            title: 'Procedimientos adicionales', links: [
+              { title: 'Consulta de tipos de documentos', href: '/core/reference/tools-document-type-search' },
+              { title: 'Consulta de departamentos o estados por país', href: '/core/reference/tools-province-search' },
+              { title: 'Consulta de tipos de régimen', href: '/core/reference/tools-taxpayer-search' },
+              { title: 'Consulta de regímenes fiscales', href: '/core/reference/tools-tax-regime-search' },
+              { title: 'Consulta de tipos de corporación', href: '/core/reference/tools-corporation-type-search' },
+              { title: 'Busqueda de consultores comerciales de PlacetoPay', href: '/core/reference/tools-seller-search' },
+              { title: 'Consulta de facilitadores de pago', href: '/core/reference/tools-payment-facilitator-search' },
+              { title: 'Consulta de banco adquiriente', href: '/core/reference/tools-reseller-search' },
+              { title: 'Consulta de tipos de cuenta de recaudo', href: '/core/reference/tools-account-type-search' },
+              { title: 'Consulta de entidades financieras', href: '/core/reference/tools-financial-entity-search' },
+              { title: 'Consulta de medios de pago', href: '/core/reference/tools-payment-method-search' },
+              { title: 'Consulta de grupos', href: '/core/reference/tools-group-search' },
+              { title: 'Consulta de aerolíneas', href: '/core/reference/tools-airline-search' },
+              { title: 'Consulta de filtros', href: '/core/reference/tools-filter-search' },
+              { title: 'Consulta de conglomerados', href: '/core/reference/tools-conglomerate-search' },
+            ]
+          },
+          {
+            title: 'Acciones sobre usuarios', links: [
+              { title: 'Consulta de usuarios', href: '/core/reference/user-search' },
+              { title: 'Creación de usuarios', href: '/core/reference/user-create' },
+              { title: 'Editar un usuario', href: '/core/reference/user-update' },
+            ]
+          },
+          {
+            title: 'Acciones sobre planes', links: [
+              { title: 'Crear un plan', href: '/core/reference/plans-create' },
+              { title: 'Editar un plan', href: '/core/reference/plans-update' },
+              { title: 'Consultar un planes', href: '/core/reference/plans-search' },
+              { title: 'Eliminar un plan', href: '/core/reference/plans-remove' },
+              { title: 'Cancelar un plan', href: '/core/reference/plans-cancel' },
+              { title: 'Crear un rango de plan', href: '/core/reference/plans-range-create' },
+              { title: 'Editar un rango de plan', href: '/core/reference/plans-range-update' },
+              { title: 'Consultar de rangos de un plan', href: '/core/reference/plans-range-search' },
+              { title: 'Eliminar rangos de plan', href: '/core/reference/plans-range-remove' },
+              { title: 'Asociar un comercio a un plan', href: '/core/reference/plans-customer-create' },
+              { title: 'Consulta de comercios de un plan', href: '/core/reference/plans-customer-search' },
+              { title: 'Eliminar comercios de un plan', href: '/core/reference/plans-customer-remove' },
+            ]
+          }
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'API',
+        identifier: 'core',
+        href: '/core/reference',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'URL de ambientes',
+                href: '/core/reference',
+              },
+            ]
+          },
+          {
+            title: 'Actions on Merchants', links: [
+              { title: 'Create a Merchant', href: '/core/reference/merchant-create' },
+              { title: 'Edit a Merchant', href: '/core/reference/merchant-update' },
+              { title: 'Search a Merchant', href: '/core/reference/merchant-search' },
+              { title: 'Delete a Merchant', href: '/core/reference/merchant-delete' },
+              { title: 'Create a Document', href: '/core/reference/merchant-document-create' },
+              { title: 'Edit a Document', href: '/core/reference/merchant-document-update' },
+              { title: 'Search a Document', href: '/core/reference/merchant-document-search' },
+              { title: 'Delete a Document', href: '/core/reference/merchant-document-delete' },
+              { title: 'Download a Document File', href: '/core/reference/merchant-document-download' },
+            ]
+          },
+          {
+            title: 'Actions on Preferred Lists', links: [
+              { title: 'Create a Preferred List', href: '/core/reference/site-prefer-list-create' },
+              { title: 'Update a Preferred List', href: '/core/reference/site-prefer-list-update' },
+              { title: 'Search a Preferred List', href: '/core/reference/site-prefer-list-search' },
+              { title: 'Delete a Preferred List', href: '/core/reference/site-prefer-list-delete' },
+            ]
+          },
+          {
+            title: 'Actions on Site Payment Methods', links: [
+              { title: 'Add a Payment Method to a Site', href: '/core/reference/site-payment-methods-create' },
+              { title: 'Update a Site Payment Method', href: '/core/reference/site-payment-methods-update' },
+              { title: 'Search Site Payment Methods', href: '/core/reference/site-payment-methods-search' },
+              { title: 'Remove a Payment Method from a Site', href: '/core/reference/site-payment-methods-delete' },
+            ]
+          },
+          {
+            title: 'Actions on Payment Methods', links: [
+              { title: 'Add a Payment Method to a Merchant', href: '/core/reference/merchant-payment-methods-create' },
+              { title: 'Update a Payment Method for a Merchant', href: '/core/reference/merchant-payment-methods-update' },
+              { title: 'Search Merchant Payment Methods', href: '/core/reference/merchant-payment-methods-search' },
+              { title: 'Remove a Payment Method from a Merchant', href: '/core/reference/merchant-payment-methods-delete' },
+            ]
+          },
+          {
+            title: 'Actions on Sites', links: [
+              { title: 'Create a Site', href: '/core/reference/site-create' },
+              { title: 'Update a Site', href: '/core/reference/site-update-all' },
+              { title: 'Update Site Branding', href: '/core/reference/site-update' },
+              { title: 'Update Site Logo', href: '/core/reference/site-logo-update' },
+              { title: 'Search a Site', href: '/core/reference/site-search' },
+              { title: 'Delete a Site', href: '/core/reference/site-delete' },
+            ]
+          },
+          {
+            title: 'Additional Procedures', links: [
+              { title: 'Search Document Types', href: '/core/reference/tools-document-type-search' },
+              { title: 'Search Provinces or States by Country', href: '/core/reference/tools-province-search' },
+              { title: 'Search Taxpayer Types', href: '/core/reference/tools-taxpayer-search' },
+              { title: 'Search Tax Regimes', href: '/core/reference/tools-tax-regime-search' },
+              { title: 'Search Corporation Types', href: '/core/reference/tools-corporation-type-search' },
+              { title: 'Search PlacetoPay Business Consultants', href: '/core/reference/tools-seller-search' },
+              { title: 'Search Payment Facilitators', href: '/core/reference/tools-payment-facilitator-search' },
+              { title: 'Search Acquiring Banks', href: '/core/reference/tools-reseller-search' },
+              { title: 'Search Collection Account Types', href: '/core/reference/tools-account-type-search' },
+              { title: 'Search Financial Entities', href: '/core/reference/tools-financial-entity-search' },
+              { title: 'Search Payment Methods', href: '/core/reference/tools-payment-method-search' },
+              { title: 'Search Groups', href: '/core/reference/tools-group-search' },
+              { title: 'Search Airlines', href: '/core/reference/tools-airline-search' },
+              { title: 'Search Filters', href: '/core/reference/tools-filter-search' },
+              { title: 'Search Conglomerates', href: '/core/reference/tools-conglomerate-search' },
+            ]
+          },
+          {
+            title: 'Actions on Users', links: [
+              { title: 'Search Users', href: '/core/reference/user-search' },
+              { title: 'Create Users', href: '/core/reference/user-create' },
+              { title: 'Edit a User', href: '/core/reference/user-update' },
+            ]
+          },
+          {
+            title: 'Actions on Plans', links: [
+              { title: 'Create a Plan', href: '/core/reference/plans-create' },
+              { title: 'Edit a Plan', href: '/core/reference/plans-update' },
+              { title: 'Search Plans', href: '/core/reference/plans-search' },
+              { title: 'Remove a Plan', href: '/core/reference/plans-remove' },
+              { title: 'Cancel a Plan', href: '/core/reference/plans-cancel' },
+              { title: 'Create a Plan Range', href: '/core/reference/plans-range-create' },
+              { title: 'Edit a Plan Range', href: '/core/reference/plans-range-update' },
+              { title: 'Search Plan Ranges', href: '/core/reference/plans-range-search' },
+              { title: 'Remove Plan Ranges', href: '/core/reference/plans-range-remove' },
+              { title: 'Assign a Merchant to a Plan', href: '/core/reference/plans-customer-create' },
+              { title: 'Search Plan Merchants', href: '/core/reference/plans-customer-search' },
+              { title: 'Remove Plan Merchants', href: '/core/reference/plans-customer-remove' },
+            ]
+          }
+        ],
+      }
+    ]
   }
 }
