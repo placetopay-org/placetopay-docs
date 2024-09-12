@@ -1438,6 +1438,25 @@ paths:
       description: Permite invalidar un token ya existente del sitio. Esto hará que el token o el subtoken ya no se pueda usar.
       requestBody:
         $ref: '#/components/requestBodies/InstrumentInvalidateRequest'
+  /api/gateway/information:
+    post:
+      summary: Este servicio proporciona información sobre la tarjeta/token del usuario que se va a procesar. Se recomienda integrarse siempre a través de la API [Gateway](/gateway/api/reference/information).
+      responses:
+        '200':
+          $ref: '#/components/responses/GatewayInformationResponse'
+        '400':
+          description: "FAILED"
+          content: 
+            application/json: 
+              schema: 
+                type: "object"
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+      operationId: post-api-instrument-invalidate
+      description: Permite invalidar un token ya existente del sitio. Esto hará que el token o el subtoken ya no se pueda usar.
+      requestBody:
+        $ref: '#/components/requestBodies/GatewayInformationRequest'
 components:
   schemas:
     Person:
@@ -2789,8 +2808,8 @@ components:
               - keyword: installments
                 value: null
                 displayOn: none
-    Instrument:
-      title: Instrument
+    InstrumentCollect:
+      title: Instrument-collect
       type: object
       description: |
         Estructura que contiene los detalles de un medio de pago suscrito.
@@ -2816,6 +2835,8 @@ components:
             - '20'
             - '80'
             - '90'
+        credit: 
+          $ref: "#/components/schemas/Credit"
     InstrumentInvalidate:
       title: InstrumentInvalidate
       description: |
@@ -2904,7 +2925,7 @@ components:
         payment:
           $ref: '#/components/schemas/PaymentRequest'
         instrument:
-          $ref: '#/components/schemas/Instrument'
+          $ref: '#/components/schemas/InstrumentCollect'
         ipAddress:
           $ref: '#/components/schemas/IpAddress'
         userAgent:
@@ -3305,6 +3326,338 @@ components:
           $ref: '#/components/schemas/PaymentResponse'
         subscription: 
           $ref: '#/components/schemas/SubscriptionResponse'
+    CardType: 
+      title: "CardType"
+      x-stoplight: 
+        id: "x4y03rkspgz0b"
+      type: "string"
+      enum: 
+        - "C"
+        - "R"
+        - "A"
+      description: "Indica el tipo de la tarjeta. C = credito, R = debito, A = ahorros"
+    BankItem: 
+      title: "BankItem"
+      x-stoplight: 
+        id: "60487hsjhovs9"
+      type: "object"
+      properties: 
+        code: 
+          type: "string"
+          description: "Código de la entidad bancaria"
+        description: 
+          type: "string"
+          description: "Nombre de la entidad bancaria"
+    Pocket: 
+      title: "Pocket"
+      type: "object"
+      description: "Estructura que contiene la información del bolsillo de la tarjeta"
+      properties: 
+        code: 
+          type: "string"
+          description: "Valor del bolsillo"
+        description: 
+          type: "string"
+          description: "Descripción del bolsillo"
+      x-examples: 
+    Credit: 
+      title: "Credit"
+      type: "object"
+      description: "Estructura que contiene la información del tipo de crédito"
+      properties: 
+        code: 
+          type: "string"
+        type: 
+          type: "string"
+        groupCode: 
+          type: "string"
+        installment: 
+          type: "integer"
+    Instrument: 
+      title: "Instrument"
+      type: "object"
+      description: "Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
+      properties: 
+        card: 
+          $ref: "#/components/schemas/Card"
+        account: 
+          $ref: "#/components/schemas/Account"
+        token: 
+          $ref: "#/components/schemas/Token"
+        credit: 
+          $ref: "#/components/schemas/Credit"
+        threeDS: 
+          $ref: "#/components/schemas/ThreeDS"
+        otp: 
+          type: "string"
+        pinPad: 
+          $ref: "#/components/schemas/PinPad"
+        pin: 
+          type: "string"
+          example: "0B880E2326F6409E"
+          minLength: "2"
+          maxLength: "20"
+          description: "Recibe el código PIN cuando es plano o cuando se trata de un PinBlock"
+        redirection: 
+          $ref: "#/components/schemas/Redirection"
+        kount: 
+          $ref: "#/components/schemas/Kount"
+        pocket: 
+          type: "string"
+          description: "Bolsillo de la tarjeta utilizado para el pago"
+    Card: 
+      title: "Card"
+      type: "object"
+      description: "Estructura que contiene la información de la tarjeta."
+      properties: 
+        number: 
+          type: "string"
+          maxLength: "20"
+        expiration: 
+          type: "string"
+          example: "12/22"
+          pattern: "^[01]\\d\\/\\d{2}$"
+        cvv: 
+          type: "string"
+        installments: 
+          type: "number"
+      required: 
+        - "number"
+    Account: 
+      title: "Account"
+      type: "object"
+      description: "Estructura que contiene la información de la cuenta bancaria."
+      required: 
+        - "bankCode"
+        - "accountType"
+        - "accountNumber"
+      properties: 
+        bankName: 
+          type: "string"
+          maxLength: "30"
+          description: "Nombre del banco de la cuenta a procesar"
+        bankCode: 
+          type: "string"
+          maxLength: "17"
+          description: "Código que identifica al banco en la red"
+        accountType: 
+          type: "string"
+          description: "tipo de cuenta"
+          enum: 
+            - "SAV"
+            - "DDA"
+            - "CCD"
+        accountNumber: 
+          type: "string"
+          maxLength: "17"
+          description: "Número de cuenta"
+        franchise: 
+          type: "string"
+          x-stoplight: 
+            id: "bhbb4cpy3me8p"
+          maxLength: "20"
+        verificationCode: 
+          type: "string"
+          x-stoplight: 
+            id: "jpxori5mf80z2"
+          example: "eyJhbGciOiJSUzI1NiJ9.eyJhY2NvdW50SGFzaCI6ImM5YWM2ZjFhZDhjNDA3Y2ZjNzMyNDljNTE2MTJjNTdmMWQxZGNiNTA4YjE4ZGJlYWE1MWQ0NDI5NjBjMjUwNDUyMzY4ZTg2YmUzMWQ3MDMxMDY4ZDM2MjM2NzVjYzhkYTUzNzhhODNmMTUwZjg5OTczOTBiZTEyMGU1ZmExN2RhIiwib25UZXN0Ijp0cnVlLCJzZXJ2aWNlIjoibW9jayIsImlkIjo0MDB9.dFMY4EwCrWq9EBmERFkKCoLHExPH4vgaCgnZaqB_mf8n3Sv6Qnu6Pb79onluX1OZecmYmBuHqZ_ykKXWSD4RMZSpckYFCiO3mlcJKI4qb91COhl_c2qXxYJuLEdbLfGlzf0k8-oJgFcO9gAS1Xm0hpTP4iiXF6st1hFwlfR3fpX4rr-bTsKgMvRSReMuxa0Vs92DykfqUR_3udlc0DFCPB9ZTaSqeRNHFAPAWNniUPWURQlW5c9J9xcyKTgKGzfI1_7h2I4ALQeRifptE2nC-HZtEMwtcToNh7hn0oL9lNFXnXGK9sWKORcyWKVfpEChS8z30UfX6kOhU6fp_qUwmA"
+          description: "El verificationCode es un JSON Web Signature (JWS). Tiene el fin de ser el instrumento verificador del estado de la cuenta."
+    Token: 
+      title: "Token"
+      type: "object"
+      description: "Estructura que contiene la información del token que asocia a la tarjeta
+
+        Para la entrada solo es necesario el token o el subtoken y el cvv si se trata de una operación donde el usuario está presente
+        
+        Para la salida si se devuelven todos los datos al tokenizar
+        "
+      properties: 
+        token: 
+          type: "string"
+          maxLength: "64"
+          minLength: "64"
+          description: "Código generado para identificar la tarjeta en el sistema"
+        subtoken: 
+          type: "string"
+          maxLength: "16"
+          minLength: "16"
+          description: "Código alterno generado para identificar la tarjeta"
+        franchise: 
+          type: "string"
+          enum: 
+            - "visa"
+            - "visa_electron"
+            - "amex"
+            - "master"
+            - "codensa"
+            - "diners"
+            - "jbc"
+            - "discover"
+            - "ris"
+            - "credencial"
+            - "comfama"
+            - "colsubsidio"
+            - "falabella"
+            - "elo"
+            - "somos"
+            - "tuya"
+            - "exito"
+            - "alkosto"
+            - "maestro"
+            - "mefia"
+            - "ath_card"
+          description: "Codigo de la franquicia asociada al token (Solo como respuesta no es necesario enviarla)"
+        franchiseName: 
+          type: "string"
+        issuerName: 
+          type: "string"
+        lastDigits: 
+          type: "string"
+        validUntil: 
+          type: "string"
+        cvv: 
+          type: "string"
+          minLength: 3
+          maxLength: 4
+          description: "CVV solicitado al usuario en caso de que esté presente en la operación"
+      x-examples: 
+        Ejemplo respuesta: 
+          value: 
+            token: "e61da2ce4863a45b6491aab2964cd9c97b1d7cd508da2e813b728c88adb5f198"
+            subtoken: "1120437249520005"
+            franchise: "master"
+            franchiseName: "Mastercard"
+            lastDigits: "0005"
+            validUntil: "2018-12-31"
+            installments: "3"
+        Ejemplo en solicitud: 
+          value: 
+            token: "e61da2ce4863a45b6491aab2964cd9c97b1d7cd508da2e813b728c88adb5f198"
+            cvv: "123"
+    ThreeDS: 
+      type: "object"
+      x-examples: 
+        example-1: 
+          id: "1"
+          enrolled: "Y"
+          authenticated: "Y"
+          validSignature: "true"
+          eci: "05"
+          cavv: "AAACCZJiUGVlF4U5AmJQEwAAAAA="
+          xid: "Z8UuHYF8Epz46M8V/MkGJDl2Y5E="
+          version: "v1"
+      properties: 
+        id: 
+          type: "number"
+          description: "Este valor solo aplica si la validación se hizo con el servicio de 3DS de Placetopay"
+        enrolled: 
+          type: "string"
+          minLength: 1
+          enum: 
+            - "Y"
+            - "N"
+            - "U"
+          description: "Informa si la tarjeta se encuentra registrada en 3DS"
+        authenticated: 
+          type: "string"
+          minLength: 1
+          enum: 
+            - "Y"
+            - "N"
+            - "U"
+            - "A"
+            - "I"
+            - "C"
+            - "D"
+            - "R"
+          maxLength: 1
+        validSignature: 
+          type: "boolean"
+        eci: 
+          type: "string"
+          minLength: 1
+          enum: 
+            - "02"
+            - "01"
+            - "00"
+            - "05"
+            - "06"
+            - "07"
+        cavv: 
+          type: "string"
+          minLength: 1
+          nullable: true
+        xid: 
+          type: "string"
+          minLength: 1
+        version: 
+          type: "string"
+          minLength: 1
+          enum: 
+            - "v1"
+            - "v2"
+        extra: 
+          type: "object"
+          nullable: true
+      required: 
+        - "enrolled"
+        - "authenticated"
+        - "eci"
+        - "cavv"
+        - "xid"
+        - "version"
+    PinPad: 
+      title: "PinPad"
+      type: "object"
+      description: "Estructura que contiene la información del servicio pinPad"
+      properties: 
+        transactionId: 
+          type: "string"
+        positions: 
+          type: "string"
+        pinBlock: 
+          type: "string"
+        length: 
+          type: "integer"
+    Redirection: 
+      title: "Redirection"
+      type: "object"
+      description: "Representa un medio de pago de redirección, es decir que requiere que se envíe el usuario a otra URL para completar el proceso"
+      properties: 
+        paymentMethod: 
+          type: "string"
+          enum: 
+            - "BTNBC"
+            - "PGEFT"
+        returnURL: 
+          type: "string"
+          format: "uri"
+          example: "http://your-site.com/your-return-route"
+          maxLength: 250
+          description: "URL para que una vez se termine el proceso de pago se retorne el control (cuando aplica)"
+        processURL: 
+          type: "string"
+          format: "uri"
+          maxLength: 250
+          description: "URL a la cual se debe enviar al cliente para continuar el proceso, está es proporcionada por el servicio"
+    Kount: 
+      title: "Kount"
+      x-stoplight: 
+        id: "qevzv57mju2tp"
+      type: "object"
+      description: "Maneja información especifica para usar con el filtro de riesgo Kount"
+      properties: 
+        session: 
+          type: "string"
+          description: "Identificador de esta operación en Kount, debe ser único por transacción"
+        type: 
+          type: "string"
+          description: "Describe el tipo de operación que se está manejando en la sesión para definir los campos adicionales a enviar"
+          enum: 
+            - "airline"
+            - "soat"
+      required: 
+        - "session"
   securitySchemes: {}
   responses:
     StatusResponse:
@@ -3340,6 +3693,142 @@ components:
                   reason: XN
                   message: El token usado es inválido
                   date: '2022-07-27T14:51:27-05:00'
+    GatewayInformationResponse:
+          description: "OK"
+          content: 
+            application/json: 
+              schema: 
+                type: "object"
+                properties: 
+                  status: 
+                    $ref: "#/components/schemas/Status"
+                  provider: 
+                    type: "string"
+                    example: "EBUS"
+                    description: "Indicates which provider will be used in the transaction"
+                  serviceCode: 
+                    type: "string"
+                    description: "Indicates the code of the service that will process the transaction"
+                    example: "EB_VS"
+                  cardTypes: 
+                    type: "array"
+                    description: "Indicates the card types supported by the provider"
+                    items: 
+                      $ref: "#/components/schemas/CardType"
+                  cardType: 
+                    $ref: "#/components/schemas/CardType"
+                  requiereOtp: 
+                    type: "boolean"
+                    description: "Indicates if it is necessary to perform the OTP flow"
+                  requiereCvv2: 
+                    type: "boolean"
+                    description: "Indicates whether it is required to send CVV for transaction processing"
+                  threeDS: 
+                    type: "string"
+                    enum: 
+                    - "optional"
+                    - "required"
+                    - "unsupported"
+                    description: "Indicates if 3DS is necessary"
+                  credits: 
+                    type: "array"
+                    description: "Indicates the credits available per supplier"
+                    items: 
+                      $ref: "#/components/schemas/Credit"
+                  requirePockets: 
+                    type: "boolean"
+                    description: "Indicates if a pocket is required for processing the transaction"
+                  pockets: 
+                    type: "array"
+                    description: "Structure containing the card pockets"
+                    items: 
+                      $ref: "#/components/schemas/Pocket"
+                  requireAvs: 
+                    type: "boolean"
+                    description: "Indicates whether zip code information is required"
+                  zipCodeFormat: 
+                    type: "string"
+                    description: "Format to be used for postal code validation"
+                    nullable: "true"
+                  accountVerification: 
+                    type: "boolean"
+                    description: "Indicates whether it is necessary to perform the account verification flow"
+                  requirePin: 
+                    type: "boolean"
+                    description: "Indicates if a pin is necessary to process the transaction"
+                  requireRedirection: 
+                    type: "boolean"
+                    description: "Indicates if the payment method is of the redirect type"
+                  bankList: 
+                    type: "array"
+                    description: "List of banks available to process a payment with PSE"
+                    items: 
+                      $ref: "#/components/schemas/BankItem"
+                required: 
+                  - "status"
+                  - "provider"
+                  - "serviceCode"
+              examples: 
+                Ejemplo: 
+                  value: 
+                    status: 
+                      status: "OK"
+                      reason: "00"
+                      message: "The request has been processed successfully"
+                      date: "2021-09-21T09:26:11-05:00"
+                    provider: "CREDIBANCO"
+                    serviceCode: "CR_VS"
+                    cardType: "C"
+                    cardTypes: 
+                      - "C"
+                      - "R"
+                      - "A"
+                    displayInterest: "false"
+                    requireOtp: "false"
+                    requireCvv2: "true"
+                    threeDS: "optional"
+                    credits: 
+                      - description: "Cuotas"
+                        code: "0"
+                        groupCode: "C"
+                        type: "00"
+                        installments: 
+                          - "1"
+                          - "2"
+                          - "3"
+                          - "4"
+                          - "5"
+                          - "6"
+                          - "7"
+                          - "8"
+                          - "9"
+                          - "10"
+                          - "11"
+                          - "12"
+                          - "13"
+                          - "14"
+                          - "15"
+                          - "16"
+                          - "17"
+                          - "18"
+                          - "19"
+                          - "20"
+                          - "21"
+                          - "22"
+                          - "23"
+                          - "24"
+                          - "25"
+                          - "26"
+                          - "27"
+                          - "28"
+                          - "29"
+                          - "30"
+                          - "31"
+                          - "32"
+                          - "33"
+                          - "34"
+                          - "35"
+                          - "36"
   requestBodies:
     InstrumentInvalidateRequest:
       content:
@@ -3383,3 +3872,20 @@ components:
                   token:
                     subtoken: '8740257204881112'
       description: Instrument Invalidate Request
+    GatewayInformationRequest:
+      content:
+        application/json:
+          schema:
+            type:
+              - object
+            required:
+              - auth
+              - instrument
+            properties:
+              auth:
+                $ref: '#/components/schemas/Authentication'
+              locale:
+                $ref: '#/components/schemas/Locale'
+              instrument:
+                $ref: '#/components/schemas/Instrument'
+         
