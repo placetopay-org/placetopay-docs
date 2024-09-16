@@ -1,0 +1,147 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+export const description =
+  'Account Validator es un proyecto encargado de la verificación de cuentas a través de servicios externos.'
+
+<HeroPattern />
+
+# Account Validator
+
+IMAGEN
+
+## ¿Qué es?
+Account Validator es un proyecto encargado de la verificación de cuentas a través de servicios externos. La verificación de cuentas es un proceso adicional para verificar la veracidad y disponibilidad de las cuentas, validando información como:
+
+- El estado de la cuenta, es decir si la cuenta se encuentra activa o no.
+- El monto disponible en la cuenta para identificar si es posible realizar la transacción por el monto indicado.
+
+Este proceso se realiza antes de procesar la transacción.
+
+
+
+## ¿Cómo funciona?
+
+Account Validator es un proyecto de tipo redirección.
+
+1. Asegurate de tener un sitio creado en el panel administrativo de Placetopay, y de tener habilitado el servicio de validación de cuentas ACH.
+2. Con las credenciales de este sitio (Login - TranKey) podrás empezar a crear sesiones para la verificación de cuentas.
+3. Una vez creada una sesión, esta devolverá una url (redirectUrl) y un Id para consultar la sesión (requestId). Al ingresar a la url se visualizará el validador de cuentas donde el usuario podrá ingresar la información de su cuenta.
+
+    <Note>
+      Tener en cuenta el tiempo de expiración de la sesión que dependerá de la configuración del sitio. Por defecto son 15 minutos.
+    </Note>
+
+1. Una vez finalice el proceso, será redirigido a la url ingresada en la creación de la sesión (returnUrl)
+2. Con el Id de la sesión (requestId) podrá [consultar el estado de la verificación](/payment-links/api/reference/payment-links#create-a-link).
+3. Una vez aprobada la verificación, esta indicará si la cuenta existe dentro de los servicios vault popular y plaid para ACH. Sin embargo, para realizar validación de estado y monto deberá consumir con la información regresada en la consulta y la información del pago, el [servicio para validar la cuenta](/payment-links/api/reference/payment-links#create-a-link).
+
+<img src="/Account_validator/account_validator1.png"/>
+
+## Flujo del usuario
+
+Una vez el usuario sea redireccionado a la verificación de cuentas seguirá el siguiente proceso:
+
+<img src="/Account_validator/account_verification2.png" width="280" />
+
+Al pulsar confirmar el usuario verá la siguiente pantalla donde podrá seleccionar el tipo de cuenta. Si es una **cuenta personal** o una **cuenta comercial**:
+
+<img src="/Account_validator/account_verification3.png" width="280" />
+
+## Micro - depósitos
+
+Para realizar un microdepósito, deberá crear una sesión como en los casos anteriores y una vez el usuario sea redireccionado a la verificación de cuentas seguirá el siguiente proceso: Seleccionar cuenta personal y seleccionar el banco diferente a banco popular.
+
+<img src="/Account_validator/account_verification4.png" width="280"/>
+
+Al seleccionar el banco, visualizara una ventana emergente y continuar con el proceso PLAID:
+
+<img src="/Account_validator/plaid5.png" width="280"/>
+
+Para iniciar los micro depósitos deberá seleccionar vincular su cuenta bancaria Manualmente y ingresar los datos solicitados por la plataforma PLAID.
+
+<img src="/Account_validator/link_account6.png" width="280"/>
+
+Una vez completado el flujo, al usuario le llegará una notificación indicando que ha iniciado un proceso de micro-depósitos, podrá realizar otro intento con una cuenta ya validada o salir del proceso.
+
+<img src="/Account_validator/pending_microdepositos7.png" width="280"/>
+
+<img src="/Account_validator/msj8.png" width="280"/>
+
+El proceso de micro depositos es un proceso a cargo de la plataforma PLAID donde se le realizan depositos a la cuenta para validar si esta existe. Una vez realizados plaid notificará al validador de cuentas y este actualizará el estado:
+
+- Si es rechazado, se le notificará al usuario que no se pudo realizar el micro deposito.
+- Si es aprobado, se esperará hasta las 8:35 am del siguiente día para notificarle al usuario que el microdeposito fue realizado y deberá ingresar a completar el proceso. Esto, con el fin de recibir alguna novedad de reverso lo que implicará cancelar el microdeposito.
+
+Los procesos pendientes y validados de microdepositos se podrán visualizar y continuar desde una nueva sesión en el flujo de validación de cuentas, para ello será necesario realizar una validación del usuario:
+
+<img src="/Account_validator/validate_code9.png" width="280"/>
+
+<img src="/Account_validator/confirm10.png" width="350"/>
+
+Una vez ingresado el OTP el usuario podrá revisar el estado de las cuentas validadas con micro-depósitos:
+
+<img src="/Account_validator/process_confirm11.png" width="280"/>
+
+## Soporte para Lightbox:
+
+    <Note>
+      Si se detecta que la url de procesamiento se abre desde un iframe el verificador de cuentas en lugar de realizar redirección.
+    </Note>
+
+Al finalizar o cancelar el proceso de verificación lanzará un postMessage a la pagina padre (la que renderizó el iframe) con la siguiente información de pendiendo del caso:
+
+**La verificación fue aprobada:**
+
+    ```json
+    {
+        "type": "close",
+        "payload": {
+        "status": {
+          "status": "OK",
+           "reason": "00",
+        },
+        "account": {
+          "status": {
+              "status": "OK",
+              "reason": "00",
+              "message": "La solicitud ha sido aprobada exitosamente",
+              "date": "2022-10-06T21:13:52+00:00"
+          },
+            "bankCode": "POPULAR",
+            "bankName": "Banco Popular",
+            "accountType": "SAV",
+            "accountNumber": "4111111111111111",
+            "verificationCode": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50SGFzaCI6IjVkZTg5YzczMGRhYWM1YjE2ZGE2MmI5YzllM2MzMjk5NGViMzk1MTAiLCJvblRlc3QiOnRydWUsInNlcnZpY2UiOiJtb2NrIiwic2tpcFZlcmlmaWNhdGlvbkV4cGlyZWQiOmZhbHNlLCJleHAiOjE2NjUwOTQ0MjR9.bjco2ZBMhNDr8MToHetIdlRiLKbivl81YS6hdz-PifUjbZfc5bpUrxKesIX1bgiUIe4GN8SsEun9RshyLy5Y2ckNbRBBhPig_2O6VGimpgJOUZ36WiH0OS6lFCXUoxFfi_TE6rABPNH5Y6QUzy4JYyx7JnFUWztrOG2ZmI_d5fNMrqWBPduSjPzel1ne74GfW_vXVsqbDPmm4TJDz71Yj5-CYy8uUEdXXHF_UvOEFo5Uc5LyOLMZYcgKhGesHa4Y5G9oXFSetJxB9d63DUuG8OWf36xpCjmiPbDlR-TSbucmTQ1Cd2UVgNLWwJqsSFxaV3kev8neQ-HZLh-M6lucSA"
+        },
+      }
+     }
+    ```
+**El usuario a cancelado el proceso::**
+
+    ```json
+    {
+        "type": "close",
+        "payload": {
+          "status": {
+            "status": "REJECTED",
+            "reason": "?C"
+            },
+          "account": null
+        }
+      }
+    ```
+
+ **La verificación fue rechazada::**
+
+     ```json
+    {
+      "type": "close",
+      "payload": {
+        "status": {
+           "status": "REJECTED",
+           "reason": "38",
+        },
+        "account": null
+      }
+     }
+     ```
