@@ -998,6 +998,33 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
+  'account-validator': {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'account-validator',
+        href: '/account-validator',
+        icon: Book,
+      },
+      {
+        title: 'API',
+        identifier: 'account-validator/api',
+        href: '/account-validator/api/create-session',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'Account Validator',
+                href: '/account-validator/api/create-session',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
   'payment-links': {
     [LANGUAGES_CODES.ES]: [
       {
