@@ -1007,12 +1007,13 @@ export const TAB_NAVIGATION = {
         icon: DocumentCode,
         links: [
           {
-            title: 'Introducción',
+            title: 'Documentación',
             links: [
-              {
-                title: 'Documentación',
-                href: '/account-validator',
-              },
+              { title: '¿Qué es?', href: '/account-validator', },
+              { title: '¿Cómo funciona?', href: '/account-validator/how-to-work' },
+              { title: 'Flujo del usuario', href: '/account-validator/user-flow' },
+              { title: 'Micro depósitos', href: '/account-validator/micro-deposits' },
+              { title: 'Soporte para Lightbox', href: '/account-validator/support' }
             ]
           },
           {
