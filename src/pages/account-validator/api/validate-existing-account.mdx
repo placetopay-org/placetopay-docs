@@ -1,0 +1,117 @@
+export const sectionMode = 'nav';
+export const description =
+  'En esta página, encontrarás información sobre la API Validar Cuenta existente.'
+
+export const apiRefs = ['/api/validate-existing-account'];
+
+## Validar Cuenta existente {{ id: 'validate-existing-account', tag: 'POST', label: '/api/verification/validate' }}
+
+    Una vez realizada de manera exitosa la creación inicial de la sesión podrá realizar validaciones a la cuenta las veces que considere necesarias, solo debe tener la información de la cuenta y el código de verificación entregado en el proceso anterior.
+
+    **Validaciones realizadas:**
+
+    Actualmente el resultado de las validaciones se basa en las siguientes reglas:
+
+    1. **Validación de cuenta existente:** Se verifica que la cuenta exista y haya pasado por un proceso de creación de la sesión desde la interfaz gráfica del verificador de cuentas y además el token generado pertenezca al comercio con el cual se está autenticando.
+    2. **Validación de cuenta activa:** Se verifica que la cuenta exista y este activa en el proveedor de validación de cuentas, (PLAID, VaulPopular, Cuentas Comerciales, o el MOCK según corresponda).
+    3. **Validación de monto disponible:** Se verifica que la cuenta a validar tenga un monto mayor o igual al monto enviado en la solicitud.
+
+### Razones de estado
+
+Código | Descripción
+---------|----------
+ 05 | La verificación ha sido rechazada por razones generales.
+ BR | Los datos de la solicitud han sido incorrectos.
+ 00 | La verificación ha sido realizada con éxito.
+ XA | Monto no disponible para esta cuenta.
+ HX | Ha ocurrido un error en el servicio.
+ X3 | La información suministrada es inválida.
+ X5 | Número de seguridad social Inválido.
+ XN | Número de cuenta inválido.
+
+
+ ### Posibles estados
+
+ Nombre | Descripción
+ ---------|----------
+  APPROVED | La cuenta fue verificada exitosamente.
+  REJECTED | La verificación de cuenta fue rechazada.
+  FAILED | Ha ocurrido un error en el sistema.
+
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/validate-existing-account"
+      method="post"
+      api={props.refs}
+    />
+  </Col>
+
+   <Col sticky>
+      <CodeGroup title="Solicitud" tag="POST" label="api/verification/validate">
+      ```bash {{ title: 'cURL' }}
+      curl -X "POST" https://checkout-test.placetopay.com/api/verification/validate \
+        -H "Content-Type: application/json" \
+        -d '{
+              "auth": {
+                "login": "5991de4fa93bcd7b28cf5100c25099e1",
+                "tranKey": "OoamCdSidq121234430nH5x94yxd4=",
+                "nonce": "NG5vejc2b41xdm8=",
+                "seed": "2024-04-19T12:06:56-05:00"
+              },
+              "account": {
+                "bankCode": "221571473",
+                "bankName": "FIRSTBANK PUERTO RICO",
+                "accountType": "CCD",
+                "accountNumber": "41111111111111111",
+                "franchise": "_221571473_",
+                "verificationCode": "eyJhbYuiOiJSUzI1NmS1.eyJhY2NvdW50SGFzaCI6IjhkMzJkN2VjYjEyZDZmYjRmN2VlZmMzN2U4MmY2ZjI3YzNiYmY5Nzc3NjJkODAxZjQxYWZhN2Q0NWQ2YzI4YzU5YTU2NTM3YmZhM2E0NTM0MzhiMmU5M2Q4ODVkZDRiNDA1MjM5MjUwY2QzZGFkMDhhMzM2ZTJjYjM0Mjg0Y2RiIiwib25UZXN0IjpmYWxzZSwic2VydmljZSI6InBybWxjIiwiaWQiOjM4OX0.bXBuhT_xhA5vKJv3yVFJXYSYFJ4d49gmWuK2AC33GUfviAs2gSxrwZ8EHtFH4w37Pjzmq3y96uQZrllroGSlF7PySRqwxfNnem92ZKOs4EsFkzOdfBh73Z-RmCpKY6n5BQDjvVIg8hkwb2umnotjig1Zz_yHCBcvqQj5qkjj1N8HyT3KQtTOzItfDb4qf7uEAzONbcSN8YRYuRKvBMxKgJMSdeIu8Ah3zMOAhLxa1X0XnRr0a1gYudqQLowpnwQ7SP31Y_I3IlrXdBZqIYI12cciY_N1c11MsDuM1mtWhA0aJeVVzgdyq_DS0WOAiZy6Lsd26vY1ZR5Q5OsHYVIF5g"
+              },
+              "payment": {
+                "amount": {
+                  "currency": "USD",
+                  "total": 100
+                }
+              },
+              "locale": "es_ES"
+        }'
+      ```
+      </CodeGroup>
+    </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/validate-existing-account"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Respuesta">
+    ```json {{ title: '200' }}
+    {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "La verificación ha sido exítosa",
+        "date": "2024-04-19T20:51:52+00:00"
+    }
+    ```
+    ```json {{ title: '400' }}
+    {
+      "status": {
+        "status": "FAILED",
+        "reason": "BR",
+        "message": "El payment.amount.currency seleccionado no es válido.",
+        "date": "2024-04-19T21:33:00+00:00"
+      }
+    }
+    ```
+    </CodeGroup>
+  </Col>
+</Row>
