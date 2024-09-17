@@ -1001,23 +1001,24 @@ export const TAB_NAVIGATION = {
   'account-validator': {
     [LANGUAGES_CODES.ES]: [
       {
-        title: 'Documentación',
-        identifier: 'account-validator',
-        href: '/account-validator',
-        icon: Book,
-      },
-      {
-
         title: 'API',
         identifier: 'account-validator/api',
         href: '/account-validator/api/session',
         icon: DocumentCode,
         links: [
           {
+            title: 'Introducción',
+            links: [
+              {
+                title: 'Documentación',
+                href: '/account-validator/api',
+              },
+            ]
+          },
+          {
             title: 'API',
             links: [
               {
-                title: 'Sesiónes',
                 href: '/account-validator/api/session',
               },
             ],
