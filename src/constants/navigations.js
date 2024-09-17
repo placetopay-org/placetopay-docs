@@ -1007,17 +1007,18 @@ export const TAB_NAVIGATION = {
         icon: Book,
       },
       {
+
         title: 'API',
         identifier: 'account-validator/api',
-        href: '/account-validator/api/create-session',
+        href: '/account-validator/api/session',
         icon: DocumentCode,
         links: [
           {
             title: 'API',
             links: [
               {
-                title: 'Account Validator',
-                href: '/account-validator/api/create-session',
+                title: 'Sesiónes',
+                href: '/account-validator/api/session',
               },
             ],
           },

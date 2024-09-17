@@ -55,7 +55,7 @@ const LINKS = {
       title: 'Account Validator',
       description: 'Verificación de cuentas',
       href: '/account-validator',
-      icon: Link,
+      icon: SecurityCard,
     },
   ],
   [LANGUAGES_CODES.EN]: [
