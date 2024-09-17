@@ -26,6 +26,8 @@ export const useNamespaceRoute = () => {
       return 'ticket';
     case 'core':
       return 'core';
+    case 'account-validator':
+      return 'account-validator';
     default:
       return 'gateway';
   }}
@@ -55,6 +57,8 @@ export const useNavigation = (namespaces) => {
       return TAB_NAVIGATION['ticket'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     case 'core':
       return TAB_NAVIGATION['core'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
+    case 'account-validator':
+      return TAB_NAVIGATION['account-validator'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     default:
       throw new Error(`The namespace navigation '${namespaces}' is not defined`);
   }
