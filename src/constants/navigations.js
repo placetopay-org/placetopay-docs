@@ -1002,8 +1002,8 @@ export const TAB_NAVIGATION = {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'API',
-        identifier: 'account-validator/api',
-        href: '/account-validator/api/session',
+        identifier: 'account-validator',
+        href: '/account-validator/api',
         icon: DocumentCode,
         links: [
           {
@@ -1011,16 +1011,16 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Documentación',
-                href: '/account-validator/api',
+                href: '/account-validator',
               },
             ]
           },
           {
             title: 'API',
             links: [
-              {
-                href: '/account-validator/api/session',
-              },
+              { title: 'Crear una sesión', href: '/account-validator/api/create-sesion' },
+              { title: 'Consultar estado de sesión', href: '/account-validator/api/check-session-status' },
+              { title: 'Validar Cuenta existente', href: '/account-validator/api/validate-existing-account' },
             ],
           },
         ],
