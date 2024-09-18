@@ -1009,7 +1009,8 @@ export const TAB_NAVIGATION = {
           {
             title: 'Documentación',
             links: [
-              { title: '¿Qué es?', href: '/account-validator', },
+
+              { title: 'Introducción', href: '/account-validator', },
               { title: '¿Cómo funciona?', href: '/account-validator/how-to-work' },
               { title: 'Flujo del usuario', href: '/account-validator/user-flow' },
               { title: 'Micro depósitos', href: '/account-validator/micro-deposits' },
@@ -1019,9 +1020,9 @@ export const TAB_NAVIGATION = {
           {
             title: 'API',
             links: [
-              { title: 'Crear una sesión', href: '/account-validator/api/create-sesion' },
-              { title: 'Consultar estado de sesión', href: '/account-validator/api/check-session-status' },
-              { title: 'Validar Cuenta existente', href: '/account-validator/api/validate-existing-account' },
+              { title: 'Url de ambientes', href: '/account-validator/api/environment-urls', },
+              { title: 'Sesión', href: '/account-validator/api/session' },
+              { title: 'Validador de cuenta', href: '/account-validator/api/validate-existing-account' },
             ],
           },
         ],
