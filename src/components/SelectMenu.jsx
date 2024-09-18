@@ -101,6 +101,12 @@ const LINKS = {
       href: '/en/microsites',
       icon: Calendar,
     },
+    {
+      title: 'Account Validator',
+      description: 'Account verification',
+      href: '/account-validator',
+      icon: SecurityCard,
+    },
   ],
 }
 
