@@ -1028,6 +1028,35 @@ export const TAB_NAVIGATION = {
         ],
       },
     ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'API',
+        identifier: 'account-validator',
+        href: '/account-validator/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Documentation',
+            links: [
+
+              { title: 'Introduction', href: '/account-validator', },
+              { title: '¿How it works?', href: '/account-validator/how-to-work' },
+              { title: 'User flow', href: '/account-validator/user-flow' },
+              { title: 'Micro deposits', href: '/account-validator/micro-deposits' },
+              { title: 'Lightbox Support', href: '/account-validator/support' }
+            ]
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'URL of environments', href: '/account-validator/api/environment-urls', },
+              { title: 'Session', href: '/account-validator/api/session' },
+              { title: 'Account validator', href: '/account-validator/api/validate-existing-account' },
+            ],
+          },
+        ],
+      },
+    ],
   },
   'payment-links': {
     [LANGUAGES_CODES.ES]: [
