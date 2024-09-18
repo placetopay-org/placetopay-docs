@@ -998,6 +998,66 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
+  'account-validator': {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'API',
+        identifier: 'account-validator',
+        href: '/account-validator/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Documentación',
+            links: [
+
+              { title: 'Introducción', href: '/account-validator', },
+              { title: '¿Cómo funciona?', href: '/account-validator/how-to-work' },
+              { title: 'Flujo del usuario', href: '/account-validator/user-flow' },
+              { title: 'Micro depósitos', href: '/account-validator/micro-deposits' },
+              { title: 'Soporte para Lightbox', href: '/account-validator/support' }
+            ]
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Url de ambientes', href: '/account-validator/api/environment-urls', },
+              { title: 'Sesión', href: '/account-validator/api/session' },
+              { title: 'Validador de cuenta', href: '/account-validator/api/validate-existing-account' },
+            ],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'API',
+        identifier: 'account-validator',
+        href: '/account-validator/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Documentation',
+            links: [
+
+              { title: 'Introduction', href: '/account-validator', },
+              { title: '¿How it works?', href: '/account-validator/how-to-work' },
+              { title: 'User flow', href: '/account-validator/user-flow' },
+              { title: 'Micro deposits', href: '/account-validator/micro-deposits' },
+              { title: 'Lightbox Support', href: '/account-validator/support' }
+            ]
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'URL of environments', href: '/account-validator/api/environment-urls', },
+              { title: 'Session', href: '/account-validator/api/session' },
+              { title: 'Account validator', href: '/account-validator/api/validate-existing-account' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
   'payment-links': {
     [LANGUAGES_CODES.ES]: [
       {
