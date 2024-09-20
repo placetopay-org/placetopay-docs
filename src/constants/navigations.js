@@ -455,7 +455,7 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server/api/sessions',
               },
               {
-                title: 'Detalle de los campos del api',
+                title: 'Datos adicionales',
                 href: '/three-d-s-server/api/sessions/detail-info',
               },
             ],
@@ -590,7 +590,7 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server/api/sessions'
               },
               {
-                title: 'Detail Info',
+                title: 'Additional data',
                 href: '/three-d-s-server/api/sessions/detail-info',
               },
             ],
