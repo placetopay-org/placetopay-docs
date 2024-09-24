@@ -20,6 +20,14 @@ export const useNamespaceRoute = () => {
       return 'token-requestor';
     case 'payment-links':
         return 'payment-links';
+    case 'microsites':
+        return 'microsites';
+    case 'ticket':
+      return 'ticket';
+    case 'core':
+      return 'core';
+    case 'account-validator':
+      return 'account-validator';
     default:
       return 'gateway';
   }}
@@ -43,6 +51,14 @@ export const useNavigation = (namespaces) => {
       return TAB_NAVIGATION['token-requestor'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     case 'payment-links':
         return TAB_NAVIGATION['payment-links'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
+    case 'microsites':
+        return TAB_NAVIGATION['microsites'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
+    case 'ticket':
+      return TAB_NAVIGATION['ticket'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
+    case 'core':
+      return TAB_NAVIGATION['core'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
+    case 'account-validator':
+      return TAB_NAVIGATION['account-validator'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     default:
       throw new Error(`The namespace navigation '${namespaces}' is not defined`);
   }
