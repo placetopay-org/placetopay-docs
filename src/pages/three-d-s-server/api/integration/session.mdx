@@ -514,6 +514,112 @@ Ver más detalle en [Reglas a tener en cuenta de la session API](/en/three-d-s-s
 ```
 
 
+## Transacción de Recurrencia con el BME
+
+### Atributos de la Transacción con Recurrencia
+
+Los atributos de la transacción de recurrencia para el **BME** son válidos si el valor del campo `threeRIInd` es igual a alguno de los siguientes:
+
+- **RECURRING_TRANSACTION** (Transacción Recurrente)
+- **INSTALMENT_TRANSACTION** (Transacción a Plazos)
+
+Cuando alguno de estos valores es el indicador en `threeRIInd`, se aplican las siguientes reglas para los indicadores de recurrencia sobre los datos del request base:
+
+### Indicadores de Recurrencia `recurringInd`
+
+1. **amountInd** (Indicador de Monto):
+- Si la transacción es variable, se establece el valor de `amountInd` en **02**: `VARIABLE_PURCHASE` (Compra Variable)
+- Si el campo `purchaseAmount` está presente en la solicitud, se asigna el valor de `amountInd` a **01**: `FIXED_PURCHASE` (Compra Fija)
+
+2. **frequencyInd** (Indicador de Frecuencia):
+- Si la transacción es variable, se establece el valor de `frequencyInd` en **02**: `VARIABLE_FREQUENCY` (Frecuencia Variable)
+- Si el campo `recurringFrequency` está presente en la solicitud, se asigna el valor de `frequencyInd` a **01**: `FIXED_FREQUENCY` (Frecuencia Fija)
+
+
+**Datos Asociados a la Extensión del BME**
+
+Los siguientes datos se asociarán a la extensión del **BME** de acuerdo con los indicadores previamente mencionados:
+
+### 1. `recurringAmount`
+
+El campo `recurringAmount` será agregado a la extensión del **BME** en la sección de datos de recurrencia bajo las siguientes condiciones:
+
+- **Condición 1**: El valor de `recurringInd.amountInd` es igual a **FIXED_FREQUENCY**.
+
+    **Y**
+
+- **Condición 2**: El valor de `threeDSRequestorAuthenticationInd` es igual a: **RECURRING_TRANSACTION (02)**, **INSTALMENT_TRANSACTION (03)** o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, **INSTALMENT_TRANSACTION (02)**.
+
+Si se cumplen las condiciones anteriores, el valor de `recurringAmount` se añadirá a la extensión del **BME**. El valor de `recurringAmount` será tomado del campo `purchaseAmount` en la solicitud base.
+
+
+### 2. `recurringCurrency`
+
+El campo `recurringCurrency` será agregado a la extensión del **BME** bajo las siguientes condiciones:
+
+- **Condición**: El valor de `threeRIInd` es igual a: **RECURRING_TRANSACTION (01)**, o **INSTALMENT_TRANSACTION (02)**.
+
+Cuando se cumple esta condición, el valor de `recurringCurrency` será añadido a la extensión del **BME**, y corresponderá al valor proporcionado en el request base bajo el campo `purchaseCurrency`.
+
+
+### 3. `recurringExponent`
+
+El campo `recurringExponent` será agregado a la extensión del **BME** bajo las siguientes condiciones:
+
+- **Condición**: El valor de `threeRIInd` es igual a:
+- **RECURRING_TRANSACTION (01)**, o
+- **INSTALMENT_TRANSACTION (02)**.
+
+Cuando se cumple esta condición, el valor de `recurringExponent` será añadido a la extensión del **BME**, y corresponderá al valor proporcionado en el request base bajo el campo `purchaseExponent`.
+
+
+### 4. `recurringDate`
+
+El campo `recurringDate` será agregado a la extensión del **BME** bajo las siguientes condiciones:
+
+- **Condición**: El valor de `recurringInd.frequencyInd` es igual a:
+- **FIXED_FREQUENCY (01)**.
+
+Si esta condición se cumple, el campo `recurringDate` será añadido a la extensión del **BME**, siempre y cuando esté presente en el request base en `bridgingMessageExtension.data.recurringData.recurringDate`.
+
+
+### 5. `recurringExpiry`
+
+El valor de `recurringExpiry` es calculado automáticamente por el sistema según las siguientes condiciones.
+
+- **Condición**: El valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, o **INSTALMENT_TRANSACTION (02)**.
+- **Condición**: Si el valor de `deviceChannel` en los atributos es igual a **RI** y no existe un valor previo para `recurringExpiry` en el request base.
+    - El campo `recurringExpiry` se toma de los datos de los datos enviados en el request base.
+
+
+### 6. `recurringFrequency`
+
+El valor de `recurringFrequency` será tomado del request base bajo las siguientes condiciones:
+
+- **Condición**: El valor de `recurringInd.frequencyInd` es igual a **FIXED_FREQUENCY (01)**.
+
+Si esta condición se cumple, el valor de `recurringFrequency` se tomará directamente del request base de lo contrario no se asignara un valor a la extension.
+
+
+### 7. `recurringInd`
+
+El campo `recurringInd` se compone de dos subcampos: `amountInd` y `frequencyInd`. Ambos serán agregados a la extensión del **BME** bajo las siguientes condiciones:
+
+#### Condiciones
+
+1. **Condición**: El valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, o **INSTALMENT_TRANSACTION (02)**.
+
+Cuando se cumple esta condición, los siguientes subcampos serán agregados:
+
+#### Subcampos
+
+- **`amountInd`**:
+- Se agregará el valor proporcionado en `bridgingMessageExtension.data.recurringData.recurringInd.amountInd` si está presente en el request base.
+- Si no se proporciona un valor en el request base, él `amountInd` tendrá un valor por defecto de **FIXED_PURCHASE (01)**.
+
+- **`frequencyInd`**:
+- Se agregará el valor proporcionado en `bridgingMessageExtension.data.recurringData.recurringInd.frequencyInd` si está presente en el request base.
+- Si no se proporciona un valor en el request base, él `frequencyInd` tendrá un valor por defecto de **FIXED_FREQUENCY (01)**.
 
 
 ---
