@@ -44,15 +44,19 @@ const TITLES = {
       nullable: 'Nullable',
       yes: 'Yes',
       no: 'No',
-    }
-  }
+    },
+  },
 }
 
 const ApiPropertyInformation = ({ title, items }) => {
   const { locale } = useLocale()
   const makeCode = (item) => {
-    if (title === 'nullable') return item ? TITLES.propertyInformation[locale].yes : TITLES.propertyInformation[locale].no
-    if (typeof item === 'boolean' || typeof item === 'object') return JSON.stringify(item)
+    if (title === 'nullable')
+      return item
+        ? TITLES.propertyInformation[locale].yes
+        : TITLES.propertyInformation[locale].no
+    if (typeof item === 'boolean' || typeof item === 'object')
+      return JSON.stringify(item)
     return item
   }
 
@@ -173,24 +177,20 @@ const ParentProperty = ({
         >
           <>
             {property.description && (
-              <>
-                <div className="condensed">
-                  <ReactMarkdown>{property.description}</ReactMarkdown>
-                </div>
-
-                <div className="">
-                  {propertyInformation().map((info, index) => (
-                    <ApiPropertyInformation
-                      key={index}
-                      title={info.title}
-                      items={
-                        Array.isArray(info.items) ? info.items : [info.items]
-                      }
-                    />
-                  ))}
-                </div>
-              </>
+              <div className="condensed">
+                <ReactMarkdown>{property.description}</ReactMarkdown>
+              </div>
             )}
+
+            <div className="">
+              {propertyInformation().map((info, index) => (
+                <ApiPropertyInformation
+                  key={index}
+                  title={info.title}
+                  items={Array.isArray(info.items) ? info.items : [info.items]}
+                />
+              ))}
+            </div>
 
             {withChilds && (
               <>
