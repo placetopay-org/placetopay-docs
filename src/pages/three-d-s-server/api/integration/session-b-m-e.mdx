@@ -1,0 +1,626 @@
+export const sectionMode = 'nav';
+
+## Sesión con Bridging Message Extension
+
+El 3DS **v2.3** introduce elementos de datos en la extensión del mensaje que pueden duplicar aquellos presentes en las versiones 3DS **v2.1 y v2.2**, pero con valores nuevos o diferentes. De acuerdo con la Especificación Básica **v2.3**, estos valores se establecen en la extensión del mensaje, mientras que en las versiones **v2.1 y v2.2** se encuentran en la parte central de los mensajes 3DS. En estos casos, el valor del elemento de datos en la extensión del mensaje prevalece sobre el valor correspondiente en la parte central del mensaje 3DS. Además, el Servidor 3DS genera el mensaje AReq **v2.1** o **v2.2** bajo la suposición de que el ACS no soporta la Extensión del Mensaje de Puente, y posteriormente, proporciona la información adicional a través de dicha extensión. Si se soporta la Extensión del Mensaje de Puente, el componente 3DS deberá ser compatible al menos con uno de los objetos de datos ***como datos recurrentes, datos de desafío, datos adicionales o datos de URL de archivo*** de la extensión del mensaje e implementar los requisitos correspondientes de la Especificación Básica **v2.3**.
+
+Con el objetivo de mejorar la tasa de aprobación en las autenticaciones, hemos ampliado este requerimiento creando la extensión BMS. Esta extensión facilita el acceso a la información disponible en la versión **2.3.1** del protocolo, que no estaba accesible en versiones anteriores **2.1.0 y 2.2.0**. De este modo, tanto el ACS como el servidor de directorios podrán tomar decisiones más informadas.
+
+### Especificaciones
+
+| Versión BME                 | Mastercard    | Visa          |
+|-----------------------------|---------------|---------------|
+| Versión 1.0  **habilitada** | **Soportada** | **Soportada** |
+| Versión 2.0                 | En proceso    | En proceso    |
+
+**Transacción con BME inicial**
+
+En esta versión, pondremos a disposición en la API de sesión varios elementos que podrá enviar para optimizar el uso de esta extensión.
+
+**cardSecurityCode:** Código de seguridad asociado a las tarjetas de crédito o débito.
+
+**threeDSRequestorAuthenticationInd:** Indicador de autenticación solicitado por el 3DS.
+
+**threeRIInd:** Indica el tipo de **3RI** pedido. Este elemento de datos proporciona adicional información al ACS para determinar el mejor enfoque para entregar una solicitud 3RI.
+
+**transChar:** Indica a la ACS transacciones específicas identificadas por el Comerciante.
+
+Ver más detalle en [Reglas a tener en cuenta de la session API](/en/three-d-s-server/api/sessions/rules)
+
+***La Extension solo se creara si es enviada en la session request bridgingMessageExtension***
+
+
+### Ejemplo de los datos en el request
+
+```json
+
+{
+  "acctNumber": "4005580000000040",
+  "cardExpiryDate": "2411",
+  "purchaseAmount": "8.25",
+  "redirectURI": "https://www.placetopay.com",
+  "purchaseCurrency": "USD",
+  "addPriorInformation": "Y",
+  "threeDSAuthenticationInd": "01",
+  "messageCategory": "01",
+  "deviceChannel": "03",
+  "threeRIInd": "01",
+  "recurringFrequency": "031",
+  "recurringExpiry": "20241020",
+  "bridgingMessageExtension": {
+    "data": {
+      "addData": {
+        "transChar": "CRYPTOCURRENCY_TRANSACTION",
+        "threeRIInd": "SPLIT_PAYMENT",
+        "cardSecurityCode": "123",
+        "threeDSRequestorAuthenticationInd": "SPLIT_PAYMENT"
+      },
+     "recurringData": {
+        "recurringDate": "20241023",
+        "recurringInd": {
+          "frequencyInd": "VARIABLE_FREQUENCY",
+          "amountInd": "VARIABLE_PURCHASE"
+        }
+      }
+    }
+  }
+}
+
+
+```
+
+### Ejemplo De la extension creada por 3DSS
+
+```json
+{
+  {
+    "id": "A000000802-004",
+    "data": {
+      "addData": {
+        "transChar": "02",
+        "threeRIInd": "15",
+        "cardSecurityCode": "123",
+        "acquirerCountryCode": "170",
+        "acquirerCountryCodeSource": "01",
+        "threeDSRequestorAuthenticationInd": "10"
+      },
+     "recurringData": {
+        "recurringInd": {
+          "amountInd": "02",
+          "frequencyInd": "02"
+        },
+        "recurringDate": "20241023",
+        "recurringAmount": "8.25",
+        "recurringExpiry": "20241020",
+        "recurringCurrency": "USD",
+        "recurringFrequency": "031"
+      }
+    },
+    "name": "Bridging",
+    "version": "1.0",
+    "criticalityIndicator": false
+  }
+}
+
+```
+
+
+
+**Versión 1 (v1):**
+
+- Atributos Soportados:
+
+**addData:** Esta versión incluye soporte únicamente para el atributo addData, que contiene información adicional sobre la transacción, como el indicador de autenticación y otros datos relevantes.
+
+- Ejemplo JSON para v1:
+
+```json
+{
+ "addData": {
+    "transChar": "CRYPTOCURRENCY_TRANSACTION",
+    "threeRIInd": "DELAYED_SHIPMENT",
+    "cardSecurityCode": "123",
+    "threeDSRequestorAuthenticationInd": "SPLIT_PAYMENT"
+  }
+}
+
+```
+
+**Versión 2 (v2):**
+
+- Atributos Soportados:
+
+**addData:** Además de los datos adicionales que incluyen el indicador de autenticación, esta versión también soporta los mismos atributos que en v1.
+
+**recurringData:** Se introduce en v2 el soporte para el atributo recurringData, que permite manejar información sobre transacciones recurrentes como la cantidad, frecuencia, y fecha de vencimiento.
+
+- Ejemplo JSON para v2:
+
+
+```json
+{
+ "addData": {
+    "transChar": "CRYPTOCURRENCY_TRANSACTION",
+    "threeRIInd": "DELAYED_SHIPMENT",
+    "cardSecurityCode": "123",
+    "threeDSRequestorAuthenticationInd": "SPLIT_PAYMENT"
+  },
+ "recurringData": {
+    "recurringDate": "20241023",
+    "recurringInd": {
+      "frequencyInd": "VARIABLE_FREQUENCY",
+      "amountInd": "VARIABLE_PURCHASE"
+    }
+  }
+}
+
+```
+
+
+## Data adicional para una transacción recurrente
+
+### Atributos de la Transacción con Recurrencia
+
+Los atributos de la transacción de recurrencia para el **BME** son válidos si el valor del campo `threeRIInd` es igual a alguno de los siguientes:
+
+- **RECURRING_TRANSACTION** (Transacción Recurrente)
+- **INSTALMENT_TRANSACTION** (Transacción a Plazos)
+
+Cuando alguno de estos valores es el indicador en `threeRIInd`, se aplican las siguientes reglas para los indicadores de recurrencia sobre los datos del request base:
+
+**Datos Asociados a la Extensión del BME**
+
+Los siguientes datos se asociarán a la extensión del **BME** de acuerdo con los indicadores previamente mencionados:
+
+### 1. `recurringAmount`
+
+El campo `recurringAmount` será agregado a la extensión del **BME** en la sección de datos de recurrencia bajo las siguientes condiciones:
+
+- **Condición 1**: El valor de `recurringInd.amountInd` es igual a **FIXED_FREQUENCY**.
+
+**Y**
+
+- **Condición 2**: El valor de `threeDSRequestorAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, **INSTALMENT_TRANSACTION (02)**.
+
+Si se cumplen las condiciones anteriores, el valor de `recurringAmount` se añadirá a la extensión del **BME**. El valor de `recurringAmount` será tomado del campo `purchaseAmount` en la solicitud base.
+
+
+### 2. `recurringCurrency`
+
+El campo `recurringCurrency` será agregado a la extensión del **BME** bajo las siguientes condiciones:
+
+- **Condición**: El valor de `threeRIInd` es igual a: **RECURRING_TRANSACTION** (01), o **INSTALMENT_TRANSACTION** (02).
+
+Cuando se cumple esta condición, el valor de `recurringCurrency` será añadido a la extensión del **BME**, y corresponderá al valor proporcionado en el request base bajo el campo `purchaseCurrency`.
+
+
+### 3. `recurringExponent`
+
+El campo `recurringExponent` será agregado a la extensión del **BME** bajo las siguientes condiciones:
+
+- **Condición**: El valor de `threeRIInd` es igual a: **RECURRING_TRANSACTION** (01), o **INSTALMENT_TRANSACTION** (02).
+
+Cuando se cumple esta condición, el valor de `recurringExponent` será añadido a la extensión del **BME**, y corresponderá al valor proporcionado en el request base bajo el campo `purchaseExponent`.
+
+
+### 4. `recurringDate`
+
+El campo `recurringDate` será agregado a la extensión del **BME** bajo las siguientes condiciones:
+
+- **Condición**: El valor de `recurringInd.frequencyInd` es igual a: **FIXED_FREQUENCY** (01).
+
+Si esta condición se cumple, el campo `recurringDate` será añadido a la extensión del **BME**, siempre y cuando esté presente en el request base en `bridgingMessageExtension.data.recurringData.recurringDate`.
+
+
+### 5. `recurringExpiry`
+
+El valor de `recurringExpiry` es calculado automáticamente por el sistema según las siguientes condiciones.
+
+- **Condición**: El valor de `threeRIInd` es igual a **RECURRING_TRANSACTION** (01), o **INSTALMENT_TRANSACTION** (02).
+- **Condición**: Si el valor de `deviceChannel` en los atributos es igual a **RI** y no existe un valor previo para `recurringExpiry` en el request base.
+- El campo `recurringExpiry` se toma de los datos de los datos enviados en el request base.
+
+
+### 6. `recurringFrequency`
+
+El valor de `recurringFrequency` será tomado del request base bajo las siguientes condiciones:
+
+- **Condición**: El valor de `recurringInd.frequencyInd` es igual a **FIXED_FREQUENCY** (01).
+
+Si esta condición se cumple, el valor de `recurringFrequency` se tomará directamente del request base de lo contrario no se asignara un valor a la extension.
+
+
+### 7. `recurringInd`
+
+El campo `recurringInd` se compone de dos subcampos: `amountInd` y `frequencyInd`. Ambos serán agregados a la extensión del **BME** bajo las siguientes condiciones:
+
+- **Condición**: El valor de `threeRIInd` es igual a **RECURRING_TRANSACTION** (01), o **INSTALMENT_TRANSACTION** (02).
+
+Cuando se cumple esta condición, los siguientes subcampos serán agregados:
+
+#### Subcampos
+
+- **`amountInd`**: Se agregará el valor proporcionado en `bridgingMessageExtension.data.recurringData.recurringInd.amountInd` si está presente en el request base y
+si no se proporciona un valor en el request base, él `amountInd` tendrá un valor por defecto de **FIXED_PURCHASE** (01).
+
+- **`frequencyInd`**: Se agregará el valor proporcionado en `bridgingMessageExtension.data.recurringData.recurringInd.frequencyInd` si está presente en el request base y si no se proporciona un valor en el request base, él `frequencyInd` tendrá un valor por defecto de **FIXED_FREQUENCY (01)**.
+
+##  Beneficios de la V2.3.1 del protocolo con el BME en 3DS con sus nuevos indicadores
+
+Ver más detalle en [Reglas a tener en cuenta de la session API con BME](/en/three-d-s-server/api/sessions/rules#elementos-que-podra-enviar-para-optimizar-el-uso-de-esta-extension-bme)
+
+
+**threeDSRequestorAuthenticationInd:** usado en el request base como: threeDSAuthenticationInd, este campo incluye nuevos indicadores disponibles en la versión 2.3.1
+
+- **BILLING_AGREEMENT (07):** Este indicador se refiere a un acuerdo de facturación entre el cliente y el comerciante, donde el cliente autoriza pagos recurrentes o futuros sin necesidad de autenticar cada transacción individualmente. Es común en suscripciones o servicios continuos donde los pagos se procesan periódicamente.
+
+- **SPLIT_SHIPMENT (08):** Indica que el pedido se enviará en múltiples envíos. Esto puede ocurrir cuando el comerciante no tiene todos los artículos en stock o por conveniencia logística. En este caso, el cargo total puede dividirse y procesarse en función de los envíos parciales.
+
+- **DELAYED_SHIPMENT (09):** Se refiere a una transacción en la que el envío del pedido se retrasa intencionalmente, ya sea por solicitud del cliente o por motivos logísticos del comerciante. El pago puede procesarse en el momento de la compra, pero el envío se llevará a cabo más tarde.
+
+- **SPLIT_PAYMENT (10):** Este indicador señala que el pago de una transacción se divide en varias partes, ya sea entre diferentes métodos de pago o en diferentes momentos. Por ejemplo, el cliente podría pagar una parte con una tarjeta de crédito y el resto con otro método, o pagar en varias cuotas.
+
+- **MASTERCARD_THE_PAYMENT_REQUEST_IS_FOR_AN_AGENT_PAYMENT_TRANSACTION (85):** Este indicador se utiliza cuando la solicitud de pago está relacionada con una transacción gestionada por un agente en nombre del comerciante o cliente. Es común en casos donde una agencia u otro intermediario gestiona el pago, actuando como un tercero que facilita la transacción entre el comerciante y el cliente.
+
+- **MASTERCARD_FOR_UNKNOWN_OR_UNDEFINED_FINAL_AMOUNT_BEFORE_PURCHASE_TRANSACTION (86):** Este indicador se emplea cuando el monto final de la transacción no se conoce o no está definido en el momento de la compra. Es útil en situaciones donde el importe total podría variar, como cuando se realizan reservas o compras que pueden implicar cargos adicionales, pero el monto exacto se determina posteriormente (por ejemplo, reservas de hotel, alquileres de automóviles o servicios con tarifas variables).
+
+
+**threeRIInd:** Este campo incluye nuevos indicadores disponibles en la versión 2.3.1
+
+- **DEVICE_BINDING_STATUS_CHECK (13):** Este indicador se utiliza para verificar el estado de la vinculación de un dispositivo. Se refiere a situaciones en las que es necesario verificar si un dispositivo está vinculado correctamente a una cuenta o tarjeta, lo que puede mejorar la seguridad de las transacciones recurrentes o de pago.
+
+- **CARD_SECURITY_CODE_STATUS_CHECK (14):** Este indicador permite verificar el estado del código de seguridad de la tarjeta (CVV o CVC). Es común en transacciones donde se requiere una autenticación adicional del código de seguridad para validar la legitimidad de la tarjeta utilizada.
+
+- **DELAYED_SHIPMENT (15):** Este indicador se utiliza para transacciones en las que el envío del producto o servicio se realizará en una fecha posterior. Es útil para casos en los que el pago se procesa de inmediato, pero la entrega se retrasa o se realiza más adelante.
+
+- **SPLIT_PAYMENT (16):** Se refiere a una transacción en la que el pago se divide en varias partes. Esto puede ocurrir cuando el comprador elige pagar en diferentes cuotas o mediante diferentes métodos de pago para una sola transacción.
+
+- **FIDO_CREDENTIAL_DELETION (17):** Este indicador se emplea cuando se solicita la eliminación de las credenciales de FIDO (Fast Identity Online) asociadas a una cuenta o dispositivo. FIDO es un estándar de autenticación que permite la eliminación de credenciales para mejorar la seguridad.
+
+- **FIDO_CREDENTIAL_REGISTRATION (18):** Se utiliza cuando se realiza la inscripción de nuevas credenciales FIDO. Este proceso vincula un dispositivo o cuenta a un método de autenticación más seguro, que es independiente de contraseñas tradicionales.
+
+- **DECOUPLED_AUTHENTICATION_FALLBACK (19):** Este indicador se activa cuando se produce un fallo en el proceso de autenticación desacoplada. La autenticación desacoplada permite al titular de la tarjeta autenticarse en un canal distinto al del comercio (por ejemplo, a través de una app bancaria), y este código indica que el método ha fallado y se requiere una alternativa.
+
+**transChar:** Este campo incluye nuevos indicadores disponibles en la versión 2.3.1
+
+- **CRYPTOCURRENCY_TRANSACTION (01):** Este indicador se utiliza para identificar transacciones relacionadas con criptomonedas. Permite que el emisor y otros actores del sistema de pagos reconozcan de forma explícita cuando la transacción involucra la compra, venta o intercambio de criptomonedas, lo que puede requerir un tratamiento especial debido a la naturaleza de este tipo de activos.
+
+- **NFT_TRANSACTION (02):** Este indicador está diseñado para transacciones que implican la compra o el intercambio de tokens no fungibles (NFTs). Los NFTs son activos digitales únicos basados en tecnología blockchain, y este código ayuda a diferenciar estas transacciones de las compras tradicionales, ofreciendo una capa adicional de información relevante para la autenticación y el análisis de riesgos.
+
+
+**amountInd:** Este campo incluye nuevos indicadores disponibles en la versión 2.3.1
+
+- **FIXED_PURCHASE (01):** Indica que el monto de la transacción es fijo y no varía. Este tipo de compra es común en transacciones estándar donde el valor del producto o servicio está predefinido y no cambia durante el proceso de pago.
+
+- **VARIABLE_PURCHASE (02):** Indica que el monto de la transacción puede variar. Se utiliza en casos donde el valor final de la compra no está determinado en el momento de la autenticación inicial, como en situaciones de envío fraccionado, cargos adicionales, o ajustes por servicios o productos variables. Este indicador proporciona flexibilidad en el manejo de transacciones con montos ajustables.
+
+
+**frequencyInd:** Este campo incluye nuevos indicadores disponibles en la versión 2.3.1
+
+- **FIXED_FREQUENCY (01):** Indica que la frecuencia de la transacción recurrente es fija. Es utilizado cuando los pagos se realizan a intervalos regulares y predefinidos, como pagos mensuales, suscripciones o cuotas de préstamos. La periodicidad es constante y no cambia a lo largo del tiempo.
+
+- **VARIABLE_FREQUENCY (02):** Indica que la frecuencia de la transacción recurrente puede variar. Se aplica en casos donde los pagos no se realizan a intervalos regulares, o la frecuencia cambia según las necesidades o circunstancias, como en pagos esporádicos o cuando el intervalo entre pagos no es predecible. Este indicador brinda flexibilidad para manejar pagos recurrentes que no siguen un patrón estricto.
+
+
+---
+
+## Pagos Recurrentes
+
+Indicadores Relevantes:
+
+- **threeRIInd:** RECURRING_TRANSACTION (01)
+- **amountInd:** FIXED_PURCHASE (01) o VARIABLE_PURCHASE (02)
+- **frequencyInd:** FIXED_FREQUENCY (01) o VARIABLE_FREQUENCY (02)
+
+**Caso de Uso:** Cuando un comerciante quiere procesar una transacción recurrente con un monto fijo o variable (como una suscripción mensual de un servicio o cuotas de pago de un préstamo), el BME puede ser utilizado para indicar el tipo de transacción recurrente, la frecuencia con la que se realizarán los pagos, y si el monto será fijo o variable.
+
+**Ejemplo:** Una plataforma de streaming quiere cobrar una suscripción mensual fija (por ejemplo, $10), pero también puede manejar casos donde el usuario paga montos variables basados en consumo, con una frecuencia no predefinida.
+
+```json
+
+{
+  "acctNumber": "4005580000000040",
+  "cardExpiryDate": "2411",
+  "purchaseAmount": "8.25",
+  "redirectURI": "https://www.placetopay.com",
+  "purchaseCurrency": "USD",
+  "addPriorInformation": "Y",
+  "threeDSAuthenticationInd": "02",
+  "messageCategory": "01",
+  "deviceChannel": "03",
+  "threeRIInd": "01",
+  "recurringFrequency": "031",
+  "recurringExpiry": "20241020",
+  "bridgingMessageExtension": {
+    "data": {
+      "addData": {
+        "threeRIInd": "RECURRING_TRANSACTION",
+        "cardSecurityCode": "123"
+      },
+     "recurringData": {
+        "recurringDate": "20241023",
+        "recurringInd": {
+          "frequencyInd": "FIXED_PURCHASE",
+          "amountInd": "FIXED_FREQUENCY"
+        }
+      }
+    }
+  }
+}
+
+```
+
+---
+
+## Pagos a Plazos
+
+Indicadores Relevantes:
+
+- **threeRIInd:** INSTALMENT_TRANSACTION (02)
+- **amountInd:** FIXED_PURCHASE (01) o VARIABLE_PURCHASE (02)
+- **frequencyInd:** FIXED_FREQUENCY (01) o VARIABLE_FREQUENCY (02)
+
+**Caso de Uso:** Para pagos a plazos, como la compra de un producto caro en cuotas, el BME puede especificar que la transacción es a plazos y ajustar la frecuencia de los pagos, además de indicar si los montos son fijos o variables a lo largo del tiempo.
+
+**Ejemplo:** Un cliente compra un electrodoméstico costoso y elige pagarlo en 6 cuotas fijas. Se puede usar el BME para indicar que es un pago a plazos con una frecuencia mensual fija y un monto constante.
+
+```json
+
+{
+  "acctNumber": "4005580000000040",
+  "cardExpiryDate": "2411",
+  "purchaseAmount": "8.25",
+  "redirectURI": "https://www.placetopay.com",
+  "purchaseCurrency": "USD",
+  "addPriorInformation": "Y",
+  "threeDSAuthenticationInd": "02",
+  "messageCategory": "01",
+  "deviceChannel": "03",
+  "threeRIInd": "01",
+  "recurringFrequency": "031",
+  "recurringExpiry": "20241020",
+  "bridgingMessageExtension": {
+    "data": {
+      "addData": {
+        "threeRIInd": "INSTALMENT_TRANSACTION",
+        "cardSecurityCode": "123"
+      },
+     "recurringData": {
+        "recurringDate": "20241023",
+        "recurringInd": {
+          "frequencyInd": "VARIABLE_PURCHASE",
+          "amountInd": "VARIABLE_FREQUENCY"
+        }
+      }
+    }
+  }
+}
+
+```
+
+---
+
+## Envío Dividido o Retrasado
+
+Indicadores Relevantes:
+
+**threeRIInd:** DELAYED_SHIPMENT (15) o SPLIT_PAYMENT (16)
+
+**Caso de Uso:** Para escenarios donde el pedido de un cliente se divide en varios envíos o donde el envío es retrasado, el BME puede proporcionar detalles adicionales sobre la naturaleza del pago. Esto es útil para gestionar transacciones donde una parte del pedido se envía ahora y otra más tarde, o cuando el envío se pospone.
+
+**Ejemplo:** Un cliente hace una compra de múltiples artículos, pero algunos productos no están disponibles para envío inmediato. Se usa DELAYED_SHIPMENT para señalar al banco emisor que la transacción incluye envíos demorados.
+
+```json
+
+{
+  "acctNumber": "4005580000000040",
+  "cardExpiryDate": "2411",
+  "purchaseAmount": "8.25",
+  "redirectURI": "https://www.placetopay.com",
+  "purchaseCurrency": "USD",
+  "addPriorInformation": "Y",
+  "threeDSAuthenticationInd": "02",
+  "messageCategory": "01",
+  "deviceChannel": "03",
+  "threeRIInd": "01",
+  "recurringFrequency": "031",
+  "recurringExpiry": "20241020",
+  "bridgingMessageExtension": {
+    "data": {
+      "addData": {
+        "threeRIInd": "DELAYED_SHIPMENT",
+        "cardSecurityCode": "123"
+      }
+    }
+  }
+}
+
+```
+
+---
+
+## Transacciones con Monedas Digitales (Cryptocurrency/NFT)
+
+Indicadores Relevantes:
+
+**transChar:** CRYPTOCURRENCY_TRANSACTION (01) o NFT_TRANSACTION (02)
+
+**Caso de Uso:** En situaciones donde el pago se realiza con criptomonedas o NFT (tokens no fungibles), el BME puede ser usado para indicar que el pago no es con moneda tradicional, sino con activos digitales. Esto ayuda a los bancos emisores a evaluar correctamente el riesgo asociado a la transacción.
+
+**Ejemplo:** Un cliente compra un NFT en una plataforma de arte digital utilizando criptomonedas. El BME indicaría que la transacción está asociada con un NFT_TRANSACTION o CRYPTOCURRENCY_TRANSACTION.
+
+```json
+
+{
+  "acctNumber": "4005580000000040",
+  "cardExpiryDate": "2411",
+  "purchaseAmount": "8.25",
+  "redirectURI": "https://www.placetopay.com",
+  "purchaseCurrency": "USD",
+  "addPriorInformation": "Y",
+  "threeDSAuthenticationInd": "01",
+  "messageCategory": "01",
+  "deviceChannel": "03",
+  "threeRIInd": "01",
+  "recurringFrequency": "031",
+  "recurringExpiry": "20241020",
+  "bridgingMessageExtension": {
+    "data": {
+      "addData": {
+        "transChar": "NFT_TRANSACTION",
+        "cardSecurityCode": "123",
+        "threeDSRequestorAuthenticationInd": "SPLIT_PAYMENT"
+      }
+    }
+  }
+}
+
+
+```
+
+---
+
+## Chequeo de Estado del Código de Seguridad de la Tarjeta
+
+Indicadores Relevantes:
+
+**threeRIInd:** CARD_SECURITY_CODE_STATUS_CHECK (14)
+
+**Caso de Uso:** Este caso es relevante cuando el comerciante necesita realizar un chequeo del código de seguridad (CVV) asociado a la tarjeta sin realizar un pago inmediato. El BME permite agregar información adicional que indique que la transacción es solo una verificación del CVV.
+
+**Ejemplo:** Un servicio de verificación de tarjetas realiza un chequeo del código CVV antes de que se complete una transacción en el futuro. El BME indicaría este escenario sin necesidad de procesar un pago.
+
+```json
+
+{
+  "acctNumber": "4005580000000040",
+  "cardExpiryDate": "2411",
+  "purchaseAmount": "8.25",
+  "redirectURI": "https://www.placetopay.com",
+  "purchaseCurrency": "USD",
+  "addPriorInformation": "Y",
+  "threeDSAuthenticationInd": "04",
+  "messageCategory": "01",
+  "deviceChannel": "03",
+  "threeRIInd": "01",
+  "recurringFrequency": "031",
+  "recurringExpiry": "20241020",
+  "bridgingMessageExtension": {
+    "data": {
+      "addData": {
+        "threeRIInd": "CARD_SECURITY_CODE_STATUS_CHECK",
+        "cardSecurityCode": "123"
+      }
+    }
+  }
+}
+
+
+```
+
+---
+
+## Eliminación y Registro de Credenciales FIDO
+
+Indicadores Relevantes:
+
+**threeRIInd:** FIDO_CREDENTIAL_DELETION (17) o FIDO_CREDENTIAL_REGISTRATION (18)
+
+**Caso de Uso:** Estos indicadores se utilizan cuando se gestionan credenciales FIDO, un estándar para autenticación sin contraseña. El BME puede incluir información sobre la eliminación o el registro de credenciales FIDO en el contexto de una transacción, mejorando la seguridad del proceso.
+
+**Ejemplo:** Un banco realiza una actualización de credenciales FIDO vinculadas a una cuenta de usuario. El BME incluiría indicadores que registren o eliminen dichas credenciales en la transacción.
+
+```json
+
+{
+  "acctNumber": "4005580000000040",
+  "cardExpiryDate": "2411",
+  "purchaseAmount": "8.25",
+  "redirectURI": "https://www.placetopay.com",
+  "purchaseCurrency": "USD",
+  "addPriorInformation": "Y",
+  "threeDSAuthenticationInd": "04",
+  "messageCategory": "01",
+  "deviceChannel": "03",
+  "threeRIInd": "01",
+  "recurringFrequency": "031",
+  "recurringExpiry": "20241020",
+  "bridgingMessageExtension": {
+    "data": {
+      "addData": {
+        "threeRIInd": "FIDO_CREDENTIAL_REGISTRATION",
+        "cardSecurityCode": "123"
+      }
+    }
+  }
+}
+
+
+```
+
+---
+
+## Pagos Diferidos o Fraccionados
+
+Indicadores Relevantes:
+
+**threeDSRequestorAuthenticationInd:** SPLIT_SHIPMENT (08) o DELAYED_SHIPMENT (09)
+**threeRIInd:** DELAYED_SHIPMENT (15) o SPLIT_PAYMENT (16)
+
+**Caso de Uso:** Este escenario se aplica cuando un pedido se divide en varios envíos (split shipment) o cuando se retrasa el envío (delayed shipment). Los indicadores permiten que el emisor reconozca que la transacción no se completará de inmediato en su totalidad, sino que se llevará a cabo en varias partes o en momentos diferentes.
+
+**SPLIT_SHIPMENT (08):** Se utiliza cuando la compra del cliente incluye múltiples productos que se enviarán por separado en diferentes momentos.
+**DELAYED_SHIPMENT (09):** Aplica cuando el envío de un pedido completo se retrasa y el pago no se procesa hasta que los productos estén listos para su envío.
+
+**Beneficio:** Proporciona un mecanismo para que el Access Control Server (ACS) reconozca que la transacción no se completa de una sola vez, lo que ayuda a evitar rechazos innecesarios por transacciones incompletas o por la percepción de pagos duplicados.
+
+**Ejemplo:** Un cliente compra varios artículos en una tienda en línea, pero algunos productos están en preventa y serán enviados más tarde. El indicador SPLIT_SHIPMENT se incluye para informar al emisor que el pago se fraccionará en función de los envíos. Si, por otro lado, la tienda notifica un retraso en todo el envío, se utilizaría el indicador DELAYED_SHIPMENT para evitar problemas con la autorización del pago.
+
+
+
+```json
+
+{
+  "acctNumber": "4005580000000040",
+  "cardExpiryDate": "2411",
+  "purchaseAmount": "8.25",
+  "redirectURI": "https://www.placetopay.com",
+  "purchaseCurrency": "USD",
+  "addPriorInformation": "Y",
+  "threeDSAuthenticationInd": "04",
+  "messageCategory": "01",
+  "deviceChannel": "03",
+  "threeRIInd": "01",
+  "recurringFrequency": "031",
+  "recurringExpiry": "20241020",
+  "bridgingMessageExtension": {
+    "data": {
+      "addData": {
+        "threeRIInd": "DELAYED_SHIPMENT",
+        "cardSecurityCode": "123",
+        "threeDSRequestorAuthenticationInd": "DELAYED_SHIPMENT"
+      }
+    }
+  }
+}
+
+
+```
+
+---
+
+## Otros casos
+
+* Delayed Shipment **threeDSAuthenticationInd** 09, **threeRIInd** 15 aplica par EMV 3DS 2.2 with Bridging Message Extension o par la versión EMV 3DS 2.3.1
+* Split Shipment **threeDSAuthenticationInd** 08, **threeRIInd** 06 aplica par EMV 3DS 2.2 with Bridging Message Extension o par la versión EMV 3DS 2.3.1
+* Split Payment **threeDSAuthenticationInd** 10, **threeRIInd** 16 aplica par EMV 3DS 2.2 with Bridging Message Extension o par la versión EMV 3DS 2.3.1
+
+---
+
+## Mejora la tasa de autenticaciones con datos adicionales
+Nos complace invitarles a visitar el apartado de [Adicional Data](/en/three-d-s-server/api/sessions/detail-info) en nuestra documentación del API. Este apartado ofrece información crucial para optimizar el proceso de autenticación 3DS.
+
+La inclusión de estos datos adicionales en sus solicitudes permite a los emisores realizar una evaluación más precisa, lo que puede mejorar considerablemente la tasa de autenticaciones exitosas.
+
+Les recomendamos revisar estas pautas para aprovechar al máximo las funcionalidades del API y así ofrecer una experiencia más segura y eficiente a sus usuarios.
+

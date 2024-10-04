@@ -426,20 +426,38 @@ export const TAB_NAVIGATION = {
             title: 'Integración',
             links: [
               {
-                title: 'Autorización',
+                title: 'Autenticación',
                 href: '/three-d-s-server/api/integration/authorization',
               },
+              {
+                title: 'Tarjetas de Prueba',
+                href: '/three-d-s-server/api/integration/test-cards',
+              },
+            ],
+          },
+
+          {
+            title: 'Casos de uso',
+            links: [
               {
                 title: 'Sesión',
                 href: '/three-d-s-server/api/integration/session',
               },
               {
-                title: 'Obtener información de una autenticación',
-                href: '/three-d-s-server/api/integration/authentication-info',
+                title: 'Sesión 3RI',
+                href: '/three-d-s-server/api/integration/session-r-i',
               },
               {
-                title: 'Tarjetas de Prueba',
-                href: '/three-d-s-server/api/integration/test-cards',
+                title: 'Bridging Message Extension',
+                href: '/three-d-s-server/api/integration/session-b-m-e',
+              },
+              {
+                title: 'Digital Authentication Framework',
+                href: '/three-d-s-server/api/integration/session-d-a-f',
+              },
+              {
+                title: 'Obtener información de una autenticación',
+                href: '/three-d-s-server/api/integration/authentication-info',
               },
             ],
           },
@@ -512,7 +530,10 @@ export const TAB_NAVIGATION = {
                 title: 'About the 3DS Server Component',
                 href: '/three-d-s-server/server-component',
               },
-              { title: 'Error Codes', href: '/three-d-s-server/error-codes' },
+              {
+                title: 'Error Codes',
+                href: '/three-d-s-server/error-codes'
+              },
               {
                 title: 'Frequently Asked Questions about 3DSS Functioning',
                 href: '/three-d-s-server/faq',
@@ -561,20 +582,38 @@ export const TAB_NAVIGATION = {
             title: 'Integration',
             links: [
               {
-                title: 'Authorization',
+                title: 'Authentication',
                 href: '/three-d-s-server/api/integration/authorization',
               },
+              {
+                title: 'Test Cards',
+                href: '/three-d-s-server/api/integration/test-cards'
+              },
+            ],
+          },
+
+          {
+            title: 'Use cases',
+            links: [
               {
                 title: 'Session',
                 href: '/three-d-s-server/api/integration/session',
               },
               {
-                title: 'Get authentication information',
-                href: '/three-d-s-server/api/integration/authentication-info',
+                title: 'Session with 3RI',
+                href: '/three-d-s-server/api/integration/session-r-i',
               },
               {
-                title: 'Test Cards',
-                href: '/three-d-s-server/api/integration/test-cards'
+                title: 'Bridging Message Extension',
+                href: '/three-d-s-server/api/integration/session-b-m-e',
+              },
+              {
+                title: 'Digital Authentication Framework',
+                href: '/three-d-s-server/api/integration/session-d-a-f',
+              },
+              {
+                title: 'Get authentication information',
+                href: '/three-d-s-server/api/integration/authentication-info',
               },
             ],
           },
