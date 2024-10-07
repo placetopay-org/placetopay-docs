@@ -448,11 +448,11 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server/api/integration/session-r-i',
               },
               {
-                title: 'Bridging Message Extension',
+                title: 'BME: Bridging Message Extension',
                 href: '/three-d-s-server/api/integration/session-b-m-e',
               },
               {
-                title: 'Digital Authentication Framework',
+                title: 'DAF: Digital Authentication Framework',
                 href: '/three-d-s-server/api/integration/session-d-a-f',
               },
               {
@@ -604,11 +604,11 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server/api/integration/session-r-i',
               },
               {
-                title: 'Bridging Message Extension',
+                title: 'BME: Bridging Message Extension',
                 href: '/three-d-s-server/api/integration/session-b-m-e',
               },
               {
-                title: 'Digital Authentication Framework',
+                title: 'DAF: Digital Authentication Framework',
                 href: '/three-d-s-server/api/integration/session-d-a-f',
               },
               {
