@@ -2,9 +2,9 @@ export const sectionMode = 'nav';
 
 <MissingTranslationBanner />
 
-## Sesión con Bridging Message Extension
-
 El 3DS **v2.3** introduce elementos de datos en la extensión del mensaje que pueden duplicar aquellos presentes en las versiones 3DS **v2.1 y v2.2**, pero con valores nuevos o diferentes. De acuerdo con la Especificación Básica **v2.3**, estos valores se establecen en la extensión del mensaje, mientras que en las versiones **v2.1 y v2.2** se encuentran en la parte central de los mensajes 3DS. En estos casos, el valor del elemento de datos en la extensión del mensaje prevalece sobre el valor correspondiente en la parte central del mensaje 3DS. Además, el Servidor 3DS genera el mensaje AReq **v2.1** o **v2.2** bajo la suposición de que el ACS no soporta la Extensión del Mensaje de Puente, y posteriormente, proporciona la información adicional a través de dicha extensión. Si se soporta la Extensión del Mensaje de Puente, el componente 3DS deberá ser compatible al menos con uno de los objetos de datos ***como datos recurrentes, datos de desafío, datos adicionales o datos de URL de archivo*** de la extensión del mensaje e implementar los requisitos correspondientes de la Especificación Básica **v2.3**.
+
+## Sesión con Bridging Message Extension
 
 Con el objetivo de mejorar la tasa de aprobación en las autenticaciones, hemos ampliado este requerimiento creando la extensión BMS. Esta extensión facilita el acceso a la información disponible en la versión **2.3.1** del protocolo, que no estaba accesible en versiones anteriores **2.1.0 y 2.2.0**. De este modo, tanto el ACS como el servidor de directorios podrán tomar decisiones más informadas.
 
@@ -30,6 +30,8 @@ En esta versión, pondremos a disposición en la API de sesión varios elementos
 Ver más detalle en [Reglas a tener en cuenta de la session API](/en/three-d-s-server/api/sessions/rules)
 
 ***La Extension solo se creara si es enviada en la session request bridgingMessageExtension***
+
+> Importante: Los valores específicos de los campos pueden variar según las implementaciones y requisitos de cada procesador de pagos. Estos ejemplos son una guía general para ilustrar los conceptos.
 
 
 ### Ejemplo de los datos en el request
@@ -76,8 +78,9 @@ Ver más detalle en [Reglas a tener en cuenta de la session API](/en/three-d-s-s
 ```json
 {
   {
-    "id": "A000000802-004",
+    id": "A000000802-004",
     "data": {
+      "version": "2.0",
       "addData": {
         "transChar": "02",
         "threeRIInd": "15",
@@ -99,7 +102,6 @@ Ver más detalle en [Reglas a tener en cuenta de la session API](/en/three-d-s-s
       }
     },
     "name": "Bridging",
-    "version": "1.0",
     "criticalityIndicator": false
   }
 }
@@ -182,7 +184,7 @@ El campo `recurringAmount` será agregado a la extensión del **BME** en la secc
 
 **Y**
 
-- **Condición 2**: El valor de `threeDSRequestorAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, **INSTALMENT_TRANSACTION (02)**.
+- **Condición 2**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, **INSTALMENT_TRANSACTION (02)**.
 
 Si se cumplen las condiciones anteriores, el valor de `recurringAmount` se añadirá a la extensión del **BME**. El valor de `recurringAmount` será tomado del campo `purchaseAmount` en la solicitud base.
 
@@ -191,7 +193,7 @@ Si se cumplen las condiciones anteriores, el valor de `recurringAmount` se añad
 
 El campo `recurringCurrency` será agregado a la extensión del **BME** bajo las siguientes condiciones:
 
-- **Condición**: El valor de `threeRIInd` es igual a: **RECURRING_TRANSACTION** (01), o **INSTALMENT_TRANSACTION** (02).
+- **Condición**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, **INSTALMENT_TRANSACTION (02)**.
 
 Cuando se cumple esta condición, el valor de `recurringCurrency` será añadido a la extensión del **BME**, y corresponderá al valor proporcionado en el request base bajo el campo `purchaseCurrency`.
 
@@ -200,7 +202,7 @@ Cuando se cumple esta condición, el valor de `recurringCurrency` será añadido
 
 El campo `recurringExponent` será agregado a la extensión del **BME** bajo las siguientes condiciones:
 
-- **Condición**: El valor de `threeRIInd` es igual a: **RECURRING_TRANSACTION** (01), o **INSTALMENT_TRANSACTION** (02).
+- **Condición 2**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, **INSTALMENT_TRANSACTION (02)**.
 
 Cuando se cumple esta condición, el valor de `recurringExponent` será añadido a la extensión del **BME**, y corresponderá al valor proporcionado en el request base bajo el campo `purchaseExponent`.
 
@@ -218,7 +220,7 @@ Si esta condición se cumple, el campo `recurringDate` será añadido a la exten
 
 El valor de `recurringExpiry` es calculado automáticamente por el sistema según las siguientes condiciones.
 
-- **Condición**: El valor de `threeRIInd` es igual a **RECURRING_TRANSACTION** (01), o **INSTALMENT_TRANSACTION** (02).
+- **Condición 2**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, **INSTALMENT_TRANSACTION (02)**.
 - **Condición**: Si el valor de `deviceChannel` en los atributos es igual a **RI** y no existe un valor previo para `recurringExpiry` en el request base.
 - El campo `recurringExpiry` se toma de los datos de los datos enviados en el request base.
 
@@ -236,7 +238,7 @@ Si esta condición se cumple, el valor de `recurringFrequency` se tomará direct
 
 El campo `recurringInd` se compone de dos subcampos: `amountInd` y `frequencyInd`. Ambos serán agregados a la extensión del **BME** bajo las siguientes condiciones:
 
-- **Condición**: El valor de `threeRIInd` es igual a **RECURRING_TRANSACTION** (01), o **INSTALMENT_TRANSACTION** (02).
+- **Condición 2**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, **INSTALMENT_TRANSACTION (02)**.
 
 Cuando se cumple esta condición, los siguientes subcampos serán agregados:
 
@@ -351,6 +353,178 @@ Indicadores Relevantes:
 }
 
 ```
+
+
+<Note>
+Para pagos con monto variable, mastercard solo permite un valor que esté por encima del 20% de la transacción inicial,
+Por ejemplo si en la inicial realizo un pago por 1.000, en las transacciones recurrentes podrás cobrar 1.200 máximo
+</Note>
+
+---
+
+### Frecuencia fija, Monto fijo
+
+**Caso de uso:** Suscripción mensual a un servicio de streaming con un costo fijo.
+
+```json
+
+{
+  "acctNumber": "4005580000000040",
+  "cardExpiryDate": "2411",
+  "purchaseAmount": "8.25",
+  "redirectURI": "https://www.placetopay.com",
+  "purchaseCurrency": "USD",
+  "addPriorInformation": "Y",
+  "threeDSAuthenticationInd": "02",
+  "messageCategory": "01",
+  "deviceChannel": "03",
+  "threeRIInd": "01",
+  "recurringFrequency": "031",
+  "recurringExpiry": "20241020",
+  "bridgingMessageExtension": {
+    "data": {
+      "recurringData": {
+        "recurringDate": "2024-11-01",
+        "recurringInd": {
+          "frequencyInd": "FIXED_FREQUENCY",
+          "amountInd": "FIXED_PURCHASE"
+        }
+      }
+    }
+  }
+}
+
+```
+
+
+- **frequencyInd:** Indica que la frecuencia de pago es fija.
+- **amountInd:** Indica que el monto del pago es fijo.
+- **recurringAmount:** Especifica el monto exacto de cada pago. Se tomará el valor de purchaseAmount para el recurringAmount del BME
+- **recurringCurrency:** Indica la moneda del pago. Se tomará el valor de purchaseCurrency para el recurringCurrency del BME
+- **recurringFrequency:** Define la frecuencia en un formato legible (mensual, semanal, etc.). Se tomará el valor de recurringFrequency para el recurringFrequency del BME
+
+---
+
+### Frecuencia variable, Monto fijo
+
+
+**Caso de uso:** Pagos por uso de un servicio en la nube, donde la frecuencia de uso puede variar pero el costo por unidad es fijo.
+
+```json
+{
+  "acctNumber": "4005580000000040",
+  "cardExpiryDate": "2411",
+  "purchaseAmount": "8.25",
+  "redirectURI": "https://www.placetopay.com",
+  "purchaseCurrency": "USD",
+  "addPriorInformation": "Y",
+  "threeDSAuthenticationInd": "02",
+  "messageCategory": "01",
+  "deviceChannel": "03",
+  "threeRIInd": "01",
+  "recurringFrequency": "031",
+  "recurringExpiry": "20241020",
+  "bridgingMessageExtension": {
+    "data": {
+      "recurringData": {
+        "recurringInd": {
+          "frequencyInd": "VARIABLE_FREQUENCY",
+          "amountInd": "FIXED_PURCHASE"
+        }
+      }
+    }
+  }
+}
+
+```
+
+- **frequencyInd:** Indica que la frecuencia de pago es variable.
+- **amountInd:** Indica que el monto por unidad es fijo. Se tomará el valor de purchaseAmount para el recurringAmount del BME
+- **recurringAmount:** Especifica el costo por unidad, el monto total se calculará según el consumo.
+
+---
+
+### Frecuencia fija, Monto variable
+
+**Caso de uso:** Pagos mensuales por un servicio que incluye cargos adicionales basados en el consumo.
+
+```json
+
+{
+  "acctNumber": "4005580000000040",
+  "cardExpiryDate": "2411",
+  "purchaseAmount": "8.25",
+  "redirectURI": "https://www.placetopay.com",
+  "purchaseCurrency": "USD",
+  "addPriorInformation": "Y",
+  "threeDSAuthenticationInd": "02",
+  "messageCategory": "01",
+  "deviceChannel": "03",
+  "threeRIInd": "01",
+  "recurringFrequency": "031",
+  "recurringExpiry": "20241020",
+  "bridgingMessageExtension": {
+    "data": {
+      "recurringData": {
+        "recurringInd": {
+          "frequencyInd": "FIXED_FREQUENCY",
+          "amountInd": "VARIABLE_PURCHASE"
+        }
+      }
+    }
+  }
+}
+
+```
+
+- **frequencyInd:** Indica que la frecuencia de pago es fija.
+- **amountInd:** Indica que el monto total del pago puede variar.
+- **recurringFrequency:** Define la frecuencia en un formato legible (mensual, semanal, etc.). Se tomará el valor de recurringFrequency del request base para el recurringFrequency del BME
+
+
+El monto total se calculará en cada ciclo de facturación en función del consumo.
+
+---
+
+### Frecuencia variable, Monto variable
+
+**Caso de uso:** Pagos por servicios profesionales donde tanto la frecuencia como el monto pueden variar según el proyecto.
+
+
+```json
+
+{
+  "acctNumber": "4005580000000040",
+  "cardExpiryDate": "2411",
+  "purchaseAmount": "8.25",
+  "redirectURI": "https://www.placetopay.com",
+  "purchaseCurrency": "USD",
+  "addPriorInformation": "Y",
+  "threeDSAuthenticationInd": "02",
+  "messageCategory": "01",
+  "deviceChannel": "03",
+  "threeRIInd": "01",
+  "recurringFrequency": "031",
+  "recurringExpiry": "20241020",
+  "bridgingMessageExtension": {
+    "data": {
+      "recurringData": {
+        "recurringInd": {
+          "frequencyInd": "VARIABLE_FREQUENCY",
+          "amountInd": "VARIABLE_PURCHASE"
+        }
+      }
+    }
+  }
+}
+
+```
+
+- **frequencyInd:** Indica que la frecuencia de pago es variable.
+- **amountInd:** Indica que el monto total del pago puede variar.
+
+Tanto la frecuencia como el monto se determinarán en cada transacción.
+
 
 ---
 
@@ -608,7 +782,6 @@ Indicadores Relevantes:
 
 
 ```
-
 ---
 
 ## Otros casos
