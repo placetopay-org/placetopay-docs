@@ -28,6 +28,8 @@ export const useNamespaceRoute = () => {
       return 'core';
     case 'account-validator':
       return 'account-validator';
+    case 'api-scudo':
+      return 'api-scudo';
     default:
       return 'gateway';
   }}
@@ -59,6 +61,8 @@ export const useNavigation = (namespaces) => {
       return TAB_NAVIGATION['core'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     case 'account-validator':
       return TAB_NAVIGATION['account-validator'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
+    case 'api-scudo':
+      return TAB_NAVIGATION['api-scudo'][locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     default:
       throw new Error(`The namespace navigation '${namespaces}' is not defined`);
   }
