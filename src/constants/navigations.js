@@ -1569,5 +1569,131 @@ export const TAB_NAVIGATION = {
         ],
       }
     ]
-  }
+  },
+  'api-scudo': {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'api-scudo',
+        href: '/api-scudo',
+        icon: Book,
+        links: [
+          {
+            title: 'Api Scudo',
+            links: [
+              { title: 'Introducción', href: '/api-scudo' },
+              {
+                title: 'Secuencia de Scudo',
+                href: '/api-scudo/sequence',
+              },
+              {
+                title: 'Elementos de datos',
+                href: '/api-scudo/elements',
+              },
+              {
+                title: 'Firma',
+                href: '/api-scudo/signature',
+              },
+              {
+                title: 'Formato de montos',
+                href: '/api-scudo/amounts-format',
+              },
+              {
+                title: 'Tipos de documento',
+                href: '/api-scudo/document-types',
+              },
+            ],
+
+          },
+          {
+            title: 'Reglas',
+            links: [
+              { title: 'Kount', href:'/api-scudo/kount' }
+            ]
+          }
+        ],
+      },
+      {
+        title: 'API',
+        identifier: '/api-scudo/api/reference/environments',
+        href: '/api-scudo/api/reference/environments',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              { title: 'Directorio de ambientes', href: '/api-scudo/api/reference/environments' },
+              { title: 'Validar transacción', href: '/api-scudo/api/reference/validate' },
+              { title: 'Notificar transacción', href: '/api-scudo/api/reference/notify' },
+              { title: 'Obtener validación', href: '/api-scudo/api/reference/validation' },
+              { title: 'Busqueda de Validaciones', href: '/api-scudo/api/reference/search' },
+              { title: '[Webhook] Notificación de transacción resuelta', href: '/api-scudo/api/reference/notify-resolved-validation' },
+            ],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentation',
+        identifier: 'api-scudo',
+        href: '/en/api-scudo',
+        icon: Book,
+        links: [
+          {
+            title: 'Api Scudo',
+            links: [
+              { title: 'Introduction', href: '/api-scudo' },
+              {
+                title: 'Scudo sequence',
+                href: '/api-scudo/sequence',
+              },
+              {
+                title: 'Data elements',
+                href: '/api-scudo/elements',
+              },
+              {
+                title: 'Signature',
+                href: '/api-scudo/signature',
+              },
+              {
+                title: 'Amounts format',
+                href: '/api-scudo/amounts-format',
+              },
+              {
+                title: 'Types of document',
+                href: '/api-scudo/document-types',
+              },
+            ],
+
+          },
+          {
+            title: 'Rules',
+            links: [
+              { title: 'Kount', href:'/api-scudo/kount' }
+            ]
+          }
+        ],
+      },
+      {
+        title: 'API',
+        identifier: '/api-scudo/api/reference/environments',
+        href: '/en/api-scudo/api/reference/environments',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              { title: 'Environments directory', href: '/api-scudo/api/reference/environments' },
+              { title: 'Validate transaction', href: '/api-scudo/api/reference/validate' },
+              { title: 'Notify transaction', href: '/api-scudo/api/reference/notify' },
+              { title: 'Get validation', href: '/api-scudo/api/reference/validation' },
+              { title: 'Search for Validations', href: '/api-scudo/api/reference/search' },
+              { title: '[Webhook] Notification of transaction resolved', href: '/api-scudo/api/reference/notify-resolved-validation' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
 }
