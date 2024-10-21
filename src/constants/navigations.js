@@ -1627,7 +1627,10 @@ export const TAB_NAVIGATION = {
               { title: 'Notificar transacción', href: '/api-scudo/api/reference/notify' },
               { title: 'Obtener validación', href: '/api-scudo/api/reference/validation' },
               { title: 'Busqueda de Validaciones', href: '/api-scudo/api/reference/search' },
-              { title: '[Webhook] Notificación de transacción resuelta', href: '/api-scudo/api/reference/notify-resolved-validation' },
+              {
+                title: '[Webhook] Notificación de transacción resuelta',
+                href: '/api-scudo/api/reference/notify-resolved-validation'
+              },
             ],
           },
         ],
@@ -1644,28 +1647,12 @@ export const TAB_NAVIGATION = {
             title: 'Api Scudo',
             links: [
               { title: 'Introduction', href: '/api-scudo' },
-              {
-                title: 'Scudo sequence',
-                href: '/api-scudo/sequence',
-              },
-              {
-                title: 'Data elements',
-                href: '/api-scudo/elements',
-              },
-              {
-                title: 'Signature',
-                href: '/api-scudo/signature',
-              },
-              {
-                title: 'Amounts format',
-                href: '/api-scudo/amounts-format',
-              },
-              {
-                title: 'Types of document',
-                href: '/api-scudo/document-types',
-              },
+              { title: 'Scudo sequence', href: '/api-scudo/sequence' },
+              { title: 'Data elements', href: '/api-scudo/elements' },
+              { title: 'Signature', href: '/api-scudo/signature' },
+              { title: 'Amounts format', href: '/api-scudo/amounts-format'},
+              { title: 'Types of document', href: '/api-scudo/document-types',},
             ],
-
           },
           {
             title: 'Rules',
@@ -1677,7 +1664,7 @@ export const TAB_NAVIGATION = {
       },
       {
         title: 'API',
-        identifier: '/api-scudo/api/reference/environments',
+        identifier: 'api-scudo/api/reference/environments',
         href: '/en/api-scudo/api/reference/environments',
         icon: DocumentCode,
         links: [
@@ -1689,7 +1676,10 @@ export const TAB_NAVIGATION = {
               { title: 'Notify transaction', href: '/api-scudo/api/reference/notify' },
               { title: 'Get validation', href: '/api-scudo/api/reference/validation' },
               { title: 'Search for Validations', href: '/api-scudo/api/reference/search' },
-              { title: '[Webhook] Notification of transaction resolved', href: '/api-scudo/api/reference/notify-resolved-validation' },
+              {
+                title: '[Webhook] Notification of transaction resolved',
+                href: '/api-scudo/api/reference/notify-resolved-validation'
+              },
             ],
           },
         ],
