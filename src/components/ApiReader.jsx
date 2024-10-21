@@ -364,7 +364,15 @@ export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
   }
 
   if (type === 'params') {
-    return <ApiParams params={data.parameters} />
+    return <ApiParams params={data.parameters.filter((param) => param.in === 'path')} />
+  }
+
+  if (type === 'query') {
+    return <ApiParams params={data.parameters.filter((param) => param.in === 'query')} />
+  }
+
+  if (type === 'header') {
+    return <ApiParams params={data.parameters.filter((param) => param.in === 'header')} />
   }
 
   throw new Error(`Type ${type} not supported`)
