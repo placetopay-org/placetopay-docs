@@ -45,5 +45,22 @@ export const DIRECTORY_ENVIRONMENTS = {
           },
         ]
       }
-    ]
+    ],
+  api_scudo : [
+    {
+      country: "Global",
+      environments: [
+        {
+          country : 'Global',
+          mode : { es: 'Pruebas', en : 'Test'},
+          url: 'https://scudo-uat.placetopay.net'
+        },
+        {
+          country : 'Global',
+          mode : { es: 'Producción', en : 'Production'},
+          url: 'https://scudo.placetopay.com'
+        },
+      ]
+    }
+  ]
 }
