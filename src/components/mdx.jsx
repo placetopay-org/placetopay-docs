@@ -141,7 +141,7 @@ export function Property({
 export const table = function Table({ children }) {
   return (
     <div className="overflow-x-auto">
-      <div className="lg:supports-scrollbars:pr-2 scrollbar-transparent max-h-96 min-w-full flex-none overflow-auto px-4 scrollbar !scrollbar-track-slate-100 !scrollbar-thumb-slate-300 scrollbar-track-rounded scrollbar-thumb-rounded scrollbar-w-1.5 scrollbar-h-1.5 dark:!scrollbar-track-slate-500/[0.16] dark:!scrollbar-thumb-slate-500/50 sm:px-6 md:px-0 lg:max-h-[600px]">
+      <div className="lg:supports-scrollbars:pr-2 scrollbar-transparent max-h-[700px] min-w-full flex-none overflow-auto px-4 scrollbar !scrollbar-track-slate-100 !scrollbar-thumb-slate-300 scrollbar-track-rounded scrollbar-thumb-rounded scrollbar-w-1.5 scrollbar-h-1.5 dark:!scrollbar-track-slate-500/[0.16] dark:!scrollbar-thumb-slate-500/50 sm:px-6 md:px-0 lg:max-h-[600px]">
         <table className="mt-0 w-full border-collapse text-left">{children}</table>
         <div className="sticky bottom-0 -mt-px h-px bg-slate-200 dark:bg-slate-400/20"></div>
       </div>
