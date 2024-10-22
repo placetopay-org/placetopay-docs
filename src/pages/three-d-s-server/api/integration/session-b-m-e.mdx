@@ -35,7 +35,6 @@ Ver más detalle en [Reglas a tener en cuenta de la session API](/three-d-s-serv
 
 Obtén más detalles sobre cómo utilizar 3DSS con [Pagos recurrentes con 3RI](/three-d-s-server/api/integration/session-r-i). En esta sección, encontrará información detallada sobre su funcionamiento y un ejemplo de la respuesta que puedes esperar
 
-
 ### Ejemplo de los datos en el request
 
 ```json
@@ -47,10 +46,10 @@ Obtén más detalles sobre cómo utilizar 3DSS con [Pagos recurrentes con 3RI](/
   "redirectURI": "https://www.placetopay.com",
   "purchaseCurrency": "USD",
   "addPriorInformation": "Y",
-  "threeDSAuthenticationInd": "01",
-  "messageCategory": "01",
-  "deviceChannel": "03",
-  "threeRIInd": "01",
+  "threeDSAuthenticationInd": "PAYMENT_TRANSACTION",
+  "messageCategory": "PA",
+  "deviceChannel": "RI",
+  "threeRIInd": "RECURRING_TRANSACTION",
   "recurringFrequency": "031",
   "recurringExpiry": "20241020",
   "bridgingMessageExtension": {
@@ -85,7 +84,7 @@ Obtén más detalles sobre cómo utilizar 3DSS con [Pagos recurrentes con 3RI](/
       "version": "2.0",
       "addData": {
         "transChar": "02",
-        "threeRIInd": "15",
+        "threeRIInd": "DELAYED_SHIPMENT",
         "cardSecurityCode": "123",
         "acquirerCountryCode": "170",
         "acquirerCountryCodeSource": "01",
@@ -93,8 +92,8 @@ Obtén más detalles sobre cómo utilizar 3DSS con [Pagos recurrentes con 3RI](/
       },
      "recurringData": {
         "recurringInd": {
-          "amountInd": "02",
-          "frequencyInd": "02"
+          "amountInd": "VARIABLE_PURCHASE",
+          "frequencyInd": "VARIABLE_FREQUENCY"
         },
         "recurringDate": "20241023",
         "recurringAmount": "8.25",
@@ -169,8 +168,8 @@ Obtén más detalles sobre cómo utilizar 3DSS con [Pagos recurrentes con 3RI](/
 
 Los atributos de la transacción de recurrencia para el **BME** son válidos si el valor del campo `threeRIInd` es igual a alguno de los siguientes:
 
-- **RECURRING_TRANSACTION** (Transacción Recurrente)
-- **INSTALMENT_TRANSACTION** (Transacción a Plazos)
+- **RECURRING_TRANSACTION** (02)
+- **INSTALMENT_TRANSACTION** (03)
 
 Cuando alguno de estos valores es el indicador en `threeRIInd`, se aplican las siguientes reglas para los indicadores de recurrencia sobre los datos del request base:
 
@@ -186,7 +185,7 @@ El campo `recurringAmount` será agregado a la extensión del **BME** en la secc
 
 **Y**
 
-- **Condición 2**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, **INSTALMENT_TRANSACTION (02)**.
+- **Condición 2**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION** (01), **INSTALMENT_TRANSACTION** (02).
 
 Si se cumplen las condiciones anteriores, el valor de `recurringAmount` se añadirá a la extensión del **BME**. El valor de `recurringAmount` será tomado del campo `purchaseAmount` en la solicitud base.
 
@@ -195,7 +194,7 @@ Si se cumplen las condiciones anteriores, el valor de `recurringAmount` se añad
 
 El campo `recurringCurrency` será agregado a la extensión del **BME** bajo las siguientes condiciones:
 
-- **Condición**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, **INSTALMENT_TRANSACTION (02)**.
+- **Condición**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION** (01), **INSTALMENT_TRANSACTION** (02).
 
 Cuando se cumple esta condición, el valor de `recurringCurrency` será añadido a la extensión del **BME**, y corresponderá al valor proporcionado en el request base bajo el campo `purchaseCurrency`.
 
@@ -204,7 +203,7 @@ Cuando se cumple esta condición, el valor de `recurringCurrency` será añadido
 
 El campo `recurringExponent` será agregado a la extensión del **BME** bajo las siguientes condiciones:
 
-- **Condición 2**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, **INSTALMENT_TRANSACTION (02)**.
+- **Condición 2**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION** (01), **INSTALMENT_TRANSACTION** (02).
 
 Cuando se cumple esta condición, el valor de `recurringExponent` será añadido a la extensión del **BME**, y corresponderá al valor proporcionado en el request base bajo el campo `purchaseExponent`.
 
@@ -222,7 +221,7 @@ Si esta condición se cumple, el campo `recurringDate` será añadido a la exten
 
 El valor de `recurringExpiry` es calculado automáticamente por el sistema según las siguientes condiciones.
 
-- **Condición 2**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, **INSTALMENT_TRANSACTION (02)**.
+- **Condición 2**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION** (01), **INSTALMENT_TRANSACTION** (02).
 - **Condición**: Si el valor de `deviceChannel` en los atributos es igual a **RI** y no existe un valor previo para `recurringExpiry` en el request base.
 - El campo `recurringExpiry` se toma de los datos de los datos enviados en el request base.
 
@@ -240,7 +239,7 @@ Si esta condición se cumple, el valor de `recurringFrequency` se tomará direct
 
 El campo `recurringInd` se compone de dos subcampos: `amountInd` y `frequencyInd`. Ambos serán agregados a la extensión del **BME** bajo las siguientes condiciones:
 
-- **Condición 2**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION (01)**, **INSTALMENT_TRANSACTION (02)**.
+- **Condición 2**: El valor de `threeDSAuthenticationInd` es igual a: **RECURRING_TRANSACTION** (02), **INSTALMENT_TRANSACTION** (03) o el valor de `threeRIInd` es igual a **RECURRING_TRANSACTION** (01), **INSTALMENT_TRANSACTION** (02).
 
 Cuando se cumple esta condición, los siguientes subcampos serán agregados:
 
@@ -249,7 +248,7 @@ Cuando se cumple esta condición, los siguientes subcampos serán agregados:
 - **`amountInd`**: Se agregará el valor proporcionado en `bridgingMessageExtension.data.recurringData.recurringInd.amountInd` si está presente en el request base y
 si no se proporciona un valor en el request base, él `amountInd` tendrá un valor por defecto de **FIXED_PURCHASE** (01).
 
-- **`frequencyInd`**: Se agregará el valor proporcionado en `bridgingMessageExtension.data.recurringData.recurringInd.frequencyInd` si está presente en el request base y si no se proporciona un valor en el request base, él `frequencyInd` tendrá un valor por defecto de **FIXED_FREQUENCY (01)**.
+- **`frequencyInd`**: Se agregará el valor proporcionado en `bridgingMessageExtension.data.recurringData.recurringInd.frequencyInd` si está presente en el request base y si no se proporciona un valor en el request base, él `frequencyInd` tendrá un valor por defecto de **FIXED_FREQUENCY** (01).
 
 ##  Beneficios de la V2.3.1 del protocolo con el BME en 3DS con sus nuevos indicadores
 
@@ -331,10 +330,10 @@ Indicadores Relevantes:
   "redirectURI": "https://www.placetopay.com",
   "purchaseCurrency": "USD",
   "addPriorInformation": "Y",
-  "threeDSAuthenticationInd": "02",
-  "messageCategory": "01",
-  "deviceChannel": "03",
-  "threeRIInd": "01",
+  "threeDSAuthenticationInd": "RECURRING_TRANSACTION",
+  "messageCategory": "PA",
+  "deviceChannel": "RI",
+  "threeRIInd": "RECURRING_TRANSACTION",
   "recurringFrequency": "031",
   "recurringExpiry": "20241020",
   "bridgingMessageExtension": {
@@ -346,8 +345,8 @@ Indicadores Relevantes:
      "recurringData": {
         "recurringDate": "20241023",
         "recurringInd": {
-          "frequencyInd": "FIXED_PURCHASE",
-          "amountInd": "FIXED_FREQUENCY"
+          "frequencyInd": "FIXED_FREQUENCY",
+          "amountInd": "FIXED_PURCHASE"
         }
       }
     }
@@ -368,34 +367,100 @@ Indicadores Relevantes:
 
 **Caso de uso:** Suscripción mensual a un servicio de streaming con un costo fijo.
 
+**CIT**
+
 ```json
 
 {
-  "acctNumber": "4005580000000040",
-  "cardExpiryDate": "2411",
-  "purchaseAmount": "8.25",
-  "redirectURI": "https://www.placetopay.com",
+  "deviceChannel": "BRW",
+  "threeDSAuthenticationInd": "RECURRING_TRANSACTION",
+  "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
+  "recurringExpiry": "20250101",
+  "recurringFrequency": "10",
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "55",
+  "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "addPriorInformation": "Y",
-  "threeDSAuthenticationInd": "02",
-  "messageCategory": "01",
-  "deviceChannel": "03",
-  "threeRIInd": "01",
-  "recurringFrequency": "031",
-  "recurringExpiry": "20241020",
+  "reference": "Enero 2024",
+  "messageVersion": "2.2.0",
   "bridgingMessageExtension": {
     "data": {
-      "recurringData": {
-        "recurringDate": "2024-11-01",
+      "addData": {
+        "threeRIInd": "RECURRING_TRANSACTION",
+        "cardSecurityCode": "123"
+      },
+   "recurringData": {
+        "recurringDate": "20241020",
         "recurringInd": {
           "frequencyInd": "FIXED_FREQUENCY",
           "amountInd": "FIXED_PURCHASE"
         }
       }
     }
+  },
+  "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
   }
 }
+```
 
+
+**MIT**
+
+```json
+
+{
+  "deviceChannel": "RI",
+  "threeRIInd": "RECURRING_TRANSACTION",
+  "recurringExpiry": "20250101",
+  "recurringFrequency": "10",
+  "threeDSChallengeInd": "NO_PREFERENCE",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "2024-10-10T16:36:52+00:00",
+    "threeDSReqPriorRef": "6d517cb2-9383-4839-afd3-2e92e5d601c7"
+  },
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "55",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "Febrero 2024",
+  "messageVersion": "2.2.0",
+  "bridgingMessageExtension": {
+    "data": {
+      "addData": {
+        "threeRIInd": "RECURRING_TRANSACTION",
+        "cardSecurityCode": "123"
+      },
+   "recurringData": {
+    "recurringDate": "20241209",
+        "recurringInd": {
+          "frequencyInd": "FIXED_FREQUENCY",
+          "amountInd": "FIXED_PURCHASE"
+        }
+      }
+    }
+  },
+    "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
+  }
+}
 ```
 
 
@@ -412,29 +477,93 @@ Indicadores Relevantes:
 
 **Caso de uso:** Pagos por uso de un servicio en la nube, donde la frecuencia de uso puede variar pero el costo por unidad es fijo.
 
+**CIT**
+
 ```json
 {
-  "acctNumber": "4005580000000040",
-  "cardExpiryDate": "2411",
-  "purchaseAmount": "8.25",
-  "redirectURI": "https://www.placetopay.com",
+  "deviceChannel": "BRW",
+  "threeDSAuthenticationInd": "RECURRING_TRANSACTION",
+  "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
+  "recurringExpiry": "20250101",
+  "recurringFrequency": "10",
+  "acctNumber": "5107000000010018",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "50",
+  "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "addPriorInformation": "Y",
-  "threeDSAuthenticationInd": "02",
-  "messageCategory": "01",
-  "deviceChannel": "03",
-  "threeRIInd": "01",
-  "recurringFrequency": "031",
-  "recurringExpiry": "20241020",
+  "reference": "Enero 2024",
+  "messageVersion": "2.2.0",
   "bridgingMessageExtension": {
     "data": {
-      "recurringData": {
+      "addData": {
+        "threeRIInd": "RECURRING_TRANSACTION",
+        "cardSecurityCode": "123"
+      },
+   "recurringData": {
         "recurringInd": {
           "frequencyInd": "VARIABLE_FREQUENCY",
           "amountInd": "FIXED_PURCHASE"
         }
       }
     }
+  },
+  "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
+  }
+}
+
+```
+
+**MIT**
+
+```json
+{
+  "deviceChannel": "RI",
+  "threeRIInd": "RECURRING_TRANSACTION",
+  "recurringExpiry": "20250101",
+  "recurringFrequency": "10",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "2024-10-10T14:43:04+00:00",
+    "threeDSReqPriorRef": "a1ed9882-2c0f-4591-a0fb-d92c652d81ed"
+  },
+  "acctNumber": "5107000000010018",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "50",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "Febrero 2024",
+  "messageVersion": "2.2.0",
+  "bridgingMessageExtension": {
+    "data": {
+      "addData": {
+        "threeRIInd": "RECURRING_TRANSACTION",
+        "cardSecurityCode": "123"
+      },
+   "recurringData": {
+        "recurringInd": {
+          "frequencyInd": "VARIABLE_FREQUENCY",
+          "amountInd": "FIXED_PURCHASE"
+        }
+      }
+    }
+  },
+    "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
   }
 }
 
@@ -450,32 +579,100 @@ Indicadores Relevantes:
 
 **Caso de uso:** Pagos mensuales por un servicio que incluye cargos adicionales basados en el consumo.
 
+**CIT**
+
 ```json
 
 {
-  "acctNumber": "4005580000000040",
-  "cardExpiryDate": "2411",
-  "purchaseAmount": "8.25",
-  "redirectURI": "https://www.placetopay.com",
+  "deviceChannel": "BRW",
+  "threeDSAuthenticationInd": "RECURRING_TRANSACTION",
+  "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
+  "recurringExpiry": "20250101",
+  "recurringFrequency": "10",
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "50",
+  "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "addPriorInformation": "Y",
-  "threeDSAuthenticationInd": "02",
-  "messageCategory": "01",
-  "deviceChannel": "03",
-  "threeRIInd": "01",
-  "recurringFrequency": "031",
-  "recurringExpiry": "20241020",
+  "reference": "Enero 2024",
+  "messageVersion": "2.2.0",
   "bridgingMessageExtension": {
     "data": {
-      "recurringData": {
+      "addData": {
+        "threeRIInd": "RECURRING_TRANSACTION",
+        "cardSecurityCode": "123"
+      },
+   "recurringData": {
+        "recurringDate": "20241018",
         "recurringInd": {
           "frequencyInd": "FIXED_FREQUENCY",
           "amountInd": "VARIABLE_PURCHASE"
         }
       }
     }
+  },
+  "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
   }
 }
+
+```
+
+**MIT**
+
+```json
+
+{
+  "deviceChannel": "RI",
+  "threeRIInd": "RECURRING_TRANSACTION",
+  "recurringExpiry": "20250101",
+  "recurringFrequency": "10",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "2024-10-08T22:19:31+00:00",
+    "threeDSReqPriorRef": "16b910d6-6921-42e5-a5f8-00ba328b5bf6"
+  },
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "520",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "Febrero 2024",
+  "messageVersion": "2.2.0",
+  "bridgingMessageExtension": {
+    "data": {
+      "addData": {
+        "threeRIInd": "RECURRING_TRANSACTION",
+        "cardSecurityCode": "123"
+      },
+   "recurringData": {
+        "recurringDate": "20241107",
+        "recurringInd": {
+          "frequencyInd": "FIXED_FREQUENCY",
+          "amountInd": "VARIABLE_PURCHASE"
+        }
+      }
+    }
+  },
+    "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
+  }
+}
+
 
 ```
 
@@ -493,30 +690,95 @@ El monto total se calculará en cada ciclo de facturación en función del consu
 **Caso de uso:** Pagos por servicios profesionales donde tanto la frecuencia como el monto pueden variar según el proyecto.
 
 
-```json
+**CIT**
 
+
+```json
 {
-  "acctNumber": "4005580000000040",
-  "cardExpiryDate": "2411",
-  "purchaseAmount": "8.25",
-  "redirectURI": "https://www.placetopay.com",
+  "deviceChannel": "BRW",
+  "threeDSAuthenticationInd": "RECURRING_TRANSACTION",
+  "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
+  "recurringExpiry": "20250101",
+  "recurringFrequency": "2",
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "50",
+  "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "addPriorInformation": "Y",
-  "threeDSAuthenticationInd": "02",
-  "messageCategory": "01",
-  "deviceChannel": "03",
-  "threeRIInd": "01",
-  "recurringFrequency": "031",
-  "recurringExpiry": "20241020",
+  "reference": "Enero 2024",
+  "messageVersion": "2.2.0",
   "bridgingMessageExtension": {
     "data": {
-      "recurringData": {
+      "addData": {
+        "threeRIInd": "RECURRING_TRANSACTION",
+        "cardSecurityCode": "123"
+      },
+   "recurringData": {
         "recurringInd": {
           "frequencyInd": "VARIABLE_FREQUENCY",
           "amountInd": "VARIABLE_PURCHASE"
         }
       }
     }
+  },
+  "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
+  }
+}
+
+```
+
+**MIT**
+
+```json
+
+{
+  "deviceChannel": "RI",
+  "threeRIInd": "RECURRING_TRANSACTION",
+  "recurringExpiry": "20250101",
+  "recurringFrequency": "2",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "2024-10-08T20:32:58+00:00",
+    "threeDSReqPriorRef": "e85f6a78-8687-4ae1-a775-a09c450d830b"
+  },
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "520",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "Febrero 2024",
+  "messageVersion": "2.2.0",
+  "bridgingMessageExtension": {
+    "data": {
+      "addData": {
+        "threeRIInd": "RECURRING_TRANSACTION",
+        "cardSecurityCode": "123"
+      },
+   "recurringData": {
+        "recurringInd": {
+          "frequencyInd": "VARIABLE_FREQUENCY",
+          "amountInd": "VARIABLE_PURCHASE"
+        }
+      }
+    }
+  },
+    "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
   }
 }
 
@@ -530,53 +792,6 @@ Tanto la frecuencia como el monto se determinarán en cada transacción.
 
 ---
 
-## Pagos a Plazos
-
-Indicadores Relevantes:
-
-- **threeRIInd:** INSTALMENT_TRANSACTION (02)
-- **amountInd:** FIXED_PURCHASE (01) o VARIABLE_PURCHASE (02)
-- **frequencyInd:** FIXED_FREQUENCY (01) o VARIABLE_FREQUENCY (02)
-
-**Caso de Uso:** Para pagos a plazos, como la compra de un producto caro en cuotas, el BME puede especificar que la transacción es a plazos y ajustar la frecuencia de los pagos, además de indicar si los montos son fijos o variables a lo largo del tiempo.
-
-**Ejemplo:** Un cliente compra un electrodoméstico costoso y elige pagarlo en 6 cuotas fijas. Se puede usar el BME para indicar que es un pago a plazos con una frecuencia mensual fija y un monto constante.
-
-```json
-
-{
-  "acctNumber": "4005580000000040",
-  "cardExpiryDate": "2411",
-  "purchaseAmount": "8.25",
-  "redirectURI": "https://www.placetopay.com",
-  "purchaseCurrency": "USD",
-  "addPriorInformation": "Y",
-  "threeDSAuthenticationInd": "02",
-  "messageCategory": "01",
-  "deviceChannel": "03",
-  "threeRIInd": "01",
-  "recurringFrequency": "031",
-  "recurringExpiry": "20241020",
-  "bridgingMessageExtension": {
-    "data": {
-      "addData": {
-        "threeRIInd": "INSTALMENT_TRANSACTION",
-        "cardSecurityCode": "123"
-      },
-     "recurringData": {
-        "recurringDate": "20241023",
-        "recurringInd": {
-          "frequencyInd": "VARIABLE_PURCHASE",
-          "amountInd": "VARIABLE_FREQUENCY"
-        }
-      }
-    }
-  }
-}
-
-```
-
----
 
 ## Envío Dividido o Retrasado
 
@@ -588,28 +803,89 @@ Indicadores Relevantes:
 
 **Ejemplo:** Un cliente hace una compra de múltiples artículos, pero algunos productos no están disponibles para envío inmediato. Se usa DELAYED_SHIPMENT para señalar al banco emisor que la transacción incluye envíos demorados.
 
+
+**SPLIT SHIPLMENT**
+
+**CIT**
+
 ```json
 
 {
-  "acctNumber": "4005580000000040",
-  "cardExpiryDate": "2411",
-  "purchaseAmount": "8.25",
-  "redirectURI": "https://www.placetopay.com",
+  "deviceChannel": "BRW",
+  "threeDSAuthenticationInd": "PAYMENT_TRANSACTION",
+  "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
+  "acctNumber": "5107000000010018",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "3000",
+  "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "addPriorInformation": "Y",
-  "threeDSAuthenticationInd": "02",
-  "messageCategory": "01",
-  "deviceChannel": "03",
-  "threeRIInd": "01",
-  "recurringFrequency": "031",
-  "recurringExpiry": "20241020",
+  "reference": "Enero 2024",
+  "messageVersion": "2.2.0",
+  "bridgingMessageExtension": {
+        "data": {
+            "addData": {
+                "threeRIInd": "SPLIT_OR_DELAYED_SHIPMENT",
+                "cardSecurityCode": "123"
+            }
+        }
+  },
+  "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
+  }
+}
+
+```
+
+
+**MIT**
+
+```json
+
+{
+  "deviceChannel": "RI",
+  "threeRIInd": "SPLIT_OR_DELAYED_SHIPMENT",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "2024-10-30T22:11:07+00:00",
+    "threeDSReqPriorRef": "1760a097-5779-44d1-9ba1-77bab5b4fe64"
+  },
+  "acctNumber": "5107000000010018",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "500",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "Febrero 2024",
+  "messageVersion": "2.2.0",
   "bridgingMessageExtension": {
     "data": {
       "addData": {
-        "threeRIInd": "DELAYED_SHIPMENT",
+        "threeRIInd": "SPLIT_OR_DELAYED_SHIPMENT",
         "cardSecurityCode": "123"
+      },
+   "recurringData": {
+        "recurringInd": {
+          "frequencyInd": "VARIABLE_FREQUENCY",
+          "amountInd": "FIXED_PURCHASE"
+        }
       }
     }
+  },
+    "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
   }
 }
 
@@ -636,10 +912,10 @@ Indicadores Relevantes:
   "redirectURI": "https://www.placetopay.com",
   "purchaseCurrency": "USD",
   "addPriorInformation": "Y",
-  "threeDSAuthenticationInd": "01",
-  "messageCategory": "01",
-  "deviceChannel": "03",
-  "threeRIInd": "01",
+  "threeDSAuthenticationInd": "PAYMENT_TRANSACTION",
+  "messageCategory": "PA",
+  "deviceChannel": "RI",
+  "threeRIInd": "RECURRING_TRANSACTION",
   "recurringFrequency": "031",
   "recurringExpiry": "20241020",
   "bridgingMessageExtension": {
@@ -677,10 +953,10 @@ Indicadores Relevantes:
   "redirectURI": "https://www.placetopay.com",
   "purchaseCurrency": "USD",
   "addPriorInformation": "Y",
-  "threeDSAuthenticationInd": "04",
-  "messageCategory": "01",
-  "deviceChannel": "03",
-  "threeRIInd": "01",
+  "threeDSAuthenticationInd": "ADD_CARD",
+  "messageCategory": "PA",
+  "deviceChannel": "RI",
+  "threeRIInd": "RECURRING_TRANSACTION",
   "recurringFrequency": "031",
   "recurringExpiry": "20241020",
   "bridgingMessageExtension": {
@@ -717,10 +993,10 @@ Indicadores Relevantes:
   "redirectURI": "https://www.placetopay.com",
   "purchaseCurrency": "USD",
   "addPriorInformation": "Y",
-  "threeDSAuthenticationInd": "04",
-  "messageCategory": "01",
-  "deviceChannel": "03",
-  "threeRIInd": "01",
+  "threeDSAuthenticationInd": "ADD_CARD",
+  "messageCategory": "PA",
+  "deviceChannel": "RI",
+  "threeRIInd": "RECURRING_TRANSACTION",
   "recurringFrequency": "031",
   "recurringExpiry": "20241020",
   "bridgingMessageExtension": {
@@ -738,64 +1014,16 @@ Indicadores Relevantes:
 
 ---
 
-## Pagos Diferidos o Fraccionados
-
-Indicadores Relevantes:
-
-**threeDSRequestorAuthenticationInd:** SPLIT_SHIPMENT (08) o DELAYED_SHIPMENT (09)
-**threeRIInd:** DELAYED_SHIPMENT (15) o SPLIT_PAYMENT (16)
-
-**Caso de Uso:** Este escenario se aplica cuando un pedido se divide en varios envíos (split shipment) o cuando se retrasa el envío (delayed shipment). Los indicadores permiten que el emisor reconozca que la transacción no se completará de inmediato en su totalidad, sino que se llevará a cabo en varias partes o en momentos diferentes.
-
-**SPLIT_SHIPMENT (08):** Se utiliza cuando la compra del cliente incluye múltiples productos que se enviarán por separado en diferentes momentos.
-**DELAYED_SHIPMENT (09):** Aplica cuando el envío de un pedido completo se retrasa y el pago no se procesa hasta que los productos estén listos para su envío.
-
-**Beneficio:** Proporciona un mecanismo para que el Access Control Server (ACS) reconozca que la transacción no se completa de una sola vez, lo que ayuda a evitar rechazos innecesarios por transacciones incompletas o por la percepción de pagos duplicados.
-
-**Ejemplo:** Un cliente compra varios artículos en una tienda en línea, pero algunos productos están en preventa y serán enviados más tarde. El indicador SPLIT_SHIPMENT se incluye para informar al emisor que el pago se fraccionará en función de los envíos. Si, por otro lado, la tienda notifica un retraso en todo el envío, se utilizaría el indicador DELAYED_SHIPMENT para evitar problemas con la autorización del pago.
-
-
-
-```json
-
-{
-  "acctNumber": "4005580000000040",
-  "cardExpiryDate": "2411",
-  "purchaseAmount": "8.25",
-  "redirectURI": "https://www.placetopay.com",
-  "purchaseCurrency": "USD",
-  "addPriorInformation": "Y",
-  "threeDSAuthenticationInd": "04",
-  "messageCategory": "01",
-  "deviceChannel": "03",
-  "threeRIInd": "01",
-  "recurringFrequency": "031",
-  "recurringExpiry": "20241020",
-  "bridgingMessageExtension": {
-    "data": {
-      "addData": {
-        "threeRIInd": "DELAYED_SHIPMENT",
-        "cardSecurityCode": "123",
-        "threeDSRequestorAuthenticationInd": "DELAYED_SHIPMENT"
-      }
-    }
-  }
-}
-
-
-```
----
-
 ## Otros casos
 
-* Delayed Shipment **threeDSAuthenticationInd** 09, **threeRIInd** 15 aplica par EMV 3DS 2.2 with Bridging Message Extension o par la versión EMV 3DS 2.3.1
-* Split Shipment **threeDSAuthenticationInd** 08, **threeRIInd** 06 aplica par EMV 3DS 2.2 with Bridging Message Extension o par la versión EMV 3DS 2.3.1
-* Split Payment **threeDSAuthenticationInd** 10, **threeRIInd** 16 aplica par EMV 3DS 2.2 with Bridging Message Extension o par la versión EMV 3DS 2.3.1
+* Split Shipment **threeDSAuthenticationInd** SPLIT_SHIPMENT 08, **threeRIInd** SPLIT_OR_DELAYED_SHIPMENT 06 aplica par EMV 3DS 2.2 with Bridging Message Extension o par la versión EMV 3DS 2.3.1
+* Delayed Shipment **threeDSAuthenticationInd** DELAYED_SHIPMENT 09, **threeRIInd** 15 DELAYED_SHIPMENT aplica par EMV 3DS 2.2 with Bridging Message Extension o par la versión EMV 3DS 2.3.1
+* Split Payment **threeDSAuthenticationInd** SPLIT_PAYMENT 10, **threeRIInd** 16 SPLIT_PAYMENT aplica par EMV 3DS 2.2 with Bridging Message Extension o par la versión EMV 3DS 2.3.1
 
 ---
 
 ## Mejora la tasa de autenticaciones con datos adicionales
-Nos complace invitarles a visitar el apartado de [Adicional Data](/three-d-s-server/api/sessions/detail-info) en nuestra documentación del API. Este apartado ofrece información crucial para optimizar el proceso de autenticación 3DS.
+Nos complace invitarles a visitar el apartado de [Adicional Data](three-d-s-server/api/sessions/detail-info) en nuestra documentación del API. Este apartado ofrece información crucial para optimizar el proceso de autenticación 3DS.
 
 La inclusión de estos datos adicionales en sus solicitudes permite a los emisores realizar una evaluación más precisa, lo que puede mejorar considerablemente la tasa de autenticaciones exitosas.
 

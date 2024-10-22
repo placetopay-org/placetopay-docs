@@ -360,7 +360,10 @@ export const TAB_NAVIGATION = {
           {
             title: '3DS Server',
             links: [
-              { title: 'Introducción', href: '/three-d-s-server' },
+              {
+                title: 'Introducción',
+                href: '/three-d-s-server'
+              },
               {
                 title: '¿Qué es el Protocolo 3-D Secure?',
                 href: '/three-d-s-server/introduction',
@@ -517,7 +520,10 @@ export const TAB_NAVIGATION = {
           {
             title: '3DS',
             links: [
-              { title: 'Introduction', href: '/three-d-s-server' },
+              {
+                title: 'Introduction',
+                href: '/three-d-s-server'
+              },
               {
                 title: 'What is the 3-D Secure Protocol?',
                 href: '/three-d-s-server/introduction',
