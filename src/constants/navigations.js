@@ -1615,7 +1615,7 @@ export const TAB_NAVIGATION = {
       },
       {
         title: 'API',
-        identifier: '/api-scudo/api/reference/environments',
+        identifier: '/api-scudo/api/reference',
         href: '/api-scudo/api/reference/environments',
         icon: DocumentCode,
         links: [
@@ -1664,7 +1664,7 @@ export const TAB_NAVIGATION = {
       },
       {
         title: 'API',
-        identifier: 'api-scudo/api/reference/environments',
+        identifier: 'api-scudo/api/reference',
         href: '/en/api-scudo/api/reference/environments',
         icon: DocumentCode,
         links: [
