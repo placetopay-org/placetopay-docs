@@ -17,8 +17,16 @@ const TITLES = {
     en: 'Response',
   },
   params: {
-    es: 'Parámetros',
-    en: 'Params',
+    es: {
+      params: 'Parámetros',
+      query: 'Parámetros de consulta',
+      header: 'Cabecera',
+    },
+    en: {
+      params: 'Params',
+      query: 'Query params',
+      header: 'Headers',
+    },
   },
   propertyInformation: {
     es: {
@@ -300,11 +308,11 @@ export const ApiResponses = ({ responses = {} }) => {
   )
 }
 
-export const ApiParams = ({ params = [] }) => {
+export const ApiParams = ({ params = [], type = 'params' }) => {
   const { locale } = useLocale()
   return (
     <>
-      <h3>{TITLES.params[locale]}</h3>
+      <h3>{TITLES.params[locale][type]}</h3>
 
       <Properties classNames="my-4">
         {params.map((param) => (
@@ -364,7 +372,15 @@ export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
   }
 
   if (type === 'params') {
-    return <ApiParams params={data.parameters} />
+    return <ApiParams params={data.parameters.filter((param) => param.in === 'path')} />
+  }
+
+  if (type === 'query') {
+    return <ApiParams type="query" params={data.parameters.filter((param) => param.in === 'query')} />
+  }
+
+  if (type === 'header') {
+    return <ApiParams type="header" params={data.parameters.filter((param) => param.in === 'header')} />
   }
 
   throw new Error(`Type ${type} not supported`)
