@@ -51,6 +51,12 @@ const LINKS = {
       href: '/microsites',
       icon: Calendar,
     },
+    {
+      title: 'Account Validator',
+      description: 'Verificación de cuentas',
+      href: '/account-validator',
+      icon: SecurityCard,
+    },
   ],
   [LANGUAGES_CODES.EN]: [
     {
@@ -94,6 +100,12 @@ const LINKS = {
       description: 'Create and manage microsites',
       href: '/en/microsites',
       icon: Calendar,
+    },
+    {
+      title: 'Account Validator',
+      description: 'Account verification',
+      href: '/account-validator',
+      icon: SecurityCard,
     },
   ],
 }

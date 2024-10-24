@@ -46,6 +46,10 @@ export const TAB_NAVIGATION = {
                 title: 'Campos de procesamiento',
                 href: '/checkout/processor-fields',
               },
+              {
+                title: 'Fecha de expiración',
+                href: '/checkout/expiration',
+              },
             ],
           },
         ],
@@ -72,6 +76,7 @@ export const TAB_NAVIGATION = {
               { title: 'Sesión', href: '/checkout/api/reference/session' },
               { title: 'Pagos', href: '/checkout/api/reference/payment' },
               { title: 'Token', href: '/checkout/api/reference/token' },
+              { title: 'Gateway Information', href: '/checkout/api/reference/gateway-information' },
             ],
           },
         ],
@@ -123,6 +128,10 @@ export const TAB_NAVIGATION = {
                 title: 'Processor Fields',
                 href: '/checkout/processor-fields',
               },
+              {
+                title: 'Expiration Date',
+                href: '/checkout/expiration',
+              },
             ],
           },
         ],
@@ -146,6 +155,7 @@ export const TAB_NAVIGATION = {
               { title: 'Session', href: '/checkout/api/reference/session' },
               { title: 'Payments', href: '/checkout/api/reference/payment' },
               { title: 'Token', href: '/checkout/api/reference/token' },
+              { title: 'Gateway Information', href: '/checkout/api/reference/gateway-information' },
             ],
           },
         ],
@@ -350,7 +360,10 @@ export const TAB_NAVIGATION = {
           {
             title: '3DS Server',
             links: [
-              { title: 'Introducción', href: '/three-d-s-server' },
+              {
+                title: 'Introducción',
+                href: '/three-d-s-server'
+              },
               {
                 title: '¿Qué es el Protocolo 3-D Secure?',
                 href: '/three-d-s-server/introduction',
@@ -416,20 +429,38 @@ export const TAB_NAVIGATION = {
             title: 'Integración',
             links: [
               {
-                title: 'Autorización',
+                title: 'Autenticación',
                 href: '/three-d-s-server/api/integration/authorization',
               },
+              {
+                title: 'Tarjetas de Prueba',
+                href: '/three-d-s-server/api/integration/test-cards',
+              },
+            ],
+          },
+
+          {
+            title: 'Casos de uso',
+            links: [
               {
                 title: 'Sesión',
                 href: '/three-d-s-server/api/integration/session',
               },
               {
-                title: 'Obtener información de una autenticación',
-                href: '/three-d-s-server/api/integration/authentication-info',
+                title: 'Sesión 3RI',
+                href: '/three-d-s-server/api/integration/session-r-i',
               },
               {
-                title: 'Tarjetas de Prueba',
-                href: '/three-d-s-server/api/integration/test-cards',
+                title: 'BME: Bridging Message Extension',
+                href: '/three-d-s-server/api/integration/session-b-m-e',
+              },
+              {
+                title: 'DAF: Digital Authentication Framework',
+                href: '/three-d-s-server/api/integration/session-d-a-f',
+              },
+              {
+                title: 'Obtener información de una autenticación',
+                href: '/three-d-s-server/api/integration/authentication-info',
               },
             ],
           },
@@ -445,7 +476,7 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server/api/sessions',
               },
               {
-                title: 'Detalle de los campos del api',
+                title: 'Datos adicionales',
                 href: '/three-d-s-server/api/sessions/detail-info',
               },
             ],
@@ -489,7 +520,10 @@ export const TAB_NAVIGATION = {
           {
             title: '3DS',
             links: [
-              { title: 'Introduction', href: '/three-d-s-server' },
+              {
+                title: 'Introduction',
+                href: '/three-d-s-server'
+              },
               {
                 title: 'What is the 3-D Secure Protocol?',
                 href: '/three-d-s-server/introduction',
@@ -502,7 +536,10 @@ export const TAB_NAVIGATION = {
                 title: 'About the 3DS Server Component',
                 href: '/three-d-s-server/server-component',
               },
-              { title: 'Error Codes', href: '/three-d-s-server/error-codes' },
+              {
+                title: 'Error Codes',
+                href: '/three-d-s-server/error-codes'
+              },
               {
                 title: 'Frequently Asked Questions about 3DSS Functioning',
                 href: '/three-d-s-server/faq',
@@ -551,20 +588,38 @@ export const TAB_NAVIGATION = {
             title: 'Integration',
             links: [
               {
-                title: 'Authorization',
+                title: 'Authentication',
                 href: '/three-d-s-server/api/integration/authorization',
               },
+              {
+                title: 'Test Cards',
+                href: '/three-d-s-server/api/integration/test-cards'
+              },
+            ],
+          },
+
+          {
+            title: 'Use cases',
+            links: [
               {
                 title: 'Session',
                 href: '/three-d-s-server/api/integration/session',
               },
               {
-                title: 'Get authentication information',
-                href: '/three-d-s-server/api/integration/authentication-info',
+                title: 'Session with 3RI',
+                href: '/three-d-s-server/api/integration/session-r-i',
               },
               {
-                title: 'Test Cards',
-                href: '/three-d-s-server/api/integration/test-cards'
+                title: 'BME: Bridging Message Extension',
+                href: '/three-d-s-server/api/integration/session-b-m-e',
+              },
+              {
+                title: 'DAF: Digital Authentication Framework',
+                href: '/three-d-s-server/api/integration/session-d-a-f',
+              },
+              {
+                title: 'Get authentication information',
+                href: '/three-d-s-server/api/integration/authentication-info',
               },
             ],
           },
@@ -580,7 +635,7 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server/api/sessions'
               },
               {
-                title: 'Detail Info',
+                title: 'Additional data',
                 href: '/three-d-s-server/api/sessions/detail-info',
               },
             ],
@@ -782,7 +837,7 @@ export const TAB_NAVIGATION = {
         links: [
           { title: 'API SDKs', links: [{ title: 'PinPad', href: '/sdks/pinpad/api' }] }
         ],
-        }
+      }
     ],
     [LANGUAGES_CODES.EN]: [
       {
@@ -805,7 +860,7 @@ export const TAB_NAVIGATION = {
         links: [
           { title: 'API SDKs', links: [{ title: 'PinPad', href: '/sdks/pinpad/api' }] }
         ],
-        }
+      }
     ],
   },
   acs: {
@@ -982,6 +1037,66 @@ export const TAB_NAVIGATION = {
               },
               { title: 'Test Cards', href: '/acs/test-cards' },
               { title: 'Users', href: '/acs/users' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  'account-validator': {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'API',
+        identifier: 'account-validator',
+        href: '/account-validator/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Documentación',
+            links: [
+
+              { title: 'Introducción', href: '/account-validator', },
+              { title: '¿Cómo funciona?', href: '/account-validator/how-to-work' },
+              { title: 'Flujo del usuario', href: '/account-validator/user-flow' },
+              { title: 'Micro depósitos', href: '/account-validator/micro-deposits' },
+              { title: 'Soporte para Lightbox', href: '/account-validator/support' }
+            ]
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Url de ambientes', href: '/account-validator/api/environment-urls', },
+              { title: 'Sesión', href: '/account-validator/api/session' },
+              { title: 'Validador de cuenta', href: '/account-validator/api/validate-existing-account' },
+            ],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'API',
+        identifier: 'account-validator',
+        href: '/account-validator/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Documentation',
+            links: [
+
+              { title: 'Introduction', href: '/account-validator', },
+              { title: '¿How it works?', href: '/account-validator/how-to-work' },
+              { title: 'User flow', href: '/account-validator/user-flow' },
+              { title: 'Micro deposits', href: '/account-validator/micro-deposits' },
+              { title: 'Lightbox Support', href: '/account-validator/support' }
+            ]
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'URL of environments', href: '/account-validator/api/environment-urls', },
+              { title: 'Session', href: '/account-validator/api/session' },
+              { title: 'Account validator', href: '/account-validator/api/validate-existing-account' },
             ],
           },
         ],
@@ -1179,4 +1294,172 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
+  ticket: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'API',
+        identifier: 'ticket',
+        href: '/ticket',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'URL de ambientes',
+                href: '/ticket/reference',
+              },
+              {
+                title: 'Buscar tickets',
+                href: '/ticket/reference/search',
+              },
+              {
+                title: 'Crear ticket',
+                href: '/ticket/reference/create',
+              },
+              {
+                title: 'Remover ticket',
+                href: '/ticket/reference/remove',
+              },
+            ],
+          },
+        ],
+      }
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'API',
+        identifier: 'ticket',
+        href: '/en/ticket/reference',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'Environment URLs',
+                href: '/ticket/reference',
+              },
+              {
+                title: 'Search tickets',
+                href: '/ticket/reference/search',
+              },
+              {
+                title: 'Create ticket',
+                href: '/ticket/reference/create',
+              },
+              {
+                title: 'Remove ticket',
+                href: '/ticket/reference/remove',
+              },
+            ],
+          },
+        ],
+      }
+    ],
+  },
+  core: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'API',
+        identifier: 'core',
+        href: '/core',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'URL de ambientes',
+                href: '/core',
+              },
+              {
+                title: 'Acciones sobre comercios',
+                href: '/core/reference/merchant'
+              },
+              {
+                title: 'Acciones sobre lista de preferidos',
+                href: '/core/reference/site/prefer-list'
+              },
+              {
+                title: 'Acciones sobre medios de pago de sitios',
+                href: '/core/reference/site/payment-methods'
+              },
+              {
+                title: 'Acciones sobre métodos de pago',
+                href: '/core/reference/merchant/payment-methods'
+              },
+              {
+                title: 'Acciones sobre sitios',
+                href: '/core/reference/site'
+              },
+              {
+                title: 'Acciones sobre usuarios',
+                href: '/core/reference/user'
+              },
+              {
+                title: 'Acciones sobre planes',
+                href: '/core/reference/plans'
+              },
+              {
+                title: 'Procedimientos adicionales',
+                href: '/core/reference/tools'
+              },
+            ]
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'API',
+        identifier: 'core',
+        href: '/core',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'URL de ambientes',
+                href: '/core',
+              },
+              {
+                title: 'Actions on Merchants',
+                href: '/core/reference/merchant'
+              },
+              {
+                title: 'Actions on Preferred Lists',
+                href: '/core/reference/site/prefer-list'
+              },
+              {
+                title: 'Actions on Site Payment Methods',
+                href: '/core/reference/site/payment-methods'
+              },
+              {
+                title: 'Actions on Payment Methods',
+                href: '/core/reference/merchant/payment-methods'
+              },
+              {
+                title: 'Actions on Sites',
+                href: '/core/reference/site'
+              },
+              {
+                title: 'Actions on Users',
+                href: '/core/reference/user'
+              },
+              {
+                title: 'Actions on Plans',
+                href: '/core/reference/plans'
+              },
+              {
+                title: 'Additional Procedures',
+                href: '/core/reference/tools'
+              },
+            ]
+          },
+        ],
+      }
+    ]
+  }
 }

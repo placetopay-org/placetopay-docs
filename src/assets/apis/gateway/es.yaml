@@ -1,9 +1,9 @@
 ---
 openapi: "3.0.0"
-info: 
+info:
   title: "Gateway"
   version: "1.0"
-  license: 
+  license:
     name: "Privative"
   description: "Este servicio web y su arquitectura permite a cualquier aplicación conectarse a Placetopay para procesar transacciones, independiente del lenguaje de desarrollo.
 
@@ -20,15 +20,15 @@ Por defecto el lenguaje de las respuestas es en español, si se desea cambiar es
 Todos los consumos se realizan a la URL base, que será proporcionada por el área de operaciones y se le adiciona a dicha URL el endpoint del servicio a consumir.
 
 Por ejemplo si la URL base fuese https://placetopay.com para consumir el servicio se solicitud de información se realiza un POST con los datos del ejemplo a la URL https://placetopay.com/gateway/information"
-  contact: 
+  contact:
     name: "Diego Calle"
     email: "desarrollo@evertecinc.com"
-servers: 
+servers:
   - url: "https://api-co-dev.placetopay.ws"
     description: "Pruebas Colombia"
   - url: "https://api-ec-dev.placetopay.ws"
     description: "Pruebas Ecuador"
-tags: 
+tags:
   - name: "Obtener información"
     description: "Una vez se tengan los datos de la tarjeta permite determinar el flujo a seguir"
   - name: "Procesamiento de transacción"
@@ -1200,6 +1200,8 @@ paths:
                     date: "2021-09-20T21:56:29-05:00"
                     transactionDate: "2021-09-20T21:56:29-05:00"
                     internalReference: "455"
+                    description: |
+                      Usuario dueño de la cuenta a validar
                     reference: "1945768"
                     paymentMethod: "CR_VS"
                     franchise: "visa"
@@ -1236,7 +1238,7 @@ paths:
                       bin: "411076"
                       expiration: "1228"
                       installments: "1"
-      description: "Permite realizar un reembolso, re-autorización o cash out sobre una transacción existente"
+      description: "Permite realizar un reembolso, re-autorización o checkout sobre una transacción existente"
       tags:
         - "Acciones sobre transacciones"
       requestBody:
@@ -1252,7 +1254,15 @@ paths:
                   $ref: "#/components/schemas/Authentication"
                 action:
                   type: "string"
-                  description: "Operación a realizar sobre la transacción"
+                  description: |
+                    Tipo de operación a realizar sobre la transacción
+            
+                    `reverse` para revesar una transacción.
+                    `reauthorization` para modificar una transacción de checkin.
+                    `checkout` para cerrar y cobrar una transacción de checkin.
+                    `refund` para rembolsar una transacción.
+                    `process`, para aprobar de manera manual una transacción.
+                    `void` para cancelar el procesamiento de una transacción pendiente de aprobación manual.
                   enum:
                     - "reverse"
                     - "refund"
@@ -1264,8 +1274,38 @@ paths:
                   example: "reverse"
                 internalReference:
                   type: "number"
+                  description: |
+                    Referencia interna única de la transacción
+
+                    EJ: `543423`
                 authorization:
                   type: "string"
+                  description: |
+                    Autorización de la transacción
+
+                    EJ: `9999999`
+                payment:
+                  type: "object"
+                  description: |
+                    Estructura que contiene la información acerca del pago de la transacción
+                  items:
+                    type: "object"
+                    properties:
+                      amount:
+                        type: "object"
+                        properties:
+                          currency:
+                              type: "number"
+                              description: |
+                                Código alfabético de la moneda a usar (ISO 4217 alpha code)
+
+                                EJ: `USD`
+                          total:
+                            type: "number"
+                            description: |
+                              Valor total en la moneda base indicada
+
+                              EJ: `1000` Valor total en la moneda base indicada
               required:
                 - "auth"
                 - "action"
@@ -2501,16 +2541,16 @@ paths:
                 $ref: "#/components/schemas/Authentication"
       tags:
         - "Operaciones con Pinpad"
-components: 
-  schemas: 
-    Status: 
+components:
+  schemas:
+    Status:
       title: "Status"
       type: "object"
       description: "Estructura que contiene la información sobre una solicitud o pago, informa al estado actual de la misma."
-      properties: 
-        status: 
+      properties:
+        status:
           type: "string"
-          enum: 
+          enum:
             - "OK"
             - "FAILED"
             - "APPROVED"
@@ -2526,42 +2566,42 @@ components:
             - "UNKNOWN"
             - "MANUAL"
             - "DISPUTE"
-        reason: 
+        reason:
           type: "string"
           minLength: "1"
           maxLength: "4"
-        message: 
+        message:
           type: "string"
-        date: 
+        date:
           type: "string"
           example: "2021-09-21T09:34:48-05:00"
-    Subscription: 
+    Subscription:
       title: "Subscription"
-      x-stoplight: 
+      x-stoplight:
         id: "vip3u3guypqyd"
       type: "object"
       description: "Estructura que contiene la información sobre una suscripción o transacción que no requiera un monto en específico"
-      properties: 
-        reference: 
+      properties:
+        reference:
           type: "string"
-          x-stoplight: 
+          x-stoplight:
             id: "hpkr64f4l7gwo"
           maxLength: "32"
-        description: 
+        description:
           type: "string"
           minLength: "1"
-          x-stoplight: 
+          x-stoplight:
             id: "cc6z3gqusoy1k"
           maxLength: "254"
-    Document: 
+    Document:
       title: "Document"
       type: "object"
       description: "Estructura que contiene información acerca de un documento"
-      properties: 
-        type: 
+      properties:
+        type:
           type: "string"
           maxLength: "3"
-          enum: 
+          enum:
             - "NIT"
             - "CC"
             - "CE"
@@ -2569,98 +2609,97 @@ components:
             - "TI"
           example: "NIT"
           description: "Tipo de documento de identificación. [Para más información](/gateway/document-types)"
-        number: 
+        number:
           type: "string"
           example: "123456123"
           description: "Número de documento de identificación."
-        expeditionDate: 
+        expeditionDate:
           type: "string"
           description: "Fecha de expedición "
-        expirationDate: 
+        expirationDate:
           type: "string"
           description: "Fecha de expiración"
-      required: 
+      required:
         - "type"
         - "number"
-    Address: 
+    Address:
       title: "Address"
       type: "object"
-      description: "Estructura que contiene la información sobre una dirección física
-"
-      properties: 
-        street: 
+      description: "Estructura que contiene la información sobre una dirección física"
+      properties:
+        street:
           type: "string"
           maxLength: "128"
           description: "Calle"
-        city: 
+        city:
           type: "string"
           maxLength: "30"
           description: "Ciudad"
-        state: 
+        state:
           type: "string"
           description: "Estado /provincia /departamento"
-        postalCode: 
+        postalCode:
           type: "string"
           maxLength: "10"
           description: "Código postal"
-        country: 
+        country:
           type: "string"
           maxLength: "2"
           example: "CO"
           description: "País"
-        phone: 
+        phone:
           type: "string"
           maxLength: "20"
           description: "Teléfono"
-    Account: 
+    Account:
       title: "Account"
       type: "object"
       description: "Estructura que contiene la información de la cuenta bancaria.
 "
-      required: 
+      required:
         - "bankCode"
         - "accountType"
         - "accountNumber"
-      properties: 
-        bankName: 
+      properties:
+        bankName:
           type: "string"
           maxLength: "30"
           description: "Nombre del banco de la cuenta a procesar"
-        bankCode: 
+        bankCode:
           type: "string"
           maxLength: "17"
           description: "Código que identifica al banco en la red"
-        accountType: 
+        accountType:
           type: "string"
           description: "tipo de cuenta"
-          enum: 
+          enum:
             - "SAV"
             - "DDA"
             - "CCD"
-        accountNumber: 
+        accountNumber:
           type: "string"
           maxLength: "17"
           description: "Número de cuenta"
-        franchise: 
+        franchise:
           type: "string"
-          x-stoplight: 
+          x-stoplight:
             id: "bhbb4cpy3me8p"
           maxLength: "20"
-        verificationCode: 
+        verificationCode:
           type: "string"
-          x-stoplight: 
+          x-stoplight:
             id: "jpxori5mf80z2"
           example: "eyJhbGciOiJSUzI1NiJ9.eyJhY2NvdW50SGFzaCI6ImM5YWM2ZjFhZDhjNDA3Y2ZjNzMyNDljNTE2MTJjNTdmMWQxZGNiNTA4YjE4ZGJlYWE1MWQ0NDI5NjBjMjUwNDUyMzY4ZTg2YmUzMWQ3MDMxMDY4ZDM2MjM2NzVjYzhkYTUzNzhhODNmMTUwZjg5OTczOTBiZTEyMGU1ZmExN2RhIiwib25UZXN0Ijp0cnVlLCJzZXJ2aWNlIjoibW9jayIsImlkIjo0MDB9.dFMY4EwCrWq9EBmERFkKCoLHExPH4vgaCgnZaqB_mf8n3Sv6Qnu6Pb79onluX1OZecmYmBuHqZ_ykKXWSD4RMZSpckYFCiO3mlcJKI4qb91COhl_c2qXxYJuLEdbLfGlzf0k8-oJgFcO9gAS1Xm0hpTP4iiXF6st1hFwlfR3fpX4rr-bTsKgMvRSReMuxa0Vs92DykfqUR_3udlc0DFCPB9ZTaSqeRNHFAPAWNniUPWURQlW5c9J9xcyKTgKGzfI1_7h2I4ALQeRifptE2nC-HZtEMwtcToNh7hn0oL9lNFXnXGK9sWKORcyWKVfpEChS8z30UfX6kOhU6fp_qUwmA"
           description: "El verificationCode es un JSON Web Signature (JWS). Tiene el fin de ser el instrumento verificador del estado de la cuenta."
-    Person: 
+    Person:
       title: "Person"
       type: "object"
       description: "Estructura que refleja la información de una persona involucrada en una transacción."
-      properties: 
-        documentType: 
+      properties:
+        documentType:
           type: "string"
           description: "[Tipo de documento de identificación](/gateway/document-types)"
-          enum: 
+          enum:
             - "CC"
             - "NIT"
             - "RUT"
@@ -2668,93 +2707,93 @@ components:
             - "PNN"
           example: "CC"
           maxLength: "3"
-        Document: 
+        Document:
           type: "string"
           description: "Número de documento de identificación."
-        name: 
+        name:
           type: "string"
           description: "Nombre "
-        surname: 
+        surname:
           type: "string"
           description: "Apellidos"
-        company: 
+        company:
           type: "string"
           description: "Compañia"
-        email: 
+        email:
           type: "string"
           description: "Correo electrónico."
-        address: 
+        address:
           $ref: "#/components/schemas/Address"
           description: "Objeto que contiene información de la dirección de una persona."
-        mobile: 
+        mobile:
           type: "string"
           description: "Teléfono movil"
-    Authentication: 
+    Authentication:
       title: "Autenticación"
       type: "object"
-      properties: 
-        login: 
+      properties:
+        login:
           type: "string"
-        tranKey: 
+        tranKey:
           type: "string"
-        nonce: 
+        nonce:
           type: "string"
-        seed: 
+        seed:
           type: "string"
       description: "Estructura que contiene la información de autenticación del sitio generada de acuerdo al WSSE
         UsernameToken Profile 1.1"
-    Instrument: 
+    Instrument:
       title: "Instrument"
       type: "object"
       description: "Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura
 es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
-      properties: 
-        card: 
+      properties:
+        card:
           $ref: "#/components/schemas/Card"
-        account: 
+        account:
           $ref: "#/components/schemas/Account"
-        token: 
+        token:
           $ref: "#/components/schemas/Token"
-        credit: 
+        credit:
           $ref: "#/components/schemas/Credit"
-        threeDS: 
+        threeDS:
           $ref: "#/components/schemas/ThreeDS"
-        otp: 
+        otp:
           type: "string"
-        pinPad: 
+        pinPad:
           $ref: "#/components/schemas/PinPad"
-        pin: 
+        pin:
           type: "string"
           example: "0B880E2326F6409E"
           minLength: "2"
           maxLength: "20"
           description: "Recibe el código PIN cuando es plano o cuando se trata de un PinBlock"
-        redirection: 
+        redirection:
           $ref: "#/components/schemas/Redirection"
-        kount: 
+        kount:
           $ref: "#/components/schemas/Kount"
-        pocket: 
+        pocket:
           type: "string"
           description: "Bolsillo de la tarjeta utilizado para el pago"
-    Card: 
+    Card:
       title: "Card"
       type: "object"
       description: "Estructura que contiene la información de la tarjeta."
-      properties: 
-        number: 
+      properties:
+        number:
           type: "string"
           maxLength: "20"
-        expiration: 
+        expiration:
           type: "string"
           example: "12/22"
           pattern: "^[01]\\d\\/\\d{2}$"
-        cvv: 
+        cvv:
           type: "string"
-        installments: 
+        installments:
           type: "number"
-      required: 
+      required:
         - "number"
-    Token: 
+    Token:
       title: "Token"
       type: "object"
       description: "Estructura que contiene la información del token que asocia a la tarjeta
@@ -2763,20 +2802,20 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
         
         Para la salida si se devuelven todos los datos al tokenizar
         "
-      properties: 
-        token: 
+      properties:
+        token:
           type: "string"
           maxLength: "64"
           minLength: "64"
           description: "Código generado para identificar la tarjeta en el sistema"
-        subtoken: 
+        subtoken:
           type: "string"
           maxLength: "16"
           minLength: "16"
           description: "Código alterno generado para identificar la tarjeta"
-        franchise: 
+        franchise:
           type: "string"
-          enum: 
+          enum:
             - "visa"
             - "visa_electron"
             - "amex"
@@ -2799,22 +2838,22 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             - "mefia"
             - "ath_card"
           description: "Codigo de la franquicia asociada al token (Solo como respuesta no es necesario enviarla)"
-        franchiseName: 
+        franchiseName:
           type: "string"
-        issuerName: 
+        issuerName:
           type: "string"
-        lastDigits: 
+        lastDigits:
           type: "string"
-        validUntil: 
+        validUntil:
           type: "string"
-        cvv: 
+        cvv:
           type: "string"
           minLength: 3
           maxLength: 4
           description: "CVV solicitado al usuario en caso de que esté presente en la operación"
-      x-examples: 
-        Ejemplo respuesta: 
-          value: 
+      x-examples:
+        Ejemplo respuesta:
+          value:
             token: "e61da2ce4863a45b6491aab2964cd9c97b1d7cd508da2e813b728c88adb5f198"
             subtoken: "1120437249520005"
             franchise: "master"
@@ -2822,66 +2861,66 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             lastDigits: "0005"
             validUntil: "2018-12-31"
             installments: "3"
-        Ejemplo en solicitud: 
-          value: 
+        Ejemplo en solicitud:
+          value:
             token: "e61da2ce4863a45b6491aab2964cd9c97b1d7cd508da2e813b728c88adb5f198"
             cvv: "123"
-    Credit: 
+    Credit:
       title: "Credit"
       type: "object"
       description: "Estructura que contiene la información del tipo de crédito"
-      properties: 
-        code: 
+      properties:
+        code:
           type: "string"
-        type: 
+        type:
           type: "string"
-        groupCode: 
+        groupCode:
           type: "string"
-        installment: 
+        installment:
           type: "integer"
-    Pocket: 
+    Pocket:
       title: "Pocket"
       type: "object"
       description: "Estructura que contiene la información del bolsillo de la tarjeta"
-      properties: 
-        code: 
+      properties:
+        code:
           type: "string"
           description: "Valor del bolsillo"
-        description: 
+        description:
           type: "string"
           description: "Descripción del bolsillo"
-      x-examples: 
-    Payment: 
+      x-examples:
+    Payment:
       title: "Payment"
       type: "object"
       description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
-      properties: 
-        reference: 
+      properties:
+        reference:
           type: "string"
           minLength: 1
           maxLength: 32
-        description: 
+        description:
           type: "string"
           maxLength: 250
-        amount: 
+        amount:
           $ref: "#/components/schemas/Amount"
-        dispersion: 
+        dispersion:
           type: "array"
-          items: 
+          items:
             $ref: "#/components/schemas/Dispersion"
-        modifiers: 
+        modifiers:
           type: "array"
           description: "Estructura que contiene modificadores de pago"
-          items: 
+          items:
             $ref: "#/components/schemas/PaymentModifier"
-    Amount: 
+    Amount:
       title: "Amount"
       type: "object"
       description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
-      properties: 
-        currency: 
+      properties:
+        currency:
           type: "string"
-          enum: 
+          enum:
             - "USD"
             - "COP"
             - "CRC"
@@ -2894,26 +2933,26 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           example: "COP"
           minLength: 3
           maxLength: 3
-        total: 
+        total:
           type: "number"
-        taxes: 
+        taxes:
           type: "array"
-          items: 
+          items:
             $ref: "#/components/schemas/TaxDetail"
-        details: 
+        details:
           type: "array"
-          items: 
+          items:
             $ref: "#/components/schemas/AmountDetail"
-    TaxDetail: 
+    TaxDetail:
       title: "TaxDetail"
       type: "object"
       description: "Estructura para almacenar información sobre un impuesto."
-      properties: 
-        kind: 
+      properties:
+        kind:
           type: "string"
           example: "valueAddedTax"
           description: "Tipo de impuesto reportado"
-          enum: 
+          enum:
             - valueAddedTax
             - exciseDuty
             - ice
@@ -2921,103 +2960,103 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             - stateTax
             - reducedStateTax
             - municipalTax
-        amount: 
+        amount:
           type: "number"
-        base: 
+        base:
           type: "number"
-    PaymentModifier: 
+    PaymentModifier:
       title: "PaymentModifier"
       type: "object"
       description: "Estructura para almacenar información sobre un modificador de pago.
 
         NOTA: Si se envia un modificador que aplica descuento, no se tomará los descuentos configurados por promociones en el sítio."
-      x-examples: 
-        law-discount: 
+      x-examples:
+        law-discount:
           type: "FEDERAL_GOVERNMENT"
           code: "17934"
-          additional: 
+          additional:
             invoice: "123456"
-      properties: 
-        type: 
+      properties:
+        type:
           type: "string"
-          enum: 
-          - "FEDERAL_GOVERNMENT"
+          enum:
+            - "FEDERAL_GOVERNMENT"
           description: "Tipo de modificador"
-        code: 
+        code:
           type: "string"
           example: "17934"
           description: "Código del modificador. Cuando el tipo es FEDERAL_GOVERMENT, representa el número de ley para descuento."
-        additional: 
+        additional:
           type: "object"
           description: "Informaciones adicionales del modificador"
-          properties: 
-            invoice: 
+          properties:
+            invoice:
               type: "string"
               description: "Número de factura. Requerido cuando tipo es FEDERAL_GOVERMENT."
-    AmountDetail: 
+    AmountDetail:
       title: "AmountDetail"
       type: "object"
       description: "Estructura para almacenar información sobre un valor adicional."
-      properties: 
-        kind: 
+      properties:
+        kind:
           type: "string"
-        amount: 
+        amount:
           type: "number"
-    Dispersion: 
+    Dispersion:
       title: "Dispersion"
       type: "object"
       description: "Estructura que contiene la información requerida para un pago de dispersión"
-      properties: 
-        agreement: 
+      properties:
+        agreement:
           type: "number"
           description: "Identificador de destinatario de la transacción. Para el sitio principal de la transacción, el valor debe ser null."
           nullable: true
-        agreementType: 
+        agreementType:
           type: "string"
-          enum: 
+          enum:
             - "AIRLINE"
             - "MERCHANT"
-        amount: 
+        amount:
           $ref: "#/components/schemas/Amount"
-    InterestValues: 
+    InterestValues:
       title: "InterestValues"
       type: "object"
       description: "Estructura que contiene la información del cálculo de intereses para un tipo de crédito y monto"
-      properties: 
-        original: 
+      properties:
+        original:
           type: "number"
-        installment: 
+        installment:
           type: "number"
-        interest: 
+        interest:
           type: "number"
-        total: 
+        total:
           type: "number"
-    AmountConversion: 
+    AmountConversion:
       title: "AmountConversion"
       type: "object"
       description: "Estructura para definir el factor de conversión y los valores."
-      properties: 
-        from: 
+      properties:
+        from:
           $ref: "#/components/schemas/AmountBase"
-        to: 
+        to:
           $ref: "#/components/schemas/AmountBase"
-        factor: 
+        factor:
           type: "number"
-    AmountBase: 
+    AmountBase:
       title: "AmountBase"
       type: "object"
       description: "Estructura que representa una cantidad que define la moneda y el total."
-      properties: 
-        currency: 
+      properties:
+        currency:
           type: "string"
-        total: 
+        total:
           type: "number"
-    Transaction: 
+    Transaction:
       description: "Contiene información sobre una transacción"
       type: "object"
-      x-examples: 
-        Ejemplo: 
-          status: 
+      x-examples:
+        Ejemplo:
+          status:
             status: "APPROVED"
             reason: "00"
             message: "Aprobada"
@@ -3030,14 +3069,14 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           franchise: "visa"
           franchiseName: "Visa"
           issuerName: "Testing Bank"
-          amount: 
+          amount:
             currency: "USD"
             total: "1"
-          conversion: 
-            from: 
+          conversion:
+            from:
               currency: "USD"
               total: "1"
-            to: 
+            to:
               currency: "USD"
               total: "1"
             factor: "1"
@@ -3047,31 +3086,78 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           refunded: "false"
           lastDigits: "0008"
           provider: "DATAFAST"
-          discount: 
-          processorFields: 
+          discount:
+          processorFields:
             id: "de7c331a0f5bebdd1996250296cdaf37"
             b24: "000"
-          additional: 
+          additional:
             merchantCode: "1000000505"
             terminalNumber: "PY100404"
-            credit: 
+            credit:
               code: "0"
               type: "00"
               groupCode: "C"
               installments: "0"
             totalAmount: "1"
             iceAmount: "0"
-            batch: 
-            line: 
+            batch:
+            line:
             bin: "411076"
             expiration: "1221"
       title: ""
-      properties: 
-        status: 
+      properties:
+        status:
           $ref: "#/components/schemas/Status"
-        provider: 
+        date:
           type: "string"
-          enum: 
+          description: |
+            EJ: `2021-09-20T21:51:59-05:00`
+        transactionDate:
+          type: "string"
+          description: |
+            EJ: `2021-09-20T21:51:59-05:00`
+        internalReference:
+          type: "number"
+        reference:
+          type: "string"
+          minLength: 1
+        paymentMethod:
+          type: "string"
+          minLength: 1
+        franchise:
+          type: "string"
+          minLength: 1
+        franchiseName:
+          type: "string"
+          minLength: 1
+        issuerName:
+          type: "string"
+          minLength: 1
+          nullable: true
+        amount:
+          $ref: "#/components/schemas/Amount"
+        conversion:
+          $ref: "#/components/schemas/AmountConversion"
+        authorization:
+          type: "string"
+          minLength: 1
+          nullable: true
+        receipt:
+          type: "string"
+          maxLength: 16
+          nullable: true
+        type:
+          type: "string"
+          minLength: 1
+        refunded:
+          type: "boolean"
+        lastDigits:
+          type: "string"
+          minLength: 1
+          nullable: true
+        provider:
+          type: "string"
+          enum:
             - "CREDIBANCO"
             - "REDEBAN"
             - "INTERDIN"
@@ -3093,81 +3179,70 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             - "ATH-MOVIL"
             - "EBUS"
             - "BANCOLOMBIA"
-        internalReference: 
-          type: "number"
-        reference: 
+        discount:
           type: "string"
-          minLength: 1
-        paymentMethod: 
-          type: "string"
-          minLength: 1
-        franchise: 
-          type: "string"
-          minLength: 1
-        franchiseName: 
-          type: "string"
-          minLength: 1
-        issuerName: 
-          type: "string"
-          minLength: 1
-          nullable: true
-        amount: 
-          $ref: "#/components/schemas/Amount"
-        conversion: 
-          $ref: "#/components/schemas/AmountConversion"
-        authorization: 
-          type: "string"
-          minLength: 1
-          nullable: true
-        receipt: 
-          type: "string"
-          maxLength: 16
-          nullable: true
-        type: 
-          type: "string"
-          minLength: 1
-        refunded: 
-          type: "boolean"
-        lastDigits: 
-          type: "string"
-          minLength: 1
-          nullable: true
-        additional: 
+        processorFields:
+          type: "object"
+          properties:
+            id:
+              type: "string"
+            b24:
+              type: "string"
+        additional:
           type: "object"
           description: |
             Ver más en [Datos adicionales](/gateway/additional-data)
-        processorFields: 
+        preAuthorization:
           type: "object"
-        dispersion: 
-          type: "array"
-          items: 
+          items:
             type: "object"
-            properties: 
-              status: 
+            properties:
+              condition:
+                type: "string"
+              internalReference:
+                type: "number"
+              authorization:
+                type: "string"
+                minLength: 1
+                nullable: true
+              receipt:
+                type: "string"
+                minLength: 1
+                nullable: true
+              amount:
+                $ref: "#/components/schemas/Amount"
+              salt:
+                type: "string"
+        dispersion:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              status:
                 $ref: "#/components/schemas/Status"
-              agreement: 
+              agreement:
                 type: "integer"
                 nullable: true
-              agreementType: 
+              agreementType:
                 type: "string"
-                enum: 
+                enum:
                   - "AIRLINE"
                   - "MERCHANT"
-              authorization: 
+              authorization:
                 type: "string"
                 minLength: 1
                 nullable: true
-              receipt: 
+              receipt:
                 type: "string"
                 minLength: 1
                 nullable: true
-              amount: 
+              amount:
                 $ref: "#/components/schemas/Amount"
-              refunded: 
+              refunded:
                 type: "boolean"
-              paymentMethod: 
+              paymentMethod:
                 type: "string"
-      required: 
+      required:
         - "status"
         - "provider"
         - "internalReference"
@@ -3183,10 +3258,13 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
         - "type"
         - "refunded"
         - "lastDigits"
-    ThreeDS: 
+        - "discount"
+        - "processorFields"
+        - "additional"
+    ThreeDS:
       type: "object"
-      x-examples: 
-        example-1: 
+      x-examples:
+        example-1:
           id: "1"
           enrolled: "Y"
           authenticated: "Y"
@@ -3195,22 +3273,22 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           cavv: "AAACCZJiUGVlF4U5AmJQEwAAAAA="
           xid: "Z8UuHYF8Epz46M8V/MkGJDl2Y5E="
           version: "v1"
-      properties: 
-        id: 
+      properties:
+        id:
           type: "number"
           description: "Este valor solo aplica si la validación se hizo con el servicio de 3DS de Placetopay"
-        enrolled: 
+        enrolled:
           type: "string"
           minLength: 1
-          enum: 
+          enum:
             - "Y"
             - "N"
             - "U"
           description: "Informa si la tarjeta se encuentra registrada en 3DS"
-        authenticated: 
+        authenticated:
           type: "string"
           minLength: 1
-          enum: 
+          enum:
             - "Y"
             - "N"
             - "U"
@@ -3220,112 +3298,112 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             - "D"
             - "R"
           maxLength: 1
-        validSignature: 
+        validSignature:
           type: "boolean"
-        eci: 
+        eci:
           type: "string"
           minLength: 1
-          enum: 
+          enum:
             - "02"
             - "01"
             - "00"
             - "05"
             - "06"
             - "07"
-        cavv: 
+        cavv:
           type: "string"
           minLength: 1
           nullable: true
-        xid: 
+        xid:
           type: "string"
           minLength: 1
-        version: 
+        version:
           type: "string"
           minLength: 1
-          enum: 
+          enum:
             - "v1"
             - "v2"
-        extra: 
+        extra:
           type: "object"
           nullable: true
-      required: 
+      required:
         - "enrolled"
         - "authenticated"
         - "eci"
         - "cavv"
         - "xid"
         - "version"
-    PinPad: 
+    PinPad:
       title: "PinPad"
       type: "object"
       description: "Estructura que contiene la información del servicio pinPad"
-      properties: 
-        transactionId: 
+      properties:
+        transactionId:
           type: "string"
-        positions: 
+        positions:
           type: "string"
-        pinBlock: 
+        pinBlock:
           type: "string"
-        length: 
+        length:
           type: "integer"
-    Redirection: 
+    Redirection:
       title: "Redirection"
       type: "object"
       description: "Representa un medio de pago de redirección, es decir que requiere que se envíe el usuario a otra URL para completar el proceso"
-      properties: 
-        paymentMethod: 
+      properties:
+        paymentMethod:
           type: "string"
-          enum: 
+          enum:
             - "BTNBC"
             - "PGEFT"
-        returnURL: 
+        returnURL:
           type: "string"
           format: "uri"
           example: "http://your-site.com/your-return-route"
           maxLength: 250
           description: "URL para que una vez se termine el proceso de pago se retorne el control (cuando aplica)"
-        processURL: 
+        processURL:
           type: "string"
           format: "uri"
           maxLength: 250
           description: "URL a la cual se debe enviar al cliente para continuar el proceso, está es proporcionada por el servicio"
-    Kount: 
+    Kount:
       title: "Kount"
-      x-stoplight: 
+      x-stoplight:
         id: "qevzv57mju2tp"
       type: "object"
       description: "Maneja información especifica para usar con el filtro de riesgo Kount"
-      properties: 
-        session: 
+      properties:
+        session:
           type: "string"
           description: "Identificador de esta operación en Kount, debe ser único por transacción"
-        type: 
+        type:
           type: "string"
           description: "Describe el tipo de operación que se está manejando en la sesión para definir los campos adicionales a enviar"
-          enum: 
+          enum:
             - "airline"
             - "soat"
-      required: 
+      required:
         - "session"
-    CardType: 
+    CardType:
       title: "CardType"
-      x-stoplight: 
+      x-stoplight:
         id: "x4y03rkspgz0b"
       type: "string"
-      enum: 
+      enum:
         - "C"
         - "R"
         - "A"
       description: "Indica el tipo de la tarjeta. C = credito, R = debito, A = ahorros"
-    BankItem: 
+    BankItem:
       title: "BankItem"
-      x-stoplight: 
+      x-stoplight:
         id: "60487hsjhovs9"
       type: "object"
-      properties: 
-        code: 
+      properties:
+        code:
           type: "string"
           description: "Código de la entidad bancaria"
-        description: 
+        description:
           type: "string"
           description: "Nombre de la entidad bancaria"
