@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Listbox, Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import { DocumentCode, MonitorMobbile, Activity, SecurityCard, Link, Calendar } from 'iconsax-react'
+import { DocumentCode, MonitorMobbile, Activity, SecurityCard, Link, Calendar, ShieldTick } from 'iconsax-react'
 import { LANGUAGES_CODES, useLocale } from './LocaleProvider'
 import clsx from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -57,6 +57,12 @@ const LINKS = {
       href: '/account-validator',
       icon: SecurityCard,
     },
+    {
+      title: 'Api Scudo',
+      description: 'Control de fraude',
+      href: '/api-scudo',
+      icon: ShieldTick,
+    },
   ],
   [LANGUAGES_CODES.EN]: [
     {
@@ -106,6 +112,12 @@ const LINKS = {
       description: 'Account verification',
       href: '/account-validator',
       icon: SecurityCard,
+    },
+    {
+      title: 'Api Scudo',
+      description: 'Fraud control',
+      href: '/en/api-scudo',
+      icon: ShieldTick,
     },
   ],
 }

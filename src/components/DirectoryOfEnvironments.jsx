@@ -7,6 +7,10 @@ const groupsByProducts = [
   {
     id: 'checkout',
     evironments: DIRECTORY_ENVIRONMENTS.checkout
+  },
+  {
+    id: 'api-scudo',
+    evironments: DIRECTORY_ENVIRONMENTS.api_scudo
   }
 ]
 
