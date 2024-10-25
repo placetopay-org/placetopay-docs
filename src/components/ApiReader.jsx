@@ -323,6 +323,7 @@ export const ApiParams = ({ params = [], type = 'params' }) => {
               type: param.schema.type,
               description: param.description,
               title: param.name,
+              example: param.schema?.example,
             }}
             isRequired={param.required}
           />
