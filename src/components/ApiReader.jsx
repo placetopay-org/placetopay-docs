@@ -76,7 +76,7 @@ const ApiPropertyInformation = ({ title, items }) => {
       {items.map((value, index) => (
         <code
           key={value + '-' + title + '-' + index}
-          className="my-0 py-0 font-mono text-2xs text-gray-400 dark:text-gray-500"
+          className="my-0 py-0 font-mono text-2xs text-gray-400 dark:text-gray-500 break-all"
         >
           {makeCode(value)}
         </code>
@@ -185,7 +185,7 @@ const ParentProperty = ({
         >
           <>
             {property.description && (
-              <div className="condensed">
+              <div className="condensed break-words">
                 <ReactMarkdown>{property.description}</ReactMarkdown>
               </div>
             )}
