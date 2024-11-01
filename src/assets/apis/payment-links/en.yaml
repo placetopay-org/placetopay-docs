@@ -28,8 +28,7 @@ paths:
                 - name
                 - expirationDate
                 - paymentExpiration
-                - currency
-                - amount
+                - payment
                 - reference
                 - description
               properties:
@@ -104,18 +103,109 @@ paths:
                     Amount of time in **minutes** allowed to complete each Checkout session.
 
                     EX: `15`
-                currency:
-                  type: string
+                payment:
+                  type: object
                   description: |
-                    Currency in which the charge will be made through the payment link.
+                    Information about the payment to be made through the payment link.
+                  properties:
+                    amount:
+                      type: object
+                      description: |
+                        Information about the amount to be charged through the payment link.
+                      properties:
+                        currency:
+                          type: string
+                          description: |
+                            Currency in which the payment will be processed through the payment link.
 
-                    EX: `USD`
-                amount:
-                  type: integer
-                  description: |
-                    Total amount that will be paid through the link.
+                            EX: `USD`
+                        total:
+                          type: integer
+                          description: |
+                            Total amount for the payment to be processed through the link.
 
-                    EX: `100`
+                            EX: `100`
+                        taxes:
+                          type: array
+                          description: |
+                            Structure to define taxes in the payment process.
+                          properties:
+                            kind:
+                              type: string
+                              description: |
+                                Identifier for the type of tax
+
+                                One of: `valueAddedTax` `exciseDuty` `ice` `airportTax` `stateTax` `reducedStateTax` `municipalTax`.
+                              enum:
+                                - valueAddedTax
+                                - exciseDuty
+                                - ice
+                                - airportTax
+                                - stateTax
+                                - reducedStateTax
+                                - municipalTax
+                              example: valueAddedTax
+                            amount:
+                              type:
+                                - number
+                              description: |
+                                Total tax amount  
+                                EX: `200`
+                            base:
+                              type:
+                                - number
+                              description: |
+                                Base amount on which the tax is calculated  
+                                EX: `1000`
+                    modifiers:
+                      type: array
+                      description: |
+                        Structure to define modifiers on the charge.
+                        Applies to tax laws in specific countries.
+                      properties:
+                        type:
+                          type: string
+                          description: |
+                            Identifier for the modifier type.  
+                            Only `FEDERAL_GOVERNMENT` is currently supported.
+                          example: FEDERAL_GOVERNMENT
+                          enum:
+                            - FEDERAL_GOVERNMENT
+                        code:
+                          type:
+                            - number
+                          description: |
+                            Code for the modifier. 
+
+                            For `FEDERAL_GOVERNMENT`, it represents the discount law number.   
+                            `17934` Gastronomic Services   
+                            `18083` IMESI Brazil - Argentina   
+                            `19210` Financial Inclusion   
+                            `18910` Family Allowances   
+                            `18999` Real Estate Refunds
+                          enum:
+                            - 17934
+                            - 18083
+                            - 19210
+                            - 18910
+                            - 18999
+                          example: 17934
+                        additional:
+                          type: object
+                          description: |
+                            Structure to attach information to the modifier
+                          properties:
+                            invoice:
+                              type: string
+                              description: |
+                                Required when `modifiers.[n].type` is `FEDERAL_GOVERNMENT`. Indicates the invoice number.
+                                maxLength: 9
+                                example: '123456789'
+                              examples:
+                                - type: FEDERAL_GOVERNMENT
+                                  code: 17934
+                                  additional:
+                                    invoice: '123345'
                 reference:
                   type: string
                   description: |
@@ -338,7 +428,6 @@ paths:
                   - "total_payments"
                   - "available_payments"
                   - "payment_expiration"
-                  - "currency"
                   - "amount"
                   - "site"
                 properties:
@@ -406,18 +495,55 @@ paths:
                       Minutes that a payment session lasts before expiring.
 
                       EX: `15`
-                  currency:
-                    type: string
-                    description: |
-                      Currency in which the link charge is made.
-
-                      EX: `USD`
                   amount:
                     type: integer
                     description: |
-                      Total amount that each payment made through the link.
+                      Amount information to be charged through the payment link
+                    properties:
+                      currency:
+                        type: string
+                        description: |
+                          Currency in which the charge will be made through the payment link.
 
-                      EX: `100`
+                          EX: `USD`
+                      total:
+                        type: integer
+                        description: |
+                          Total amount for the payment that will be made through the link.
+
+                          EX: `100`
+                      taxes:
+                        type: array
+                        description: |
+                          Structure to define taxes in the payment process.
+                        properties:
+                          kind:
+                            type: string
+                            description: |
+                              Identifier for the type of tax
+
+                              One of: `valueAddedTax` `exciseDuty` `ice` `airportTax` `stateTax` `reducedStateTax` `municipalTax`.
+                            enum:
+                              - valueAddedTax
+                              - exciseDuty
+                              - ice
+                              - airportTax
+                              - stateTax
+                              - reducedStateTax
+                              - municipalTax
+                            example: valueAddedTax
+                          amount:
+                            type:
+                              - number
+                            description: |
+                              Total tax amount  
+                              EX: `200`
+                          base:
+                            type:
+                              - number
+                            description: |
+                              Base amount on which the tax is calculated  
+                              EX: `1000`
                   site:
                     type: object
                     description: |
@@ -438,6 +564,12 @@ paths:
                           Name of the associated site.
 
                           EX: `Ebus PFKR 2`
+                  metadata:
+                    type: object
+                    description: |
+                      Additional information associated with the payment link.
+
+                      EX: `{"discount":[{"code":17934,"type":"FEDERAL_GOVERNMENT","additional":{"invoice":"123456777"}}]}`
                   payments:
                     type: array
                     description: |
