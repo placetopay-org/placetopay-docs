@@ -164,6 +164,9 @@ paths:
                     description: "Lista de bancos disponibles para procesar un pago con PSE"
                     items:
                       $ref: "#/components/schemas/BankItem"
+                  requiresBalance:
+                    type: "boolean"
+                    description: "Indica si es requerido el consumo del servicio de balance, solo para TRANSERVER"
                 required:
                   - "status"
                   - "provider"
@@ -565,7 +568,7 @@ paths:
                     pin: "0B880E2326F6409E"
                     card:
                       number: "4111111111111111"
-                      expiration: "12/21"
+                      expiration: "12/30"
                       address:
                         postalCode: "55555"
               Botón Bancolombia:
@@ -2326,6 +2329,86 @@ paths:
                       expiration: "05/24"
                       cvv: "123"
                   id: "1"
+  /gateway/balance:
+    post:
+      summary: "Servicio de consulta de balance"
+      operationId: "post-rest-gateway-balance"
+      description: "Este servicio permite la consulta de balance, debe consumirse cuando el medio de pago lo requiera ('requiresBalance' en true)."
+      tags:
+        - "Obtener información"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                locale:
+                  type: "string"
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                instrument:
+                  $ref: "#/components/schemas/Instrument"
+                payment:
+                  $ref: "#/components/schemas/Payment"
+            examples:
+              Consumo:
+                value:
+                  auth:
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "E0gHh8C6fceHnbsLlgBq2n7nRNjr8MVPcz0um1ZYCfs="
+                    nonce: "NjE0YjUwZGNlYjJiNA=="
+                    seed: "2021-09-22T10:50:52-05:00"
+                  payment:
+                    reference: "1234567890"
+                    amount:
+                      currency: "CRC"
+                      total: "1000"
+                  instrument:
+                    card:
+                      number: "4111111111111111"
+                      expiration: "12/21"
+                      cvv: "123"
+                  ipAddress: "127.0.0.1"
+                  userAgent: "Testing"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  total:
+                    type: "number"
+                    example: "4973.19"
+              examples:
+                Ejemplo:
+                  value:
+                    status:
+                      status: "OK"
+                      reason: "00"
+                      message: "La petición se ha procesado correctamente"
+                      date: "2021-09-22T16:08:19-05:00"
+                    total: 42356.32
+        400:
+          description: "SU"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+              examples:
+                Ejemplo:
+                  value:
+                    status:
+                      status: "REJECTED"
+                      reason: "SU"
+                      message: "El servicio requerido no aplica para el medio de pago suministrado Balance"
+                      date: "2024-11-01T07:12:57-05:00"
   /security/pinpad/transaction:
     post:
       summary: "Solicitud de Pinpad"
