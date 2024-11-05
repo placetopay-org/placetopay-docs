@@ -164,6 +164,9 @@ paths:
                     description: "List of banks available to process a payment with PSE"
                     items:
                       $ref: "#/components/schemas/BankItem"
+                  requireBalance:
+                    type: "boolean"
+                    description: "Indicates whether it is necessary to consume the get balance service"
                 required:
                   - "status"
                   - "provider"
@@ -2324,6 +2327,86 @@ paths:
                       expiration: "05/24"
                       cvv: "123"
                   id: "1"
+  /gateway/balance:
+    post:
+      summary: "Service to obtain the balance"
+      operationId: "post-rest-gateway-balance"
+      description: "This service allows you to check the balance and must be used when the payment method requires it ('requireBalance' flag in information service response set to 'true')."
+      tags:
+        - "Get information"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                locale:
+                  type: "string"
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                instrument:
+                  $ref: "#/components/schemas/Instrument"
+                payment:
+                  $ref: "#/components/schemas/Payment"
+            examples:
+              Consumo:
+                value:
+                  auth:
+                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    tranKey: "E0gHh8C6fceHnbsLlgBq2n7nRNjr8MVPcz0um1ZYCfs="
+                    nonce: "NjE0YjUwZGNlYjJiNA=="
+                    seed: "2021-09-22T10:50:52-05:00"
+                  payment:
+                    reference: "1234567890"
+                    amount:
+                      currency: "CRC"
+                      total: "1000"
+                  instrument:
+                    card:
+                      number: "4111111111111111"
+                      expiration: "12/30"
+                      cvv: "123"
+                  ipAddress: "127.0.0.1"
+                  userAgent: "Testing"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  total:
+                    type: "number"
+                    example: "4973.19"
+              examples:
+                Ejemplo:
+                  value:
+                    status:
+                      status: "OK"
+                      reason: "00"
+                      message: "The request has been processed successfully"
+                      date: "2021-09-22T16:08:19-05:00"
+                    total: 42563.36
+        400:
+          description: "SU"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+              examples:
+                Ejemplo:
+                  value:
+                    status:
+                      status: "REJECTED"
+                      reason: "SU"
+                      message: "The requested service does not apply to the payment method provided. Balance"
+                      date: "2024-11-01T07:12:57-05:00"
   /security/pinpad/transaction:
     post:
       summary: "Pinpad Request"
