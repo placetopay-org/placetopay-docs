@@ -5,7 +5,7 @@ import { WalletTwoToneIcon } from '@/components/iconsax/WalletTwoToneIcon'
 import { SecuritySafeTwoToneIcon } from '@/components/iconsax/SecuritySafeTwoToneIcon'
 import { LampChargeTwoToneIcon } from '@/components/iconsax/LampChargeTwoToneIcon'
 import { useLocale } from './LocaleProvider'
-import ResourceCard from './ResourceCard'
+import { ResourceCard } from './ResourceCard'
 
 const resources = [
   {
