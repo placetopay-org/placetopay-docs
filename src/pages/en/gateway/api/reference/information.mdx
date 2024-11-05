@@ -1,5 +1,5 @@
 export const sectionMode = 'nav';
-export const apiRefs = ['/gateway/information', '/gateway/interests']
+export const apiRefs = ['/gateway/information', '/gateway/interests', '/gateway/balance']
 
 ## Information request {{ id: 'information-request', tag: 'POST', label: '/gateway/information' }}
 
@@ -125,7 +125,8 @@ export const apiRefs = ['/gateway/information', '/gateway/interests']
                 36
             ]
             }
-        ]
+        ],
+        "requireBalance": false,
     }
 ```
         </CodeGroup>
@@ -235,3 +236,92 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/interests \
         </CodeGroup>
     </Col>
 </Row>
+
+---
+
+## Get Balance {{ id: 'balance-request', tag: 'POST', label: '/gateway/balance' }}
+
+<Row>
+    <Col>
+        This service allows you to query balance information. It should be consumed if the payment method requires it (When the 'requireBalance' flag is 'true' in response from the information service).
+
+        <ApiReader
+            path="/gateway/balance"
+            method="post"
+            api={props.refs}
+        />
+    </Col>
+
+    <Col sticky>
+        <CodeGroup title="Request" tag="POST" label="/gateway/balance">
+```bash {{ title: 'cURL' }}
+curl -X "POST" https://api-co-dev.placetopay.ws/gateway/balance \
+-H "Content-Type: application/json" \
+-d '{
+    "locale": "en_CR",
+    "auth": {
+        "login":"c51ce410c124a10e0db5e4b97fc2af39",
+        "tranKey":"VQOcRcVH2DfL6Y4B4SaK6yhoH/VOUveZ3xT16OQnvxE=",
+        "nonce":"NjE0OWVkODgwYjNhNw==",
+        "seed":"2021-09-21T09:34:48-05:00"
+    },
+    "payment": {
+        "reference": "1122334455",
+        "description": "Test"
+        "amount": {
+            "currency": "CRC",
+            "total": 1000
+        }
+    },
+    "instrument": {
+         "card": {
+            "number": "4111111111111111",
+            "expiration": "12/30"
+        },
+    },
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Testing"
+}'
+```
+        </CodeGroup>
+    </Col>
+</Row>
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/gateway/balance"
+            method="post"
+            type="response"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <br />
+        <CodeGroup title="Response">
+```json {{ title: '200' }}
+    {
+        "status": {
+            "status": "OK",
+            "reason": "00",
+            "message": "The request has been successfully processed",
+            "date": "2021-09-22T16:08:19-05:00"
+        },
+        "provider": 42356.32
+    }
+```
+```json {{ title: '400' }}
+    {
+        "status": {
+            "status": "REJECTED",
+            "reason": "SU",
+            "message": "The requested service does not apply to the payment method provided. Balance",
+            "date": "2024-11-01T07:12:57-05:00"
+        }
+    }
+```
+        </CodeGroup>
+    </Col>
+</Row>
+
+---
