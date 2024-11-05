@@ -11,7 +11,7 @@ const LINKS = {
   [LANGUAGES_CODES.ES]: [
     {
       title: 'Pagos',
-      description: 'Información sobre pagos.',
+      description: 'Pagos en línea.',
       href: '/payments',
       icon: MonitorMobbile,
     },
@@ -73,7 +73,7 @@ const LINKS = {
   [LANGUAGES_CODES.EN]: [
     {
       title: 'Payments',
-      description: 'Page about payment information.',
+      description: 'Online Payments.',
       href: '/en/payments',
       icon: MonitorMobbile,
     },
