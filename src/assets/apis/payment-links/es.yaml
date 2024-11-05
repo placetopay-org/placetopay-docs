@@ -28,8 +28,7 @@ paths:
                 - name
                 - expirationDate
                 - paymentExpiration
-                - currency
-                - amount
+                - payment
                 - reference
                 - description
               properties:
@@ -104,18 +103,109 @@ paths:
                     Cantidad de tiempo en **minutos** permitido para completar cada sesión de Checkout.
 
                     EJ: `15`
-                currency:
-                  type: string
+                payment:
+                  type: object
                   description: |
-                    Moneda en la que se realizará el cobro a través del link de pago.
+                    Información del pago que se realizará a través del link de pago.
+                  properties:
+                    amount:
+                      type: object
+                      description: |
+                        Información del monto a cobrar a través del link de pago.
+                      properties:
+                        currency:
+                          type: string
+                          description: |
+                            Moneda en la que se realizará el cobro a través del link de pago.
 
-                    EJ: `USD`
-                amount:
-                  type: integer
-                  description: |
-                    Monto total que tendrá el pago que se realizará a través del link.
+                            EJ: `USD`
+                        total:
+                          type: integer
+                          description: |
+                            Monto total que tendrá el pago que se realizará a través del link.
 
-                    EJ: `100`
+                            EJ: `100`
+                        taxes:
+                          type: array
+                          description: |
+                            Estructura para definir impuestos en el proceso de pago.
+                          properties:
+                            kind:
+                              type: string
+                              description: |
+                                Identificador del tipo de impuesto
+
+                                Uno de: `valueAddedTax` `exciseDuty` `ice` `airportTax` `stateTax` `reducedStateTax` `municipalTax`.
+                              enum:
+                                - valueAddedTax
+                                - exciseDuty
+                                - ice
+                                - airportTax
+                                - stateTax
+                                - reducedStateTax
+                                - municipalTax
+                              example: valueAddedTax
+                            amount:
+                              type:
+                                - number
+                              description: |
+                                Monto total del impuesto   
+                                EJ: `200`
+                            base:
+                              type:
+                                - number
+                              description: |
+                                Monto base sobre el cual se calcula el impuesto   
+                                EJ: `1000`
+                    modifiers:
+                      type: array
+                      description: |
+                        Estructura para definir modificadores en el cobro.
+                        Aplica para leyes de impuestos en paises especificos.
+                      properties:
+                        type:
+                          type: string
+                          description: |
+                            Identificador del tipo de modificador.  
+                            Sólo `FEDERAL_GOVERMENT` es soportado actualmente.
+                          example: FEDERAL_GOVERNMENT
+                          enum:
+                            - FEDERAL_GOVERNMENT
+                        code:
+                          type:
+                            - number
+                          description: |
+                            Código del modificador. 
+                              
+                            Para `FEDERAL_GOVERMENT` representa el número de ley para descuento.   
+                            `17934` Servicios Gastronómicos   
+                            `18083` IMESI Brasil - Argentina   
+                            `19210` Inclusión Financiera   
+                            `18910` Asignaciones Familiares   
+                            `18999` Reintegro Inmobiliarias
+                          enum:
+                            - 17934
+                            - 18083
+                            - 19210
+                            - 18910
+                            - 18999
+                          example: 17934
+                        additional:
+                          type: object
+                          description: |
+                            Estructura para anexar información al modificador
+                          properties:
+                            invoice:
+                              type: string
+                              description: |
+                                Requerido cuando `modifiers.[n].type` es `FEDERAL_GOVERMENT`. Indica el número de factura.
+                                maxLength: 9
+                                example: '123456789'
+                              examples:
+                                - type: FEDERAL_GOVERNMENT
+                                  code: 17934
+                                  additional:
+                                    invoice: '123345'
                 reference:
                   type: string
                   description: |
@@ -338,7 +428,6 @@ paths:
                   - "total_payments"
                   - "available_payments"
                   - "payment_expiration"
-                  - "currency"
                   - "amount"
                   - "site"
                 properties:
@@ -406,18 +495,55 @@ paths:
                       Minutos que dura una sesión de pago antes de expirar.
 
                       EJ: `15`
-                  currency:
-                    type: string
-                    description: |
-                      Moneda en la que se realiza el cobro del link.
-
-                      EJ: `USD`
                   amount:
                     type: integer
                     description: |
-                      Monto total que tiene cada pago realizado a través del link.
-                      
-                      EJ: `100`
+                      Información del monto a cobrar a través del link de pago
+                    properties:
+                      currency:
+                        type: string
+                        description: |
+                          Moneda en la que se realizará el cobro a través del link de pago.
+    
+                          EJ: `USD`
+                      total:
+                        type: integer
+                        description: |
+                          Monto total que tendrá el pago que se realizará a través del link.
+    
+                          EJ: `100`
+                      taxes:
+                        type: array
+                        description: |
+                          Estructura para definir impuestos en el proceso de pago.
+                        properties:
+                          kind:
+                            type: string
+                            description: |
+                              Identificador del tipo de impuesto
+
+                              Uno de: `valueAddedTax` `exciseDuty` `ice` `airportTax` `stateTax` `reducedStateTax` `municipalTax`.
+                            enum:
+                              - valueAddedTax
+                              - exciseDuty
+                              - ice
+                              - airportTax
+                              - stateTax
+                              - reducedStateTax
+                              - municipalTax
+                            example: valueAddedTax
+                          amount:
+                            type:
+                              - number
+                            description: |
+                              Monto total del impuesto   
+                              EJ: `200`
+                          base:
+                            type:
+                              - number
+                            description: |
+                              Monto base sobre el cual se calcula el impuesto   
+                              EJ: `1000`
                   site:
                     type: object
                     description: |
@@ -438,6 +564,12 @@ paths:
                           Nombre del sitio asociado.
 
                           EJ: `Ebus PFKR 2`
+                  metadata:
+                    type: object
+                    description: |
+                      Información adicional asociada al link de pago.
+                      
+                      EJ: `{"discount":[{"code":17934,"type":"FEDERAL_GOVERNMENT","additional":{"invoice":"123456777"}}]}`
                   payments:
                     type: array
                     description: |
