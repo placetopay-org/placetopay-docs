@@ -1,0 +1,185 @@
+export const description = 'Conoce sobre modificadores de transacción';
+
+# Modificadores de transacción
+
+Los modificadores de transacción son configuraciones a nivel de comercio que añaden un costo a cada transacción realizada. Estos modificadores solo se aplican a medios de pago que soportan pagos tipo dispersión, ya que el cobro se efectúa mediante una dispersión al comercio (acuerdo) configurado en el modificador de transacción. Además, se implementan exclusivamente en los tipos de pago: Simple, Parciales y Dispersión.
+
+| Configuración    | Descripción                                                                                                           |
+|------------------|-----------------------------------------------------------------------------------------------------------------------|
+| Tipo             | Define el tipo de modificador de pago. Actualmente, solo está disponible la opción "Tarifa".                          |
+| Estado           | Activa o desactiva el modificador configurado.                                                                        |
+| Acuerdo          | Identificador del comercio al que se enviará la comisión correspondiente al costo de la transacción.                  |
+| Monto Fijo       | Valor fijo de la comisión que se añadirá al costo de la transacción original.                                         |
+| Porcentaje Monto | Porcentaje que se añadirá al costo de la transacción original, calculado en base al valor total de dicha transacción. |
+| Aplica Impuesto  | Define si el IVA será aplicado al costo adicional generado por la transacción.                                        |
+
+## Integración modificadores de transacción
+Soportados a través de nuestra API [Web Checkout](/checkout), el cual permite integrar diversos medios de pago y tipos de pago que son compatibles con los modificadores de transacción y sus configuraciones.
+
+## Calculando costo de modificador de transacción
+Este cálculo se realiza considerando la moneda configurada en el comercio o comercios asociados al modificador de transacción, por Ejemplo. En caso de que la moneda del comercio sea `USD` y no coincida con la moneda de la petición `COP`, se llevará a cabo la conversión del **Monto Fijo** del modificador de transacción de `USD`  a `COP` , utilizando la tasa de conversión vigente al momento de la petición, antes de continuar con el cálculo de la comisión de la transacción.
+
+Se desglosa la comisión calculada en función del monto original de la transacción en los [campos adicionales](/checkout/additional-fields) de la petición original enviada por el comercio. Estos campos incluyen `Subtotal`, `Costo de la transacción`, y si el modificador de transacción tiene habilitada la opción __Aplica Impuesto__, también se añadirá `IVA del costo de la transacción`. Estas descripciones no soportan cambio de idioma y son creados en base al idioma enviado en la primera petición del comercio.
+
+### Pagos básico
+Los [pagos básicos](/checkout/create-session#partial-payment) son modificados y se convierte en un [pago con dispersión](/checkout/create-session#dispersion-payment). Donde la dispersión número uno contiene el monto original de la petición del comercio, mientras que la dispersión número dos incluye los costos de la transacción más el impuesto correspondiente del modificador de transacción configurado.
+
+Ejemplo:
+* Tipo: Tarifa
+* Monto Fijo:  0.35
+* Porcentaje Monto: 5%
+* Aplica Impuesto:  si  (10% se obtiene del impuesto configurado en el comercio)
+
+Petición original del comercio: 
+
+```json
+{
+  ...
+  "payment": {
+      "reference": "test_basic_payment",
+      "description": "basic_payment",
+      "amount": { "currency": "USD", "total": 100 },
+       ...
+    },
+  ...
+}
+```
+
+Resultado de petición con la aplicación de  un modificador de transacción:
+
+```json
+{
+  ...
+  "payment": {
+      "reference": "test_basic_payment",
+      "description": "basic_payment",
+      "amount": { "currency": "USD", "total": 105.89 },
+      "dispersion": [ 
+        {
+          "agreement": 1 // identificador del comercio que realiza la petición.
+          "agreementType": "MERCHANT",
+          "amount": { "currency": "USD", "total": 100 }  
+        },
+        {
+          "agreement": 14 // acuerdo configurado del comercio que realizó la solicitud.
+          "agreementType": "MERCHANT",
+          "amount": { "currency": "USD", "total": 5.89 }  
+        }
+      ],
+      "fields": [
+          {"value": "US$ 100,00", "keyword": "Subtotal", "displayOn": "both"},
+          {"value": "US$ 5,35", "keyword": "Costo de la transacción'", "displayOn": "both"},
+          {"value": "US$ 0,54", "keyword": "IVA del costo de la transacción", "displayOn": "both"},
+        ]
+       ...
+    },
+  ...
+}
+```
+### Pagos parciales
+Los [pagos parciales](/checkout/create-session#partial-payment) no soportan [pagos con dispersión](/checkout/create-session#dispersion-payment) de forma directa. Para aplicar los modificadores de transacción, se deshabilita la opción de realizar __pagos parciales__ y se emplea el mismo comportamiento utilizado previamente en los pagos básicos.
+
+### Pagos con dispersiones
+Para los [pagos con dispersión](checkout/create-session#dispersion-payment) se agregará una dispersión adicional a las enviadas originalmente en la petición del comercio. 
+ 
+Cada dispersión está vinculada a un acuerdo (agreement) que contiene un modificador de transacción configurado. Este se aplicará al monto base de cada dispersión, y la suma total de estas comisiones se reflejará en la nueva dispersión de la transacción.
+
+
+Ejemplo:  
+> para este caso todos los acuerdos(agreement) de las dispersiones tienen configurado las mismas propiedad de modificador de transacción
+
+* Tipo: Tarifa
+* Monto Fijo:  0.35
+* Porcentaje Monto:   5%
+* Aplica Impuesto:  si  (10% se obtiene del impuesto configurado en el comercio)
+
+Petición original del comercio con dos dispersiones: 
+
+```json
+{
+  ...
+  "payment": {
+      "reference": "test_dispersion_payment",
+      "description": "disperion_payment",
+      "amount": { "currency": "USD", "total": 100 },
+      "dispersion": [ 
+        {
+          "agreement": 1,
+          "agreementType": "MERCHANT",
+          "amount": { "currency": "USD", "total": 50 }  
+        },
+        {
+          "agreement": 2,
+          "agreementType": "MERCHANT",
+          "amount": {  "currency": "USD", "total": 25 }  
+        },
+        {
+          "agreement": 3,
+          "agreementType": "MERCHANT",
+          "amount": {  "currency": "USD", "total": 25 }  
+        }
+      ]
+    },
+  ...
+}
+```
+
+Resultado de petición con la aplicación de  un modificador de transacción:
+
+```json
+{
+  ...
+  "payment": {
+      "reference": "test_dispersion_payment",
+      "description": "disperion_payment",
+      "amount": { "currency": "USD", "total":  113.15 },
+      "dispersion": [ 
+        {
+          "agreement": 1
+          "agreementType": "MERCHANT",
+          "amount": { "currency": "USD", "total": 50 }  
+        },
+        {
+          "agreement": 2
+          "agreementType": "MERCHANT",
+          "amount": {  "currency": "USD", "total": 25 }  
+        },
+        {
+          "agreement": 3,
+          "agreementType": "MERCHANT",
+          "amount": {  "currency": "USD", "total": 25 }  
+        }
+        {
+          "agreement": 14 // acuerdo configurado del comercio que realizó la solicitud.
+          "agreementType": "MERCHANT",
+          "amount": {  "currency": "USD", "total": 13.15 }  
+        }
+      ],
+      "fields": [
+          {"value": "US$ 100,00", "keyword": "Subtotal", "displayOn": "both"},
+          {"value": "US$ 11,05", "keyword": "Costo de la transacción'", "displayOn": "both"},
+          {"value": "US$ 2,10", "keyword": "IVA del costo de la transacción", "displayOn": "both"},
+        ]
+    },
+  ...
+}
+```
+
+## FAQs
+<details>
+<summary>¿Cómo configuro un modificador de transacción de un comercio?</summary>
+<p>Se debe realizar una solicitud a nuestro equipo de operaciones a través de Helpdesk , ya sea para la creación de un nuevo comercio o para la modificación de uno existente, incluyendo las configuraciones del modificador de transacción.</p>
+</details>
+
+<details>
+<summary>¿Cómo se visualizan los pagos con modificadores de transacción?</summary>
+<h4>Pago básico</h4>
+<p>En el panel transaccional se pueden visualizar una transacción con el monto original solicitado, además de transacciones adicional con la comisión del costo de la transacción original.</p>
+<h4>Pago con dispersiones</h4>
+<p>En el panel transaccional, se pueden visualizar las transacciones junto con sus dispersiones originales y sus montos. Además, se incluye una nueva dispersión que agrupa las comisiones de cada costo de transacción por las dispersiones solicitadas.</p>
+</details>
+
+<details>
+<summary>¿Cuantas dispersiones puede enviar con modificadores de pago?</summary>
+<p>La configuración actual establece un máximo de 3 dispersiones permitidas para todos los países, y 4 para Ecuador. Es importante considerar que, dado que el modificador de transacción añade una transacción adicional para el cobro de la comisión, las máximas permitidas son 3 dispersiones en la petición para Ecuador y 2 para el resto de los países.</p>
+</details>
