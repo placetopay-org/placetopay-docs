@@ -22,8 +22,14 @@ export const TAB_NAVIGATION = {
               { title: 'ACH Débito Bancario', href: '/payments/ach-bank-debit' },
             ],
           },
+          {
+            title: 'Integraciones',
+            links: [
+              { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },
+            ],
+          },
         ],
-      },
+      }
     ],
     [LANGUAGES_CODES.EN]: [
       {
@@ -42,6 +48,12 @@ export const TAB_NAVIGATION = {
             title: 'Payment methods',
             links: [
               { title: 'ACH Bank Debit', href: '/payments/ach-bank-debit' },
+            ],
+          },
+          {
+            title: 'Integrations',
+            links: [
+              { title: 'Transaction Modifiers', href: '/payments/integrations/transaction-modifiers' },
             ],
           },
         ],
