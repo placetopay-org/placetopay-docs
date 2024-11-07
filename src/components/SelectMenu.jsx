@@ -10,6 +10,12 @@ import { twMerge } from 'tailwind-merge'
 const LINKS = {
   [LANGUAGES_CODES.ES]: [
     {
+      title: 'Pagos',
+      description: 'Pagos en línea.',
+      href: '/payments',
+      icon: MonitorMobbile,
+    },
+    {
       title: 'Web Checkout',
       description: 'Página de pagos prediseñada.',
       href: '/checkout',
@@ -65,6 +71,12 @@ const LINKS = {
     },
   ],
   [LANGUAGES_CODES.EN]: [
+    {
+      title: 'Payments',
+      description: 'Online Payments.',
+      href: '/en/payments',
+      icon: MonitorMobbile,
+    },
     {
       title: 'Web Checkout',
       description: 'Pre-designed payment page.',
