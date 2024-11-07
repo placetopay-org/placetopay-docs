@@ -2178,10 +2178,34 @@ paths:
                 returnUrl:
                   type: "string"
                   format: "uri"
-                  maxLength: "250"
+                  maxLength: 250
                   description: "Url de retorno para retomar el control del usuario"
                 subscription:
                   $ref: "#/components/schemas/Subscription"
+                action:
+                  type: "string"
+                  nullable: true
+                  description: "Tipo de transacción puede ser checkin, pre_authorization"
+                  enum:
+                    - checkin
+                    - pre_authorization
+                version:
+                  type: "string"
+                  nullable: true
+                  description: "Versión de 3DS en la que se procesara la petición. Puede ser v2, v2x"
+                  enum:
+                    - v2
+                    - v2x
+                additional:
+                  type: object
+                  properties:
+                    initiatorIndicator:
+                      type: string
+                      description: "Actor que genera la transacción. Puede ser AGENT cuando es diferente al tarjeta habiente o AGENT_COF cuando la tarjeta esta registrada en la wallet"
+                      nullable: true
+                      enum:
+                        - AGENT
+                        - AGENT_CONF
             examples:
               Ejemplo:
                 value:
@@ -2202,7 +2226,10 @@ paths:
                       expiration: "05/24"
                       cvv: "123"
                   returnUrl: "https://www.your-site.com/return?reference=1234567890"
-    parameters:
+                  action: "checkin"
+                  version: "v2x"
+                  additional:
+                    initiatorIndicator: "AGENT"
   /gateway/mpi/query:
     post:
       summary: "3DS Query"
@@ -2681,8 +2708,7 @@ components:
     Address:
       title: "Address"
       type: "object"
-      description: "Estructura que contiene la información sobre una dirección física
-"
+      description: "Estructura que contiene la información sobre una dirección física"
       properties:
         street:
           type: "string"
@@ -3037,7 +3063,7 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
         type:
           type: "string"
           enum:
-          - "FEDERAL_GOVERNMENT"
+            - "FEDERAL_GOVERNMENT"
           description: "Tipo de modificador"
         code:
           type: "string"
