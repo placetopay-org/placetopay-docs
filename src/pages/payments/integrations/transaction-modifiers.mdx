@@ -1,32 +1,33 @@
 export const description = 'Conoce sobre modificadores de transacción';
 
 # Modificadores de transacción
-Los modificadores de transacción son configuraciones a nivel de sitio que ajustan el flujo de una transacción según el tipo de modificador definido. Actualmente, solo está disponible la opción "Tarifa".
+Los modificadores de transacción son configuraciones a nivel de sitio que intervienen en el flujo de una transacción según el tipo de modificador definido. Actualmente, solo está disponible la opción "Tarifa".
 
-## Tipo tarifa
-Este tipo de modificador de transacción aplica una tarifa (comisión) adicional al costo original de la transacción solicitada según las configuraciones definidas. Este modificador solo se aplica a medios de pago que soportan pagos tipo dispersión, ya que el cobro se efectúa mediante una [dispersión](/gateway/transaction-types#dispersion) al sitio (acuerdo) configurado en el modificador de transacción.
-Las configuraciones de un modificador de transacción de este tipo son:
+## Modificador tipo tarifa
+Este tipo de modificador de transacción aplica una tarifa o comisión adicional al costo original de la transacción solicitada según las configuraciones definidas. Este modificador solo se aplica a medios de pago que soportan dispersión, ya que el cobro se efectúa mediante una [dispersión](/gateway/transaction-types#dispersion) al sitio o acuerdo configurado en el modificador de transacción.
 
-- **Acuerdo**: Identificador del sitio al que se enviará la comisión correspondiente al costo de la transacción. 
+### Configuraciones del modificador de tipo tarifa
+- **Acuerdo**: Identificador del sitio al que se enviará la comisión correspondiente al costo de la transacción.
 - **Monto Fijo**: Valor fijo de la comisión que se añadirá al costo de la transacción original.
-- **Porcentaje del Monto**: Porcentaje que se añadirá a la tarifa (comisión) calculada en base de la transacción original.
+- **Porcentaje del Monto**: Porcentaje que se añadirá a la tarifa calculada en base de la transacción original.
 - **Aplica Impuesto**: Define si el IVA será aplicado al costo adicional generado por la transacción.
 
 ### ¿Cómo se integra?
-El modificador de transacción tipo tarifa es soportado a través de nuestra API [Web Checkout](/checkout), el cual permite integrar diversos medios de pago y tipos de pago que son compatibles con este modificador.
+El modificador de transacción tipo tarifa es soportado a través de nuestra API [Web Checkout](/checkout), que permite integrar diversos medios de pago y tipos de pago compatibles con este modificador.
 
-### ¿Cómo se calcula la tarifa (comisión) de una transacción?
-Este cálculo se realiza considerando la moneda configurada en el sitio o sitios asociados al modificador de transacción tipo tarifa. Antes de realizar el cálculo, se validan las monedas de la petición y la del sitio configurado con el modificador. Por ejemplo, en caso de que la moneda del sitio sea `USD` y no coincida con la moneda de la petición `COP`, se llevará a cabo la conversión del **Monto Fijo** configurado de `USD` a `COP`, utilizando la tasa de conversión vigente al momento de la petición,
+### ¿Cómo se calcula la tarifa de una transacción?
+El cálculo de la tarifa se realiza considerando la moneda configurada en el sitio o sitios asociados al modificador de transacción tipo tarifa. Antes de realizar el cálculo, se validan las monedas de la petición y la del sitio configurado con el modificador. Por ejemplo, si la moneda del sitio es `USD` y no coincide con la moneda de la petición `COP`, se realizará la conversión del **Monto Fijo** configurado de `USD` a `COP`, utilizando la tasa de conversión vigente al momento de la petición.
 
-Una vez se validan las monedas, se desglosa la comisión calculada en función del monto original de la transacción en los [campos adicionales](/checkout/additional-fields) de la petición original enviada por el sitio. Estos campos incluyen **Subtotal**, **Costo de la transacción**, y, si el modificador de transacción tiene habilitada la opción  **Aplica Impuesto**, también se añadirá **IVA del costo de la transacción**. Estas descripciones no soportan cambio de idioma y se crean en base al idioma enviado en la primera petición del sitio.
+Una vez validadas las monedas, se desglosa la comisión calculada en función del monto original de la transacción en los [campos adicionales](/checkout/additional-fields) de la petición original enviada por el sitio. Estos campos incluyen **Subtotal**, **Costo de la transacción**, y, si el modificador de transacción tiene habilitada la opción **Aplica Impuesto**, también se añadirá **IVA del costo de la transacción**. Estas descripciones no soportan cambio de idioma y se crean en base al idioma enviado en la primera petición del sitio.
 
-### Ejemplos aplicación de modificador de transacción tipo tarifa
-**Pagos básico**  
-Los [pagos básicos](/checkout/create-session#basic-paymen) son modificados y se convierte en un [pago con dispersión](/checkout/create-session#dispersion-payment). Donde la dispersión número uno contiene el monto original de la petición del sitio, mientras que la dispersión número dos incluye los costos de la transacción más el impuesto correspondiente del modificador de transacción configurado.
+### Ejemplos de aplicación del modificador de transacción tipo tarifa
 
-* Monto Fijo:  0.35
+**Pagos Básicos**  
+Los [pagos básicos](/checkout/create-session#basic-payment) se modifican y se convierten en un [pago con dispersión](/checkout/create-session#dispersion-payment). La dispersión número uno contiene el monto original de la petición del sitio, mientras que la dispersión número dos incluye los costos de la transacción más el impuesto correspondiente del modificador de transacción configurado.
+
+* Monto Fijo: 0.35
 * Porcentaje Monto: 5%
-* Aplica Impuesto:  si  (10% se obtiene del impuesto configurado en el sitio)
+* Aplica Impuesto: Sí (10% se obtiene del impuesto configurado en el sitio)
 
 Petición original del sitio: 
 
@@ -81,9 +82,9 @@ Los [pagos parciales](/checkout/create-session#partial-payment) no soportan [pag
 **Pagos con dispersiones**  
 Para los [pagos con dispersión](checkout/create-session#dispersion-payment) se agregará una dispersión adicional a las enviadas originalmente en la petición del sitio. 
  
-Cada dispersión está vinculada a un acuerdo (agreement) que contiene un modificador de transacción configurado. Este se aplicará al monto base de cada dispersión, y la suma total de estas comisiones se reflejará en la nueva dispersión de la transacción.
+Cada dispersión está vinculada a un acuerdo (`agreement`) que contiene un modificador de transacción configurado. Este se aplicará al monto base de cada dispersión, y la suma total de estas comisiones se reflejará en la nueva dispersión de la transacción.
 
-> Para este caso todos los acuerdos(agreement) de las dispersiones tienen configurado las mismas propiedades. 
+> Para este caso todos los acuerdos(`agreement`) de las dispersiones tienen configurado las mismas propiedades. 
 
 * Monto Fijo:  0.35
 * Porcentaje Monto: 5%
@@ -161,10 +162,10 @@ Resultado de petición con la aplicación de  un modificador de transacción:
 }
 ```
 
-### FAQs
+## FAQs
 <details>
 <summary>¿Cómo configuro un modificador de transacción de un sitio?</summary>
-<p>Se debe realizar una solicitud a nuestro equipo de operaciones a través de Helpdesk , ya sea para la creación de un nuevo sitio o para la modificación de uno existente, incluyendo las configuraciones del modificador de transacción.</p>
+<p>Se debe realizar una solicitud a nuestro equipo de operaciones a través de Helpdesk, ya sea para la creación de un nuevo sitio o para la modificación de uno existente, incluyendo las configuraciones del modificador de transacción.</p>
 </details>
 
 <details>
