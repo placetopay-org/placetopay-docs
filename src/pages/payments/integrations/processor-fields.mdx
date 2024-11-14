@@ -1,0 +1,131 @@
+import { AdditionalDataExamples } from '@/components/AdditionalDataExamples';
+
+export const description =
+   'La propiedad processorFields proporciona información adicional sobre el procesamiento de una sesión finalizada. Cada objeto se guarda en payment.processorFields con el tipo NameValuePair.'
+
+# Datos de procesamiento
+
+Los datos o campos de procesamiento proporcionan información adicional que puede ser encontrada cuando se hace referencia sobre el procesamiento de una sesión finalizada.
+Estos datos pueden encontrarse en la api de rest como en la api de webChekout por medio de la propiedad `processorFields`.  Cada objeto se guarda en `payment.processorFields` con el tipo [NameValuePair](/checkout/additional-fields#name-value-pair).
+
+```json
+{
+    "requestId": 7,
+    "status": { /* ... */ },
+    "request": { /* ... */ },
+    "payment": [
+        {
+            "processorFields": [
+                {
+                    "value": "00990101",
+                    "keyword": "terminalNumber",
+                    "displayOn": "none"
+                },
+                {
+                    "value": "529259",
+                    "keyword": "bin",
+                    "displayOn": "none"
+                },
+                {
+                    "value": "0745",
+                    "keyword": "lastDigits",
+                    "displayOn": "none"
+                },
+                {
+                    "value": "b466b12c2a248122c9448783c77435ed",
+                    "keyword": "id",
+                    "displayOn": "none"
+                },
+                {
+                    "value": "000",
+                    "keyword": "b24",
+                    "displayOn": "none"
+                },
+                /// ...
+            ],
+            // ...
+        }
+    ],
+}
+```
+
+Adicional a estos datos, hay datos que varian según el método de pago, como:
+
+<Note>
+    La información que puede encontrarse en estos datos es descrita en [Descripción de los datos](processor-fields#description-credit)
+</Note>
+
+<AdditionalDataExamples extraExamples={[
+    {
+      key: "id",
+      example: "b466b12c2a248122c9448783c77435ed",
+      description: {
+        es: "Identificador de la sessión.",
+        en: "Gateway session identifier."
+      }
+    },
+    {
+      key: "b24",
+      example: "000",
+      description: {
+        es: "Estado de la transacción en ISO 24.",
+        en: "Transaction status in ISO 24 of Gateway."
+      }
+    },
+]}/>
+
+# Descripción
+
+## Objeto `Credit` {{ id: "description-credit" }}
+
+Los proveedores Datafast, Medianet, Austro, e Interdin comparten la misma estructura y descripción de sus créditos de acuerdo al `groupCode` y `code`:
+
+
+| groupCode                                        | code      | descripción                            | significado                                                           |
+|--------------------------------------------------| ----------|--------------------------------------- | --------------------------------------------------------------------- |
+| `C`                                              | 0         | Pago Corriente                         | Pago a una cuota                                                     |
+| `C`                                              | 1, n      | Pago corriente n meses de gracia       | Pago a una cuota con n meses de gracia para iniciar pago.             |                                                                     |
+| `D`                                              | 0         | Diferido sin intereses                 | Pago por cuotas sin interés.                                          |
+| `D`                                              | 1, n      | Diferido n meses de gracia sin interés | Pago por cuotas sin interés con n meses de gracia para iniciar pago.  |
+| `M`                                              | 0         | Diferido plus                          | Mezcla con o sin interes, definido por el banco emisor                |
+| `M`                                              | 1, n      | Diferido plus n meses de gracia        | Mezcla con o sin interes, definido por el banco emisor, con n meses de gracia para iniciar pago. |
+| `P`                                              | 0         | Diferido con intereses                 | Pago por cuotas con interés.                                          |
+| `P`                                              | 1, n      | Diferido n meses de gracia con interés | Pago por cuotas con interés con n meses de gracia para iniciar pago.  |
+| `N`                                              | 0         | Plan pagos normal                      |                                                                       |
+| `N`                                              | 1, n      | Plan pagos normal n meses de gracia    |                                                                       |
+| `X`                                              | 0         | Plan pagos especial                    | Pago Sin cobro de intereses                                           |
+| `X`                                              | 1, n      | Plan pagos especial n meses de gracia  | Sin cobro de intereses con n meses de gracia para iniciar pago.       |
+| `L`                                              | 0         | Diferido preferente                    | Pago por cuotas con interés más bajo                                  |
+| `L`                                              | 1, n      | Diferido preferente n meses de gracia  | Pago por cuotas con interés más bajo con n meses de gracia para iniciar pago |
+| `B`                                              | 0         | Plan 0%                                |
+| `B`                                              | 1, n      | Plan 0% n meses                        |
+
+### Flamingo y Redeban
+
+Los proveedores Flamingo y Redeban comparten la siguiente estructura, donde su única variación
+es la cantidad de cuotas permitidas para el pago del crédito en la propiedad `installments`.
+
+| code                     | groupCode                 | type                 | installments                  | description               |
+|--------------------------|---------------------------|----------------------|-------------------------------|---------------------------|
+| 0                        | C                         | 00                   | [1,n]                         | Cuotas                    |
+
+### Transerver
+
+Su código, cuotas y descripción dependen de las reglas definidas previamente en el método de pago del sitio,
+por lo que pueden ser muy variadas.
+El tipo de crédito y grupo siempre serán los mismos.
+
+| code                     | groupCode                 | type                 | installments                  | description               |
+|--------------------------|---------------------------|----------------------|-------------------------------|---------------------------|
+| 03BCR                    | Q                         | 0                    | [1,n]                         | PLAN 0 BCR 3C BCR         |
+
+### Paystudio
+
+El proveedor paystudio contiene la siguiente estructura, su variación se encuentra en la descripción del crédito el cual depende de la configuración del medio de pago
+y la cantidad de cuotas del crédito. Se pueden encontrar las siguientes descripciones:  `Cuotas`, `Sin cuotas`, `Cuotas precio contado`.
+
+| code                     | groupCode                 | type                 | installments                  | description               |
+|--------------------------|---------------------------|----------------------|-------------------------------|---------------------------|
+| 00                       | Q                         | 00                   | [1,n]                         | Cuotas                    |
+| 00                       | Q                         | 00                   | [1,n]                         | Sin cuotas                |
+| 00                       | Q                         | 00                   | [1,n]                         | Cuotas precio contado     |

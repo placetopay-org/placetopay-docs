@@ -26,6 +26,7 @@ export const TAB_NAVIGATION = {
             title: 'Integraciones',
             links: [
               { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },
+              { title: 'Campos de procesamiento', href: '/payments/integrations/processor-fields' },
             ],
           },
         ],
@@ -54,6 +55,7 @@ export const TAB_NAVIGATION = {
             title: 'Integrations',
             links: [
               { title: 'Transaction Modifiers', href: '/payments/integrations/transaction-modifiers' },
+              { title: 'Processor fields', href: '/payments/integrations/processor-fields' },
             ],
           },
         ],
@@ -100,10 +102,6 @@ export const TAB_NAVIGATION = {
                 href: '/checkout/test-your-integration',
               },
               { title: 'Reembolsos', href: '/checkout/refund' },
-              {
-                title: 'Campos de procesamiento',
-                href: '/checkout/processor-fields',
-              },
               {
                 title: 'Fecha de expiración',
                 href: '/checkout/expiration',
@@ -182,10 +180,6 @@ export const TAB_NAVIGATION = {
                 href: '/checkout/test-your-integration',
               },
               { title: 'Refund', href: '/checkout/refund' },
-              {
-                title: 'Processor Fields',
-                href: '/checkout/processor-fields',
-              },
               {
                 title: 'Expiration Date',
                 href: '/checkout/expiration',
