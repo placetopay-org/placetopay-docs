@@ -8,6 +8,8 @@ export const useNamespaceRoute = () => {
   const paths = router.pathname.split('/', 3);
   const namespace = paths[1] && paths[1].length > 2 ? paths[1] : paths[2];
   switch (namespace) {
+    case 'payments':
+      return 'payments';
     case 'checkout':
       return 'checkout';
     case 'three-d-s-server':
@@ -39,6 +41,8 @@ export const useNavigation = (namespaces) => {
   const {locale} = useLocale();
 
   switch (namespaces) {
+    case 'payments':
+      return TAB_NAVIGATION.payments[locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     case 'checkout':
       return TAB_NAVIGATION.checkout[locale].find((item) => item.identifier === tabRouter.active)?.links ?? [];
     case 'gateway':

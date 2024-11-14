@@ -28,7 +28,7 @@ A payment link is a URL that allows users to complete a payment quickly and easi
     <Col sticky>
         <CodeGroup title="Solicitud" tag="POST" label="/api/payment-link">
             ```bash {{ title: 'cURL' }}
-            curl -X "POST" https://checkout-test.placetopay.com/api/session/000000 \
+            curl -X "POST" https://sites.placetopay.com/api/payment-link \
             -H "Content-Type: application/json" \
             -d '{
                 "auth": {
@@ -43,11 +43,36 @@ A payment link is a URL that allows users to complete a payment quickly and easi
                 "paymentsAllowed": 7,
                 "expirationDate": "2024-08-12 08:10:50",
                 "paymentExpiration": 15,
-                "currency": "COP",
-                "amount": 100000,
+                "payment": {
+                    "amount": {
+                        "currency": "COP",
+                        "total": 100000,
+                        "taxes": [
+                            {
+                                "kind": "valueAddedTax",
+                                "amount": 20000,
+                                "base": 1000
+                            },
+                            {
+                                "kind": "municipalTax",
+                                "amount": 5000,
+                                "base": 2000
+                            }
+                        ]
+                    },
+                    "modifiers": [
+                        {
+                            "type": "FEDERAL_GOVERNMENT",
+                            "code": 17934,
+                            "additional": {
+                                "invoice": "12334577"
+                            }
+                        }
+                    ]
+                },
                 "reference": "#5321",
                 "description": "Pago por infraccion",
-                "paymentMethod": ["_PSE_"],
+                "paymentMethod": ["pse", "visa"],
                 "receiverEmails": ["correo1@example.com", "correo2@example.com"],
                 "additional": {
                     "buyer_email": "myBuyer@email.com",
@@ -116,7 +141,7 @@ A payment link is a URL that allows users to complete a payment quickly and easi
     <Col sticky>
         <CodeGroup title="Solicitud" tag="POST" label="/api/payment-link/{link_id}">
             ```bash {{ title: 'cURL' }}
-            curl -X "POST" https://checkout-test.placetopay.com/api/session/000000 \
+            curl -X "POST" https://sites.placetopay.com/api/payment-link/{link_id} \
             -H "Content-Type: application/json" \
             -d '{
                 "auth": {
@@ -155,8 +180,22 @@ A payment link is a URL that allows users to complete a payment quickly and easi
                 "totalPayments": 7,
                 "availablePayments": 6,
                 "paymentExpiration": 15,
-                "currency": "COP",
-                "amount": 100000,
+                "amount": {
+                  "currency": "COP",
+                  "total": 100000,
+                  "taxes": [
+                    {
+                      "base": 80000,
+                      "kind": "valueAddedTax",
+                      "amount": 20000
+                    },
+                    {
+                      "base": 50000,
+                      "kind": "municipalTax",
+                      "amount": 5000
+                    }
+                  ]
+                },
                 "site": {
                     "id": 1469,
                     "name": "Evertec - API Link de pagos"
@@ -164,40 +203,51 @@ A payment link is a URL that allows users to complete a payment quickly and easi
                 "notificationUrl": "https://webhook-test.com/dc45064451b3b0fdc61d8d5be632d450",
                 "locale": "es_CO",
                 "allowedPaymentMethods": [
-                    "CR_VS",
-                    "CR_AM"
+                  "pse",
+                  "visa"
                 ],
+                "metadata": {
+                  "discount": [
+                    {
+                      "code": 17934,
+                      "type": "FEDERAL_GOVERNMENT",
+                      "additional": {
+                        "invoice": "123456777"
+                      }
+                    }
+                  ]
+                },
                 "payments": [
                     {
-                        "id": 8,
-                        "requestId": 84076,
-                        "status": "APPROVED",
-                        "message": "La petición ha sido aprobada exitosamente",
-                        "processUrl": "https://checkout-co.placetopay.dev/spa/session/84076/79e4267e26771ed8ecffdab18d4c5f69",
-                        "amount": {
+                      "id": 8,
+                      "requestId": 84076,
+                      "status": "APPROVED",
+                      "message": "La petición ha sido aprobada exitosamente",
+                      "processUrl": "https://checkout-co.placetopay.dev/spa/session/84076/79e4267e26771ed8ecffdab18d4c5f69",
+                      "amount": {
                         "currency": "COP",
-                        "total": "100000.00"
-                    },
-                    "receipt": "99900100",
-                    "franchise": "CR_VS",
-                    "paymentMethod": "visa",
-                    "paymentDate": "2024-07-26 08:21:40",
-                    "internalReference": 434915,
-                    "authorization": "000000",
-                    "issuerName": "JPMORGAN CHASE BANK, N.A.",
-                    "merchantCode": "012988341",
-                    "terminalNumber": "00022645",
-                    "installments": 1,
-                    "lastDigits": "1111",
-                    "payer": {
-                        "name": "Andres",
-                        "surname": "Zea",
-                        "email": "myBuyer@email.com",
-                        "phone": "+573135911356",
-                        "document": "1001221123",
-                        "documentType": "CC"
-                    }
-                }
+                        "total": "100000"
+                      },
+                      "receipt": "99900100",
+                      "franchise": "CR_VS",
+                      "paymentMethod": "visa",
+                      "paymentDate": "2024-07-26 08:21:40",
+                      "internalReference": 434915,
+                      "authorization": "000000",
+                      "issuerName": "JPMORGAN CHASE BANK, N.A.",
+                      "merchantCode": "012988341",
+                      "terminalNumber": "00022645",
+                      "installments": 1,
+                      "lastDigits": "1111",
+                      "payer": {
+                          "name": "Andres",
+                          "surname": "Zea",
+                          "email": "myBuyer@email.com",
+                          "phone": "+573135911356",
+                          "document": "1001221123",
+                          "documentType": "CC"
+                      }
+                  }
                 ]
             }
             ```
@@ -233,7 +283,7 @@ A payment link is a URL that allows users to complete a payment quickly and easi
     <Col sticky>
         <CodeGroup title="Solicitud" tag="POST" label="/api/payment-link/disalbe/{link_id}">
             ```bash {{ title: 'cURL' }}
-            curl -X "POST" https://checkout-test.placetopay.com/api/session/000000 \
+            curl -X "POST" https://sites.placetopay.com/api/payment-link/disalbe/{link_id} \
             -H "Content-Type: application/json" \
             -d '{
                 "auth": {

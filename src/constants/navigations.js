@@ -2,6 +2,64 @@ import { LANGUAGES_CODES } from '@/components/LocaleProvider'
 import { Book, DocumentCode } from 'iconsax-react'
 
 export const TAB_NAVIGATION = {
+  payments: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'payments',
+        href: '/payments',
+        icon: Book,
+        links: [
+          {
+            title: 'Pagos',
+            links: [
+              { title: 'Introducción', href: '/payments' },
+            ],
+          },
+          {
+            title: 'Medios de pago',
+            links: [
+              { title: 'ACH Débito Bancario', href: '/payments/ach-bank-debit' },
+            ],
+          },
+          {
+            title: 'Integraciones',
+            links: [
+              { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },
+            ],
+          },
+        ],
+      }
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentation',
+        identifier: 'payments',
+        href: '/en/payments',
+        icon: Book,
+        links: [
+          {
+            title: 'Payments',
+            links: [
+              { title: 'Introduction', href: '/payments' },
+            ],
+          },
+          {
+            title: 'Payment methods',
+            links: [
+              { title: 'ACH Bank Debit', href: '/payments/ach-bank-debit' },
+            ],
+          },
+          {
+            title: 'Integrations',
+            links: [
+              { title: 'Transaction Modifiers', href: '/payments/integrations/transaction-modifiers' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
   checkout: {
     [LANGUAGES_CODES.ES]: [
       {

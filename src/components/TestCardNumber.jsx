@@ -290,8 +290,8 @@ const groupsByFranchise = [
       {
         number : '376651001281274',
         behavior: { 
-          es: 'Aprueba si se proporciona la expiración 06/22 y el cvv 4637 de lo contrario rechaza',
-          en: 'Approves if expiration 06/22 is given and cvv 4637 otherwise rejects' },
+          es: 'Aprueba si se proporciona la expiración 06/36 y el cvv 4637 de lo contrario rechaza',
+          en: 'Approves if expiration 06/36 is given and cvv 4637 otherwise rejects' },
       },
     ],
   },
