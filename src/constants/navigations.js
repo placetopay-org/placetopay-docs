@@ -108,6 +108,10 @@ export const TAB_NAVIGATION = {
                 title: 'Fecha de expiración',
                 href: '/checkout/expiration',
               },
+              {
+                title: 'Omitir resultado',
+                href: '/checkout/skip-result',
+              },
             ],
           },
         ],
@@ -189,6 +193,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Expiration Date',
                 href: '/checkout/expiration',
+              },
+              {
+                title: 'Skip result',
+                href: '/checkout/skip-result',
               },
             ],
           },
@@ -1558,7 +1566,7 @@ export const TAB_NAVIGATION = {
           {
             title: 'Reglas',
             links: [
-              { title: 'Kount', href:'/api-scudo/kount' }
+              { title: 'Kount', href: '/api-scudo/kount' }
             ]
           }
         ],
@@ -1600,14 +1608,14 @@ export const TAB_NAVIGATION = {
               { title: 'Scudo sequence', href: '/api-scudo/sequence' },
               { title: 'Data elements', href: '/api-scudo/elements' },
               { title: 'Signature', href: '/api-scudo/signature' },
-              { title: 'Amounts format', href: '/api-scudo/amounts-format'},
-              { title: 'Types of document', href: '/api-scudo/document-types',},
+              { title: 'Amounts format', href: '/api-scudo/amounts-format' },
+              { title: 'Types of document', href: '/api-scudo/document-types', },
             ],
           },
           {
             title: 'Rules',
             links: [
-              { title: 'Kount', href:'/api-scudo/kount' }
+              { title: 'Kount', href: '/api-scudo/kount' }
             ]
           }
         ],
