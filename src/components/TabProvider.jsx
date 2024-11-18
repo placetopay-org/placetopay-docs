@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { LANGUAGES_CODES } from './LocaleProvider'
-import { TAB_NAVIGATION } from '@/constants/navigations'
+import { getNavigationByTab } from '@/utils/getNavigationByTab'
 
 const TabContext = createContext()
 
@@ -33,7 +33,7 @@ const TabProvider = ({ children }) => {
 
   useEffect(() => {
     if (tab) {
-      const tabNavigation = TAB_NAVIGATION[tab.basePath][tab.locale]
+      const tabNavigation = getNavigationByTab(tab.basePath, tab.locale);
       const posibleTabs = tabNavigation
         .filter((item) => isActiveRoute(item.identifier, router.asPath))
         .sort((a, b) => b.href.length - a.href.length)

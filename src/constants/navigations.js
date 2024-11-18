@@ -10,7 +10,7 @@ export const NAMESPACE_ROUTES = {
   payments: 'payments',
   checkout: 'checkout',
   gateway: 'gateway',
-  'three-d-s-server': 'ThreeDsServer',
+  'three-d-s-server': 'threeDsServer',
   acs: 'acs',
   sdks: 'sdks',
   'token-requestor': 'tokenRequestor',
@@ -433,7 +433,7 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
-  'ThreeDsServer': {
+  threeDsServer: {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'Documentación',
