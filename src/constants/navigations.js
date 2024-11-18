@@ -1,6 +1,32 @@
 import { LANGUAGES_CODES } from '@/components/LocaleProvider'
 import { Book, DocumentCode } from 'iconsax-react'
 
+/** 
+ * 
+ * 
+ * urlPath : TabNavigation key
+ */
+export const NAMESPACE_ROUTES = {
+  payments: 'payments',
+  checkout: 'checkout',
+  gateway: 'gateway',
+  'three-d-s-server': 'threeDsServer',
+  acs: 'acs',
+  sdks: 'sdks',
+  'token-requestor': 'tokenRequestor',
+  'payment-links': 'paymentLinks',
+  microsites: 'microsites',
+  ticket: 'ticket',
+  core: 'core',
+  'account-validator': 'accountValidator',
+  'api-scudo': 'apiScudo',
+}
+
+/**
+ * 
+ * 
+ * NamespaceRoute value : Route object
+ */
 export const TAB_NAVIGATION = {
   payments: {
     [LANGUAGES_CODES.ES]: [
@@ -407,7 +433,7 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
-  'three-d-s-server': {
+  threeDsServer: {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'Documentación',
@@ -728,7 +754,7 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
-  'token-requestor': {
+  'tokenRequestor': {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'Documentación',
@@ -1101,7 +1127,7 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
-  'account-validator': {
+  'accountValidator': {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'API',
@@ -1161,7 +1187,7 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
-  'payment-links': {
+  'paymentLinks': {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'Documentación',
@@ -1520,7 +1546,7 @@ export const TAB_NAVIGATION = {
       }
     ]
   },
-  'api-scudo': {
+  'apiScudo': {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'Documentación',
