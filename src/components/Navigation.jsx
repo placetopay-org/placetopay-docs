@@ -7,7 +7,7 @@ import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
 import { TAB_NAVIGATION } from '@/constants/navigations'
 
 import { useLocalizePath } from '@/hooks/useLocalizePath'
-import { useNamespaceRoute, useNavigation } from '@/hooks/useNavigation'
+import { useNavigation } from '@/hooks/useNavigation'
 import { useIsInsideMobileNavigation } from '@/components/MobileNavigation'
 import { useSectionStore } from '@/components/SectionProvider'
 import { Tag } from '@/components/Tag'
@@ -238,7 +238,7 @@ function SubSectionNavigation() {
 }
 
 export function Navigation({ withSections, ...props }) {
-  let navigation = useNavigation(useNamespaceRoute())
+  let navigation = useNavigation()
 
   return (
     <nav {...props}>
