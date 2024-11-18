@@ -29,12 +29,7 @@ export const useNavigation = () => {
     return [];
   }
 
-  const routes = TAB_NAVIGATION[namespaces]?.[locale]?.find((item) => item.identifier === tabRouter.active)?.links ?? [];
-  if (routes.length === 0) {
-    throw new Error(`The namespace navigation '${namespaces}' is not defined`);
-  }
-
-  return routes;
+  return TAB_NAVIGATION[namespaces]?.[locale]?.find((item) => item.identifier === tabRouter.active)?.links ?? [];
 }
 
 export const useAllNavigation = () => {

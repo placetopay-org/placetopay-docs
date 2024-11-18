@@ -4,7 +4,6 @@ import { useRouter } from 'next/router'
 import { twMerge } from 'tailwind-merge'
 import clsx from 'clsx'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
-import { TAB_NAVIGATION } from '@/constants/navigations'
 
 import { useLocalizePath } from '@/hooks/useLocalizePath'
 import { useNavigation } from '@/hooks/useNavigation'
@@ -15,6 +14,7 @@ import { remToPx } from '@/lib/remToPx'
 import { useLocale } from './LocaleProvider'
 import { NamespaceSelector } from './SelectMenu'
 import { useTabRouter } from './TabProvider'
+import { getNavigationByTab } from '@/utils/getNavigationByTab'
 
 function useInitialValue(value, condition = true) {
   let initialValue = useRef(value).current
@@ -219,7 +219,7 @@ function SubSectionNavigation() {
   const { tab, active } = useTabRouter()
   if (tab === undefined) return null
 
-  const navs = TAB_NAVIGATION[tab.basePath][tab.locale]
+  const navs = getNavigationByTab(tab.basePath, tab.locale);
 
   return (
     <>
