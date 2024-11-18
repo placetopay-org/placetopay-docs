@@ -13,8 +13,8 @@ import { ModeToggle } from '@/components/ModeToggle'
 import { MobileSearch, Search } from '@/components/Search'
 import { LanguageSwitch } from './LanguageSwitch'
 import { useTabRouter } from './TabProvider'
-import { TAB_NAVIGATION } from '@/constants/navigations'
 import { remToPx } from '@/lib/remToPx'
+import { getNavigationByTab } from '@/utils/getNavigationByTab'
 
 function TopLevelNavItem({ href, children, isActive, setOffsets }) {
   const elementRef = useRef();
@@ -64,7 +64,7 @@ const TabNavigation = () => {
   if (tab === undefined) return null;
 
 
-  const navs = TAB_NAVIGATION[tab.basePath][tab.locale];
+  const navs = getNavigationByTab(tab.basePath, tab.locale);
 
   return (
     <nav className="hidden relative md:block">
