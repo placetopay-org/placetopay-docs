@@ -100,7 +100,7 @@ export const TAB_NAVIGATION = {
                 href: '/checkout/test-your-integration',
               },
               { title: 'Reembolsos', href: '/checkout/refund' },
-                {
+              {
                 title: 'Campos de procesamiento',
                 href: '/checkout/processor-fields',
               },
