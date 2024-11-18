@@ -26,7 +26,6 @@ export const TAB_NAVIGATION = {
             title: 'Integraciones',
             links: [
               { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },
-              { title: 'Campos de procesamiento', href: '/payments/integrations/processor-fields' },
             ],
           },
         ],
@@ -55,7 +54,6 @@ export const TAB_NAVIGATION = {
             title: 'Integrations',
             links: [
               { title: 'Transaction Modifiers', href: '/payments/integrations/transaction-modifiers' },
-              { title: 'Processor fields', href: '/payments/integrations/processor-fields' },
             ],
           },
         ],
