@@ -1,0 +1,203 @@
+# Webhooks
+
+Un webhook es una notificación enviada a una URL mediante una solicitud HTTP. En Placetopay, los webhooks permiten a los sistemas externos recibir información en tiempo real sobre el estado de alguna transacción. {{ className: 'lead' }}
+
+Actualmente se soportan diversos tipos de webhooks, cada uno con un propósito específico y configuración distinta. A continuación, se describen los tipos de webhooks disponibles:
+
+- Webhook definido en la sesión
+- Webhook para devoluciones ACH
+
+## Webhook definido en la sesión
+
+Al crear una sesión de pago es posible configurar una URL de notificación. Cuando ocurra una actualización en la sesión (sesión aprobada, transacción reversada, etc.), automáticamente se enviará un webhook a esta URL.
+
+- **Propósito**: Notificar al comercio cuando cambia el estado de una sesión.
+- **Configuración**: Se define al crear la sesión, incluyendo el dato `notificationURL` en [Gateway - Process request](http://localhost:3000/gateway/api/reference/transaction#process-request).
+- **Evento**: Cuando una sesión es actualizada (cambio de pendiente a aprobada, aprobada a reversada, etc.).
+- **Información enviada**: Información básica de la sesión: estado, razón, internalReference, referencia, entre otros.
+
+```json {{ title: 'Ejemplo configuración de notificationURL' }}
+{
+  "locale": "es_CO",
+  "auth": {
+    "login": "YOUR_LOGIN",
+    "tranKey": "YOUR_TRANKEY",
+    "nonce": "YOUR_NONCE",
+    "seed": "2024-11-14T12:00:00-05:00"
+  },
+  "payment": {
+    "reference": "ORDER123",
+    "description": "Compra en línea",
+    "amount": {
+      "currency": "USD",
+      "total": 10.00
+    }
+  },
+  "notificationURL" : "https://example.test/notification"
+}
+```
+
+```json {{ title: 'Ejemplo de notificación' }}
+{
+  "status": {
+    "status": "APPROVED",
+    "reason": "00",
+    "message": "Transacción aprobada",
+    "date": "2024-11-14T10:43:33-05:00"
+  },
+  "internalReference": 1000,
+  "reference": "PAY_ABC_1287",
+  "signature": "[firma para validar la autenticidad]"
+}
+```
+
+### Validación de la Firma
+
+Para garantizar la autenticidad de la notificación, el webhook definido en la sesión incluye una firma en el encabezado `X-Signature`. Puedes validar esta firma utilizando un hash SHA-1 generado con los valores del ID de la sesión, el estado de la sesión y la llave de transacción (`tranKey`) de tu sitio.
+
+```javascript {{ title: 'Validación en JavaScript' }}
+const crypto = require('crypto');
+
+const sessionId = notificationBody.session.id;
+const sessionStatus = notificationBody.session.status;
+const tranKey = 'YOUR_SITE_TRANKEY';
+
+const signatureString = `${sessionId}${sessionStatus}${tranKey}`;
+
+// Generar la firma localmente
+const generatedSignature = crypto
+  .createHash('sha1')
+  .update(signatureString)
+  .digest('hex');
+
+// Firma recibida en la notificación
+const receivedSignature = headers['X-Signature'];
+
+// Validar la firma
+if (generatedSignature === receivedSignature) {
+  console.log("La notificación es auténtica.");
+} else {
+  console.log("Firma inválida: la notificación no es auténtica.");
+}
+```
+
+## Webhook para devoluciones ACH
+
+El webhook para devoluciones ACH permite a los comercios recibir notificaciones en tiempo real sobre devoluciones en su sitio.
+
+- **Propósito**: Notificar al comercio cuando ocurre una devolución ACH.
+- **Configuración**: Se configura en el panel administrativo de Placetopay, a través del equipo de operaciones, proporcionando la URL deseada.
+- **Evento**: Envío de notificación HTTP cuando se genera una devolución ACH.
+- **Información enviada**: Toda información directa de una sesión.
+
+```plaintext {{ title: 'Headers' }}
+X-Signature: [firma para validar la autenticidad]
+Content-Type: application/json
+Accept: application/json
+```
+
+```json {{ title: 'body' }}
+{
+  "time": "2024-11-14T05:50:15-05:00",
+  "type": "chargeback.created",
+  "data": {
+    "status": {
+      "status": "APPROVED",
+      "reason": "R01",
+      "message": "Fondos insuficientes",
+      "date": "2024-07-03T22:59:00-05:00"
+    },
+    "date": "2024-07-03T22:59:00-05:00",
+    "transactionDate": "2024-07-03T22:59:00-05:00",
+    "internalReference": 2,
+    "reference": "9123418",
+    "paymentMethod": "EBACH",
+    "franchise": "ach",
+    "franchiseName": "Ebus ACH",
+    "issuerName": null,
+    "amount": {
+      "taxes": [
+        {
+          "kind": "valueAddedTax",
+          "amount": 0,
+          "base": 0
+        }
+      ],
+      "currency": "USD",
+      "total": 20000
+    },
+    "conversion": {
+      "from": {
+        "currency": "USD",
+        "total": 20000
+      },
+      "to": {
+        "currency": "USD",
+        "total": 20000
+      },
+      "factor": 1
+    },
+    "authorization": "10000123",
+    "receipt": null,
+    "type": "CHARGEBACK",
+    "refunded": false,
+    "lastDigits": null,
+    "provider": null,
+    "discount": null,
+    "processorFields": {
+      "id": "b66f02ffff79b79ea9587b3cd3507a50",
+      "b24": "R01"
+    },
+    "additional": {
+      "merchantCode": "4549106521651",
+      "terminalNumber": "19371021",
+      "bankName": "Test Bank",
+      "accountNumber": "6789"
+    }
+  }
+}
+```
+
+### Validación de la Firma
+
+Para garantizar la autenticidad de la notificación, cada webhook de Placetopay incluye una firma en el encabezado `X-Signature`. Puedes validar esta firma con un hash HMAC SHA-256 utilizando el contenido del cuerpo de la notificación (`body`) y la llave de transacción (`tranKey`) de tu sitio.
+
+```javascript {{ title: 'Validación en JavaScript' }}
+const crypto = require('crypto');
+
+// Body de la solicitud y firma recibida
+const body = JSON.stringify(notificationBody);
+const receivedSignature = headers['X-Signature'];
+
+const tranKey = 'YOUR_SITE_TRANKEY';
+
+// Generar la firma localmente
+const generatedSignature = crypto
+  .createHmac('sha256', tranKey)
+  .update(body)
+  .digest('hex');
+
+// Validar la firma
+if (generatedSignature === receivedSignature) {
+  console.log("La notificación es auténtica.");
+} else {
+  console.log("Firma inválida: la notificación no es auténtica.");
+}
+```
+
+## FAQs
+
+<details>
+<summary>¿Cómo configuro un webhook para mi negocio?</summary>
+<p>Para el webhook definido en la sesión, incluye el parámetro <code>notificationURL</code> al crear una sesión de pago. Para el webhook de devoluciones ACH, debes contactar al equipo de operaciones y proporcionar la URL deseada.</p>
+</details>
+
+<details>
+<summary>¿Qué información envían los webhooks?</summary>
+<p>El webhook definido en la sesión incluye el estado de la sesión, la referencia y el internalReference. El webhook de devoluciones ACH incluye detalles como el motivo de la devolución, el monto y las referencias asociadas.</p>
+</details>
+
+<details>
+<summary>¿Cómo puedo validar la autenticidad de los webhooks?</summary>
+<p>Valida la firma proporcionada en el encabezado <code>X-Signature</code> mediante HMAC SHA-256 o SHA-1, dependiendo del tipo de webhook.</p>
+</details>

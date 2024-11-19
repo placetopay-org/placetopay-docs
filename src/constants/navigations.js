@@ -273,6 +273,10 @@ export const TAB_NAVIGATION = {
                 title: 'Datos adicionales',
                 href: '/gateway/additional-data',
               },
+              {
+                title: 'Webhooks',
+                href: '/gateway/webhooks',
+              },
             ],
           },
         ],
@@ -361,6 +365,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Additional data',
                 href: '/gateway/additional-data',
+              },
+              {
+                title: 'Webhooks',
+                href: '/gateway/webhooks',
               },
             ],
           },

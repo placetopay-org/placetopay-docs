@@ -1,0 +1,203 @@
+# Webhooks
+
+A webhook is a notification sent to a URL via an HTTP request. In Placetopay, webhooks allow external systems to receive real-time information about the status of a transaction. {{ className: 'lead' }}
+
+Currently, several types of webhooks are supported, each with a specific purpose and different configuration. The available webhooks are:
+
+- Webhook defined in the session
+- Webhook for ACH returns
+
+## Webhook defined in the session
+
+When creating a payment session, it is possible to configure a notification URL. Whenever an update occurs in the session (session approved, transaction reversed, etc.), a webhook will automatically be sent to this URL.
+
+- **Purpose**: Notify the merchant when the status of a session changes.
+- **Configuration**: Defined when creating the session by including the `notificationURL` parameter in [Gateway - Process request](http://localhost:3000/gateway/api/reference/transaction#process-request).
+- **Event**: When a session is updated (e.g., pending to approved, approved to reversed, etc.).
+- **Information sent**: Basic session information such as status, reason, internalReference, reference, among others.
+
+```json {{ title: 'Example configuration of notificationURL' }}
+{
+  "locale": "en_US",
+  "auth": {
+    "login": "YOUR_LOGIN",
+    "tranKey": "YOUR_TRANKEY",
+    "nonce": "YOUR_NONCE",
+    "seed": "2024-11-14T12:00:00-05:00"
+  },
+  "payment": {
+    "reference": "ORDER123",
+    "description": "Online purchase",
+    "amount": {
+      "currency": "USD",
+      "total": 10.00
+    }
+  },
+  "notificationURL" : "https://example.test/notification"
+}
+```
+
+```json {{ title: 'Notification example' }}
+{
+  "status": {
+    "status": "APPROVED",
+    "reason": "00",
+    "message": "Transaction approved",
+    "date": "2024-11-14T10:43:33-05:00"
+  },
+  "internalReference": 1000,
+  "reference": "PAY_ABC_1287",
+  "signature": "[signature for authenticity validation]"
+}
+```
+
+### Signature validation
+
+To ensure the authenticity of the notification, the session webhook includes a signature in the `X-Signature` header. You can validate this signature using an SHA-1 hash generated with the values of the session ID, session status, and the transaction key (`tranKey`) of your site.
+
+```javascript {{ title: 'Validation in JavaScript' }}
+const crypto = require('crypto');
+
+const sessionId = notificationBody.session.id;
+const sessionStatus = notificationBody.session.status;
+const tranKey = 'YOUR_SITE_TRANKEY';
+
+const signatureString = `${sessionId}${sessionStatus}${tranKey}`;
+
+// Generate the signature locally
+const generatedSignature = crypto
+  .createHash('sha1')
+  .update(signatureString)
+  .digest('hex');
+
+// Signature received in the notification
+const receivedSignature = headers['X-Signature'];
+
+// Validate the signature
+if (generatedSignature === receivedSignature) {
+  console.log("The notification is authentic.");
+} else {
+  console.log("Invalid signature: the notification is not authentic.");
+}
+```
+
+## Webhook for ACH returns
+
+The webhook for ACH returns allows merchants to receive real-time notifications about returns on their site.
+
+- **Purpose**: Notify the merchant when an ACH return occurs.
+- **Configuration**: Configured in the Placetopay administrative panel through the operations team, providing the desired URL.
+- **Event**: HTTP notification sent when an ACH return is generated.
+- **Information sent**: All direct session-related information.
+
+```plaintext {{ title: 'Headers' }}
+X-Signature: [signature for authenticity validation]
+Content-Type: application/json
+Accept: application/json
+```
+
+```json {{ title: 'Body' }}
+{
+  "time": "2024-11-14T05:50:15-05:00",
+  "type": "chargeback.created",
+  "data": {
+    "status": {
+      "status": "APPROVED",
+      "reason": "R01",
+      "message": "Insufficient funds",
+      "date": "2024-07-03T22:59:00-05:00"
+    },
+    "date": "2024-07-03T22:59:00-05:00",
+    "transactionDate": "2024-07-03T22:59:00-05:00",
+    "internalReference": 2,
+    "reference": "9123418",
+    "paymentMethod": "EBACH",
+    "franchise": "ach",
+    "franchiseName": "Ebus ACH",
+    "issuerName": null,
+    "amount": {
+      "taxes": [
+        {
+          "kind": "valueAddedTax",
+          "amount": 0,
+          "base": 0
+        }
+      ],
+      "currency": "USD",
+      "total": 20000
+    },
+    "conversion": {
+      "from": {
+        "currency": "USD",
+        "total": 20000
+      },
+      "to": {
+        "currency": "USD",
+        "total": 20000
+      },
+      "factor": 1
+    },
+    "authorization": "10000123",
+    "receipt": null,
+    "type": "CHARGEBACK",
+    "refunded": false,
+    "lastDigits": null,
+    "provider": null,
+    "discount": null,
+    "processorFields": {
+      "id": "b66f02ffff79b79ea9587b3cd3507a50",
+      "b24": "R01"
+    },
+    "additional": {
+      "merchantCode": "4549106521651",
+      "terminalNumber": "19371021",
+      "bankName": "Test Bank",
+      "accountNumber": "6789"
+    }
+  }
+}
+```
+
+### Signature validation
+
+To ensure the authenticity of the notification, each webhook from Placetopay includes a signature in the `X-Signature` header. You can validate this signature using an HMAC SHA-256 hash generated with the content of the notification body (`body`) and the transaction key (`tranKey`) of your site.
+
+```javascript {{ title: 'Validation in JavaScript' }}
+const crypto = require('crypto');
+
+// Body of the request and received signature
+const body = JSON.stringify(notificationBody);
+const receivedSignature = headers['X-Signature'];
+
+const tranKey = 'YOUR_SITE_TRANKEY';
+
+// Generate the signature locally
+const generatedSignature = crypto
+  .createHmac('sha256', tranKey)
+  .update(body)
+  .digest('hex');
+
+// Validate the signature
+if (generatedSignature === receivedSignature) {
+  console.log("The notification is authentic.");
+} else {
+  console.log("Invalid signature: the notification is not authentic.");
+}
+```
+
+## FAQs
+
+<details>
+<summary>How do I configure a webhook for my business?</summary>
+<p>For the session-defined webhook, include the <code>notificationURL</code> parameter when creating a payment session. For the ACH returns webhook, contact the operations team and provide the desired URL.</p>
+</details>
+
+<details>
+<summary>What information is sent by the webhooks?</summary>
+<p>The session-defined webhook includes the session status, reference, and internalReference. The ACH returns webhook includes details such as the return reason, amount, and associated references.</p>
+</details>
+
+<details>
+<summary>How can I validate the authenticity of webhooks?</summary>
+<p>Validate the signature provided in the <code>X-Signature</code> header using HMAC SHA-256 or SHA-1, depending on the webhook type.</p>
+</details>
