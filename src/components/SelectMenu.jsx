@@ -2,137 +2,10 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Listbox, Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import { DocumentCode, MonitorMobbile, Activity, SecurityCard, Link, Calendar, ShieldTick } from 'iconsax-react'
-import { LANGUAGES_CODES, useLocale } from './LocaleProvider'
+import { useLocale } from './LocaleProvider'
 import clsx from 'clsx'
 import { twMerge } from 'tailwind-merge'
-
-const LINKS = {
-  [LANGUAGES_CODES.ES]: [
-    {
-      title: 'Pagos',
-      description: 'Pagos en línea.',
-      href: '/payments',
-      icon: MonitorMobbile,
-    },
-    {
-      title: 'Web Checkout',
-      description: 'Página de pagos prediseñada.',
-      href: '/checkout',
-      icon: MonitorMobbile,
-    },
-    {
-      title: 'Gateway',
-      description: 'Recibe pagos por API',
-      href: '/gateway',
-      icon: DocumentCode,
-    },
-    {
-      title: '3DS Server',
-      description: 'Pagos más seguros',
-      href: '/three-d-s-server',
-      icon: Activity,
-    },
-    {
-      title: 'ACS',
-      description: 'Pagos más seguros',
-      href: '/acs',
-      icon: Activity,
-    },
-    {
-      title: 'Token Requestor',
-      description: 'Servicio de tokenización publica',
-      href: '/token-requestor',
-      icon: SecurityCard,
-    },
-    {
-      title: 'Link de Pago',
-      description: 'Crea y gestiona links de pago',
-      href: '/payment-links',
-      icon: Link,
-    },
-    {
-      title: 'Micrositios',
-      description: 'Creación y gestión de micrositios',
-      href: '/microsites',
-      icon: Calendar,
-    },
-    {
-      title: 'Account Validator',
-      description: 'Verificación de cuentas',
-      href: '/account-validator',
-      icon: SecurityCard,
-    },
-    {
-      title: 'Api Scudo',
-      description: 'Control de fraude',
-      href: '/api-scudo',
-      icon: ShieldTick,
-    },
-  ],
-  [LANGUAGES_CODES.EN]: [
-    {
-      title: 'Payments',
-      description: 'Online Payments.',
-      href: '/en/payments',
-      icon: MonitorMobbile,
-    },
-    {
-      title: 'Web Checkout',
-      description: 'Pre-designed payment page.',
-      href: '/en/checkout',
-      icon: MonitorMobbile,
-    },
-    {
-      title: 'Gateway',
-      description: 'Receive payments via API.',
-      href: '/en/gateway',
-      icon: DocumentCode,
-    },
-    {
-      title: '3DS Server',
-      description: 'Safer payments.',
-      href: '/en/three-d-s-server',
-      icon: Activity,
-    },
-    {
-      title: 'ACS',
-      description: 'Safer payments.',
-      href: '/en/acs',
-      icon: Activity,
-    },
-    {
-      title: 'Token Requestor',
-      description: 'Public tokenization service',
-      href: '/en/token-requestor',
-      icon: SecurityCard,
-    },
-    {
-      title: 'Payment Link',
-      description: 'Create and manage payment links',
-      href: '/en/payment-links',
-      icon: Link,
-    },
-    {
-      title: 'Microsites',
-      description: 'Create and manage microsites',
-      href: '/en/microsites',
-      icon: Calendar,
-    },
-    {
-      title: 'Account Validator',
-      description: 'Account verification',
-      href: '/account-validator',
-      icon: SecurityCard,
-    },
-    {
-      title: 'Api Scudo',
-      description: 'Fraud control',
-      href: '/en/api-scudo',
-      icon: ShieldTick,
-    },
-  ],
-}
+import { getNamespaceSelectorByLocale } from '@/utils/getNamespaceSelectorByLocale'
 
 const OptionSelector = ({ item, active, selected, iconClass = '' }) => (
   <>
@@ -173,7 +46,7 @@ export const NamespaceSelector = () => {
   }
 
   useEffect(() => {
-    const links = LINKS[locale]
+    const links = getNamespaceSelectorByLocale(locale);
     const path = router.asPath
     const selected = links.find((link) => path.startsWith(link.href))
     setSelected(selected)
@@ -207,7 +80,7 @@ export const NamespaceSelector = () => {
             leaveTo="opacity-0"
           >
             <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 sm:text-sm">
-              {LINKS[locale].map((linkItem) => (
+              {getNamespaceSelectorByLocale(locale).map((linkItem) => (
                 <Listbox.Option
                   key={linkItem.href}
                   className="relative flex w-full cursor-pointer select-none gap-3 p-2 hover:bg-primary-300/10"
