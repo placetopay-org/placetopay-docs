@@ -1,93 +1,16 @@
 # Webhooks
 
-Un webhook es una notificación enviada a una URL mediante una solicitud HTTP. En Placetopay, los webhooks permiten a los sistemas externos recibir información en tiempo real sobre el estado de alguna transacción. {{ className: 'lead' }}
+Un webhook es una notificación enviada a una URL mediante una solicitud HTTPS. En Placetopay, los webhooks permiten a los sistemas externos recibir información en tiempo real sobre el estado de alguna transacción. {{ className: 'lead' }}
 
-Actualmente se soportan diversos tipos de webhooks, cada uno con un propósito específico y configuración distinta. A continuación, se describen los tipos de webhooks disponibles:
-
-- Webhook definido en la sesión
-- Webhook para devoluciones ACH
-
-## Webhook definido en la sesión
-
-Al crear una sesión de pago es posible configurar una URL de notificación. Cuando ocurra una actualización en la sesión (sesión aprobada, transacción reversada, etc.), automáticamente se enviará un webhook a esta URL.
-
-- **Propósito**: Notificar al comercio cuando cambia el estado de una sesión.
-- **Configuración**: Se define al crear la sesión, incluyendo el dato `notificationURL` en [Gateway - Process request](http://localhost:3000/gateway/api/reference/transaction#process-request).
-- **Evento**: Cuando una sesión es actualizada (cambio de pendiente a aprobada, aprobada a reversada, etc.).
-- **Información enviada**: Información básica de la sesión: estado, razón, internalReference, referencia, entre otros.
-
-```json {{ title: 'Ejemplo configuración de notificationURL' }}
-{
-  "locale": "es_CO",
-  "auth": {
-    "login": "YOUR_LOGIN",
-    "tranKey": "YOUR_TRANKEY",
-    "nonce": "YOUR_NONCE",
-    "seed": "2024-11-14T12:00:00-05:00"
-  },
-  "payment": {
-    "reference": "ORDER123",
-    "description": "Compra en línea",
-    "amount": {
-      "currency": "USD",
-      "total": 10.00
-    }
-  },
-  "notificationURL" : "https://example.test/notification"
-}
-```
-
-```json {{ title: 'Ejemplo de notificación' }}
-{
-  "status": {
-    "status": "APPROVED",
-    "reason": "00",
-    "message": "Transacción aprobada",
-    "date": "2024-11-14T10:43:33-05:00"
-  },
-  "internalReference": 1000,
-  "reference": "PAY_ABC_1287",
-  "signature": "[firma para validar la autenticidad]"
-}
-```
-
-### Validación de la Firma
-
-Para garantizar la autenticidad de la notificación, el webhook definido en la sesión incluye una firma en el encabezado `X-Signature`. Puedes validar esta firma utilizando un hash SHA-1 generado con los valores del ID de la sesión, el estado de la sesión y la llave de transacción (`tranKey`) de tu sitio.
-
-```javascript {{ title: 'Validación en JavaScript' }}
-const crypto = require('crypto');
-
-const sessionId = notificationBody.session.id;
-const sessionStatus = notificationBody.session.status;
-const tranKey = 'YOUR_SITE_TRANKEY';
-
-const signatureString = `${sessionId}${sessionStatus}${tranKey}`;
-
-// Generar la firma localmente
-const generatedSignature = crypto
-  .createHash('sha1')
-  .update(signatureString)
-  .digest('hex');
-
-// Firma recibida en la notificación
-const receivedSignature = headers['X-Signature'];
-
-// Validar la firma
-if (generatedSignature === receivedSignature) {
-  console.log("La notificación es auténtica.");
-} else {
-  console.log("Firma inválida: la notificación no es auténtica.");
-}
-```
-
+Webhooks es una nueva funcionalidad que pretende complementar los casos cubiertos por la funcionalidad de [Notificación de transacción](/gateway/notification). Actualmente sólo se cubre el caso de uso para _Webhook devoluciones ACH_
+ 
 ## Webhook para devoluciones ACH
 
 El webhook para devoluciones ACH permite a los comercios recibir notificaciones en tiempo real sobre devoluciones en su sitio.
 
 - **Propósito**: Notificar al comercio cuando ocurre una devolución ACH.
 - **Configuración**: Se configura en el panel administrativo de Placetopay, a través del equipo de operaciones, proporcionando la URL deseada.
-- **Evento**: Envío de notificación HTTP cuando se genera una devolución ACH.
+- **Evento**: Envío de notificación HTTPS cuando se genera una devolución ACH.
 - **Información enviada**: Toda información directa de una sesión.
 
 ```plaintext {{ title: 'Headers' }}

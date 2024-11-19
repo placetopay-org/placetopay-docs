@@ -1,85 +1,8 @@
 # Webhooks
 
-A webhook is a notification sent to a URL via an HTTP request. In Placetopay, webhooks allow external systems to receive real-time information about the status of a transaction. {{ className: 'lead' }}
+A webhook is a notification sent to a URL using an HTTPS request. At Placetopay, webhooks allow external systems to receive real-time information about the status of a transaction. {{ className: 'lead' }} 
 
-Currently, several types of webhooks are supported, each with a specific purpose and different configuration. The available webhooks are:
-
-- Webhook defined in the session
-- Webhook for ACH returns
-
-## Webhook defined in the session
-
-When creating a payment session, it is possible to configure a notification URL. Whenever an update occurs in the session (session approved, transaction reversed, etc.), a webhook will automatically be sent to this URL.
-
-- **Purpose**: Notify the merchant when the status of a session changes.
-- **Configuration**: Defined when creating the session by including the `notificationURL` parameter in [Gateway - Process request](http://localhost:3000/gateway/api/reference/transaction#process-request).
-- **Event**: When a session is updated (e.g., pending to approved, approved to reversed, etc.).
-- **Information sent**: Basic session information such as status, reason, internalReference, reference, among others.
-
-```json {{ title: 'Example configuration of notificationURL' }}
-{
-  "locale": "en_US",
-  "auth": {
-    "login": "YOUR_LOGIN",
-    "tranKey": "YOUR_TRANKEY",
-    "nonce": "YOUR_NONCE",
-    "seed": "2024-11-14T12:00:00-05:00"
-  },
-  "payment": {
-    "reference": "ORDER123",
-    "description": "Online purchase",
-    "amount": {
-      "currency": "USD",
-      "total": 10.00
-    }
-  },
-  "notificationURL" : "https://example.test/notification"
-}
-```
-
-```json {{ title: 'Notification example' }}
-{
-  "status": {
-    "status": "APPROVED",
-    "reason": "00",
-    "message": "Transaction approved",
-    "date": "2024-11-14T10:43:33-05:00"
-  },
-  "internalReference": 1000,
-  "reference": "PAY_ABC_1287",
-  "signature": "[signature for authenticity validation]"
-}
-```
-
-### Signature validation
-
-To ensure the authenticity of the notification, the session webhook includes a signature in the `X-Signature` header. You can validate this signature using an SHA-1 hash generated with the values of the session ID, session status, and the transaction key (`tranKey`) of your site.
-
-```javascript {{ title: 'Validation in JavaScript' }}
-const crypto = require('crypto');
-
-const sessionId = notificationBody.session.id;
-const sessionStatus = notificationBody.session.status;
-const tranKey = 'YOUR_SITE_TRANKEY';
-
-const signatureString = `${sessionId}${sessionStatus}${tranKey}`;
-
-// Generate the signature locally
-const generatedSignature = crypto
-  .createHash('sha1')
-  .update(signatureString)
-  .digest('hex');
-
-// Signature received in the notification
-const receivedSignature = headers['X-Signature'];
-
-// Validate the signature
-if (generatedSignature === receivedSignature) {
-  console.log("The notification is authentic.");
-} else {
-  console.log("Invalid signature: the notification is not authentic.");
-}
-```
+Webhooks is a new feature that is intended to complement the cases covered by the [Transaction Notification](/gateway/notification) feature. Currently only the use case for _Webhook ACH returns_ is covered.
 
 ## Webhook for ACH returns
 
@@ -87,7 +10,7 @@ The webhook for ACH returns allows merchants to receive real-time notifications 
 
 - **Purpose**: Notify the merchant when an ACH return occurs.
 - **Configuration**: Configured in the Placetopay administrative panel through the operations team, providing the desired URL.
-- **Event**: HTTP notification sent when an ACH return is generated.
+- **Event**: HTTPS notification sent when an ACH return is generated.
 - **Information sent**: All direct session-related information.
 
 ```plaintext {{ title: 'Headers' }}

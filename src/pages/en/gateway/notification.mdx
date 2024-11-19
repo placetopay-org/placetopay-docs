@@ -33,3 +33,33 @@ If the generated `signature` is equal to the `signature` received in the message
 **Update Information:** If all you need is the final status of the transaction, then you can update the status in your system.
 
 If you need additional information, you must query the transaction using the `internalReference`.
+
+### Signature validation
+
+To ensure the authenticity of the notification, the session webhook includes a signature in the `X-Signature` header. You can validate this signature using an SHA-1 hash generated with the values of the session ID, session status, and the transaction key (`tranKey`) of your site.
+
+```javascript {{ title: 'Validation in JavaScript' }}
+const crypto = require('crypto');
+
+const sessionId = notificationBody.session.id;
+const sessionStatus = notificationBody.session.status;
+const tranKey = 'YOUR_SITE_TRANKEY';
+
+const signatureString = `${sessionId}${sessionStatus}${tranKey}`;
+
+// Generate the signature locally
+const generatedSignature = crypto
+  .createHash('sha1')
+  .update(signatureString)
+  .digest('hex');
+
+// Signature received in the notification
+const receivedSignature = headers['X-Signature'];
+
+// Validate the signature
+if (generatedSignature === receivedSignature) {
+  console.log("The notification is authentic.");
+} else {
+  console.log("Invalid signature: the notification is not authentic.");
+}
+```
