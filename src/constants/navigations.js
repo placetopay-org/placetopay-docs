@@ -1,10 +1,147 @@
 import { LANGUAGES_CODES } from '@/components/LocaleProvider'
-import { Book, DocumentCode } from 'iconsax-react'
+import { Book, MonitorMobbile, Activity, SecurityCard, Link, Calendar, ShieldTick, DocumentCode } from 'iconsax-react'
+
+/**
+ * List of options to be displayed in the navigation selector
+ * 
+ * title: Title of the option
+ * description: Description of the option
+ * href: Route to redirect to
+ * icon: Icon to display
+ */
+export const NAMESPACES_SELECTOR = {
+  [LANGUAGES_CODES.ES]: [
+    {
+      title: 'Pagos',
+      description: 'Pagos en línea.',
+      href: '/payments',
+      icon: MonitorMobbile,
+    },
+    {
+      title: 'Web Checkout',
+      description: 'Página de pagos prediseñada.',
+      href: '/checkout',
+      icon: MonitorMobbile,
+    },
+    {
+      title: 'Gateway',
+      description: 'Recibe pagos por API',
+      href: '/gateway',
+      icon: DocumentCode,
+    },
+    {
+      title: '3DS Server',
+      description: 'Pagos más seguros',
+      href: '/three-d-s-server',
+      icon: Activity,
+    },
+    {
+      title: 'ACS',
+      description: 'Pagos más seguros',
+      href: '/acs',
+      icon: Activity,
+    },
+    {
+      title: 'Token Requestor',
+      description: 'Servicio de tokenización publica',
+      href: '/token-requestor',
+      icon: SecurityCard,
+    },
+    {
+      title: 'Link de Pago',
+      description: 'Crea y gestiona links de pago',
+      href: '/payment-links',
+      icon: Link,
+    },
+    {
+      title: 'Micrositios',
+      description: 'Creación y gestión de micrositios',
+      href: '/microsites',
+      icon: Calendar,
+    },
+    {
+      title: 'Account Validator',
+      description: 'Verificación de cuentas',
+      href: '/account-validator',
+      icon: SecurityCard,
+    },
+    {
+      title: 'Api Scudo',
+      description: 'Control de fraude',
+      href: '/api-scudo',
+      icon: ShieldTick,
+    },
+  ],
+  [LANGUAGES_CODES.EN]: [
+    {
+      title: 'Payments',
+      description: 'Online Payments.',
+      href: '/en/payments',
+      icon: MonitorMobbile,
+    },
+    {
+      title: 'Web Checkout',
+      description: 'Pre-designed payment page.',
+      href: '/en/checkout',
+      icon: MonitorMobbile,
+    },
+    {
+      title: 'Gateway',
+      description: 'Receive payments via API.',
+      href: '/en/gateway',
+      icon: DocumentCode,
+    },
+    {
+      title: '3DS Server',
+      description: 'Safer payments.',
+      href: '/en/three-d-s-server',
+      icon: Activity,
+    },
+    {
+      title: 'ACS',
+      description: 'Safer payments.',
+      href: '/en/acs',
+      icon: Activity,
+    },
+    {
+      title: 'Token Requestor',
+      description: 'Public tokenization service',
+      href: '/en/token-requestor',
+      icon: SecurityCard,
+    },
+    {
+      title: 'Payment Link',
+      description: 'Create and manage payment links',
+      href: '/en/payment-links',
+      icon: Link,
+    },
+    {
+      title: 'Microsites',
+      description: 'Create and manage microsites',
+      href: '/en/microsites',
+      icon: Calendar,
+    },
+    {
+      title: 'Account Validator',
+      description: 'Account verification',
+      href: '/account-validator',
+      icon: SecurityCard,
+    },
+    {
+      title: 'Api Scudo',
+      description: 'Fraud control',
+      href: '/en/api-scudo',
+      icon: ShieldTick,
+    },
+  ],
+}
 
 /** 
+ * List of options used to map the URL path to
+ * its corresponding path in the routes object
  * 
- * 
- * urlPath : TabNavigation key
+ * KEY : URL path
+ * VALUE : TAB_NAVIGATION key
  */
 export const NAMESPACE_ROUTES = {
   payments: 'payments',
@@ -23,9 +160,25 @@ export const NAMESPACE_ROUTES = {
 }
 
 /**
+ * List of options that will be displayed in
+ * the left navigation menu within each page
  * 
+ * KEY : TAB_NAVIGATION key
+ * VALUE : List of options
  * 
- * NamespaceRoute value : Route object
+ * title: Title of the option
+ * identifier: Unique identifier of the option which must be included in the path to identify the object that is active on the page
+ * href: Route to redirect to
+ * icon: Icon to display
+ * links: List of sub-options
+ * 
+ * Sub-options (Sections):
+ * title: Title of the sub-option
+ * links: List of sub-options
+ * 
+ * Sub-options (Pages):
+ * title: Title of the sub-option
+ * href: Route to redirect to
  */
 export const TAB_NAVIGATION = {
   payments: {
@@ -754,7 +907,7 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
-  'tokenRequestor': {
+  tokenRequestor: {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'Documentación',
@@ -1127,7 +1280,7 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
-  'accountValidator': {
+  accountValidator: {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'API',
@@ -1187,7 +1340,7 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
-  'paymentLinks': {
+  paymentLinks: {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'Documentación',
@@ -1546,7 +1699,7 @@ export const TAB_NAVIGATION = {
       }
     ]
   },
-  'apiScudo': {
+  apiScudo: {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'Documentación',
