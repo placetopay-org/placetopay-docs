@@ -207,6 +207,13 @@ export const TAB_NAVIGATION = {
               { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },
             ],
           },
+          {
+            title: 'Links de Pago',
+            links: [
+              { title: 'Introducción', href: '/payments/payment-links' },
+              { title: 'Crear un link de pago', href: '/payments/payment-links/create-new-link' },
+            ],
+          }
         ],
       }
     ],
