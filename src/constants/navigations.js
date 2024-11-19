@@ -458,10 +458,6 @@ export const TAB_NAVIGATION = {
                 title: 'DAF: Digital Authentication Framework',
                 href: '/three-d-s-server/api/integration/session-d-a-f',
               },
-              {
-                title: 'Obtener información de una autenticación',
-                href: '/three-d-s-server/api/integration/authentication-info',
-              },
             ],
           },
           {
@@ -491,6 +487,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Valores devueltos en la respuesta',
                 href: '/three-d-s-server/api/transactions/values',
+              },
+              {
+                title: 'Obtener información de una autenticación',
+                href: '/three-d-s-server/api/transactions/authentication-info',
               },
             ],
           },
@@ -617,10 +617,6 @@ export const TAB_NAVIGATION = {
                 title: 'DAF: Digital Authentication Framework',
                 href: '/three-d-s-server/api/integration/session-d-a-f',
               },
-              {
-                title: 'Get authentication information',
-                href: '/three-d-s-server/api/integration/authentication-info',
-              },
             ],
           },
           {
@@ -650,6 +646,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Values returned in the response',
                 href: '/three-d-s-server/api/transactions/values',
+              },
+              {
+                title: 'Get authentication information',
+                href: '/three-d-s-server/api/transactions/authentication-info',
               },
             ],
           },
