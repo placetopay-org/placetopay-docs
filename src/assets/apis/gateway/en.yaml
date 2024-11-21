@@ -2071,96 +2071,6 @@ paths:
     post:
       summary: "3DS Lookup"
       operationId: "post-mpi-lookup"
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                description: ""
-                type: "object"
-                properties:
-                  status:
-                    $ref: "#/components/schemas/Status"
-                  data:
-                    type: "object"
-                    required:
-                      - "version"
-                    properties:
-                      version:
-                        type: "string"
-                        minLength: "1"
-                        enum:
-                          - "v1"
-                          - "v2"
-                        maxLength: "2"
-                      enrolled:
-                        type: "string"
-                        minLength: "1"
-                        enum:
-                          - "N"
-                          - "Y"
-                          - "U"
-                        maxLength: "1"
-                      redirectUrl:
-                        type: "string"
-                        description: "URL to send to the user to continue with the process"
-                        nullable: "true"
-                      identifier:
-                        type: "string"
-                        description: "Process identifier in 3DS"
-                        nullable: "true"
-                      eci:
-                        type: "string"
-                        minLength: "1"
-                        nullable: "true"
-                      formData:
-                        type: "object"
-                        nullable: "true"
-                required:
-                  - "status"
-                  - "data"
-              examples:
-                Ejemplo v1:
-                  value:
-                    status:
-                      status: "OK"
-                      reason: "00"
-                      message: "The request has been processed successfully"
-                      date: "2021-09-21T11:50:46-05:00"
-                    data:
-                      version: "v1"
-                      enrolled: "Y"
-                      redirectUrl: "https://3ds-server-to-authenticate.com/3ds"
-                      identifier: "1"
-                      eci:
-                      formData:
-                Ejemplo v2:
-                  value:
-                    status:
-                      status: "OK"
-                      reason: "00"
-                      message: "La petición se ha procesado correctamente"
-                      date: "2021-09-21T12:09:36-05:00"
-                    data:
-                      version: "v2"
-                      sessionToken: "60"
-                      redirectUrl: "https://www.google.com"
-                      identifier: "12"
-                No usa 3DS:
-                  value:
-                    status:
-                      status: "OK"
-                      reason: "00"
-                      message: "La petición se ha procesado correctamente"
-                      date: "2021-09-21T11:40:03-05:00"
-                    data:
-                      version: "v1"
-                      enrolled: "N"
-                      redirectUrl:
-                      identifier:
-                      eci: "07"
-                      formData:
       description: "Performs the initial 3DS validation process, returning the data so that the user can continue with the process"
       tags:
         - "Proceso 3DS"
@@ -2168,78 +2078,115 @@ paths:
         content:
           application/json:
             schema:
-              type: "object"
-              properties:
-                auth:
-                  $ref: "#/components/schemas/Authentication"
-                payment:
-                  $ref: "#/components/schemas/Payment"
-                instrument:
-                  $ref: "#/components/schemas/Instrument"
-                returnUrl:
-                  type: "string"
-                  format: "uri"
-                  maxLength: 250
-                  description: "Return URL to regain user control"
-                subscription:
-                  $ref: "#/components/schemas/Subscription"
-                action:
-                  type: "string"
-                  nullable: true
-                  description: "Tipo de transacción puede ser checkin, pre_authorization"
-                  enum:
-                    - checkin
-                    - pre_authorization
-                version:
-                  type: "string"
-                  nullable: true
-                  description: "3DS version on which the request will be processed. Can be v2, v2x"
-                  enum:
-                    - v2
-                    - v2x
-                additional:
-                  type: object
+              oneOf:
+                - title: "Version 2"
+                  type: "object"
                   properties:
-                    initiatorIndicator:
-                      type: string
-                      description: "Actor that generates the transaction. It can be AGENT when it is different from the cardholder or AGENT_COF when the card is registered in the wallet"
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    payment:
+                      $ref: "#/components/schemas/Payment"
+                    buyer:
+                      $ref: "#/components/schemas/Buyer"
+                    payer:
+                      $ref: "#/components/schemas/Payer"
+                    instrument:
+                      $ref: "#/components/schemas/Instrument"
+                    subscription:
+                      $ref: "#/components/schemas/Subscription"
+                    action:
+                      type: "string"
                       nullable: true
+                      description: "Transaction type"
                       enum:
-                        - AGENT
-                        - AGENT_CONF
-            examples:
-              Example:
-                value:
-                  auth:
-                    login: "c4ca4238a0b923820dcc509a6f75849b"
-                    tranKey: "HRAM4JvfAWrlG16GLR/6yKpctY/OVC1zeekbJLSifFc="
-                    nonce: "NjE0YTA5YjAxMzJkYw=="
-                    seed: "2021-09-21T11:34:56-05:00"
-                  payment:
-                    reference: "1234567890"
-                    description: "Testing Payment"
-                    amount:
-                      currency: "USD"
-                      total: "3000"
-                  instrument:
-                    card:
-                      number: "4111111111111111"
-                      expiration: "05/24"
-                      cvv: "123"
-                  returnUrl: "https://www.your-site.com/return?reference=1234567890"
-                  action: "checkin"
-                  version: "v2x"
-                  additional:
-                    initiatorIndicator: "AGENT"
-  /gateway/mpi/query:
-    post:
-      summary: "3DS Query"
-      operationId: "post-mpi-query"
-      tags:
-        - "3DS process"
+                        - checkin
+                        - pre_authorization
+                    version:
+                      type: "string"
+                      nullable: true
+                      description: "3DS version in which the request will be processed"
+                      enum:
+                        - v2
+                        - v2x
+                    additional:
+                      type: object
+                      properties:
+                        initiatorIndicator:
+                          type: string
+                          description: "Actor that generates the transaction. It can be AGENT when it is different from the cardholder or AGENT_COF when the card is registered in the wallet."
+                          nullable: true
+                          enum:
+                            - AGENT
+                            - AGENT_CONF
+                - title: "Version 1"
+                  deprecated: true
+                  description: "This version will no longer be supported, please migrate your integration to the latest version."
+                  type: "object"
+                  properties:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    payment:
+                      $ref: "#/components/schemas/Payment"
+                    instrument:
+                      $ref: "#/components/schemas/Instrument"
+                    returnUrl:
+                      type: "string"
+                      format: "uri"
+                      maxLength: 250
+                      description: "Return URL to regain user control"
+                    subscription:
+                      $ref: "#/components/schemas/Subscription"
       responses:
         200:
           description: "OK"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - title: "Version 2"
+                    properties:
+                      tatus:
+                        $ref: "#/components/schemas/Status"
+                      data:
+                        type: "object"
+                        properties:
+                          action:
+                            type: "string"
+                            enum:
+                              - "redirect"
+                              - "continue"
+                          version:
+                            type: "string"
+                            enum:
+                              - "v2x"
+                              - "v2"
+                          sessionToken:
+                            type: "string"
+                            example: "1bbf97e3660511d0ce82c15fca343307ba2f87fe84ba421368afb041ba1f638f"
+                          redirectUrl:
+                            type: "string"
+                          identifier:
+                            type: "integer"
+                  - title: "Version 1"
+                    properties:
+                      tatus:
+                        $ref: "#/components/schemas/Status"
+                      data:
+                        type: "object"
+                        properties:
+                          version:
+                            type: "string"
+                            enum:
+                              - "v2"
+                          sessionToken:
+                            type: "string"
+                            example: "1bbf97e3660511d0ce82c15fca343307ba2f87fe84ba421368afb041ba1f638f"
+                          redirectUrl:
+                            type: "string"
+                          identifier:
+                            type: "string"
+        400:
+          description: "Bad request"
           content:
             application/json:
               schema:
@@ -2248,26 +2195,198 @@ paths:
                 properties:
                   status:
                     $ref: "#/components/schemas/Status"
-                  data:
-                    $ref: "#/components/schemas/ThreeDS"
-                required:
-                  - "status"
-                  - "data"
+  /gateway/mpi/query:
+    post:
+      summary: "3DS Query"
+      operationId: "post-mpi-query"
+      tags:
+        - "3DS process"
       requestBody:
         content:
           application/json:
             schema:
-              description: ""
-              type: "object"
-              properties:
-                auth:
-                  $ref: "#/components/schemas/Authentication"
-                id:
-                  type: "string"
-                  description: "Identifier returned in the initial lookup about which to consult"
-              required:
-                - "auth"
-                - "id"
+              oneOf:
+                - title: "Versión 2"
+                  description: ""
+                  type: "object"
+                  properties:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    id:
+                      type: "string"
+                      description: "Identificador retornado en el lookup inicial sobre el cual se va a consultar"
+                  required:
+                    - "auth"
+                    - "id"
+                - title: "Versión 1"
+                  deprecated: true
+                  description: "This version will no longer be supported, please migrate your integration to the latest version."
+                  type: "object"
+                  properties:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    instrument:
+                      title: "Instrumento (Propiedad Obsoleta)"
+                      type: "object"
+                      deprecated: true
+                      description: "Structure that contains information about the payment method to be used in a transaction. This structure varies according to the request generated. Each service requires that certain data be used."
+                      properties:
+                        card:
+                          $ref: "#/components/schemas/Card"
+                    id:
+                      type: "string"
+                      description: "Identifier returned in the initial lookup on which the query is to be made."
+                  required:
+                    - "auth"
+                    - "id"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - title: "Version 2X"
+                    type: "object"
+                    properties:
+                      tatus:
+                        $ref: "#/components/schemas/Status"
+                      data:
+                        $ref: "#/components/schemas/ThreeDS"
+                    required:
+                      - "status"
+                      - "data"
+                  - title: "Version 2"
+                    type: "object"
+                    properties:
+                      tatus:
+                        $ref: "#/components/schemas/Status"
+                      data:
+                        type: "object"
+                        properties:
+                          identifier:
+                            type: "integer"
+                          enrolled:
+                            type: "string"
+                            minLength: 1
+                            enum:
+                              - "Y"
+                              - "N"
+                              - "U"
+                            description: "Reports whether the card is registered in 3DS"
+                          authenticated:
+                            type: "string"
+                            minLength: 1
+                            enum:
+                              - "Y"
+                              - "N"
+                              - "U"
+                              - "A"
+                              - "I"
+                              - "C"
+                              - "D"
+                              - "R"
+                            maxLength: 1
+                          validSignature:
+                            type: "boolean"
+                          eci:
+                            type: "string"
+                            minLength: 1
+                            enum:
+                              - "02"
+                              - "01"
+                              - "00"
+                              - "05"
+                              - "06"
+                              - "07"
+                          cavv:
+                            type: "string"
+                            minLength: 1
+                            nullable: true
+                          xid:
+                            type: "string"
+                            minLength: 1
+                          version:
+                            type: "string"
+                            minLength: 1
+                            enum:
+                              - "v1"
+                              - "v2"
+                              - "v2x"
+                          extra:
+                            type: "object"
+                            properties:
+                              transStatusReason:
+                                type: string
+                                nullable: true
+                              acsTransId:
+                                type: string
+                                example: "37a7b6e0-fd58-4e38-98de-79c70c526a47"
+                              threeDSServerTransID:
+                                type: string
+                                example: "eadd3a60-b870-41d0-977f-921b3dbe6323/MkGJDl2Y5E="
+                    required:
+                      - "status"
+                      - "data"
+                  - title: "Version 1"
+                    deprecated: true
+                    description: "This version will no longer be supported, please migrate your integration to the latest version."
+                    type: "object"
+                    properties:
+                      tatus:
+                        $ref: "#/components/schemas/Status"
+                      data:
+                        type: object
+                        properties:
+                          id:
+                            type: "number"
+                            description: "This value only applies if the validation was done with the Placetopay 3DS service"
+                          enrolled:
+                            type: "string"
+                            minLength: 1
+                            enum:
+                              - "Y"
+                              - "N"
+                              - "U"
+                            description: "Reports whether the card is registered in 3DS"
+                          authenticated:
+                            type: "string"
+                            minLength: 1
+                            enum:
+                              - "Y"
+                              - "N"
+                              - "U"
+                              - "A"
+                              - "I"
+                              - "C"
+                              - "D"
+                              - "R"
+                            maxLength: 1
+                          validSignature:
+                            type: "boolean"
+                          eci:
+                            type: "string"
+                            minLength: 1
+                            enum:
+                              - "02"
+                              - "01"
+                              - "00"
+                              - "05"
+                              - "06"
+                              - "07"
+                          cavv:
+                            type: "string"
+                            minLength: 1
+                            nullable: true
+                          xid:
+                            type: "string"
+                            minLength: 1
+                          version:
+                            type: "string"
+                            minLength: 1
+                            enum:
+                              - "v1"
+                              - "v2"
   /gateway/balance:
     post:
       summary: "Service to obtain the balance"
@@ -2630,7 +2749,9 @@ components:
           description: "City"
         state:
           type: "string"
-          description: "State/province/department"
+          description: "Code ISO 3166-2 of state/province/department"
+          maxLength: "3"
+          example: "NY"
         postalCode:
           type: "string"
           maxLength: "10"
@@ -3315,7 +3436,16 @@ components:
             - "v2x"
         extra:
           type: "object"
-          nullable: true
+          properties:
+            transStatusReason:
+              type: string
+              nullable: true
+            acsTransId:
+              type: string
+              example: "37a7b6e0-fd58-4e38-98de-79c70c526a47"
+            threeDSServerTransID:
+              type: string
+              example: "eadd3a60-b870-41d0-977f-921b3dbe6323/MkGJDl2Y5E="
       required:
         - "enrolled"
         - "authenticated"
@@ -3419,3 +3549,22 @@ components:
       required:
         - "number"
         - "expiration"
+    Payer:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        surname:
+          type: "string"
+        email:
+          type: "string"
+        mobile:
+          type: "string"
+          example: "+573195505452"
+        address:
+          $ref: "#/components/schemas/Address"
+    Buyer:
+      type: "object"
+      properties:
+        address:
+          $ref: "#/components/schemas/Address"
