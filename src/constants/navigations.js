@@ -292,8 +292,7 @@ export const TAB_NAVIGATION = {
                 href: '/checkout/skip-result',
               },
               {
-                title:
-                  'Consideraciones de seguridad',
+                title: 'Consideraciones de seguridad',
                 href: '/checkout/security-considerations'
               }
             ],
@@ -382,6 +381,10 @@ export const TAB_NAVIGATION = {
                 title: 'Skip result',
                 href: '/checkout/skip-result',
               },
+              {
+                title: 'Consideraciones de seguridad',
+                href: '/checkout/security-considerations'
+              }
             ],
           },
         ],
