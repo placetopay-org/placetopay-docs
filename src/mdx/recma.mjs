@@ -46,6 +46,45 @@ function recmaAddOpenapiRefsToStaticProps() {
       },
     })
 
+    let dereferenceArguments = [
+      {
+        type: 'MemberExpression',
+        computed: false,
+        object: {
+          type: 'MetaProperty',
+          meta: {
+            type: 'Identifier',
+            name: 'import',
+          },
+          property: {
+            type: 'Identifier',
+            name: 'meta',
+          },
+        },
+        property: {
+          type: 'Identifier',
+          name: 'url',
+        },
+      },
+      {
+        type: 'Identifier',
+        name: 'apiRefs',
+      },
+    ]
+
+    if (
+      tree.body.some(
+        (node) =>
+          node.type === 'VariableDeclaration' &&
+          node.declarations[0].id.name === 'apiAssetPath'
+      )
+    ) {
+      dereferenceArguments.push({
+        type: 'Identifier',
+        name: 'apiAssetPath',
+      })
+    }
+
     const getStaticPropsIndex = tree.body.findIndex(
       (node) =>
         node.type === 'ExportNamedDeclaration' &&
@@ -70,31 +109,7 @@ function recmaAddOpenapiRefsToStaticProps() {
               type: 'Identifier',
               name: 'dereferenceOpenapi',
             },
-            arguments: [
-              {
-                type: 'MemberExpression',
-                computed: false,
-                object: {
-                  type: 'MetaProperty',
-                  meta: {
-                    type: 'Identifier',
-                    name: 'import',
-                  },
-                  property: {
-                    type: 'Identifier',
-                    name: 'meta',
-                  },
-                },
-                property: {
-                  type: 'Identifier',
-                  name: 'url',
-                },
-              },
-              {
-                type: 'Identifier',
-                name: 'apiRefs',
-              },
-            ],
+            arguments: dereferenceArguments,
           },
         },
       }
@@ -135,7 +150,7 @@ function recmaAddLayoutProperty() {
           type: 'Identifier',
           name: 'Layout',
         },
-      }
+      },
     })
   }
 }
@@ -165,7 +180,9 @@ const recmaAddLocalizeHook = () => {
     })
 
     const getCreateMdxContentIndex = tree.body.findIndex(
-      (node) => node.type === 'FunctionDeclaration' && node.id.name === '_createMdxContent'
+      (node) =>
+        node.type === 'FunctionDeclaration' &&
+        node.id.name === '_createMdxContent'
     )
 
     tree.body[getCreateMdxContentIndex].body.body.splice(0, 0, {
@@ -185,7 +202,7 @@ const recmaAddLocalizeHook = () => {
               name: 'useLocalizePath',
             },
             arguments: [],
-            optional: false
+            optional: false,
           },
         },
       ],

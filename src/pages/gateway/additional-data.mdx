@@ -1,0 +1,153 @@
+export const sectionMode = 'nav';
+import { AdditionalDataExamples } from '@/components/AdditionalDataExamples';
+
+export const description =
+  'La propiedad processorFields proporciona información adicional sobre el procesamiento de una sesión finalizada. Cada objeto se guarda en payment.processorFields con el tipo NameValuePair.'
+
+### Datos en respuestas a process transaction
+
+Existen datos adicionales que son recibidos en respuesta a la solicitud de procesamiento de una transacción. La recepción de estos datos depende de diversos factores, y viene en la respuesta como `additional`.
+
+```json
+{
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "Approved",
+        "date": "2024-07-17T15:28:35-05:00"
+    },
+    // ...
+    "additional": {
+      // Datos adicionales
+      "bin": "411076",
+      "terminalNumber": "00990101",
+      // ...
+    }
+}
+```
+
+### Ejemplos de datos adicionales
+
+<AdditionalDataExamples/>
+
+## Credit {{ id: 'additional-data-credit' }}
+Este campo especifica la cantidad de cuotas disponibles para financiar el monto total de un pago, acompañado de una descripción de las condiciones de financiamiento.
+La descripción de los créditos depende directamente de sus propiedades `installments`, `code` y `groupCode`, así como del proveedor a través del cual se está procesando el pago.
+
+### Estructura:
+- **type**: Identificador que representa el tipo de crédito.
+- **groupCode**: Código que agrupa los créditos por categoría.
+- **installments**: Cantidad de cuotas disponibles para el crédito.
+- **code**: Código único asociado al crédito específico.
+- **description**: Descripción detallada de las condiciones de financiamiento.
+
+### Créditos por proveedor
+### **DATAFAST** - **MEDIANET** - **AUSTRO** -  **INTERDIN**
+Comparten la misma estructura y descripción de sus créditos de acuerdo al `groupCode` y `code`:
+
+| groupCode | description              |                                                         |
+|-----------| ------------------------ |-------------------------------------------------------- |
+| `C`       | Pago Corriente           | Pago a una cuota                                        |
+| `D`       | Diferido sin intereses   | Pago por cuotas sin interés.                            |
+| `M`       | Diferido plus            | Mezcla con o sin interes, definido por el banco emisor  |
+| `P`       | Diferido con intereses.  | Pago por cuotas con interés.                            |
+| `N`       | Plan pagos normal        |                                                         |
+| `X`       | Plan pagos especial      | Pago Sin cobro de intereses                             |
+| `L`       | Diferido preferente      | Pago por cuotas con interés más bajo                    |
+| `B`       | Plan 0%                  |                                                         |
+
+```json
+  [
+    {
+      "code" : "1",
+      "type" : "00",
+      "groupCode" : "C",
+      "installments" : [1],
+      "description" : "Pago corriente 1 mes de gracia",
+    }
+    {
+      "code" : "3",
+      "type" : "01",
+      "groupCode" : "D",
+      "installments" : [3],
+      "description" : "Pago por cuotas sin interés con 3 meses de gracia para iniciar pago",
+    }
+    ...
+  ]
+```
+
+### FLAMINGO, REDEBAN
+Comparten la siguiente estructura, donde su única variación es la cantidad de cuotas permitidas para el pago del crédito en la propiedad `installments`.
+
+| groupCode | description              |            |
+|-----------| ------------------------ |----------- |
+| C         | Cuotas                   |            |
+
+```json
+{
+      "code": "0",
+      "groupCode": "C",
+      "type": "00",
+      "installments": [1,2,3,4,5,12],
+      "description": "Cuotas",
+}
+```
+
+### TRANSERVER
+| groupCode | description              |           |
+|-----------| ------------------------ |---------- |
+| Q         | PLAN 0                   |           |
+| C         | Pago corriente           |           |
+
+```json
+  [
+    {
+      "code": "000000",
+      "groupCode": "C",
+      "type": "00",
+      "description": "Pago corriente",
+      "installments": [1]
+    },
+    {
+      "code": "03BCR",
+      "type": "0",
+      "groupCode": "Q",
+      "installments": [3],
+      "description": "PLAN 0 BCR 3C BCR"
+    },
+  ]
+```
+
+### PAYESTUDIO
+| groupCode | installments             | description            |
+|-----------| ------------------------ |----------------------- |
+| Q         | [1,12]                   | Cuotas                 |
+| Q         | [1]                      | Sin cuotas             |
+| Q         | [1,12]                   | Cuotas precio contado  |
+
+```json
+ [
+    {
+      "code": "00",
+      "groupCode": "Q",
+      "type": "00",
+      "description": "Sin Cuotas",
+      "installments": [1]
+    },
+    {
+      "code": "00",
+      "groupCode": "Q",
+      "type": "00",
+      "installments": [3],
+      "description": "Cuotas",
+    },
+    {
+      "code": "00",
+      "groupCode": "Q",
+      "type": "00",
+      "installments": [2,24],
+      "description": "Cuotas precio contado",
+    },
+ ]
+
+```

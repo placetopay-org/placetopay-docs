@@ -3,10 +3,9 @@ import { useRouter } from 'next/router'
 import { createAutocomplete } from '@algolia/autocomplete-core'
 import { Dialog, Transition } from '@headlessui/react'
 import clsx from 'clsx'
-import { CHECKOUT_NAVIGATION } from '@/constants/navigations'
 import Highlighter from 'react-highlight-words'
-import { useLocale } from './LocaleProvider'
 import { getWindowLocale } from '@/lib/getWindowLocale'
+import { useAllNavigation } from '@/hooks/useNavigation'
 
 function useAutocomplete() {
   let id = useId()
@@ -120,10 +119,10 @@ function SearchResult({
   collection,
   query,
 }) {
-  let {locale} = useLocale()
+  let navigations = useAllNavigation();
   let id = useId()
 
-  let sectionTitle = CHECKOUT_NAVIGATION[locale].find((section) =>
+  let sectionTitle = navigations.find((section) =>
     section.links.find((link) => link.href === result.url.split('#')[0])
   )?.title
   let hierarchy = [sectionTitle, result.pageTitle].filter(Boolean)
@@ -428,7 +427,7 @@ export function Search() {
   }, [])
 
   return (
-    <div className="hidden lg:block lg:max-w-md lg:flex-auto">
+    <div className="hidden lg:block lg:max-w-md lg:flex-auto w-80">
       <button
         type="button"
         className="hidden h-8 w-full items-center gap-2 rounded-full bg-white pl-2 pr-3 text-sm text-gray-500 ring-1 ring-gray-900/10 transition hover:ring-gray-900/20 dark:bg-white/5 dark:text-gray-400 dark:ring-inset dark:ring-white/10 dark:hover:ring-white/20 lg:flex focus:[&:not(:focus-visible)]:outline-none"

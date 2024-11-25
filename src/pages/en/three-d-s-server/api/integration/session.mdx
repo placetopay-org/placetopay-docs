@@ -1,0 +1,392 @@
+export const sectionMode = 'nav';
+
+<MissingTranslationBanner />
+
+# Sesión
+
+El término **"Sesión"** Se refiere a la solicitud de autenticación en el contexto de 3DS. Para llevar a cabo una solicitud de autenticación exitosa, es esencial crear una sesión que se ajuste a las especificaciones y necesidades del protocolo 3DS. Puedes encontrar los detalles en [API - Iniciar Sesión](/en/three-d-s-server/api/sessions) y en [Reglas a tener en cuenta de la session API](/en/three-d-s-server/api/sessions/rules)
+
+**Autorización:** Hace referencia al método indispensable de autorización con nuestra API para realizar peticiones. Dicho método se basa en **Bearer Token**. Para más información, consulta [Autenticación](/en/three-d-s-server/api/integration/authorization).
+
+**Crear Sesión:** Al enviar una solicitud para crear una sesión, 3DS Placetopay comprueba que el rango de la tarjeta sea compatible con el protocolo 3DS **donde verifica la versión del protocolo que soporta**. Una vez realizada la verificación, responde proporcionando la URL hacia donde se realizará la redirección para completar el proceso de autenticación.
+
+<Note>
+    La sesión cuenta con una duración de 15 minutos, periodo durante el cual se debe redirigir al usuario (redirectURL).
+</Note>
+
+### Tipos de autenticaciones disponibles
+
+Los tipos de sesiones presentadas a continuación, son sesiones de transacciones de pago. Es decir que el campo 3DS Requestor
+Authentication Indicator tiene un valor de 01 **Payment transaction**
+
+## Interacción estándar
+
+Una sesión de autenticación básica se refiere al proceso mediante el cual se autentica una única transacción de pago.
+
+#### Ejemplo
+
+```json
+{
+  "acctNumber": "4009000000502",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "10",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "AUTH_001"
+}
+```
+
+#### Respuesta
+
+```json
+{
+  "sessionToken": "d801d6f4993fc2efd3aff71a162f33888c19282e4686bd50ff4b8624e1527dbc",
+  "redirectURL": "https://3dss.placetopay.com/threeds/v2x/sessions/571/d801d6f4993fc2efd3aff71a162f33888c19282e4686bd50ff4b8624e1527dbc",
+  "transactionID": 580
+}
+```
+
+### Posibles errores
+
+| Código | Causa                                                                            |
+|--------|----------------------------------------------------------------------------------|
+| 1003   | No existe un comercio asociado                                                   |
+| 1004   | No existe una suscripción asociada                                               |
+| 1005   | La marca asociada no está habilitada                                             |
+| 1006   | El adquirente asociado no está habilitado                                        |
+| 1007   | La suscripción asociada no está completamente configurada                        |
+| 1011   | Argumentos no válidos para iniciar la solicitud / El comercio no está habilitado |
+| 1012   | El comerciante no tiene un código de categoría de comercio (MCC)                 |
+
+```json
+{
+    "error_number": 1011,
+    "error_description": "Invalid arguments to initiate request",
+    "errors": {
+        "purchaseCurrency": [
+            "The purchase currency field is required when purchase amount is present."
+        ]
+    }
+}
+```
+
+_Ejemplo de un mensaje de error_
+
+### Mensaje de "Unauthenticated"
+
+```json
+{
+  "message": "Unauthenticated."
+}
+```
+
+Este mensaje se puede presentar cuando en los siguientes casos:
+
+- El token no existe.
+- El token se encuentra expirado.
+
+
+---
+
+## No pago (NPA)
+
+Las autenticaciones de no pago se refieren a transacciones que necesitan autenticación, pero no están directamente vinculadas a una operación de compra o pago. Estas pueden incluir, por ejemplo, la adición de una tarjeta de crédito a una billetera digital, la verificación de la identidad del titular de la tarjeta sin realizar una transacción monetaria.
+
+Esta opción no require verificar fondos de la cuenta.
+
+### Campos requeridos:
+
+**Autenticaciones que se harán por navegador:**
+- **messageCategory:** NPA (02), Transacción de no pago.
+
+- **deviceChannel:** BRW (02), Navegador, Si no se envía, la plataforma lo agregará por defecto en este valor.
+
+- **threeDSAuthenticationInd:** Las opciones son: ADD_CARD (04), MAINTAIN_CARD (05) y CARDHOLDER_VERIFICATION_AS_PART_OF_EMV_TOKEN_IDV (06)
+
+- **threeDSChallengeInd:** CHALLENGE_REQUESTED_REQUESTOR_PREFERENCE (03) (Se solicita desafío desde el 3DS Requestor) Indica que la preferencia del 3DS Requestor es que se realice el desafío **este campo es opcional pero recomendado incluir**.
+
+**Autenticaciones que se harán por RI (Requestor Information):**
+- **messageCategory:** NPA (02), Transacción de no pago.
+
+- **deviceChannel:** RI (03).
+
+- **threeRIInd:** Las opciones son: 03 (Agregar tarjeta), 04 (Mantener tarjeta) y 05 (Verificar cuenta)
+
+
+
+`POST` https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "BRW",
+  "messageCategory": "NPA",
+  "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
+  "threeDSAuthenticationInd": "ADD_CARD",
+  "acctNumber": "4009000000502",
+  "cardExpiryDate": "2902",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "Febrero 2024",
+  "messageVersion": "2.2.0"
+}
+```
+
+**deviceChannel:** BRW (02)
+
+**messageCategory:** NPA (02)
+
+**threeDSChallengeInd**, indica si se solicita desafío o no, las opciones recomendables son:
+
+* **CHALLENGE_REQUESTED_REQUESTOR_PREFERENCE: (03)** el requestor tiene la preferencia de que se aplique desafío.
+* **CHALLENGE_REQUESTED_MANDATE: (04)** el desafío es obligatorio.
+
+**threeDSAuthenticationInd**, indica el tipo de autenticación. El valor de 04 corresponde a agregar tarjeta.
+
+***Response  Lookup***
+
+```json
+{
+    "action": "redirect",
+    "sessionToken": "7d1dd0ee35609312d7dbeb666481d9fc18f762e83a238583fa31c904c6c028d7",
+    "redirectURL": "https://3dss-dev.placetopay.ws/threeds/v2x/sessions/1254/7d1dd0ee35609312d7dbeb666481d9fc18f762e83a238583fa31c904c6c028d7",
+    "transactionID": 1298
+}
+```
+
+**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+
+
+---
+
+## Agregar tarjeta durante el proceso
+
+Durante el proceso de pago se tiene disponible la casilla que dice ***Guardar tarjeta para pagos futuros*** y se quiere verificar los fondos de la cuenta.
+
+`POST` https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
+
+***Request Lookup***
+
+```json
+{
+ "deviceChannel": "BRW",
+  "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
+  "threeDSAuthenticationInd": "ADD_CARD",
+  "acctNumber": "4009000000502",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "10",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "Enero 2024",
+  "messageVersion": "2.2.0"
+}
+```
+
+**deviceChannel:** BRW (02).
+
+**threeDSChallengeInd:** indica si se solicita desafío o no, las opciones recomendables son:
+
+* **CHALLENGE_REQUESTED_REQUESTOR_PREFERENCE: (03)** el requestor tiene la preferencia de que se aplique desafío.
+* **CHALLENGE_REQUESTED_MANDATE: (04)** el desafío es obligatorio.
+
+**threeDSAuthenticationInd**, indica el tipo de autenticación. El valor de 04 corresponde a agregar tarjeta.
+
+**Nota:** El messageCategory es por defecto PA (01)
+
+***Response  Lookup***
+
+```json
+{
+    "action": "redirect",
+    "sessionToken": "e3f2d86cfffc96837f0762e08ec88a39704eff5ce2c7bbfeac83fac12c9f16d2",
+    "redirectURL": "https://3dss-dev.placetopay.ws/threeds/v2x/sessions/1253/e3f2d86cfffc96837f0762e08ec88a39704eff5ce2c7bbfeac83fac12c9f16d2",
+    "transactionID": 1297
+}
+```
+
+**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+
+
+
+---
+
+## Información previa
+
+Este tipo de información se refiere a compartir información previa durante el proceso de autenticación para facilitar una evaluación de riesgo más informada y una toma de decisiones más precisa por parte del emisor de la tarjeta. La información que se agrega siempre es la última autenticación satisfactoria que ocurre en el mismo comercio.
+
+El 3DS Server de Placetopay dispone de las siguientes opciones:
+
+### Opción 1. Solicitud de agregar la información previa.
+
+- **addPriorInformation:** sí se envía una solicitud de crear una sesión con este campo con valor **Y**, será el 3DS Server de Placetopay quien automáticamente agregará los campos necesarios.
+
+### Ejemplo:
+```json
+{
+  "addPriorInformation": "Y",
+  "acctNumber": "4009000000502",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "10",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "AUTH_001"
+}
+```
+
+### Opción 2. Enviar los campos en la solicitud.
+
+Esta opción el 3DS Requestor será responsable de enviar los datos.
+
+- **threeDSRequestorPriorAuthenticationInfo:** Objeto que encapsula la información requerida.
+
+- **threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación. **FRICTIONLESS_AUTHENTICATION** (01) sin fricción, **CARDHOLDER_CHALLENGE_OCCURRED** (02) con fricción
+
+- **threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es YYYYMMDDHHMM
+
+- **threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa.
+
+### Ejemplo:
+```json
+{
+  "acctNumber": "4009000000502",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "10",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "AUTH_001",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "202308172252",
+    "threeDSReqPriorRef": "882a6ce6-7ea2-41e5-aad7-4b6d84a942f6"
+  }
+}
+```
+
+___
+
+## Desacoplada
+
+Las autenticaciones desacopladas son aquellas en las que la autenticación del titular de la tarjeta y la autorización de la transacción no ocurren al mismo tiempo.
+
+Este método es especialmente relevante para casos de uso como las suscripciones o los pagos diferidos, donde el compromiso de pago se realiza por adelantado, pero la transacción se completa en un momento posterior.
+
+### Campos:
+
+***Los valores son opcionales si no se envía será el ACS quien tome la decisión si realiza la autenticación por desafío desacoplado y cuanto tiempo debe tomar.***
+
+- **threeDSRequestorDecReqInd:** Indica si el Solicitante 3DS solicita al ACS que utilice la Autenticación desacoplada y acepta utilizar la Autenticación desacoplada si el ACS confirma su uso. Opciones **Y** si es preferido el desafío desacoplado y **N** para no usar la autenticación desacoplada.
+
+- **threeDSRequestorDecMaxTime:** Indica la cantidad máxima de tiempo que el solicitante 3DS esperará a que un ACS proporcione los resultados de una transacción de autenticación desacoplada **en minutos**.
+
+***El valor de **threeDSRequestorDecMaxTime** debe estar entre 1 y 10080***
+
+### Ejemplo:
+
+```json
+{
+  "threeDSRequestorDecReqInd": "Y",
+  "threeDSRequestorDecMaxTime": "5",
+  "acctNumber": "4009000000502",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "10",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "AUTH_001"
+}
+```
+
+---
+
+## Transacción recurrente
+
+Este tipo de sesiones se presentan cuando el comerciante está iniciando una transacción para compras de suscripciones de servicios con un monto fijo en un periodo determinado.
+
+### Campos requeridos:
+
+**Para la transacción inicial:**
+
+- **messageCategory:** PA (01), Transacción de pago, Si no se envía, la plataforma lo agregará por defecto en este valor.
+
+- **deviceChannel:** BRW (02), Navegador Si no se envía, la plataforma lo agregará por defecto en este valor.
+
+- **threeDSAuthenticationInd:** RECURRING_TRANSACTION (02)
+
+- **threeDSChallengeInd:** CHALLENGE_REQUESTED_REQUESTOR_PREFERENCE (03) (Se solicita desafío desde el 3DS Requestor) Indica que la preferencia del 3DS Requestor es que se realice el desafío **este campo es opcional pero recomendado incluir**.
+
+- **recurringFrequency:** Indica el número de días entre las autorizaciones.
+
+- **recurringExpiry:** Fecha donde terminará la sucripción. El formato es Ymd, ejemplo: 20250601.
+
+**Para las transacciones subsecuentes:**
+
+- **messageCategory:** PA (01) Si no se envía, la plataforma lo agregará por defecto en este valor.
+
+- **deviceChannel:** RI (03).
+
+- **threeRIInd:** RECURRING_TRANSACTION (01)
+
+- **recurringFrequency:** Indica el número de días entre las autorizaciones.
+
+- **recurringExpiry:** Fecha donde terminará la sucripción. El formato es Ymd, ejemplo: 20250601.
+
+- **threeDSRequestorPriorAuthenticationInfo:** La información de la autenticación previa (Ver Sesión con información previa).
+
+### Especificaciones
+
+|Protocolo    | Mastercard  | Visa         |
+|-------------|-------------|--------------|
+| Versión 2.2 | **Soportada**   | No aplica    |
+
+***Mastercard Identity Check 2.1 no soporta los casos 3RI, en estos casos solo se envía la primera transacción recurrente.***
+
+### Ejemplo
+
+**Transacción recurrente inicial**
+
+```json
+{
+  "messageCategory": "PA",
+  "threeDSAuthenticationInd": "RECURRING_TRANSACTION",
+  "threeDSChallengeInd": "CHALLENGE_REQUESTED_REQUESTOR_PREFERENCE",
+  "recurringExpiry": "20250201",
+  "recurringFrequency": "30",
+  "acctNumber": "4009000000502",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "10",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "AUTH_001"
+}
+```
+
+**Transacción recurrente subsecuente**
+
+```json
+{
+  "messageCategory": "PA",
+  "deviceChannel": "RI",
+  "recurringExpiry": "20250201",
+  "recurringFrequency": "30",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "202308172252",
+    "threeDSReqPriorRef": "882a6ce6-7ea2-41e5-aad7-4b6d84a942f6"
+  },
+  "acctNumber": "4009000000502",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "10",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "AUTH_001"
+}
+```
+
+---
+
+## Mejora la tasa de autenticaciones con datos adicionales
+Nos complace invitarles a visitar el apartado de [Adicional Data](/en/three-d-s-server/api/sessions/detail-info) en nuestra documentación del API. Este apartado ofrece información crucial para optimizar el proceso de autenticación 3DS.
+
+La inclusión de estos datos adicionales en sus solicitudes permite a los emisores realizar una evaluación más precisa, lo que puede mejorar considerablemente la tasa de autenticaciones exitosas.
+
+Les recomendamos revisar estas pautas para aprovechar al máximo las funcionalidades del API y así ofrecer una experiencia más segura y eficiente a sus usuarios.
+

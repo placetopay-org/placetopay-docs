@@ -1,0 +1,153 @@
+export const sectionMode = 'nav';
+import { AdditionalDataExamples } from '@/components/AdditionalDataExamples';
+
+export const description =
+  'The processorFields property provides additional information about the processing of a completed session. Each object is stored in payment.processorFields as a NameValuePair type.'
+
+### Data in Process Transaction Responses
+
+There is additional data received in response to a transaction processing request. The reception of this data depends on various factors and comes in the response as `additional`.
+
+```json
+{
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "Approved",
+        "date": "2024-07-17T15:28:35-05:00"
+    },
+    // ...
+    "additional": {
+      // Additional data
+      "bin": "411076",
+      "terminalNumber": "00990101",
+      // ...
+    }
+}
+```
+
+### Examples of Additional Data
+
+<AdditionalDataExamples/>
+
+## Credit {{ id: 'additional-data-credit' }}
+This field specifies the number of installments available to finance the total payment amount, accompanied by a description of the financing conditions.
+The description of the credits depends directly on their `installments`, `code`, and `groupCode` properties, as well as the provider through which the payment is being processed.
+
+### Structure:
+- **type:** Identifier representing the type of credit.
+- **groupCode:** Code that groups credits by category.
+- **installments:** Number of installments available for the credit.
+- **code:** Unique code associated with the specific credit.
+- **description:** Detailed description of the financing conditions.
+
+### Credits by Provider
+### **DATAFAST** - **MEDIANET** - **AUSTRO** - **INTERDIN**
+They share the same structure and description for their credits based on `groupCode` and `code`:
+
+| groupCode | description              |                                                         |
+|-----------| ------------------------ |-------------------------------------------------------- |
+| `C`       | Current Payment          | Payment in one installment                              |
+| `D`       | Current without interest| Payment by installments without interest                |
+| `M`       | Deferred plus            | Mixture with or without interest, defined by the issuing bank |
+| `P`       | Deferred with interest   | Payment by installments with inter                      |
+| `N`       | Regular payment plan     |                                                         |
+| `X`       | Special payment plan     | Payment Without charging interest                       |
+| `L`       | Preferencial deferred    | Payment by installments with lower interest             |
+| `B`       | Plan 0%                  |                                                         |
+
+```json
+  [
+    {
+      "code" : "1",
+      "type" : "00",
+      "groupCode" : "C",
+      "installments" : [1],
+      "description" : "Current 1 month of grace",
+    }
+    {
+      "code" : "3",
+      "type" : "01",
+      "groupCode" : "D",
+      "installments" : [3],
+      "description" : "Deferred 3 months grace without interest",
+    }
+    ...
+  ]
+```
+
+### FLAMINGO, REDEBAN
+They share the following structure, where the only variation is the number of installments allowed for the credit under the `installments` property.
+
+| groupCode | description              |            |
+|-----------| ------------------------ |----------- |
+| C         | Quotas                   |            |
+
+```json
+{
+      "code": "0",
+      "groupCode": "C",
+      "type": "00",
+      "installments": [1,2,3,4,5,12],
+      "description": "Quotas",
+}
+```
+
+### TRANSERVER
+| groupCode | description              |           |
+|-----------| ------------------------ |---------- |
+| Q         | PLAN 0                   |           |
+| C         | Current                  |           |
+
+```json
+  [
+    {
+      "code": "000000",
+      "groupCode": "C",
+      "type": "00",
+      "description": "Current",
+      "installments": [1]
+    },
+    {
+      "code": "03BCR",
+      "type": "0",
+      "groupCode": "Q",
+      "installments": [3],
+      "description": "PLAN 0 BCR 3C BCR"
+    },
+  ]
+```
+
+### PAYESTUDIO
+| groupCode | installments             | description            |
+|-----------| ------------------------ |----------------------- |
+| Q         | [1,12]                   | Current                |
+| Q         | [1]                      | Without quotes         |
+| Q         | [1,12]                   | Quotas counted price   |
+
+```json
+ [
+    {
+      "code": "00",
+      "groupCode": "Q",
+      "type": "00",
+      "description": "Without quotes",
+      "installments": [1]
+    },
+    {
+      "code": "00",
+      "groupCode": "Q",
+      "type": "00",
+      "installments": [3],
+      "description": "Current",
+    },
+    {
+      "code": "00",
+      "groupCode": "Q",
+      "type": "00",
+      "installments": [2,24],
+      "description": "Quotas counted price",
+    },
+ ]
+
+```

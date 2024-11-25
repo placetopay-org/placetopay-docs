@@ -26,6 +26,7 @@ import logoAthMovil from '@/images/cards/ath_movil.svg'
 import logoAthCard from '@/images/cards/ath_card.svg'
 import logoTarjetaClave from '@/images/cards/tarjeta_clave.svg'
 import logoACH from '@/images/cards/ach.svg'
+import logoDilo from '@/images/cards/dilo.svg'
 import { Heading } from './Heading'
 import { useLocale } from './LocaleProvider'
 
@@ -123,7 +124,17 @@ const groupsByCountry = [
     ],
   },
   {
-    country: 'Panamá / Costa Rica / Belice / Honduras',
+    country: 'Honduras',
+    items: [
+      {
+        code: 'dilo',
+        name: { es: 'Billetera Digital Dilo', en: 'Billetera Digital Dilo' },
+        logo: logoDilo,
+      }
+    ],
+  },
+  {
+    country: 'Panamá / Costa Rica / Belice',
     items: [
       {
         code: 'discover',
@@ -168,7 +179,7 @@ const groupsByCountry = [
 ]
 
 export function PaymentMethods() {
-  const { locale } = useLocale()
+  const { locale, isEn } = useLocale()
   return (
     <div>
       {groupsByCountry.map((group) => (
@@ -179,7 +190,7 @@ export function PaymentMethods() {
           <table className="mt-6">
             <thead>
               <tr>
-                <th>Nombre</th>
+                <th>{isEn() ? 'Name': 'Nombre'}</th>
                 <th>ID</th>
               </tr>
             </thead>

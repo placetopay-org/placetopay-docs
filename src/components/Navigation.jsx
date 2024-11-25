@@ -1,9 +1,9 @@
 import { useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { twMerge } from 'tailwind-merge'
 import clsx from 'clsx'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
-
 
 import { useLocalizePath } from '@/hooks/useLocalizePath'
 import { useNavigation } from '@/hooks/useNavigation'
@@ -11,17 +11,25 @@ import { useIsInsideMobileNavigation } from '@/components/MobileNavigation'
 import { useSectionStore } from '@/components/SectionProvider'
 import { Tag } from '@/components/Tag'
 import { remToPx } from '@/lib/remToPx'
+import { useLocale } from './LocaleProvider'
+import { NamespaceSelector } from './SelectMenu'
+import { useTabRouter } from './TabProvider'
+import { getNavigationByTab } from '@/utils/getNavigationByTab'
+
 function useInitialValue(value, condition = true) {
   let initialValue = useRef(value).current
   return condition ? initialValue : value
 }
 
-function TopLevelNavItem({ href, children }) {
+function TopLevelNavItem({ href, children, isActive }) {
   return (
     <li className="md:hidden">
       <Link
         href={href}
-        className="block py-1 text-sm text-gray-600 transition hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+        className={twMerge(
+          'flex gap-2 w-full py-1 text-gray-600 font-medium text-base transition hover:text-gray-900 dark:text-gray-400 dark:hover:text-white',
+          isActive && 'text-primary-500 dark:text-primary-400'
+        )}
       >
         {children}
       </Link>
@@ -52,13 +60,13 @@ function NavLink({ href, tag, active, isAnchorLink = false, children }) {
   )
 }
 
-function VisibleSectionHighlight({ group, pathname }) {
+function VisibleSectionHighlight({ group, pathname, withSections = false }) {
   let [sections, visibleSections] = useInitialValue(
     [
       useSectionStore((s) => s.sections),
       useSectionStore((s) => s.visibleSections),
     ],
-    useIsInsideMobileNavigation()
+    useIsInsideMobileNavigation() && withSections
   )
 
   let isPresent = useIsPresent()
@@ -69,12 +77,15 @@ function VisibleSectionHighlight({ group, pathname }) {
     )
   )
   let itemHeight = remToPx(2)
-  let height = isPresent
-    ? Math.max(1, visibleSections.length) * itemHeight
-    : itemHeight
-  let top =
-    group.links.findIndex((link) => link.href === pathname) * itemHeight +
-    firstVisibleSectionIndex * itemHeight
+  let height =
+    isPresent && withSections
+      ? Math.max(1, visibleSections.length) * itemHeight
+      : itemHeight
+  let top = group.links.findIndex((link) => link.href === pathname) * itemHeight
+
+  if (withSections) {
+    top += firstVisibleSectionIndex * itemHeight
+  }
 
   return (
     <motion.div
@@ -106,7 +117,7 @@ function ActivePageMarker({ group, pathname }) {
   )
 }
 
-function NavigationGroup({ group, className }) {
+function NavigationGroup({ group, className, withSections = false }) {
   // If this is the mobile navigation then we always render the initial
   // state, so that the state does not change during the close animation.
   // The state will still update when we re-open (re-render) the navigation.
@@ -114,7 +125,7 @@ function NavigationGroup({ group, className }) {
   let localizePath = useLocalizePath()
   let [router, sections] = useInitialValue(
     [useRouter(), useSectionStore((s) => s.sections)],
-    isInsideMobileNavigation
+    isInsideMobileNavigation && withSections
   )
 
   const groupWithLocaleInLinks = {
@@ -122,11 +133,13 @@ function NavigationGroup({ group, className }) {
     links: group.links.map((link) => ({
       ...link,
       href: localizePath(link.href),
-    }))
+    })),
   }
 
-  let isActiveGroup = 
-    groupWithLocaleInLinks.links.findIndex((link) => link.href === router.pathname) !== -1
+  let isActiveGroup =
+    groupWithLocaleInLinks.links.findIndex(
+      (link) => link.href === router.pathname
+    ) !== -1
 
   return (
     <li className={clsx('relative mt-6', className)}>
@@ -139,7 +152,11 @@ function NavigationGroup({ group, className }) {
       <div className="relative mt-3 pl-2">
         <AnimatePresence initial={!isInsideMobileNavigation}>
           {isActiveGroup && (
-            <VisibleSectionHighlight group={groupWithLocaleInLinks} pathname={router.pathname} />
+            <VisibleSectionHighlight
+              withSections={withSections}
+              group={groupWithLocaleInLinks}
+              pathname={router.pathname}
+            />
           )}
         </AnimatePresence>
         <motion.div
@@ -148,7 +165,10 @@ function NavigationGroup({ group, className }) {
         />
         <AnimatePresence initial={false}>
           {isActiveGroup && (
-            <ActivePageMarker group={groupWithLocaleInLinks} pathname={router.pathname} />
+            <ActivePageMarker
+              group={groupWithLocaleInLinks}
+              pathname={router.pathname}
+            />
           )}
         </AnimatePresence>
         <ul role="list" className="border-l border-transparent">
@@ -157,34 +177,36 @@ function NavigationGroup({ group, className }) {
               <NavLink href={link.href} active={link.href === router.pathname}>
                 {link.title}
               </NavLink>
-              <AnimatePresence mode="popLayout" initial={false}>
-                {link.href === router.pathname && sections.length > 0 && (
-                  <motion.ul
-                    role="list"
-                    initial={{ opacity: 0 }}
-                    animate={{
-                      opacity: 1,
-                      transition: { delay: 0.1 },
-                    }}
-                    exit={{
-                      opacity: 0,
-                      transition: { duration: 0.15 },
-                    }}
-                  >
-                    {sections.map((section) => (
-                      <li key={section.id}>
-                        <NavLink
-                          href={`${link.href}#${section.id}`}
-                          tag={section.tag}
-                          isAnchorLink
-                        >
-                          {section.title}
-                        </NavLink>
-                      </li>
-                    ))}
-                  </motion.ul>
-                )}
-              </AnimatePresence>
+              {withSections && (
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {link.href === router.pathname && sections.length > 0 && (
+                    <motion.ul
+                      role="list"
+                      initial={{ opacity: 0 }}
+                      animate={{
+                        opacity: 1,
+                        transition: { delay: 0.1 },
+                      }}
+                      exit={{
+                        opacity: 0,
+                        transition: { duration: 0.15 },
+                      }}
+                    >
+                      {sections.map((section) => (
+                        <li key={section.id}>
+                          <NavLink
+                            href={`${link.href}#${section.id}`}
+                            tag={section.tag}
+                            isAnchorLink
+                          >
+                            {section.title}
+                          </NavLink>
+                        </li>
+                      ))}
+                    </motion.ul>
+                  )}
+                </AnimatePresence>
+              )}
             </motion.li>
           ))}
         </ul>
@@ -193,12 +215,36 @@ function NavigationGroup({ group, className }) {
   )
 }
 
-export function Navigation(props) {
-  let navigation = useNavigation('checkout');
+function SubSectionNavigation() {
+  const { tab, active } = useTabRouter()
+  if (tab === undefined) return null
+
+  const navs = getNavigationByTab(tab.basePath, tab.locale);
+
+  return (
+    <>
+      {navs.map((item) => (
+        <TopLevelNavItem
+          key={item.href}
+          href={item.href}
+          isActive={active === item.identifier}
+        >
+          <item.icon size="24" />
+          {item.title}
+        </TopLevelNavItem>
+      ))}
+    </>
+  )
+}
+
+export function Navigation({ withSections, ...props }) {
+  let navigation = useNavigation()
 
   return (
     <nav {...props}>
-      <ul role="list">
+      <NamespaceSelector />
+      <ul role="list" className="mt-6 md:mt-0">
+        <SubSectionNavigation />
         {/* <TopLevelNavItem href="/">API</TopLevelNavItem> */}
         {/* <TopLevelNavItem href="#">Documentation</TopLevelNavItem> */}
         {/* <TopLevelNavItem href="#">Support</TopLevelNavItem> */}
@@ -207,6 +253,7 @@ export function Navigation(props) {
             key={group.title}
             group={group}
             className={groupIndex === 0 && 'md:mt-0'}
+            withSections={withSections}
           />
         ))}
         {/* <li className="sticky bottom-0 z-10 mt-6 min-[416px]:hidden">
@@ -216,5 +263,55 @@ export function Navigation(props) {
         </li> */}
       </ul>
     </nav>
+  )
+}
+
+const CONTENT_NAVIGATION_TEXTS = {
+  en: 'On this page',
+  es: 'En esta página',
+}
+
+export function ContentNavigation(props) {
+  let router = useRouter()
+  let [sections, visibleSections] = useSectionStore((s) => [
+    s.sections,
+    s.visibleSections,
+  ])
+  let locale = useLocale()
+
+  if (sections.length === 0) return null
+
+  return (
+    <aside
+      as="aside"
+      role="navigation"
+      aria-label="Page navigation"
+      className="sticky top-20 hidden h-full w-52 min-w-[160px] flex-none pb-2 pl-8 lg:block xl:w-60"
+    >
+      <div className="block overflow-y-auto">
+        <div className="">
+          <h5 className="whitespace-normal pb-3 font-semibold uppercase text-gray-900 dark:text-gray-100">
+            {CONTENT_NAVIGATION_TEXTS[locale.locale]}
+          </h5>
+          <div className="flex flex-col gap-2">
+            {sections.map((section) => (
+              <div key={section.id}>
+                <Link
+                  href={`${router.pathname}#${section.id}`}
+                  className={clsx(
+                    'cursor-pointer break-words text-sm leading-none transition',
+                    visibleSections?.length && visibleSections[0] === section.id
+                      ? 'text-gray-900 dark:text-white'
+                      : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                  )}
+                >
+                  {section.title}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </aside>
   )
 }

@@ -1,0 +1,997 @@
+openapi: 3.1.0
+info:
+  title: PlacetoPay Payment Links
+  version: '1.0'
+  description: |
+    PlacetoPay Payment Links is a solution that allows you to create payment links quickly and securely. With this solution, you can create personalized payment links with the payment methods you want and the ability to send notifications to your customers.
+  contact:
+    url: 'https://www.evertecinc.com/pasarela-de-pagos-e-commerce/'
+    name: PlacetoPay by Evertec
+  summary: Use Payment Links to collect payments securely
+servers:
+  - description: 'Sandbox (CO)'
+    url: 'https://sites-test.placetopay.com/'
+paths:
+  /api/payment-link:
+    post:
+      summary: "Create a Payment Link"
+      description: "This endpoint is used to create a new payment link\n\n**Note:** If you want to send the link by email, you must add the desired emails in the `receiverEmails` field, as this process is done at the time of creating the link"
+      operationId: "Create a Payment Link"
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - name
+                - expirationDate
+                - paymentExpiration
+                - payment
+                - reference
+                - description
+              properties:
+                auth:
+                  type: object
+                  description: Site authentication. See more in [Authentication](/en/payment-links/authentication)
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: "Site authentication. See more in Authentication"
+                      examples:
+                        - "1441d14df19ec88431e513bb990326e1"
+                    tranKey:
+                      type: string
+                      description: "Generated **tranKey** credential"
+                      examples:
+                        - "DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY="
+                    nonce:
+                      type: string
+                      description: "Random **value** for each request encoded in **Base64.**"
+                      examples:
+                        - "enQ4dXh3YWhkMWM="
+                    seed:
+                      type: string
+                      description: "Current **date**, generated in **ISO 8601** format."
+                      examples:
+                        - "2023-06-21T09:56:06-05:00"
+                notificationUrl:
+                  type: string
+                  description: |
+                    URL to which notifications of payments made through the payment link will be sent, as well as link expiration notifications. For more details, visit [Notification](/payment-links/notification).
+
+                    EX: `https://webhook-test.com`
+                locale:
+                  type: string
+                  enum:
+                    - "en"
+                    - "es"
+                    - "pt"
+                    - "it"
+                    - "fr"
+                  description: |
+                    Language in which the payment link will be sent and displayed, visit [Localization](/payment-links/localization) for its allowed values
+
+                    EX: `es_CO`
+                name:
+                  type: string
+                  description: |
+                    Name that will be associated with the payment link.
+
+                    EX: `my-product-name`
+                paymentsAllowed:
+                  type: integer
+                  description: |
+                    Number of payments that can be made through the link. If this field is not sent, the link will allow an unlimited number of payments.
+
+                    EX: `7`
+                expirationDate:
+                  type: string
+                  description: |
+                    Date and time when the link will no longer be active. The date must be later than the current user's date and time.
+
+                    EX: `2023-10-21 16:40:10`
+                paymentExpiration:
+                  type: integer
+                  description: |
+                    Amount of time in **minutes** allowed to complete each Checkout session.
+
+                    EX: `15`
+                payment:
+                  type: object
+                  description: |
+                    Information about the payment to be made through the payment link.
+                  properties:
+                    amount:
+                      type: object
+                      description: |
+                        Information about the amount to be charged through the payment link.
+                      properties:
+                        currency:
+                          type: string
+                          description: |
+                            Currency in which the payment will be processed through the payment link.
+
+                            EX: `USD`
+                        total:
+                          type: integer
+                          description: |
+                            Total amount for the payment to be processed through the link.
+
+                            EX: `100`
+                        taxes:
+                          type: array
+                          description: |
+                            Structure to define taxes in the payment process.
+                          properties:
+                            kind:
+                              type: string
+                              description: |
+                                Identifier for the type of tax
+
+                                One of: `valueAddedTax` `exciseDuty` `ice` `airportTax` `stateTax` `reducedStateTax` `municipalTax`.
+                              enum:
+                                - valueAddedTax
+                                - exciseDuty
+                                - ice
+                                - airportTax
+                                - stateTax
+                                - reducedStateTax
+                                - municipalTax
+                              example: valueAddedTax
+                            amount:
+                              type:
+                                - number
+                              description: |
+                                Total tax amount  
+                                EX: `200`
+                            base:
+                              type:
+                                - number
+                              description: |
+                                Base amount on which the tax is calculated  
+                                EX: `1000`
+                    modifiers:
+                      type: array
+                      description: |
+                        Structure to define modifiers on the charge.
+                        Applies to tax laws in specific countries.
+                      properties:
+                        type:
+                          type: string
+                          description: |
+                            Identifier for the modifier type.  
+                            Only `FEDERAL_GOVERNMENT` is currently supported.
+                          example: FEDERAL_GOVERNMENT
+                          enum:
+                            - FEDERAL_GOVERNMENT
+                        code:
+                          type:
+                            - number
+                          description: |
+                            Code for the modifier. 
+
+                            For `FEDERAL_GOVERNMENT`, it represents the discount law number.   
+                            `17934` Gastronomic Services   
+                            `18083` IMESI Brazil - Argentina   
+                            `19210` Financial Inclusion   
+                            `18910` Family Allowances   
+                            `18999` Real Estate Refunds
+                          enum:
+                            - 17934
+                            - 18083
+                            - 19210
+                            - 18910
+                            - 18999
+                          example: 17934
+                        additional:
+                          type: object
+                          description: |
+                            Structure to attach information to the modifier
+                          properties:
+                            invoice:
+                              type: string
+                              description: |
+                                Required when `modifiers.[n].type` is `FEDERAL_GOVERNMENT`. Indicates the invoice number.
+                                maxLength: 9
+                                example: '123456789'
+                              examples:
+                                - type: FEDERAL_GOVERNMENT
+                                  code: 17934
+                                  additional:
+                                    invoice: '123345'
+                reference:
+                  type: string
+                  description: |
+                    Unique reference associated with the payment link.
+
+                    EX: `Reference123`
+                description:
+                  type: string
+                  description: |
+                    Description associated with the payment link.
+
+                    EX: `Description of my product`
+                paymentMethod:
+                  type: array
+                  description: |
+                    Payment methods allowed to use in the created payment link. Only payment methods enabled on your site can be sent.
+
+                    EX: `["pse", "visa", "master"]`
+                receiverEmails:
+                  type: array
+                  description: |
+                    List of email addresses to which the link will be sent once it has been successfully created.
+
+                    EX: `["placetopay@evertecinc.com", "correo2@evertecninc.com"]`
+                additional:
+                  type: object
+                  description: |
+                    Additional fields for the payment link. Some additional fields you could use are:
+                  x-stoplight:
+                    id: "mk9s930pmeg1e"
+                  properties:
+                    buyer_email:
+                      type: email
+                      description: |
+                        Buyer's email address.
+                    buyer_name:
+                      type: string
+                      description: |
+                        Buyer's name.
+      responses:
+        "201":
+          description: "Payment link created successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: The **status** object contains the request status information
+                    properties:
+                      status:
+                        type: string
+                        description: Request status
+                        examples:
+                          - "OK"
+                      reason:
+                        type: integer
+                        description: Response code
+                      message:
+                        type: string
+                        description: Response message
+                      date:
+                        type: string
+                        description: Date and time of the response
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                  id:
+                    type: integer
+                    description: |
+                      Unique and incremental ID of the created payment link, this ID is used to query the payment link information.
+
+                      EX: `1`
+                  url:
+                    type: string
+                    description: |
+                      URL of the payment link. This URL must be sent to the buyer to make the payment.
+
+                      EX: `http://microsites.test/link/show?genid=27&code=47`
+                required:
+                  - status
+        "401":
+          description: |
+            Authentication failed. Verify the data sent and try again. Make sure the JSON structure is correct, without unclosed fields or extra commas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: The **status** object contains the request status information
+                    properties:
+                      status:
+                        type: string
+                        description: Request status
+                        examples:
+                          - "OK"
+                      reason:
+                        type: integer
+                        description: Response code
+                      message:
+                        type: string
+                        description: Response message
+                      date:
+                        type: string
+                        description: Date and time of the response
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                required:
+                  - Status
+        "422":
+          description: |
+            Validation error: some field does not meet the requirements.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: The **status** object contains the request status information
+                    properties:
+                      status:
+                        type: string
+                        description: Request status
+                        examples:
+                          - "OK"
+                      reason:
+                        type: integer
+                        description: Response code
+                      message:
+                        type: string
+                        description: Response message
+                      date:
+                        type: string
+                        description: Date and time of the response
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                required:
+                  - Status
+      servers:
+        - url: "https://dev.placetopay.com/microsites"
+      x-stoplight:
+        id: "7hzkts3nksm2l"
+  '/api/payment-link/{link_id}':
+    post:
+      summary: "Query a Payment Link"
+      description: "Use this endpoint to query payment links that have been previously created\r\n\r\n**Note:** You will only be able to query payment links associated with your site"
+      operationId: "Query a Payment Link"
+      parameters:
+        - name: "link_id"
+          in: "path"
+          description: "ID of the link to query"
+          required: true
+          schema:
+            type: "number"
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                auth:
+                  type: "object"
+                  description: "The **auth** object is mandatory to securely connect to our services"
+                  properties:
+                    login:
+                      type: "string"
+                      description: "Site identifier"
+                      examples:
+                        - "1441d14df19ec88431e513bb990326e1"
+                    tranKey:
+                      type: "string"
+                      description: "Generated **tranKey** credential"
+                      examples:
+                        - "DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY="
+                    nonce:
+                      type: "string"
+                      description: "Random **value** for each request encoded in **Base64**."
+                      examples:
+                        - "enQ4dXh3YWhkMWM="
+                    seed:
+                      type: "string"
+                      description: "Current **date**, generated in **ISO 8601** format."
+                      examples:
+                        - "2023-06-21T09:56:06-05:00"
+                  required:
+                    - "login"
+                    - "tranKey"
+                    - "nonce"
+                    - "seed"
+              required:
+                - "auth"
+      responses:
+        "200":
+          description: "Payment link queried successfully"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                required:
+                  - "id"
+                  - "status"
+                  - "url"
+                  - "expiration_date"
+                  - "name"
+                  - "reference"
+                  - "description"
+                  - "total_payments"
+                  - "available_payments"
+                  - "payment_expiration"
+                  - "amount"
+                  - "site"
+                properties:
+                  id:
+                    type: integer
+                    description: |
+                      ID of the queried link.
+
+                      EX: `21`
+                  status:
+                    type: string
+                    enum:
+                      - "ACTIVE"
+                      - "INACTIVE"
+                      - "EXPIRED"
+                    description: |
+                      Status of the queried link.
+
+                      EX: `ACTIVE`
+                  url:
+                    type: string
+                    description: |
+                      URL of the queried link.
+
+                      EX: `http://microsites.test/link/show?genid=26&code=47`
+                  expirationDate:
+                    type: string
+                    description: |
+                      Expiration date and time of the queried link in UTC format.
+
+                      EX: `2024-08-12T08:10:50-05:00`
+                  name:
+                    type: string
+                    description: |
+                      Name associated with the queried link.
+
+                      EX: `Test`
+                  reference:
+                    type: string
+                    description: |
+                      Reference associated with the queried link.
+
+                      EX: `#5321`
+                  description:
+                    type: string
+                    description: |
+                      Description associated with the payment link.
+
+                      EX: `Description of a payment link`
+                  totalPayments:
+                    type: integer
+                    description: |
+                      Number of payments allowed through the queried link.
+
+                      EX: `7`
+                  availablePayments:
+                    type: integer
+                    description: |
+                      Number of payments available in the queried link.
+
+                      EX: `6`
+                  paymentExpiration:
+                    type: integer
+                    description: |
+                      Minutes that a payment session lasts before expiring.
+
+                      EX: `15`
+                  amount:
+                    type: integer
+                    description: |
+                      Amount information to be charged through the payment link
+                    properties:
+                      currency:
+                        type: string
+                        description: |
+                          Currency in which the charge will be made through the payment link.
+
+                          EX: `USD`
+                      total:
+                        type: integer
+                        description: |
+                          Total amount for the payment that will be made through the link.
+
+                          EX: `100`
+                      taxes:
+                        type: array
+                        description: |
+                          Structure to define taxes in the payment process.
+                        properties:
+                          kind:
+                            type: string
+                            description: |
+                              Identifier for the type of tax
+
+                              One of: `valueAddedTax` `exciseDuty` `ice` `airportTax` `stateTax` `reducedStateTax` `municipalTax`.
+                            enum:
+                              - valueAddedTax
+                              - exciseDuty
+                              - ice
+                              - airportTax
+                              - stateTax
+                              - reducedStateTax
+                              - municipalTax
+                            example: valueAddedTax
+                          amount:
+                            type:
+                              - number
+                            description: |
+                              Total tax amount  
+                              EX: `200`
+                          base:
+                            type:
+                              - number
+                            description: |
+                              Base amount on which the tax is calculated  
+                              EX: `1000`
+                  site:
+                    type: object
+                    description: |
+                      Information about the site associated with the payment link.
+                    required:
+                      - "id"
+                      - "name"
+                    properties:
+                      id:
+                        type: integer
+                        description: |
+                          ID of the site associated with the payment link.
+
+                          EX: `112`
+                      name:
+                        type: string
+                        description: |
+                          Name of the associated site.
+
+                          EX: `Ebus PFKR 2`
+                  metadata:
+                    type: object
+                    description: |
+                      Additional information associated with the payment link.
+
+                      EX: `{"discount":[{"code":17934,"type":"FEDERAL_GOVERNMENT","additional":{"invoice":"123456777"}}]}`
+                  payments:
+                    type: array
+                    description: |
+                      List containing all payments made through the link. If no payment has been made, this field will be shown as an empty array.
+                    items:
+                      type: "object"
+                      properties:
+                        id:
+                          type: integer
+                          description: |
+                            ID of the made payment.
+
+                            EX: `22`
+                        requestId:
+                          type: integer
+                          description: |
+                            RequestId of the Checkout session in which the payment was made.
+
+                            EX: `84076`
+                        status:
+                          type: string
+                          description: |
+                            Status of the made transaction.
+
+                            EX: `APPROVED`
+                        message:
+                          type: string
+                          description: |
+                            Message of the transaction status.
+
+                            EX: `The request has been successfully approved`
+                        proccessUrl:
+                          type: string
+                          description: |
+                            URL of the payment session in which the transaction was made.
+
+                            EX: `https://checkout-co.placetopay.dev/spa/session/80108/f19f30`
+                        amount:
+                          type: object
+                          properties:
+                            currency:
+                              type: string
+                              description: |
+                                Currency in which the transaction charge was made.
+
+                                EX: `USD`
+                            total:
+                              type: string
+                              description: |
+                                Total amount charged in the transaction.
+
+                                EX: `100`
+                        receipt:
+                          type: string
+                          description: |
+                            Transaction receipt number.
+
+                            EX: `241516`
+                        franchise:
+                          type: string
+                          description: |
+                            Card franchise used in the transaction.
+
+                            EX: `DF_VS`
+                        paymentMethod:
+                          type: "string"
+                          description: |
+                            Payment method used in the transaction.
+
+                            EX: `visa`
+                        paymentDate:
+                          type: "string"
+                          description: |
+                            Date and time when the transaction was made.
+
+                            EX: `2023-10-27T10:39:47-05:00`
+                        internalReference:
+                          type: "integer"
+                          description: |
+                            Internal transaction reference.
+
+                            EX: `1`
+                        authorization:
+                          type: "string"
+                          description: |
+                            Transaction authorization number.
+
+                            EX: `000000`
+                        issuerName:
+                          type: "string"
+                          description: |
+                            Name of the issuing bank of the card used in the transaction.
+
+                            EX: `JPMORGAN CHASE BANK, N.A.`
+                        merchantCode:
+                          type: "string"
+                          description: |
+                            Merchant code
+
+                            EX: `123456`
+                        terminalNumber:
+                          type: "string"
+                          description: |
+                            Terminal number
+
+                            EX: `123456`
+                        installments:
+                          type: "integer"
+                          description: |
+                            Number of installments
+
+                            EX: `1`
+                        lastDigits:
+                          type: "string"
+                          description: |
+                            Last digits of the card
+
+                            EX: `1111`
+                        payer:
+                          type: object
+                          description: |
+                            Information about the payer who made the transaction.
+                          properties:
+                            name:
+                              type: string
+                              description: |
+                                Payer's name.
+
+                                EX: `Andres`
+                            surname:
+                              type: string
+                              description: |
+                                Payer's surname.
+
+                                EX: `Zea`
+                            email:
+                              type: string
+                              description: |
+                                Payer's email.
+
+                                EX: `payer@gmail.com`
+                            phone:
+                              type: string
+                              description: |
+                                Payer's phone number.
+
+                                EX: `+1 123123123`
+                            document:
+                              type: string
+                              description: |
+                                Payer's identity document.
+
+                                EX: `123456789`
+                            documentType:
+                              type: string
+                              description: |
+                                Payer's identity document type.
+
+                                EX: `CC`
+        "401":
+          description: "Unauthorized (An attempt was made to query a link that does not belong to your site)"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    type: object
+                    description: The **status** object contains the request status information
+                    properties:
+                      status:
+                        type: string
+                        description: Request status
+                        examples:
+                          - "OK"
+                      reason:
+                        type: integer
+                        description: Response code
+                      message:
+                        type: string
+                        description: Response message
+                      date:
+                        type: string
+                        description: Date and time of the response
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                required:
+                  - "status"
+        "404":
+          description: |
+            Not found (An attempt was made to query a non-existent link).
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    type: object
+                    description: The **status** object contains the request status information
+                    properties:
+                      status:
+                        type: string
+                        description: Request status
+                        examples:
+                          - "OK"
+                      reason:
+                        type: integer
+                        description: Response code
+                      message:
+                        type: string
+                        description: Response message
+                      date:
+                        type: string
+                        description: Date and time of the response
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                required:
+                  - "status"
+      servers:
+        - url: " https://dev.placetopay.com/microsites"
+      x-stoplight:
+        id: "08ix4elnc4kxf"
+  parameters:
+    - schema:
+        type: "string"
+      name: "link_id"
+      in: "path"
+      required: true
+  "/api/payment-link/disable/{link_id}":
+    parameters:
+      - schema:
+          type: string
+        name: link_id
+        in: path
+        required: true
+    post:
+      summary: Deactivate a Payment Link
+      tags: [ ]
+      responses:
+        "200":
+          description: "**OK**\r\n\r\nPayment link successfully deactivated"
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - id
+                properties:
+                  status:
+                    type: object
+                    description: The **status** object contains the request status information
+                    properties:
+                      status:
+                        type: string
+                        description: Request status
+                        examples:
+                          - "OK"
+                      reason:
+                        type: integer
+                        description: Response code
+                      message:
+                        type: string
+                        description: Response message
+                      date:
+                        type: string
+                        description: Date and time of the response
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                  id:
+                    type: string
+                    description: |
+                      ID of the link that has been deactivated.
+        "400":
+          description: "**Bad Request**\r\n\r\nIf the service returns this response, it is possible that you have: \r\n- Malformed request\r\n- The payment link is already deactivated"
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: object
+                    description: The **status** object contains the request status information
+                    properties:
+                      status:
+                        type: string
+                        description: Request status
+                        examples:
+                          - "OK"
+                      reason:
+                        type: integer
+                        description: Response code
+                      message:
+                        type: string
+                        description: Response message
+                      date:
+                        type: string
+                        description: Date and time of the response
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+        "401":
+          description: "**Unauthorized**\r\n\r\nIf the service returns this response, it is possible that you have:\r\n- Malformed authentication\r\n- Attempt to communicate with a link that does not belong to your site"
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: object
+                    description: The **status** object contains the request status information
+                    properties:
+                      status:
+                        type: string
+                        description: Request status
+                        examples:
+                          - "OK"
+                      reason:
+                        type: integer
+                        description: Response code
+                      message:
+                        type: string
+                        description: Response message
+                      date:
+                        type: string
+                        description: Date and time of the response
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+        "404":
+          description: "**Not Found**\r\n\r\nIf the service returns this response, it is possible that you have:\r\n\r\n- You are trying to access a resource that does not exist or has not been created"
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: object
+                    description: The **status** object contains the request status information
+                    properties:
+                      status:
+                        type: string
+                        description: Request status
+                        examples:
+                          - "OK"
+                      reason:
+                        type: integer
+                        description: Response code
+                      message:
+                        type: string
+                        description: Response message
+                      date:
+                        type: string
+                        description: Date and time of the response
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+      operationId: Deactivate a Payment Link
+      x-stoplight:
+        id: tz6ngh6jotshk
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+              properties:
+                auth:
+                  type: object
+                  x-stoplight:
+                    id: ji2rm6808vhy9
+                  description: "The **auth** object is mandatory to securely connect to our services"
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      x-stoplight:
+                        id: rkx5vh66kqqrb
+                      description: "Site identifier"
+                      example: "1441d14df19ec88431e513bb990326e1"
+                    tranKey:
+                      type: string
+                      x-stoplight:
+                        id: wkf7mdyeesb2d
+                      description: "Generated **tranKey** credential"
+                      example: "DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY="
+                    nonce:
+                      type: string
+                      x-stoplight:
+                        id: kdgpdkng43yab
+                      description: "Random **value** for each request encoded in **Base64**."
+                      example: "enQ4dXh3YWhkMWM="
+                    seed:
+                      type: string
+                      x-stoplight:
+                        id: jtfb8isvqktei
+                      description: "Current **date**, generated in **ISO 8601** format."
+                      example: "2023-06-21T09:56:06-05:00"
+      description: "Use this endpoint to deactivate links that have not expired\r\n\r\n**Note:** You will only be able to deactivate payment links associated with your site"

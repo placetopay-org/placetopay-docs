@@ -4,7 +4,6 @@ import { useRouter } from 'next/router'
 import { Transition } from '@headlessui/react'
 
 import { Button } from '@/components/Button'
-import { navigation } from '@/components/Navigation'
 import { useNavigation } from '@/hooks/useNavigation'
 import { useLocale } from './LocaleProvider'
 import { Logo } from '@/components/Logo'
@@ -129,7 +128,7 @@ function PageLink({ label, page, previous = false }) {
 }
 
 function PageNavigation() {
-  let navigation = useNavigation('checkout');
+  let navigation = useNavigation();
   let router = useRouter()
   let allPages = navigation.flatMap((group) => group.links)
   let currentPageIndex = allPages.findIndex(
@@ -230,13 +229,11 @@ function SmallPrint() {
   )
 }
 
-export function Footer() {
-  let router = useRouter()
-
+export function Footer({ withouLinks }) {
   return (
     <footer className="mx-auto max-w-2xl space-y-10 pb-16 lg:max-w-5xl">
       <Feedback />
-      <PageNavigation />
+      {!withouLinks && <PageNavigation />}
       <SmallPrint />
     </footer>
   )

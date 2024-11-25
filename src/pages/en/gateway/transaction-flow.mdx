@@ -1,0 +1,24 @@
+# Flow of a transaction
+
+This is a process to carry out the transaction that involves the consumption of the services described in this document.
+
+1. Once the user's card number is captured, the consumption is made to the information service `information` by sending it in the request.
+
+2. The service response is analyzed to provide the following options
+    * If the response includes credit types, `credits` must be shown to the user to allow them to select which one they want to use.    * Si la respuesta trae el parámetro `requirePocket` en true, se debe mostrar los bolsillos `pockets` al usuario para permitirle seleccionar cual desea usar.
+    * If the response has the `requireAvs` parameter set to true, the user must be required to enter a zip code and validate the entry with the `zipCodeFormat` format.
+    * If the response has the `accountVerification` parameter set to true, you must make the consumption to the account verification service and obtain the verified account instrument.
+    * If the response has the `displayInterest` parameter set to true, once a type of credit has been selected, it must consume the interest calculation service `interests` and show the user the response, thus every time the user changes type of credit.
+    * If the response has the `requireOtp` parameter set to true, the consumption must be made to the OTP generation service (otpGeneration) and obtain from the user the code that will be 6 digits to send it later in the OTP validation service `otp /validate` Once there is a response, the signature result will be sent under the OTP field of the processing request.
+
+3. Once the type of credit (if any), the zip code, the pocket, the verified account, the OTP (if required) have been obtained, the transaction processing service `process` is consumed and the transaction is analyzed. response that can be final approved, declined or failed or that can be pending. In both cases a value will be returned for internalReference which is very important to store because it will allow you to make subsequent queries with the `query` service.
+    * If the transaction was approved, it is important to also store the authorization number, it will allow you to make reversals later if necessary.
+    * Generally transactions are completed in a short time (less than 3 seconds), but if the transaction remains in a pending state it is important to have a cron job or similar that is consulting every 5 minutes for pending transactions until they are resolved.
+
+4. Generally transactions are completed in a short time (less than 3 seconds), but the following scenarios may occur that must be controlled
+    * If the response is pending, you can take the internal reference and consume the query service every 5m until it ends in a final state (APPROVED, REJECTED or FAILED).
+    * If there was a failure in the network or in the service and there is no response from the `process` service, it is necessary to consume the `search` service with the reference and amount sent until this service confirms or that found the transaction or that it could not be carried out due to the connection error.
+
+## Flowchart
+
+![Flow](/TransactionFlow_en.webp)
