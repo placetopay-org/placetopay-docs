@@ -199,7 +199,6 @@ export const TAB_NAVIGATION = {
             title: 'Link de pagos',
             links: [
               { title: 'Introducción', href: '/payments/payments-links/introduction' },
-              { title: 'Accesos', href: '/payments/payments-links/access' },
               { title: 'Crear link de pagos', href: '/payments/payments-links/create_payment_link' },
               { title: 'Gestionar link de pagos', href: '/payments/payments-links/link_management' },
               { title: 'Proceso de pago', href: '/payments/payments-links/process_pay' },
