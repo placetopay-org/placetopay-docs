@@ -1,4 +1,4 @@
-import { forwardRef, Fragment, useState } from 'react'
+import { forwardRef, Fragment, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { Transition } from '@headlessui/react'
@@ -24,9 +24,18 @@ function CheckIcon(props) {
 }
 
 function FeedbackButton(props) {
+  const router = useRouter();
+  const [href, setHref] = useState(process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL);
+
+  useEffect(() => {
+    if (router.pathname) {
+      setHref(process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL + '?RefererUrl=' + window.location.href + router.pathname)
+    }
+  }, [router.pathname])
+
   return (
     <a
-      href={process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL}
+      href={process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL + '?RefererUrl=' + router.pathname}
       target="_blank"
       rel="noopener noreferrer"
       className="px-3 text-sm font-medium text-gray-600 transition rounded-full border border-gray-900/10 dark:border-white/10 hover:bg-gray-900/2.5 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
