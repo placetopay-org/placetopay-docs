@@ -59,7 +59,7 @@ const FeedbackByLocale = {
 
 const FeedbackForm = forwardRef(function FeedbackForm({onSubmit, locale}, ref) {
   return (
-    <div ref={ref} className="flex gap-3">
+    <div ref={ref} className="flex gap-3 items-center">
       <p className="text-sm text-gray-600 dark:text-gray-400">
         {FeedbackByLocale[locale].title}
       </p>
@@ -238,11 +238,36 @@ function SmallPrint() {
   )
 }
 
+const EditThisPageText = {
+  es: 'Edita esta página',
+  en: 'Edit this page'
+}
+
+function EditThisPage() {
+  const { locale } = useLocale()
+  const router = useRouter();
+
+  return (
+    <a
+      href={process.env.NEXT_PUBLIC_GITHUB_REPO_URL + '/src/pages' + router.pathname + '.mdx'}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex gap-3 cursor-pointer text-slate-600 font-normal text-xs underline underline-offset-4 dark:text-slate-400"
+    >
+      {EditThisPageText[locale]}
+      <GitHubIcon className="fill-slate-950 dark:fill-slate-200 w-6 h-6" />
+    </a>
+  )
+}
+
 export function Footer({ withouLinks }) {
   return (
     <footer className="mx-auto max-w-2xl space-y-10 pb-16 lg:max-w-5xl">
-      <Feedback />
       {!withouLinks && <PageNavigation />}
+      <div className="w-full flex justify-between">
+        <Feedback />
+        <EditThisPage />
+      </div>
       <SmallPrint />
     </footer>
   )
