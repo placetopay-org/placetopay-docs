@@ -10,6 +10,8 @@ export { ApiReader } from '@/components/ApiReader'
 export { CopyContent } from '@/components/CopyContent'
 export { MissingTranslationBanner } from '@/components/MissingTranslationBanner'
 export { GithubRepo } from '@/components/GithubRepo'
+export { ImageZoom } from '@/components/ImageZoom';
+
 
 export const h2 = function H2(props) {
   return <Heading level={2} {...props} />
