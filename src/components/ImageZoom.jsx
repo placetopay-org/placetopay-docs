@@ -17,7 +17,8 @@ export function ImageZoomProvider(props) {
     <ImageZoomContext.Provider value={{ isZoomed, activeImage, toggleZoom }}>
       {isZoomed && activeImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-55 backdrop-blur-md"
+
           onClick={() => toggleZoom(null)}
         >
           <img
@@ -33,7 +34,7 @@ export function ImageZoomProvider(props) {
 }
 
 export function ImageZoom(props) {
-    const { toggleZoom } = useContext(ImageZoomContext)
-  
-    return <img {...props} tabIndex={0} onClick={() => toggleZoom(props.src)} />
-  }
+  const { toggleZoom } = useContext(ImageZoomContext)
+
+  return <img {...props} tabIndex={0} onClick={() => toggleZoom(props.src)} />
+}
