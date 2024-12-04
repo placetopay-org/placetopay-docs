@@ -47,11 +47,11 @@ const resources = [
   {
     name: {
       es: 'Seguimiento y control de transacciones',
-      en: 'Optimized for any device',
+      en: 'Tracking and control of transactions',
     },
     description: {
       es: 'Resumen del estado de los pagos en el historial del link creado. Funcionalidad de filtros para búsquedas específicas en el histórico. Registro de pagos relacionados con detalles básicos y posibilidad de consultar más información desde el panel administrativo.',
-      en: 'Our checkout is designed to adapt and work seamlessly on mobile and desktop devices. Provide an optimized payment experience, regardless of the device your customer uses.',
+      en: 'Summary of payment status in the history of the link created. Filter functionality for specific searches in the history. Record of related payments with basic details and possibility to consult more information from the administrative panel.',
     },
     icon: MonitorMobileTwoToneIcon,
     pattern: {
@@ -63,10 +63,10 @@ const resources = [
     },
   },
   {
-    name: { es: 'Flexibilidad en los métodos de compartición', en: 'PlacetoPay Wallet' },
+    name: { es: 'Flexibilidad al momento de compartir a los usuarios', en: 'Flexibility when sharing to users' },
     description: {
       es: 'Los links de pago se pueden compartir de diversas formas, como URL, correo electrónico, código QR o WhatsApp, adaptándose a las necesidades de cada usuario o comercio.',
-      en: 'With Checkout, your customers can take advantage of our digital wallet, allowing them to securely store and manage their payment methods. This streamlines the payment process and provides greater convenience when making future transactions.',
+      en: 'Payment links can be shared in a variety of ways, such as URL, email, QR code or WhatsApp, adapting to the needs of each user or merchant.',
     },
     icon: WalletTwoToneIcon,
     pattern: {
@@ -75,10 +75,10 @@ const resources = [
     },
   },
   {
-    name: { es: 'Eficiencia en el flujo de pagos', en: 'Information security' },
+    name: { es: 'Eficiencia en el flujo de pagos', en: 'Efficiency in the payment flow' },
     description: {
       es: 'El sistema permite configurar tiempos de expiración personalizados y límites de pagos aprobados, optimizando el control y seguridad de las transacciones.',
-      en: 'We take the protection of sensitive data seriously. PlacetoPay Checkout complies with industry security standards, including PCI guidelines, to ensure security in the capture and processing of card information.',
+      en: 'The system allows the configuration of customized expiration times and approved payment limits, optimizing the control and security of transactions.',
     },
     icon: SecuritySafeTwoToneIcon,
     pattern: {
@@ -87,10 +87,10 @@ const resources = [
     },
   },
   {
-    name: { es: 'Gestión centralizada', en: 'Advanced payments' },
+    name: { es: 'Gestión centralizada', en: 'Centralized management' },
     description: {
       es: 'Incluye herramientas como el historial de links, la posibilidad de reenvío, y la consulta de pagos relacionados, lo que facilita el monitoreo y la administración desde un solo panel.',
-      en: 'Our platform offers a wide range of payment options, including tax payments, mixed payments, subscriptions, recurring charges, and promotions. Have full control over your transactions and offer flexible options to your customers.',
+      en: 'It includes tools such as link history, forwarding capabilities, and related payment queries, making it easy to monitor and manage from a single dashboard.',
     },
     icon: LampChargeTwoToneIcon,
     pattern: {
