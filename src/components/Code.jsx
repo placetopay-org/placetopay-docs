@@ -174,7 +174,7 @@ function CodeGroupHeader({ title, children, selectedIndex, onChange }) {
           onChange={(evt) => onChange(evt.target.value)}
         >
           {Children.map(children, (child, childIndex) => (
-            <option key={`response-${childIndex}`} value={childIndex}>
+            <option className="text-gray-950" key={`response-${childIndex}`} value={childIndex}>
               {getPanelTitle(child.props)}
             </option>
           ))}
