@@ -21,11 +21,13 @@ export function ImageZoomProvider(props) {
 
           onClick={() => toggleZoom(null)}
         >
-          <img
-            src={activeImage}
-            alt="Zoomed view"
-            className="max-h-[90vh] max-w-full rounded-md shadow-lg sm:max-h-[80vh] sm:max-w-5xl md:max-h-[75vh] md:max-w-6xl lg:max-h-[70vh] lg:max-w-7xl"
-          />
+          <div className="flex items-center justify-center w-full h-full p-4">
+            <img
+              src={activeImage}
+              alt="Zoomed view"
+              className="max-h-[90vh] max-w-full rounded-md shadow-lg sm:max-h-[80vh] sm:max-w-[90%] md:max-h-[75vh] md:max-w-[85%] lg:max-h-[70vh] lg:max-w-[80%]"
+            />
+          </div>
         </div>
       )}
       {props.children}
