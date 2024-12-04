@@ -57,7 +57,7 @@ export const LanguageSwitch = () => {
         onChange={(event) => changeLocale(event.target.value)}
       >
         {LANGUAGES[locale].map(({ name, code }) => (
-          <option key={`language-switch-${name}-${code}`} value={code}>
+          <option className="text-gray-950" key={`language-switch-${name}-${code}`} value={code}>
             {name}
           </option>
         ))}
