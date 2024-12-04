@@ -234,6 +234,16 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
+            title: 'Link de pagos',
+            links: [
+              { title: 'Introduction', href: '/payments/payments-links/introduction' },
+              { title: 'Create payment link', href: '/payments/payments-links/create_payment_link' },
+              { title: 'Manage payment link', href: '/payments/payments-links/link_management' },
+              { title: 'Process Pay', href: '/payments/payments-links/process_pay' },
+
+            ],
+          },
+          {
             title: 'Payment methods',
             links: [
               { title: 'ACH Bank Debit', href: '/payments/ach-bank-debit' },
