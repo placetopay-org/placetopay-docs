@@ -53,7 +53,7 @@ const TITLES = {
       yes: 'Yes',
       no: 'No',
     },
-  }
+  },
 }
 
 const ApiPropertyInformation = ({ title, items }) => {
