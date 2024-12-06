@@ -1,5 +1,18 @@
 # Flujo de una transacción
 
+Nuestra API provee principalmente dos tipos de transacciones:
+
+Transacciones directas que básicamente son autorizadas inmediatamente con los datos solicitados al usuari, medios de pago de ejemplo:
+* Tarjeta de crédito
+* Debito a cuenta ACH (Puerto Rico)
+
+Transacciones de redirección que requieren que el usuario sea enviado a una URL donde debe continuar el proceso para poder lograr una autorización, medios de pago de ejemplo:
+* PSE
+* Boton Bancolombia
+* Boton Aval
+
+## Transacción directa
+
 Se trata de un proceso para realizar la transacción que involucra el consumo de los servicios descritos en este documento.
 
 1. Una vez se capture el número de tarjeta del usuario se realiza el consumo al servicio de información `information` enviándolo en la petición
@@ -20,6 +33,21 @@ Se trata de un proceso para realizar la transacción que involucra el consumo de
     * Si la respuesta es pendiente, se puede tomar la referencia interna y realizar un consumo al servicio de query cada 5m hasta que termine en un estado final (APPROVED, REJECTED o FAILED).
     * Si hubo una falla en la red o en el servicio y no se tiene respuesta del servicio de `process`, es necesario realizar un consumo del servicio de `search` con la referencia y monto enviado hasta que este servicio te confirme o bien que encontró la transacción o que efectivamente por el error de conexión no se logró realizar.
 
-## Diagrama de Flujo
+### Diagrama de Flujo
 
 ![Flujo](/TransactionFlow.webp)
+
+## Transacción de redirección
+
+1. Una vez se capture el medio de pago a utilizar se hace la petición de `information` con el instrumento correspondiente `redirection` como se puede ver en los [ejemplos del API](api/reference/information#information-request)
+
+2. Se analiza la respuesta del servicio, la cual contendrá el atributo `requireRedirection` y este se encontrará en `true` así mismo contiene un atributo `bankList` que contiene todos los posibles valores a mostrar al cliente para que seleccione la entidad bancaria que desea utilizar
+
+3. Se presentan las opciones al cliente de bancos listados para su selección
+
+4. Se envía a procesar la petición con el código de banco seleccionado por el usuario la respuesta de este servicio contiene un objeto `redirection` que tiene un atributo `processURL` a la cual debe ser enviado el usuario
+
+5. El usuario una vez termine su flujo será redireccionado a la URL enviada como `returnURL` en la solicitud de procesamiento anterior
+
+6. Se consulta el estado de la transacción mediante el API de consulta de estado
+

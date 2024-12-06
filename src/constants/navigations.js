@@ -199,6 +199,7 @@ export const TAB_NAVIGATION = {
             title: 'Medios de pago',
             links: [
               { title: 'ACH Débito Bancario', href: '/payments/ach-bank-debit' },
+              { title: 'Click to Pay', href: '/payments/clicktopay' },
             ],
           },
           {
@@ -227,6 +228,7 @@ export const TAB_NAVIGATION = {
             title: 'Payment methods',
             links: [
               { title: 'ACH Bank Debit', href: '/payments/ach-bank-debit' },
+              { title: 'Click to Pay', href: '/payments/clicktopay' },
             ],
           },
           {

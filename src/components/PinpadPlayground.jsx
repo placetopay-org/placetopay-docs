@@ -96,7 +96,7 @@ const Select = ({ id, value, onChange, options }) => (
     onChange={onChange}
   >
     {options.map((option, index) => (
-      <option key={index} value={option.value}>
+      <option className="text-gray-950" key={index} value={option.value}>
         {option.label}
       </option>
     ))}
