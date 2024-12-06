@@ -212,7 +212,7 @@ paths:
                         description: "Indicates if the payment method is of the redirect type"
                       bankList:
                         type: "array"
-                        description: "List of banks available to process a payment with PSE"
+                        description: "List of banks available to process a payment"
                         items:
                           $ref: "#/components/schemas/BankItem"
                       requireBalance:
@@ -240,7 +240,7 @@ paths:
                         description: "Indicates if the payment method is of the redirect type"
                       bankList:
                         type: "array"
-                        description: "List of banks available to process a payment with PSE"
+                        description: "List of banks available to process a payment"
                         items:
                           $ref: "#/components/schemas/BankItem"
                       cardType:
@@ -271,6 +271,10 @@ paths:
                         description: "Indicates the credits available per supplier"
                         items:
                           $ref: "#/components/schemas/Credit"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "serviceCode"
               examples:
                 Ejemplo:
                   value:
@@ -344,7 +348,7 @@ paths:
           application/json:
             schema:
               oneOf:
-                - title: "Simple"
+                - title: "Default"
                   type: "object"
                   properties:
                     action:
@@ -436,7 +440,7 @@ paths:
                     - "instrument"
                     - "payment"
             examples:
-              Simple:
+              Default:
                 value:
                   auth:
                     login: "c4ca4238a0b923820dcc509a6f75849b"
@@ -820,6 +824,33 @@ paths:
                       installments: "2"
                   ipAddress: "190.85.90.130"
                   userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+              Botón Aval:
+                value:
+                  locale: "es_CO"
+                  payer:
+                    name: "Dr. Wilfredo Cole Sr."
+                    surname: "Corwin"
+                    email: "jewell32@abbott.com"
+                    documentType: "CC"
+                    document: "2504950080"
+                    mobile: "3006108300"
+                  payment:
+                    reference: "TEST_TRANSACTION"
+                    description: "Test payment"
+                    amount:
+                      total: "10000"
+                      currency: "COP"
+                  instrument:
+                    redirection:
+                      paymentMethod: "BTNBC"
+                      returnURL: "https://your-site.com/your-return-path"
+                  ipAddress: "127.0.0.1"
+                  userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+                  auth:
+                    login: "6dd490faf9cb87a9862245da41170ff2"
+                    tranKey: "iVrCs2xc60jWqW9bAD0rEHdqZG1O0y+jh9s+urOlkzI="
+                    seed: "2021-10-14T19:44:06.820Z"
+                    nonce: "NHJqNXcz"
       responses:
         200:
           description: "OK"
@@ -1058,6 +1089,25 @@ paths:
                               description: "URL so that once the payment process is completed, control is returned (when applicable)"
                             additional:
                               type: "object"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "internalReference"
+                      - "reference"
+                      - "paymentMethod"
+                      - "franchise"
+                      - "franchiseName"
+                      - "issuerName"
+                      - "amount"
+                      - "conversion"
+                      - "authorization"
+                      - "receipt"
+                      - "type"
+                      - "refunded"
+                      - "lastDigits"
+                      - "discount"
+                      - "processorFields"
+                      - "additional"
               examples:
                 Ejemplo:
                   value:
@@ -1734,30 +1784,18 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-                - title: "Default"
-                  type: "object"
-                  properties:
-                    locale:
-                      type: "string"
-                    auth:
-                      $ref: "#/components/schemas/Authentication"
-                    internalReference:
-                      type: "number"
-                  required:
-                    - "auth"
-                    - "internalReference"
-                - title: "Botón Aval"
-                  type: "object"
-                  properties:
-                    auth:
-                      $ref: "#/components/schemas/Authentication"
-                    internalReference:
-                      type: "number"
-                      description: "Unique internal reference of the transaction."
-                  required:
-                    - "auth"
-                    - "internalReference"
+                type: "object"
+                description: ""
+                properties:
+                  locale:
+                    type: "string"
+                  auth:
+                    $ref: "#/components/schemas/Authentication"
+                  internalReference:
+                    type: "number"
+                required:
+                  - "auth"
+                  - "internalReference"
             examples:
               Ejemplo:
                 value:
@@ -1773,258 +1811,163 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                  - title: "Default"
-                    type: "object"
-                    properties:
-                      status:
-                        $ref: "#/components/schemas/Status"
-                      date:
-                        type: "string"
-                        description: |
-                          EJ: `2021-09-20T21:51:59-05:00`
-                      transactionDate:
-                        type: "string"
-                        description: |
-                          EJ: `2021-09-20T21:51:59-05:00`
-                      internalReference:
-                        type: "number"
-                      reference:
-                        type: "string"
-                        minLength: 1
-                      paymentMethod:
-                        type: "string"
-                        minLength: 1
-                      franchise:
-                        type: "string"
-                        minLength: 1
-                      franchiseName:
-                        type: "string"
-                        minLength: 1
-                      issuerName:
-                        type: "string"
-                        minLength: 1
-                        nullable: true
-                      amount:
-                        $ref: "#/components/schemas/Amount"
-                      conversion:
-                        $ref: "#/components/schemas/AmountConversion"
-                      authorization:
-                        type: "string"
-                        minLength: 1
-                        nullable: true
-                      receipt:
-                        type: "string"
-                        maxLength: 16
-                        nullable: true
-                      type:
-                        type: "string"
-                        minLength: 1
-                      refunded:
-                        type: "boolean"
-                      lastDigits:
-                        type: "string"
-                        minLength: 1
-                        nullable: true
-                      provider:
-                        type: "string"
-                        enum:
-                          - "CREDIBANCO"
-                          - "REDEBAN"
-                          - "INTERDIN"
-                          - "DATAFAST"
-                          - "TUYA-DIRECT"
-                          - "BRASPAG"
-                          - "TRANSERVER"
-                          - "SABRE"
-                          - "EVERTEC"
-                          - "ACH"
-                          - "ATH-AVALNET"
-                          - "SUPERGIROS"
-                          - "TECNICARD"
-                          - "MEDIANET"
-                          - "AUSTRO"
-                          - "COMFANDI"
-                          - "PAYSTUDIO"
-                          - "FLAMINGO"
-                          - "ATH-MOVIL"
-                          - "EBUS"
-                          - "BANCOLOMBIA"
-                      discount:
-                        type: "string"
-                      processorFields:
+                  type: "object"
+                  properties:
+                    status:
+                      $ref: "#/components/schemas/Status"
+                    date:
+                      type: "string"
+                      description: |
+                        EJ: `2021-09-20T21:51:59-05:00`
+                    transactionDate:
+                      type: "string"
+                      description: |
+                        EJ: `2021-09-20T21:51:59-05:00`
+                    internalReference:
+                      type: "number"
+                    reference:
+                      type: "string"
+                      minLength: 1
+                    paymentMethod:
+                      type: "string"
+                      minLength: 1
+                    franchise:
+                      type: "string"
+                      minLength: 1
+                    franchiseName:
+                      type: "string"
+                      minLength: 1
+                    issuerName:
+                      type: "string"
+                      minLength: 1
+                      nullable: true
+                    amount:
+                      $ref: "#/components/schemas/Amount"
+                    conversion:
+                      $ref: "#/components/schemas/AmountConversion"
+                    authorization:
+                      type: "string"
+                      minLength: 1
+                      nullable: true
+                    receipt:
+                      type: "string"
+                      maxLength: 16
+                      nullable: true
+                    type:
+                      type: "string"
+                      minLength: 1
+                    refunded:
+                      type: "boolean"
+                    lastDigits:
+                      type: "string"
+                      minLength: 1
+                      nullable: true
+                    provider:
+                      type: "string"
+                      enum:
+                        - "CREDIBANCO"
+                        - "REDEBAN"
+                        - "INTERDIN"
+                        - "DATAFAST"
+                        - "TUYA-DIRECT"
+                        - "BRASPAG"
+                        - "TRANSERVER"
+                        - "SABRE"
+                        - "EVERTEC"
+                        - "ACH"
+                        - "ATH-AVALNET"
+                        - "SUPERGIROS"
+                        - "TECNICARD"
+                        - "MEDIANET"
+                        - "AUSTRO"
+                        - "COMFANDI"
+                        - "PAYSTUDIO"
+                        - "FLAMINGO"
+                        - "ATH-MOVIL"
+                        - "EBUS"
+                        - "BANCOLOMBIA"
+                    discount:
+                      type: "string"
+                    processorFields:
+                      type: "object"
+                      properties:
+                        id:
+                          type: "string"
+                        b24:
+                          type: "string"
+                    additional:
+                      type: "object"
+                      description: |
+                        See more in [Additional data](/en/gateway/additional-data)
+                    preAuthorization:
+                      type: "object"
+                      items:
                         type: "object"
                         properties:
-                          id:
+                          condition:
                             type: "string"
-                          b24:
+                          internalReference:
+                            type: "number"
+                          authorization:
                             type: "string"
-                      additional:
-                        type: "object"
-                        description: |
-                          See more in [Additional data](/en/gateway/additional-data)
-                      preAuthorization:
-                        type: "object"
-                        items:
-                          type: "object"
-                          properties:
-                            condition:
-                              type: "string"
-                            internalReference:
-                              type: "number"
-                            authorization:
-                              type: "string"
-                              minLength: 1
-                              nullable: true
-                            receipt:
-                              type: "string"
-                              minLength: 1
-                              nullable: true
-                            amount:
-                              $ref: "#/components/schemas/Amount"
-                            salt:
-                              type: "string"
-                      dispersion:
-                        type: "array"
-                        items:
-                          type: "object"
-                          properties:
-                            status:
-                              $ref: "#/components/schemas/Status"
-                            agreement:
-                              type: "integer"
-                              nullable: true
-                            agreementType:
-                              type: "string"
-                              enum:
-                                - "AIRLINE"
-                                - "MERCHANT"
-                            authorization:
-                              type: "string"
-                              minLength: 1
-                              nullable: true
-                            receipt:
-                              type: "string"
-                              minLength: 1
-                              nullable: true
-                            amount:
-                              $ref: "#/components/schemas/Amount"
-                            refunded:
-                              type: "boolean"
-                            paymentMethod:
-                              type: "string"
-                    required:
-                      - "status"
-                      - "provider"
-                      - "internalReference"
-                      - "reference"
-                      - "paymentMethod"
-                      - "franchise"
-                      - "franchiseName"
-                      - "issuerName"
-                      - "amount"
-                      - "conversion"
-                      - "authorization"
-                      - "receipt"
-                      - "type"
-                      - "refunded"
-                      - "lastDigits"
-                      - "discount"
-                      - "processorFields"
-                      - "additional"
-                  - title: "Botón Aval"
-                    type: "object"
-                    properties:
-                      status:
-                        $ref: "#/components/schemas/Status"
-                      date:
-                        type: "string"
-                        description: |
-                          EJ: `2021-09-20T21:51:59-05:00`
-                      transactionDate:
-                        type: "string"
-                        description: |
-                          EJ: `2021-09-20T21:51:59-05:00`
-                      internalReference:
-                        type: "number"
-                      reference:
-                        type: "string"
-                        minLength: 1
-                      paymentMethod:
-                        type: "string"
-                        minLength: 1
-                      franchise:
-                        type: "string"
-                        minLength: 1
-                      franchiseName:
-                        type: "string"
-                        minLength: 1
-                      issuerName:
-                        type: "string"
-                        minLength: 1
-                        nullable: true
-                      amount:
-                        $ref: "#/components/schemas/Amount"
-                      conversion:
-                        $ref: "#/components/schemas/AmountConversion"
-                      authorization:
-                        type: "string"
-                        minLength: 1
-                        nullable: true
-                      receipt:
-                        type: "string"
-                        maxLength: 16
-                        nullable: true
-                      type:
-                        type: "string"
-                        minLength: 1
-                      refunded:
-                        type: "boolean"
-                      lastDigits:
-                        type: "string"
-                        minLength: 1
-                        nullable: true
-                      provider:
-                        type: "string"
-                        enum:
-                          - "AVAL"
-                      discount:
-                        type: "string"
-                      processorFields:
+                            minLength: 1
+                            nullable: true
+                          receipt:
+                            type: "string"
+                            minLength: 1
+                            nullable: true
+                          amount:
+                            $ref: "#/components/schemas/Amount"
+                          salt:
+                            type: "string"
+                    dispersion:
+                      type: "array"
+                      items:
                         type: "object"
                         properties:
-                          id:
+                          status:
+                            $ref: "#/components/schemas/Status"
+                          agreement:
+                            type: "integer"
+                            nullable: true
+                          agreementType:
                             type: "string"
-                          b24:
+                            enum:
+                              - "AIRLINE"
+                              - "MERCHANT"
+                          authorization:
                             type: "string"
-                          paymentURL:
+                            minLength: 1
+                            nullable: true
+                          receipt:
                             type: "string"
-                      additional:
-                        type: "object"
-                        description: |
-                          Ver más en [Datos adicionales](/gateway/additional-data)
-                      redirection:
-                        type: "object"
-                        items:
-                          type: "object"
-                          properties:
-                            paymentMethod:
-                              type: "string"
-                              enum:
-                                - "BTNAV"
-                            processURL:
-                              type: "string"
-                              format: "uri"
-                              maxLength: 250
-                              description: "URL to which the client must be sent to continue the process, it is provided by the service"
-                            returnURL:
-                              type: "string"
-                              format: "uri"
-                              example: "http://your-site.com/your-return-route"
-                              maxLength: 250
-                              description: "URL so that once the payment process is completed, control is returned (when applicable)"
-                            additional:
-                              type: "object"
+                            minLength: 1
+                            nullable: true
+                          amount:
+                            $ref: "#/components/schemas/Amount"
+                          refunded:
+                            type: "boolean"
+                          paymentMethod:
+                            type: "string"
+                  required:
+                    - "status"
+                    - "provider"
+                    - "internalReference"
+                    - "reference"
+                    - "paymentMethod"
+                    - "franchise"
+                    - "franchiseName"
+                    - "issuerName"
+                    - "amount"
+                    - "conversion"
+                    - "authorization"
+                    - "receipt"
+                    - "type"
+                    - "refunded"
+                    - "lastDigits"
+                    - "discount"
+                    - "processorFields"
+                    - "additional"
               examples:
                 Ejemplo:
                   value:
