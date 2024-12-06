@@ -78,12 +78,38 @@ paths:
                   properties:
                     auth:
                       $ref: "#/components/schemas/Authentication"
-                    payer:
-                      $ref: "#/components/schemas/Person"
                     payment:
-                      $ref: "#/components/schemas/Payment"
+                      type: "object"
+                      description: "Structure that contains the information about the payment of the transaction required to the web service"
+                      properties:
+                        reference:
+                          type: "string"
+                          minLength: 1
+                          maxLength: 32
+                        description:
+                          type: "string"
+                          maxLength: 250
+                        amount:
+                          $ref: "#/components/schemas/Amount"
                     instrument:
-                      $ref: "#/components/schemas/Instrument"
+                      type: "object"
+                      description: "Structure that contains information about the means of payment to be used in a transaction. This structure is variable according to the request that is generated. Each service requires that one or another data be used."
+                      properties:
+                        redirection:
+                          type: "object"
+                          description: "It represents a redirect payment method, meaning that it requires the user to be sent to another URL to complete the process."
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "BTNAV"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL so that once the payment process is completed, control is returned (when applicable)"
+
                     locale:
                       type: "string"
                     ipAddress:
@@ -92,7 +118,6 @@ paths:
                       type: "string"
                   required:
                     - "auth"
-                    - "payer"
                     - "payment"
                     - "instrument"
             examples:
@@ -359,9 +384,44 @@ paths:
                     buyer:
                       $ref: "#/components/schemas/Person"
                     instrument:
-                      $ref: "#/components/schemas/Instrument"
+                      type: "object"
+                      description: "Structure that contains information about the means of payment to be used in a transaction. This structure is variable according to the request that is generated. Each service requires that one or another data be used."
+                      properties:
+                        redirection:
+                          type: "object"
+                          description: "It represents a redirect payment method, meaning that it requires the user to be sent to another URL to complete the process."
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "BTNAV"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL so that once the payment process is completed, control is returned (when applicable)"
+                            additional:
+                              type: "object"
+                              description: "Structure to relate additional data in the process."
+                              properties:
+                                bankCode:
+                                  type: "string"
+                                  description: "Code that identifies the bank on the network."
+                                  example: "0001"
                     payment:
-                      $ref: "#/components/schemas/Payment"
+                      type: "object"
+                      description: "Structure that contains the information about the payment of the transaction required to the web service"
+                      properties:
+                        reference:
+                          type: "string"
+                          minLength: 1
+                          maxLength: 32
+                        description:
+                          type: "string"
+                          maxLength: 250
+                        amount:
+                          $ref: "#/components/schemas/Amount"
                     locale:
                       type: "string"
                     ipAddress:
@@ -822,27 +882,7 @@ paths:
                       provider:
                         type: "string"
                         enum:
-                          - "CREDIBANCO"
-                          - "REDEBAN"
-                          - "INTERDIN"
-                          - "DATAFAST"
-                          - "TUYA-DIRECT"
-                          - "BRASPAG"
-                          - "TRANSERVER"
-                          - "SABRE"
-                          - "EVERTEC"
-                          - "ACH"
-                          - "ATH-AVALNET"
-                          - "SUPERGIROS"
-                          - "TECNICARD"
-                          - "MEDIANET"
-                          - "AUSTRO"
-                          - "COMFANDI"
-                          - "PAYSTUDIO"
-                          - "FLAMINGO"
-                          - "ATH-MOVIL"
-                          - "EBUS"
-                          - "BANCOLOMBIA"
+                          - "AVAL"
                       discount:
                         type: "string"
                       processorFields:
@@ -980,27 +1020,6 @@ paths:
                       provider:
                         type: "string"
                         enum:
-                          - "CREDIBANCO"
-                          - "REDEBAN"
-                          - "INTERDIN"
-                          - "DATAFAST"
-                          - "TUYA-DIRECT"
-                          - "BRASPAG"
-                          - "TRANSERVER"
-                          - "SABRE"
-                          - "EVERTEC"
-                          - "ACH"
-                          - "ATH-AVALNET"
-                          - "SUPERGIROS"
-                          - "TECNICARD"
-                          - "MEDIANET"
-                          - "AUSTRO"
-                          - "COMFANDI"
-                          - "PAYSTUDIO"
-                          - "FLAMINGO"
-                          - "ATH-MOVIL"
-                          - "EBUS"
-                          - "BANCOLOMBIA"
                           - "AVAL"
                       discount:
                         type: "string"
@@ -1025,19 +1044,18 @@ paths:
                             paymentMethod:
                               type: "string"
                               enum:
-                                - "BTNBC"
-                                - "PGEFT"
+                                - "BTNAV"
                             processURL:
                               type: "string"
                               format: "uri"
                               maxLength: 250
-                              description: "URL a la cual se debe enviar al cliente para continuar el proceso, está es proporcionada por el servicio"
+                              description: "URL to which the client must be sent to continue the process, it is provided by the service"
                             returnURL:
                               type: "string"
                               format: "uri"
                               example: "http://your-site.com/your-return-route"
                               maxLength: 250
-                              description: "URL para que una vez se termine el proceso de pago se retorne el control (cuando aplica)"
+                              description: "URL so that once the payment process is completed, control is returned (when applicable)"
                             additional:
                               type: "object"
               examples:
@@ -1736,6 +1754,7 @@ paths:
                       $ref: "#/components/schemas/Authentication"
                     internalReference:
                       type: "number"
+                      description: "Unique internal reference of the transaction."
                   required:
                     - "auth"
                     - "internalReference"
@@ -1968,27 +1987,6 @@ paths:
                       provider:
                         type: "string"
                         enum:
-                          - "CREDIBANCO"
-                          - "REDEBAN"
-                          - "INTERDIN"
-                          - "DATAFAST"
-                          - "TUYA-DIRECT"
-                          - "BRASPAG"
-                          - "TRANSERVER"
-                          - "SABRE"
-                          - "EVERTEC"
-                          - "ACH"
-                          - "ATH-AVALNET"
-                          - "SUPERGIROS"
-                          - "TECNICARD"
-                          - "MEDIANET"
-                          - "AUSTRO"
-                          - "COMFANDI"
-                          - "PAYSTUDIO"
-                          - "FLAMINGO"
-                          - "ATH-MOVIL"
-                          - "EBUS"
-                          - "BANCOLOMBIA"
                           - "AVAL"
                       discount:
                         type: "string"
@@ -2013,19 +2011,18 @@ paths:
                             paymentMethod:
                               type: "string"
                               enum:
-                                - "BTNBC"
-                                - "PGEFT"
+                                - "BTNAV"
                             processURL:
                               type: "string"
                               format: "uri"
                               maxLength: 250
-                              description: "URL a la cual se debe enviar al cliente para continuar el proceso, está es proporcionada por el servicio"
+                              description: "URL to which the client must be sent to continue the process, it is provided by the service"
                             returnURL:
                               type: "string"
                               format: "uri"
                               example: "http://your-site.com/your-return-route"
                               maxLength: 250
-                              description: "URL para que una vez se termine el proceso de pago se retorne el control (cuando aplica)"
+                              description: "URL so that once the payment process is completed, control is returned (when applicable)"
                             additional:
                               type: "object"
               examples:
