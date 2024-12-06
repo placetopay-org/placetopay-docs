@@ -1,4 +1,4 @@
-import { forwardRef, Fragment, useState } from 'react'
+import { forwardRef, Fragment, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { Transition } from '@headlessui/react'
@@ -24,9 +24,18 @@ function CheckIcon(props) {
 }
 
 function FeedbackButton(props) {
+  const router = useRouter();
+  const [href, setHref] = useState(process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL);
+
+  useEffect(() => {
+    if (router.pathname) {
+      setHref(process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL + '?RefererUrl=' + window.location.origin + router.pathname)
+    }
+  }, [router.pathname])
+
   return (
     <a
-      href={process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className="px-3 text-sm font-medium text-gray-600 transition rounded-full border border-gray-900/10 dark:border-white/10 hover:bg-gray-900/2.5 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
@@ -50,7 +59,7 @@ const FeedbackByLocale = {
 
 const FeedbackForm = forwardRef(function FeedbackForm({onSubmit, locale}, ref) {
   return (
-    <div ref={ref} className="flex gap-3">
+    <div ref={ref} className="flex gap-3 items-center">
       <p className="text-sm text-gray-600 dark:text-gray-400">
         {FeedbackByLocale[locale].title}
       </p>
@@ -229,11 +238,36 @@ function SmallPrint() {
   )
 }
 
+const EditThisPageText = {
+  es: 'Edita esta página',
+  en: 'Edit this page'
+}
+
+function EditThisPage() {
+  const { locale } = useLocale()
+  const router = useRouter();
+
+  return (
+    <a
+      href={process.env.NEXT_PUBLIC_GITHUB_REPO_URL + '/src/pages' + router.pathname + '.mdx'}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex gap-3 cursor-pointer text-slate-600 font-normal text-xs underline underline-offset-4 dark:text-slate-400"
+    >
+      {EditThisPageText[locale]}
+      <GitHubIcon className="fill-slate-950 dark:fill-slate-200 w-6 h-6" />
+    </a>
+  )
+}
+
 export function Footer({ withouLinks }) {
   return (
     <footer className="mx-auto max-w-2xl space-y-10 pb-16 lg:max-w-5xl">
-      <Feedback />
       {!withouLinks && <PageNavigation />}
+      <div className="w-full flex justify-between">
+        <Feedback />
+        <EditThisPage />
+      </div>
       <SmallPrint />
     </footer>
   )

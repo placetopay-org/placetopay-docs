@@ -285,7 +285,7 @@ export const ApiResponses = ({ responses = {} }) => {
           onChange={(evt) => setSelected(evt.target.value)}
         >
           {Object.entries(responses).map(([code]) => (
-            <option key={`response-${code}`} value={code}>
+            <option className="text-gray-950" key={`response-${code}`} value={code}>
               {code}
             </option>
           ))}
