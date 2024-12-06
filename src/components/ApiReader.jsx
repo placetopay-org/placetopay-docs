@@ -417,9 +417,9 @@ export const ApiMultiRequest = ({ request = {} }) => {
       request?.content?.['multipart/form-data']
 
   const requestBodies = requestBody?.schema.oneOf ?? requestBody?.schema.anyOf;
+  const [selected, setSelected] = useState(Object.entries(requestBodies)?.[0]?.[0])
 
   if (requestBodies) {
-    const [selected, setSelected] = useState(Object.entries(requestBodies)?.[0]?.[0])
     const requestDef = requestBodies[selected]
 
     return (
