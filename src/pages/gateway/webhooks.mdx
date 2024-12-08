@@ -1,0 +1,131 @@
+# Webhooks
+
+Un webhook es una notificación enviada a una URL mediante una solicitud HTTPS. En Placetopay, los webhooks permiten a los sistemas externos recibir información en tiempo real sobre el estado de alguna transacción. {{ className: 'lead' }}
+
+Webhooks es una nueva funcionalidad que pretende complementar los casos cubiertos por la funcionalidad de [Notificación de transacción](/gateway/notification). Actualmente sólo se cubre el caso de uso para _Webhook devoluciones ACH_
+ 
+## Webhook para devoluciones ACH
+
+El webhook para devoluciones ACH permite a los comercios recibir notificaciones en tiempo real sobre devoluciones en su sitio.
+
+- **Propósito**: Notificar al comercio cuando ocurre una devolución ACH.
+- **Configuración**: Se configura en el panel administrativo de Placetopay, a través del equipo de operaciones, proporcionando la URL deseada.
+- **Evento**: Envío de notificación HTTPS cuando se genera una devolución ACH.
+- **Información enviada**: Toda información directa de una sesión.
+
+```plaintext {{ title: 'Headers' }}
+X-Signature: [firma para validar la autenticidad]
+Content-Type: application/json
+Accept: application/json
+```
+
+```json {{ title: 'body' }}
+{
+  "time": "2024-11-14T05:50:15-05:00",
+  "type": "chargeback.created",
+  "data": {
+    "status": {
+      "status": "APPROVED",
+      "reason": "R01",
+      "message": "Fondos insuficientes",
+      "date": "2024-07-03T22:59:00-05:00"
+    },
+    "date": "2024-07-03T22:59:00-05:00",
+    "transactionDate": "2024-07-03T22:59:00-05:00",
+    "internalReference": 2,
+    "reference": "9123418",
+    "paymentMethod": "EBACH",
+    "franchise": "ach",
+    "franchiseName": "Ebus ACH",
+    "issuerName": null,
+    "amount": {
+      "taxes": [
+        {
+          "kind": "valueAddedTax",
+          "amount": 0,
+          "base": 0
+        }
+      ],
+      "currency": "USD",
+      "total": 20000
+    },
+    "conversion": {
+      "from": {
+        "currency": "USD",
+        "total": 20000
+      },
+      "to": {
+        "currency": "USD",
+        "total": 20000
+      },
+      "factor": 1
+    },
+    "authorization": "10000123",
+    "receipt": null,
+    "type": "CHARGEBACK",
+    "refunded": false,
+    "lastDigits": null,
+    "provider": null,
+    "discount": null,
+    "processorFields": {
+      "id": "b66f02ffff79b79ea9587b3cd3507a50",
+      "b24": "R01"
+    },
+    "additional": {
+      "merchantCode": "4549106521651",
+      "terminalNumber": "19371021",
+      "bankName": "Test Bank",
+      "accountNumber": "6789"
+    }
+  }
+}
+```
+
+### Validación de la Firma
+
+Para garantizar la autenticidad de la notificación, cada webhook de Placetopay incluye una firma en el encabezado `X-Signature`. Puedes validar esta firma con un hash HMAC SHA-256 utilizando el contenido del cuerpo de la notificación (`body`) y la llave de transacción (`tranKey`) de tu sitio.
+
+```javascript {{ title: 'Validación en JavaScript' }}
+const crypto = require('crypto');
+
+// Body de la solicitud y firma recibida
+const body = JSON.stringify(notificationBody);
+const receivedSignature = headers['X-Signature'];
+
+const tranKey = 'YOUR_SITE_TRANKEY';
+
+// Generar la firma localmente
+const generatedSignature = crypto
+  .createHmac('sha256', tranKey)
+  .update(body)
+  .digest('hex');
+
+// Validar la firma
+if (generatedSignature === receivedSignature) {
+  console.log("La notificación es auténtica.");
+} else {
+  console.log("Firma inválida: la notificación no es auténtica.");
+}
+```
+
+## FAQs
+
+<details>
+<summary>¿Cómo configuro un webhook para mi negocio?</summary>
+<p>Contacta al equipo de operaciones y proporciona la URL donde deseas recibir las notificaciones. Ellos se encargarán de configurarlo en el sistema administrativo.</p>
+</details>
+
+<details>
+<summary>¿Qué eventos cubren actualmente los webhooks?</summary>
+<p>El único evento disponible es <code>chargeback.created</code>, que corresponde a devoluciones ACH.</p>
+</details>
+
+<details>
+<summary>¿Qué información incluye un webhook de devolución ACH?</summary>
+<p>Incluye el tipo de evento, estado de la devolución, razones específicas (como fondos insuficientes), referencias internas, y detalles del monto.</p>
+</details>
+
+<details>
+<summary>¿Cómo valido la autenticidad de un webhook?</summary>
+<p>Valida la firma en el encabezado <code>X-Signature</code> utilizando HMAC SHA-256 con el <code>tranKey</code> de tu sitio. Consulta la documentación principal para ejemplos.</p>
+</details>
