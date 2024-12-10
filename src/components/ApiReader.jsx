@@ -54,6 +54,10 @@ const TITLES = {
       no: 'No',
     },
   },
+  deprecated: {
+    es: "Obsoleta",
+    en: "Deprecated"
+  }
 }
 
 const ApiPropertyInformation = ({ title, items }) => {
@@ -308,6 +312,65 @@ export const ApiResponses = ({ responses = {} }) => {
   )
 }
 
+export const ApiMultiResponses = ({ responses = {} }) => {
+  const { locale } = useLocale()
+
+  const [selected, setSelected] = useState(Object.entries(responses)?.[0]?.[0])
+  const response = responses[selected]
+
+  const schema = response?.content?.['application/json']?.schema
+  const [bodySelected, setBodySelected] = useState(0)
+  let body = schema
+
+  const multiBodies = schema?.oneOf ?? schema?.anyOf ?? []
+  if (multiBodies.length > 0) {
+    body = multiBodies[bodySelected]
+  }
+
+  return (
+    <>
+      <div className="flex items-baseline justify-between">
+        <h3>{TITLES.response[locale]}</h3>
+
+        <select
+          className="bg-inherit"
+          onChange={(evt) => setBodySelected(evt.target.value)}
+        >
+          {multiBodies.map((element, key) => (
+            <option key={`response-item-${key}`} value={key}>
+              {element.title}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="bg-inherit"
+          onChange={(evt) => setSelected(evt.target.value)}
+        >
+          {Object.entries(responses).map(([code]) => (
+            <option key={`response-${code}`} value={code}>
+              {code}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {response.description && (
+        <ReactMarkdown>{response.description}</ReactMarkdown>
+      )}
+
+      {response.deprecated && (
+        <ReactMarkdown>### Version Obsoleta</ReactMarkdown>
+      )}
+
+      <ApiProperties
+        properties={Object.entries(body.properties || {})}
+        requireds={body?.required || []}
+      />
+    </>
+  )
+}
+
 export const ApiParams = ({ params = [], type = 'params' }) => {
   const { locale } = useLocale()
   return (
@@ -354,6 +417,53 @@ export const ApiRequest = ({ request = {} }) => {
   )
 }
 
+export const ApiMultiRequest = ({ request = {} }) => {
+  const { locale } = useLocale()
+
+  const requestBody =
+      request?.content?.['application/json'] ??
+      request?.content?.['multipart/form-data']
+
+  const requestBodies = requestBody?.schema.oneOf ?? requestBody?.schema.anyOf;
+
+  if (requestBodies) {
+    const [selected, setSelected] = useState(Object.entries(requestBodies)?.[0]?.[0])
+    const requestDef = requestBodies[selected]
+
+    return (
+        <>
+          <div className="flex items-baseline justify-between">
+            <h3>{TITLES.request[locale]}</h3>
+
+            <select
+                className="bg-inherit"
+                onChange={(evt) => setSelected(evt.target.value)}
+            >
+              {requestBodies.map((element, key) => (
+                  <option key={`request-${key}`} value={key}>{element.title}</option>
+              ))}
+            </select>
+          </div>
+
+          {requestDef.deprecated && (
+              <ReactMarkdown>{`### ${TITLES.deprecated[locale]}`}</ReactMarkdown>
+          )}
+
+          {requestDef.description && (
+              <ReactMarkdown>{requestDef.description}</ReactMarkdown>
+          )}
+
+          <ApiProperties
+              properties={Object.entries(requestDef?.properties || {})}
+              requireds={requestDef.required || []}
+          />
+        </>
+    )
+  }
+
+  return  !requestBody?.schema?.properties ? null : <ApiRequest request={request} />
+}
+
 export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
   let data = api?.[path]
   if (type !== 'params') data = data?.[method.toLowerCase()]
@@ -368,8 +478,16 @@ export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
     return <ApiRequest request={data.requestBody} />
   }
 
+  if (type === 'multiRequest') {
+    return <ApiMultiRequest request={data.requestBody} />
+  }
+
   if (type === 'response') {
     return <ApiResponses responses={data.responses} />
+  }
+
+  if (type === 'multiResponse') {
+    return <ApiMultiResponses responses={data.responses} />
   }
 
   if (type === 'params') {
