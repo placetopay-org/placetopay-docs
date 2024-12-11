@@ -199,9 +199,9 @@ export const TAB_NAVIGATION = {
             title: 'Link de pagos',
             links: [
               { title: 'Introducción', href: '/payments/payments-links/introduction' },
-              { title: 'Crear link de pagos', href: '/payments/payments-links/create_payment_link' },
-              { title: 'Gestionar link de pagos', href: '/payments/payments-links/link_management' },
-              { title: 'Proceso de pago', href: '/payments/payments-links/process_pay' },
+              { title: 'Crear link de pagos', href: '/payments/payments-links/create-payment-link' },
+              { title: 'Gestionar link de pagos', href: '/payments/payments-links/link-management' },
+              { title: 'Proceso de pago', href: '/payments/payments-links/process-pay' },
 
             ],
           },
@@ -237,9 +237,9 @@ export const TAB_NAVIGATION = {
             title: 'Payment link',
             links: [
               { title: 'Introduction', href: '/payments/payments-links/introduction' },
-              { title: 'Create payment link', href: '/payments/payments-links/create_payment_link' },
-              { title: 'Manage payment link', href: '/payments/payments-links/link_management' },
-              { title: 'Process Pay', href: '/payments/payments-links/process_pay' },
+              { title: 'Create payment link', href: '/payments/payments-links/create-payment-link' },
+              { title: 'Manage payment link', href: '/payments/payments-links/link-management' },
+              { title: 'Process Pay', href: '/payments/payments-links/process-pay' },
 
             ],
           },
