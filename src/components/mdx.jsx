@@ -105,19 +105,21 @@ export function Property({
 
   return (
     <li className={clsx('m-0 px-0 py-4 first:pt-0 last:pb-0', className)}>
-      <dl className="m-0 flex flex-wrap items-center gap-x-3 gap-y-2">
-        <dt className="sr-only">Name</dt>
-        <dd>          
-          <code>{name}</code>
-        </dd>
-        <dt className="sr-only">Type</dt>
-        <dd className="font-mono text-xs text-gray-400 dark:text-gray-500">
-          {getType()}
-        </dd>
+      <dl className="m-0 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <div className="flex gap-x-3 items-center">
+          <dt className="sr-only">Name</dt>
+          <dd>          
+            <code>{name}</code>
+          </dd>
+          <dt className="sr-only">Type</dt>
+          <dd className="font-mono text-xs text-gray-400 dark:text-gray-500">
+            {getType()}
+          </dd>
+        </div>
         <dt className="sr-only">is {isRequired ? 'Required' : 'optional'}</dt>
         <dd
           className={clsx(
-            'text-2xs font-medium text-gray-500 dark:text-gray-400'
+            'text-2xs font-medium text-teal-500 dark:text-teal-300'
           )}
         >
           {isRequired ? 'REQUIRED' : ''}
