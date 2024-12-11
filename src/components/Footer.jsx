@@ -249,7 +249,6 @@ function EditThisPage() {
   const router = useRouter();
 
   const getHref = (pathname) => {
-    console.log('pathname', pathname)
     if (pathname === '/') {
       return process.env.NEXT_PUBLIC_GITHUB_REPO_URL + '/src/pages/index.mdx'
     }
