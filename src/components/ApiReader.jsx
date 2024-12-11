@@ -289,7 +289,28 @@ export const ApiResponses = ({ responses = {} }) => {
       <div className="flex items-baseline justify-between">
         <h3>{TITLES.response[locale]}</h3>
 
-        {isMulti && (
+        <div className="flex flex-col gap-3">
+          <select
+            className="bg-inherit"
+            onChange={(evt) => setSelected(evt.target.value)}
+          >
+            {Object.entries(responses).map(([code]) => (
+              <option key={`response-${code}`} value={code}>
+                {code}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {response.description && (
+        <ReactMarkdown>{response.description}</ReactMarkdown>
+      )}
+
+      
+
+      {isMulti && (
+        <div className="flex justify-end">
           <select
             className="bg-inherit"
             onChange={(evt) => setBodySelected(evt.target.value)}
@@ -300,22 +321,7 @@ export const ApiResponses = ({ responses = {} }) => {
               </option>
             ))}
           </select>
-        )}
-
-        <select
-          className="bg-inherit"
-          onChange={(evt) => setSelected(evt.target.value)}
-        >
-          {Object.entries(responses).map(([code]) => (
-            <option key={`response-${code}`} value={code}>
-              {code}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {response.description && (
-        <ReactMarkdown>{response.description}</ReactMarkdown>
+        </div>
       )}
 
       {response.deprecated && (
