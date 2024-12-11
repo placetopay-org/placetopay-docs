@@ -33,3 +33,33 @@ Si el `signature` generado es igual al `signature` que llegó en el mensaje, ent
 **Actualizar Información:** Si todo lo que necesitas es el estado final de la transacción, entonces puedes actualizar el estado en tu sistema y eso sería todo.
 
 Si necesitas conocer información adicional, debes consultar la transacción usando el `internalReference`
+
+### Validación de la Firma
+
+Para garantizar la autenticidad de la notificación, el webhook definido en la sesión incluye una firma en el encabezado `X-Signature`. Puedes validar esta firma utilizando un hash SHA-1 generado con los valores del ID de la sesión, el estado de la sesión y la llave de transacción (`tranKey`) de tu sitio.
+
+```javascript {{ title: 'Validación en JavaScript' }}
+const crypto = require('crypto');
+
+const sessionId = notificationBody.session.id;
+const sessionStatus = notificationBody.session.status;
+const tranKey = 'YOUR_SITE_TRANKEY';
+
+const signatureString = `${sessionId}${sessionStatus}${tranKey}`;
+
+// Generar la firma localmente
+const generatedSignature = crypto
+  .createHash('sha1')
+  .update(signatureString)
+  .digest('hex');
+
+// Firma recibida en la notificación
+const receivedSignature = headers['X-Signature'];
+
+// Validar la firma
+if (generatedSignature === receivedSignature) {
+  console.log("La notificación es auténtica.");
+} else {
+  console.log("Firma inválida: la notificación no es auténtica.");
+}
+```
