@@ -273,19 +273,41 @@ export const ApiResponses = ({ responses = {} }) => {
   const { locale } = useLocale()
 
   const [selected, setSelected] = useState(Object.entries(responses)?.[0]?.[0])
+  const [bodySelected, setBodySelected] = useState(0)
+
   const response = responses[selected]
+  let body = response?.content?.['application/json']?.schema
+
+  const multiBodies = body?.oneOf ?? body?.anyOf ?? []
+  const isMulti = multiBodies.length > 0
+  if (isMulti) {
+    body = multiBodies[bodySelected]
+  }
 
   return (
     <>
       <div className="flex items-baseline justify-between">
         <h3>{TITLES.response[locale]}</h3>
 
+        {isMulti && (
+          <select
+            className="bg-inherit"
+            onChange={(evt) => setBodySelected(evt.target.value)}
+          >
+            {multiBodies.map((element, key) => (
+              <option key={`response-item-${key}`} value={key}>
+                {element.title}
+              </option>
+            ))}
+          </select>
+        )}
+
         <select
           className="bg-inherit"
           onChange={(evt) => setSelected(evt.target.value)}
         >
           {Object.entries(responses).map(([code]) => (
-            <option className="text-gray-950" key={`response-${code}`} value={code}>
+            <option key={`response-${code}`} value={code}>
               {code}
             </option>
           ))}
@@ -296,12 +318,16 @@ export const ApiResponses = ({ responses = {} }) => {
         <ReactMarkdown>{response.description}</ReactMarkdown>
       )}
 
+      {response.deprecated && (
+        <ReactMarkdown>### Version Obsoleta</ReactMarkdown>
+      )}
+
       <ApiProperties
         properties={Object.entries(
-          response?.content?.['application/json']?.schema?.properties || {}
+          body?.properties || {}
         )}
         requireds={
-          response?.content?.['application/json']?.schema?.required || []
+          body?.required || []
         }
       />
     </>
@@ -335,20 +361,52 @@ export const ApiParams = ({ params = [], type = 'params' }) => {
 
 export const ApiRequest = ({ request = {} }) => {
   const { locale } = useLocale()
+  const [selected, setSelected] = useState(0);
 
   const requestBody =
     request?.content?.['application/json'] ??
     request?.content?.['multipart/form-data']
-  if (!requestBody?.schema?.properties) {
+  let body = requestBody?.schema
+
+  const multiBodies = requestBody?.schema.oneOf ?? requestBody?.schema.anyOf ?? [];
+  const isMulti = multiBodies.length > 0;
+
+  if (isMulti) {
+    body = multiBodies[selected]
+  }
+
+  if (!body?.properties) {
     return null
   }
 
   return (
     <>
-      <h3>{TITLES.request[locale]}</h3>
+      <div className="flex items-baseline justify-between">
+        <h3>{TITLES.request[locale]}</h3>
+
+        {isMulti && (
+          <select
+            className="bg-inherit"
+            onChange={(evt) => setSelected(evt.target.value)}
+          >
+            {multiBodies.map((element, key) => (
+                <option key={`request-${key}`} value={key}>{element.title}</option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      {body.deprecated && (
+        <ReactMarkdown>{`### ${TITLES.deprecated[locale]}`}</ReactMarkdown>
+      )}
+
+      {body.description && (
+        <ReactMarkdown>{body.description}</ReactMarkdown>
+      )}
+
       <ApiProperties
-        properties={Object.entries(requestBody?.schema?.properties || {})}
-        requireds={requestBody?.schema?.required || []}
+        properties={Object.entries(body?.properties || {})}
+        requireds={body?.required || []}
       />
     </>
   )
