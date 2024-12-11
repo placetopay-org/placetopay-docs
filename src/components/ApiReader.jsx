@@ -98,9 +98,17 @@ const ParentProperty = ({
   isChild = false,
 }) => {
   const { positionRef, preventLayoutShift } = usePreventLayoutShift()
+  const [selected, setSelected] = useState(0)
+
+  const multiProperties = property.oneOf ?? property.anyOf ?? [];
+  if (multiProperties.length > 0) {
+    property = multiProperties[selected]
+  }
+
   const properties = property.properties ?? property.items?.properties ?? null
   const requireds = property.required ?? property.items?.required ?? []
   const title = property.title ?? property.items?.title ?? null
+
   const withChilds = !!properties
   const ParentComponent = withChilds
     ? Disclosure
@@ -181,6 +189,9 @@ const ParentProperty = ({
               : property.type
           }
           isRequired={isRequired}
+          multiProperties={multiProperties}
+          selected={selected}
+          onSelected={setSelected}
           className={clsx(isChild && 'px-4')}
         >
           <>
