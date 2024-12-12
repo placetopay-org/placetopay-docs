@@ -3,7 +3,7 @@ import { Disclosure } from '@headlessui/react'
 import ReactMarkdown from 'react-markdown'
 import clsx from 'clsx'
 import { PlusIcon } from '@heroicons/react/24/outline'
-import { Properties, Property } from './mdx'
+import { Note, Properties, Property } from './mdx'
 import { useLocale } from './LocaleProvider'
 import { usePreventLayoutShift } from '@/hooks/usePreventLayoutShift'
 
@@ -336,7 +336,7 @@ export const ApiResponses = ({ responses = {} }) => {
       )}
 
       {response.deprecated && (
-        <ReactMarkdown>### Version Obsoleta</ReactMarkdown>
+        <Note type='warning'>{TITLES.deprecated[locale]}</Note>
       )}
 
       <ApiProperties
@@ -414,7 +414,7 @@ export const ApiRequest = ({ request = {} }) => {
       </div>
 
       {body.deprecated && (
-        <ReactMarkdown>{`### ${TITLES.deprecated[locale]}`}</ReactMarkdown>
+        <Note type='warning'>{TITLES.deprecated[locale]}</Note>
       )}
 
       {body.description && (
