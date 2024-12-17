@@ -13,7 +13,8 @@ export { MissingTranslationBanner } from '@/components/MissingTranslationBanner'
 export { GithubRepo } from '@/components/GithubRepo'
 import { ImageZoom } from '@/components/ImageZoom'
 import { Note } from '@/components/Note'
-export { ImageZoom, Note }
+import { Tabs } from './Tabs'
+export { ImageZoom, Note, Tabs }
 
 export const h2 = function H2(props) {
   return <Heading level={2} {...props} />
