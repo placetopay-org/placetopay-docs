@@ -2589,6 +2589,7 @@ components:
           type: "string"
           maxLength: "10"
           description: "Código postal"
+          example: "110111"
         country:
           type: "string"
           maxLength: "2"
@@ -2598,6 +2599,7 @@ components:
           type: "string"
           maxLength: "20"
           description: "Teléfono"
+          example: "3003003000"
     Account:
       title: "Account"
       type: "object"
@@ -3215,7 +3217,7 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
     ThreeDS:
       title: "ThreeDSDataV2"
       type: "object"
-      description: "Esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
+      description: "Esta estructura contiene las propiedades necesarias para continuar con una autenticación 3DS"
       properties:
         version:
           type: "string"
@@ -3231,7 +3233,7 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           example: "https://3dss-test.placetopay.com/threeds/v2/sessions/100950/examplea974d40500a650b6a77973985d367ad389a28b747dfdc918756a4ddc1"
         identifier:
           type: "number"
-          description: "Indetificador de la sessión de autenticación"
+          description: "Identificador de la sesión de autenticación"
           example: 263325
       required:
         - "version"
@@ -3241,7 +3243,7 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
     ThreeDS2x:
       title: "ThreeDSDataV2x"
       type: "object"
-      description: "Esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
+      description: "Los campos aquí descritos corresponden a una respuesta del servicio [3DS](/three-d-s-server/api/transactions/values)"
       properties:
         action:
           type: "string"
@@ -3253,9 +3255,16 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           type: "string"
           enum:
             - "v2x"
+        sessionToken:
+          type: "string"
+          example: "1bbf97e3660511d0ce82c15fca343307ba2f87fe84ba421368afb041ba1f638f"
+        redirectUrl:
+          type: "string"
+          description: "URL a la cual se debe redirigir al cliente para continuar con el proceso de autenticación"
+          example: "https://3dss-test.placetopay.com/threeds/v2/sessions/100950/examplea974d40500a650b6a77973985d367ad389a28b747dfdc918756a4ddc1"
         id:
           type: "number"
-          description: "Indetificador de la sessión de autenticación"
+          description: "Identificador de la sessión de autenticación"
           example: 263325
         enrolled:
           type: "string"
@@ -3263,10 +3272,10 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             - "Y"
             - "N"
             - "U"
-          description: "Presente si `action` fue `continue`. Informa si la tarjeta se encuentra registrada en 3DS"
+          description: "Presente si `action` fue `continue`. Indica si la tarjeta con la cual se realizó la transacción está enrolada (está registrada en los rangos de tarjeta para el emisor específico)."
         authenticated:
           type: "string"
-          description: "Presente si `action` fue `continue`. Informa el estado de la autenticación en 3DS"
+          description: "Presente si `action` fue `continue`. Informa el estado de la autenticación"
           enum:
             - "Y"
             - "N"
@@ -3292,37 +3301,51 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           description: "Código de autenticación por franquicia. Indicador del resultado de la autenticación generado por el comercio electrónico."
         cavv:
           type: "string"
-          minLength: 1
+          minLength: 28
+          maxLength: 28
           nullable: true
-          description: "Presente si `action` fue `continue`"
+          description: "Presente si `action` fue `continue`. Valor de autenticación para la franquicia generado por el ACS. (3DS campo `authenticationValue`)"
+          example: "AJkBABIWcQAAAAM5FwIzdGiYeHM"
         xid:
           type: "string"
           minLength: 1
-          description: "Presente si `action` fue `continue`"
+          description: "Presente si `action` fue `continue`. ID de Transacción DS (3DS campo `dsTransID`)."
         extra:
           type: "object"
+          description: "presente si `action` fue `continue`. Información"
           properties:
             transStatusReason:
               type: string
+              description: "Proporciona información sobre el estado de la transacción."
               nullable: true
             acsTransId:
               type: string
+              description: "Identificador único de transacción generado por el ACS."
               example: "37a7b6e0-fd58-4e38-98de-79c70c526a47"
             threeDSServerTransID:
               type: string
+              description: "Identificador único de transacción generado por el 3DS Server."
               example: "eadd3a60-b870-41d0-977f-921b3dbe6323/MkGJDl2Y5E="
             deviceChannel:
               type: "string"
+              description: "Canal a través del cual se realiza la transacción."
               enum: ["APP", "BRW", "RI"]
             messageCategory:
               type: "string"
+              description: "Indica la categoría del mensaje."
               enum: [ "PA", "NPA" ]
             authMethod:
               type: "string"
+              description: "Indica si la transacción tuvo o no desafío."
+              example: "FRICTIONLESS_AUTHENTICATION"
             authTimestamp:
               type: "string"
+              description: "Indica el timestamp de la autenticación."
+              example: "2020-04-21T01:44:54.000Z"
             authInd:
               type: "string"
+              description: "Define el tipo de autenticación aplicada según el canal utilizado."
+              example: "RECURRING_TRANSACTION"
       required:
         - "enrolled"
         - "authenticated"
@@ -3385,16 +3408,40 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             - "v2x"
         extra:
           type: "object"
+          description: "presente si `action` fue `continue`. Información"
           properties:
             transStatusReason:
               type: string
+              description: "Proporciona información sobre el estado de la transacción."
               nullable: true
             acsTransId:
               type: string
+              description: "Identificador único de transacción generado por el ACS."
               example: "37a7b6e0-fd58-4e38-98de-79c70c526a47"
             threeDSServerTransID:
               type: string
+              description: "Identificador único de transacción generado por el 3DS Server."
               example: "eadd3a60-b870-41d0-977f-921b3dbe6323/MkGJDl2Y5E="
+            deviceChannel:
+              type: "string"
+              description: "Canal a través del cual se realiza la transacción."
+              enum: [ "APP", "BRW", "RI" ]
+            messageCategory:
+              type: "string"
+              description: "Indica la categoría del mensaje."
+              enum: [ "PA", "NPA" ]
+            authMethod:
+              type: "string"
+              description: "Indica si la transacción tuvo o no desafío."
+              example: "FRICTIONLESS_AUTHENTICATION"
+            authTimestamp:
+              type: "string"
+              description: "Indica el timestamp de la autenticación."
+              example: "2020-04-21T01:44:54.000Z"
+            authInd:
+              type: "string"
+              description: "Define el tipo de autenticación aplicada según el canal utilizado."
+              example: "RECURRING_TRANSACTION"
     PinPad:
       title: "PinPad"
       type: "object"
@@ -3497,10 +3544,13 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
       properties:
         name:
           type: "string"
+          example: "John"
         surname:
           type: "string"
+          example: "Doe"
         email:
           type: "string"
+          example: "johnDoe@email.com"
         mobile:
           type: "string"
           description: "El numero celular puede contener el indicativo del país"
