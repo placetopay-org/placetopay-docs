@@ -58,7 +58,7 @@ paths:
           application/json:
             schema:
               oneOf:
-                - title: "Default"
+                - title: "Card"
                   type: "object"
                   properties:
                     locale:
@@ -73,6 +73,54 @@ paths:
                       $ref: "#/components/schemas/Payment"
                     subscription:
                       $ref: "#/components/schemas/Subscription"
+                - title: "PSE"
+                  type: "object"
+                  properties:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    locale:
+                      type: "string"
+                    payer:
+                      $ref: "#/components/schemas/Person"
+                    payment:
+                      type: "object"
+                      description: "Structure that contains the information about the payment of the transaction required to the web service"
+                      properties:
+                        reference:
+                          type: "string"
+                          minLength: 1
+                          maxLength: 32
+                        description:
+                          type: "string"
+                          maxLength: 250
+                        amount:
+                          $ref: "#/components/schemas/Amount"
+                    instrument:
+                      type: "object"
+                      description: "Structure that contains information about the means of payment to be used in a transaction. This structure is variable according to the request that is generated. Each service requires that one or another data be used."
+                      properties:
+                        redirection:
+                          type: "object"
+                          description: "It represents a redirect payment method, meaning that it requires the user to be sent to another URL to complete the process."
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "_PSE_"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL so that once the payment process is completed, control is returned (when applicable)"
+                    ipAddress:
+                      type: "string"
+                    userAgent:
+                      type: "string"
+                  required:
+                    - "auth"
+                    - "payment"
+                    - "instrument"
                 - title: "Botón Aval"
                   type: "object"
                   properties:
@@ -148,7 +196,7 @@ paths:
             application/json:
               schema:
                 oneOf:
-                  - title: "Default"
+                  - title: "Card"
                     type: "object"
                     properties:
                       status:
@@ -218,6 +266,59 @@ paths:
                       requireBalance:
                         type: "boolean"
                         description: "Indicates whether it is necessary to consume the get balance service"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "serviceCode"
+                  - title: "PSE"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "#/components/schemas/Status"
+                      provider:
+                        type: "string"
+                        example: "ACH"
+                        description: "Indicates which provider will be used in the transaction"
+                      serviceCode:
+                        type: "string"
+                        description: "Indicates the code of the service that will process the transaction"
+                        example: "_PSE_"
+                      requireRedirection:
+                        type: "boolean"
+                        description: "Indicates if the payment method is of the redirect type"
+                      bankList:
+                        type: "array"
+                        description: "List of banks available to process a payment"
+                        items:
+                          $ref: "#/components/schemas/BankItem"
+                      cardType:
+                        $ref: "#/components/schemas/CardType"
+                      cardTypes:
+                        type: "array"
+                        description: "Indicates the card types supported by the provider"
+                        items:
+                          $ref: "#/components/schemas/CardType"
+                      displayInterest:
+                        type: "boolean"
+                        description: "Indicates if it is necessary display the interest for transaction"
+                      requiereOtp:
+                        type: "boolean"
+                        description: "Indicates if it is necessary to perform the OTP flow"
+                      requiereCvv2:
+                        type: "boolean"
+                        description: "Indicates whether it is required to send CVV for transaction processing"
+                      threeDS:
+                        type: "string"
+                        enum:
+                          - "optional"
+                          - "required"
+                          - "unsupported"
+                        description: "Indicates if 3DS is necessary"
+                      credits:
+                        type: "array"
+                        description: "Indicates the credits available per supplier"
+                        items:
+                          $ref: "#/components/schemas/Credit"
                     required:
                       - "status"
                       - "provider"
@@ -378,6 +479,66 @@ paths:
                     notificationURL:
                       type: "string"
                       description: "URL to which an HTTP notification with transaction information will be sent once the transaction has been processed. See more in [Notification](/en/gateway/notification)"
+                - title: "PSE"
+                  type: "object"
+                  properties:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    locale:
+                      type: "string"
+                    payer:
+                      $ref: "#/components/schemas/Person"
+                    payment:
+                      type: "object"
+                      description: "Structure that contains the information about the payment of the transaction required to the web service"
+                      properties:
+                        reference:
+                          type: "string"
+                          minLength: 1
+                          maxLength: 32
+                        description:
+                          type: "string"
+                          maxLength: 250
+                        amount:
+                          $ref: "#/components/schemas/Amount"
+                    instrument:
+                      type: "object"
+                      description: "Structure that contains information about the means of payment to be used in a transaction. This structure is variable according to the request that is generated. Each service requires that one or another data be used."
+                      properties:
+                        redirection:
+                          type: "object"
+                          description: "It represents a redirect payment method, meaning that it requires the user to be sent to another URL to complete the process."
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "_PSE_"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL so that once the payment process is completed, control is returned (when applicable)"
+                            additional:
+                              type: "object"
+                              description: "Structure to relate additional data in the process."
+                              properties:
+                                bankCode:
+                                  type: "string"
+                                  description: "Code that identifies the bank on the network."
+                                  example: "1007"
+                                userType:
+                                  type: "string"
+                                  example: "person"
+                    ipAddress:
+                      type: "string"
+                    userAgent:
+                      type: "string"
+                  required:
+                    - "auth"
+                    - "payer"
+                    - "instrument"
+                    - "payment"
                 - title: "Botón Aval"
                   type: "object"
                   properties:
@@ -977,6 +1138,133 @@ paths:
                               type: "boolean"
                             paymentMethod:
                               type: "string"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "internalReference"
+                      - "reference"
+                      - "paymentMethod"
+                      - "franchise"
+                      - "franchiseName"
+                      - "issuerName"
+                      - "amount"
+                      - "conversion"
+                      - "authorization"
+                      - "receipt"
+                      - "type"
+                      - "refunded"
+                      - "lastDigits"
+                      - "discount"
+                      - "processorFields"
+                      - "additional"
+                  - title: "PSE"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "#/components/schemas/Status"
+                      date:
+                        type: "string"
+                        description: |
+                          EJ: `2021-09-20T21:51:59-05:00`
+                      transactionDate:
+                        type: "string"
+                        description: |
+                          EJ: `2021-09-20T21:51:59-05:00`
+                      internalReference:
+                        type: "number"
+                      reference:
+                        type: "string"
+                        minLength: 1
+                      paymentMethod:
+                        type: "string"
+                        minLength: 1
+                      franchise:
+                        type: "string"
+                        minLength: 1
+                      franchiseName:
+                        type: "string"
+                        minLength: 1
+                      issuerName:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      amount:
+                        $ref: "#/components/schemas/Amount"
+                      conversion:
+                        $ref: "#/components/schemas/AmountConversion"
+                      authorization:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      receipt:
+                        type: "string"
+                        maxLength: 16
+                        nullable: true
+                      type:
+                        type: "string"
+                        minLength: 1
+                      refunded:
+                        type: "boolean"
+                      lastDigits:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      provider:
+                        type: "string"
+                        enum:
+                          - "ACH"
+                      discount:
+                        type: "string"
+                      processorFields:
+                        type: "object"
+                        properties:
+                          id:
+                            type: "string"
+                          b24:
+                            type: "string"
+                          paymentURL:
+                            type: "string"
+                      additional:
+                        type: "object"
+                        description: |
+                          See more in [Additional data](/en/gateway/additional-data)
+                        properties:
+                          merchantCode:
+                            type: "string"
+                            description: "Entity code"
+                          terminalNumber:
+                            type: "string"
+                            description: "Terminal number of the payment method"
+                          trazabilyCode:
+                            type: "string"
+                      redirection:
+                        type: "object"
+                        items:
+                          type: "object"
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "_PSE_"
+                            processURL:
+                              type: "string"
+                              format: "uri"
+                              maxLength: 250
+                              description: "URL to which the client must be sent to continue the process, it is provided by the service"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL so that once the payment process is completed, control is returned (when applicable)"
+                            additional:
+                              type: "object"
+                              properties:
+                                userType:
+                                  type: "string"
+                                bankCode:
+                                  type: "string"
+                                  description: "Code that identifies the bank on the network"
                     required:
                       - "status"
                       - "provider"
