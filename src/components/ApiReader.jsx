@@ -54,6 +54,10 @@ const TITLES = {
       no: 'No',
     },
   },
+  deprecated: {
+    es: "Versión Obsoleta",
+    en: "Deprecated Version"
+  }
 }
 
 const ApiPropertyInformation = ({ title, items }) => {
