@@ -6,6 +6,7 @@ import logoPrestashop from '@/images/logos/prestashop.svg'
 import logoCSharp from '@/images/logos/csharp.svg'
 import logoJava from '@/images/logos/java.svg'
 import logoPhp from '@/images/logos/php.svg'
+import logoPython from '@/images/logos/python.svg'
 import logoShopify from '@/images/logos/shopify.svg'
 import logoVtex from '@/images/logos/vtex.svg'
 import logoJumpseller from '@/images/logos/jumpseller.svg'
@@ -103,6 +104,16 @@ const libraries = [
       en: 'High level and object oriented programming language',
     },
     logo: logoJava,
+    action: { es: 'Ver más', en: 'See more' },
+  },
+  {
+    href: 'https://github.com/andrextor/python-checkout',
+    name: 'Python',
+    description: {
+      es: 'Lenguaje de programación versátil y de alto nivel, ampliamente utilizado en el desarrollo de aplicaciones modernas.',
+      en: 'Versatile and high-level programming language, widely used in modern application development.',
+    },
+    logo: logoPython,
     action: { es: 'Ver más', en: 'See more' },
   },
 ]
