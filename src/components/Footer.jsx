@@ -7,6 +7,7 @@ import { Button } from '@/components/Button'
 import { useNavigation } from '@/hooks/useNavigation'
 import { useLocale } from './LocaleProvider'
 import { Logo } from '@/components/Logo'
+import { ROUTES_WITH_INDEX } from '@/constants/routes-with-index'
 
 function CheckIcon(props) {
   return (
@@ -247,9 +248,21 @@ function EditThisPage() {
   const { locale } = useLocale()
   const router = useRouter();
 
+  const getHref = (pathname) => {
+    if (pathname === '/') {
+      return process.env.NEXT_PUBLIC_GITHUB_REPO_URL + '/src/pages/index.mdx'
+    }
+
+    if (ROUTES_WITH_INDEX.includes(pathname.slice(1))) {
+      return process.env.NEXT_PUBLIC_GITHUB_REPO_URL + '/src/pages' + pathname + '/index.mdx'
+    }
+
+    return process.env.NEXT_PUBLIC_GITHUB_REPO_URL + '/src/pages' + pathname + '.mdx'
+  }
+
   return (
     <a
-      href={process.env.NEXT_PUBLIC_GITHUB_REPO_URL + '/src/pages' + router.pathname + '.mdx'}
+      href={getHref(router.pathname)}
       target="_blank"
       rel="noopener noreferrer"
       className="flex gap-3 cursor-pointer text-slate-600 font-normal text-xs underline underline-offset-4 dark:text-slate-400"

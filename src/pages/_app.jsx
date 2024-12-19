@@ -4,6 +4,7 @@ import { Router } from 'next/router'
 import { MDXProvider } from '@mdx-js/react'
 
 import { Layout } from '@/components/Layout'
+import { ImageZoomProvider } from '@/components/ImageZoom'
 import LocaleProvider from '@/components/LocaleProvider'
 import * as mdxComponents from '@/components/mdx'
 import { useMobileNavigationStore } from '@/components/MobileNavigation'
@@ -47,13 +48,15 @@ export default function App({ Component, pageProps }) {
         <title>{`${pageProps.title ? pageProps.title + ' - ' : ''}Placetopay Docs`}</title>
         <meta name="description" content={pageProps.description} />
       </Head>
-      <MDXProvider components={mdxComponents}>
-        <LocaleProvider>
-          <LayoutComponent {...pageProps}>
-            <Component {...pageProps} />
-          </LayoutComponent>
-        </LocaleProvider>
-      </MDXProvider>
-    </>
+      <ImageZoomProvider>
+        <MDXProvider components={mdxComponents}>
+          <LocaleProvider>
+            <LayoutComponent {...pageProps}>
+              <Component {...pageProps} />
+            </LayoutComponent>
+          </LocaleProvider>
+        </MDXProvider>
+      </ImageZoomProvider>
+      </>
   )
 }

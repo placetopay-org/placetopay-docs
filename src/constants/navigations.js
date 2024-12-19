@@ -196,6 +196,16 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
+            title: 'Link de pagos',
+            links: [
+              { title: 'Introducción', href: '/payments/payments-links/introduction' },
+              { title: 'Crear link de pagos', href: '/payments/payments-links/create-payment-link' },
+              { title: 'Gestionar link de pagos', href: '/payments/payments-links/link-management' },
+              { title: 'Proceso de pago', href: '/payments/payments-links/process-pay' },
+
+            ],
+          },
+          {
             title: 'Medios de pago',
             links: [
               { title: 'ACH Débito Bancario', href: '/payments/ach-bank-debit' },
@@ -222,6 +232,16 @@ export const TAB_NAVIGATION = {
             title: 'Payments',
             links: [
               { title: 'Introduction', href: '/payments' },
+            ],
+          },
+          {
+            title: 'Payment link',
+            links: [
+              { title: 'Introduction', href: '/payments/payments-links/introduction' },
+              { title: 'Create payment link', href: '/payments/payments-links/create-payment-link' },
+              { title: 'Manage payment link', href: '/payments/payments-links/link-management' },
+              { title: 'Process Pay', href: '/payments/payments-links/process-pay' },
+
             ],
           },
           {
