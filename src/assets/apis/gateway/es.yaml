@@ -2106,13 +2106,6 @@ paths:
                   $ref: "#/components/schemas/Payment"
                 subscription:
                   $ref: "#/components/schemas/Subscription"
-                action:
-                  type: "string"
-                  nullable: true
-                  description: "Tipo de transacción"
-                  enum:
-                    - checkin
-                    - pre_authorization
                 version:
                   type: "string"
                   nullable: true
@@ -2130,11 +2123,10 @@ paths:
                   properties:
                     initiatorIndicator:
                       type: string
-                      description: "Actor que genera la transacción. Puede ser AGENT cuando es diferente al tarjeta habiente o AGENT_COF cuando la tarjeta esta registrada en la wallet"
+                      description: "Actor que genera la transacción. Puede ser AGENT cuando es diferente al tarjeta habiente"
                       nullable: true
                       enum:
                         - AGENT
-                        - AGENT_COF
       responses:
         200:
           description: "OK"
@@ -2168,40 +2160,24 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-                - title: "Consulta v2x"
-                  description: ""
+              type: "object"
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                instrument:
+                  title: "Instrumento (Propiedad Obsoleta)"
                   type: "object"
-                  properties:
-                    auth:
-                      $ref: "#/components/schemas/Authentication"
-                    id:
-                      type: "string"
-                      description: "Identificador retornado en el lookup inicial sobre el cual se va a consultar"
-                  required:
-                    - "auth"
-                    - "id"
-                - title: "Consulta v2"
                   deprecated: true
-                  description: "Esta versión dejara de tener soporte por favor migre su integración a la versión más reciente"
-                  type: "object"
+                  description: "Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
                   properties:
-                    auth:
-                      $ref: "#/components/schemas/Authentication"
-                    instrument:
-                      title: "Instrumento (Propiedad Obsoleta)"
-                      type: "object"
-                      deprecated: true
-                      description: "Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
-                      properties:
-                        card:
-                          $ref: "#/components/schemas/Card"
-                    id:
-                      type: "string"
-                      description: "Identificador retornado en el lookup inicial sobre el cual se va a consultar"
-                  required:
-                    - "auth"
-                    - "id"
+                    card:
+                      $ref: "#/components/schemas/Card"
+                id:
+                  type: "string"
+                  description: "Identificador retornado en el lookup inicial sobre el cual se va a consultar"
+              required:
+                - "auth"
+                - "id"
       responses:
         200:
           description: "OK"
@@ -2213,9 +2189,7 @@ paths:
                   status:
                     $ref: "#/components/schemas/Status"
                   data:
-                    oneOf:
-                      - $ref: "#/components/schemas/LookupResponseDataV2X"
-                      - $ref: "#/components/schemas/ThreeDs"
+                    $ref: "#/components/schemas/ThreeDS"
                 required:
                   - "status"
                   - "data"
@@ -3216,17 +3190,12 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
         - "additional"
     ThreeDS:
       type: "object"
-      x-examples:
-        example-1:
-          id: "1"
-          enrolled: "Y"
-          authenticated: "Y"
-          validSignature: "true"
-          eci: "05"
-          cavv: "AAACCZJiUGVlF4U5AmJQEwAAAAA="
-          xid: "Z8UuHYF8Epz46M8V/MkGJDl2Y5E="
-          version: "v1"
       properties:
+        version:
+          type: "string"
+          enum:
+            - "v2"
+            - "v2x"
         id:
           type: "number"
           description: "Este valor solo aplica si la validación se hizo con el servicio de 3DS de Placetopay"
@@ -3251,11 +3220,10 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             - "D"
             - "R"
           maxLength: 1
-        validSignature:
-          type: "boolean"
         eci:
           type: "string"
           minLength: 1
+          description: "Indicador del resultado de la autenticación generado por el comercio electrónico."
           enum:
             - "02"
             - "01"
@@ -3265,20 +3233,32 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             - "07"
         cavv:
           type: "string"
-          minLength: 1
+          minLength: 28
+          maxLength: 28
           nullable: true
+          description: "Valor de autenticación para la franquicia generado por el ACS. (3DS campo `authenticationValue`)."
+          example: "AJkBABIWcQAAAAM5FwIzdGiYeHM"
         xid:
           type: "string"
           minLength: 1
-        version:
-          type: "string"
-          minLength: 1
-          enum:
-            - "v1"
-            - "v2"
+          description: "ID de Transacción DS (3DS campo `dsTransID`)."
         extra:
           type: "object"
-          nullable: true
+          properties:
+            transStatusReason:
+              type: string
+              description: "Proporciona información sobre el estado de la transacción."
+              nullable: true
+            acsTransId:
+              type: string
+              description: "Identificador único de transacción generado por el ACS."
+              example: "37a7b6e0-fd58-4e38-98de-79c70c526a47"
+            threeDSServerTransID:
+              type: string
+              description: "Identificador único de transacción generado por el 3DS Server."
+              example: "eadd3a60-b870-41d0-977f-921b3dbe6323/MkGJDl2Y5E="
+        validSignature:
+          type: "boolean"
       required:
         - "enrolled"
         - "authenticated"
@@ -3289,11 +3269,11 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
     LookupResponseDataV2:
       title: "LookupResponseDataV2"
       type: "object"
-      description: "Esta estructura contiene las propiedades necesarias para continuar con una autenticación 3DS"
+      description: "Esta estructura contiene las propiedades necesarias para continuar con una autenticación 3DS."
       properties:
         version:
           type: "string"
-          description: "Versión del api en la que se hizo la sesión de autenticación"
+          description: "Versión del api en la que se hizo la sesión de autenticación."
           enum:
             - "v2"
         sessionToken:
@@ -3301,11 +3281,11 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           example: "1bbf97e3660511d0ce82c15fca343307ba2f87fe84ba421368afb041ba1f638f"
         redirectUrl:
           type: "string"
-          description: "URL a la cual se debe redirigir al cliente para continuar con el proceso de autenticación"
+          description: "URL a la cual se debe redirigir al cliente para continuar con el proceso de autenticación."
           example: "https://3dss-test.placetopay.com/threeds/v2/sessions/100950/examplea974d40500a650b6a77973985d367ad389a28b747dfdc918756a4ddc1"
         identifier:
           type: "number"
-          description: "Identificador de la sesión de autenticación"
+          description: "Identificador de la sesión de autenticación."
           example: 263325
       required:
         - "version"
@@ -3315,7 +3295,7 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
     LookupResponseDataV2X:
       title: "LookupResponseDataV2X"
       type: "object"
-      description: "Los campos aquí descritos corresponden a una respuesta del servicio [3DS](/three-d-s-server/api/transactions/values)"
+      description: "Los campos aquí descritos corresponden a una respuesta del servicio [3DS](/three-d-s-server/api/transactions/values)."
       properties:
         action:
           type: "string"
@@ -3336,7 +3316,7 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           example: "https://3dss-test.placetopay.com/threeds/v2/sessions/100950/examplea974d40500a650b6a77973985d367ad389a28b747dfdc918756a4ddc1"
         id:
           type: "number"
-          description: "Identificador de la sessión de autenticación"
+          description: "Identificador de la sesión de autenticación."
           example: 263325
         enrolled:
           type: "string"
@@ -3363,6 +3343,7 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           description: "Presente si `action` fue `continue`. Informa si la firma de la respuesta es válida"
         eci:
           type: "string"
+          description: "Código de autenticación por franquicia. Indicador del resultado de la autenticación generado por el comercio electrónico."
           enum:
             - "02"
             - "01"
@@ -3370,13 +3351,12 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             - "05"
             - "06"
             - "07"
-          description: "Código de autenticación por franquicia. Indicador del resultado de la autenticación generado por el comercio electrónico."
         cavv:
           type: "string"
           minLength: 28
           maxLength: 28
           nullable: true
-          description: "Presente si `action` fue `continue`. Valor de autenticación para la franquicia generado por el ACS. (3DS campo `authenticationValue`)"
+          description: "Presente si `action` fue `continue`. Valor de autenticación para la franquicia generado por el ACS. (3DS campo `authenticationValue`)."
           example: "AJkBABIWcQAAAAM5FwIzdGiYeHM"
         xid:
           type: "string"
@@ -3384,7 +3364,7 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           description: "Presente si `action` fue `continue`. ID de Transacción DS (3DS campo `dsTransID`)."
         extra:
           type: "object"
-          description: "presente si `action` fue `continue`. Información"
+          description: "presente si `action` fue `continue`. Información adicional de la transacción."
           properties:
             transStatusReason:
               type: string
@@ -3411,17 +3391,19 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
       properties:
         identifier:
           type: "integer"
+          description: "Identificador de la sesión de autenticación."
         enrolled:
           type: "string"
           minLength: 1
+          description: "Informa si la tarjeta se encuentra registrada en 3DS"
           enum:
             - "Y"
             - "N"
             - "U"
-          description: "Informa si la tarjeta se encuentra registrada en 3DS"
         authenticated:
           type: "string"
           minLength: 1
+          description: "Informa el estado de la autenticación."
           enum:
             - "Y"
             - "N"
@@ -3436,6 +3418,7 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           type: "boolean"
         eci:
           type: "string"
+          description: "Código de autenticación por franquicia. Indicador del resultado de la autenticación generado por el comercio electrónico."
           minLength: 1
           enum:
             - "02"
@@ -3448,27 +3431,31 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           type: "string"
           minLength: 1
           nullable: true
+          description: "Valor de autenticación para la franquicia generado por el ACS. (3DS campo `authenticationValue`)."
+          example: "AJkBABIWcQAAAAM5FwIzdGiYeHM"
         xid:
           type: "string"
           minLength: 1
+          description: "DS Transaction ID (3DS `dsTransID` field)."
         version:
           type: "string"
           minLength: 1
           enum:
-            - "v1"
             - "v2"
-            - "v2x"
         extra:
           type: "object"
           properties:
             transStatusReason:
               type: string
+              description: "Proporciona información sobre el estado de la transacción."
               nullable: true
             acsTransId:
               type: string
+              description: "Identificador único de transacción generado por el ACS."
               example: "37a7b6e0-fd58-4e38-98de-79c70c526a47"
             threeDSServerTransID:
               type: string
+              description: "Identificador único de transacción generado por el 3DS Server."
               example: "eadd3a60-b870-41d0-977f-921b3dbe6323/MkGJDl2Y5E="
     PinPad:
       title: "PinPad"
