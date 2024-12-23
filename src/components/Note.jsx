@@ -14,6 +14,12 @@ const NoteType = {
       'border-orange-500/20 bg-orange-50/50 text-orange-900/80 dark:border-orange-500/30 dark:bg-orange-500/5 dark:text-orange-200 dark:[--tw-prose-links-hover:theme(colors.orange.300)] dark:[--tw-prose-links:theme(colors.white)]',
     iconClasses: 'fill-white stroke-white text-orange-500/60',
   },
+  error: {
+    icon: ErrorIcon,
+    container:
+      'border-red-500/20 bg-red-50/50 text-red-900 dark:border-red-500/30 dark:bg-red-500/5 dark:text-red-200 dark:[--tw-prose-links-hover:theme(colors.red.300)] dark:[--tw-prose-links:theme(colors.white)]',
+    iconClasses: 'fill-red-500 stroke-white dark:fill-red-200/20 dark:stroke-red-200',
+  },
 }
 
 function InfoIcon(props) {
@@ -47,6 +53,23 @@ function WarningIcon(props) {
     </svg>
   )
 }
+
+function ErrorIcon(props) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      {...props}
+    >
+      <path
+        fill="currentColor"
+        d="M11.99 2a9.99 9.99 0 1 0 0 19.98A9.99 9.99 0 0 0 11.99 2ZM13 15a1 1 0 0 1-2 0v-2a1 1 0 0 1 2 0v2Zm0-4a1 1 0 0 1-2 0V8a1 1 0 0 1 2 0v3Z"
+      />
+    </svg>
+  )
+}
+
 
 export function Note({ children, type = 'default' }) {
   const { icon: Icon, container, iconClasses } = NoteType[type]

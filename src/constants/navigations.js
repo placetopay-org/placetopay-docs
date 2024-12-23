@@ -204,6 +204,11 @@ export const TAB_NAVIGATION = {
               { title: 'Proceso de pago', href: '/payments/payments-links/process_pay' },
 
             ],
+          }, {
+            title: 'Micrositio Cerrado',
+            links: [
+              { title: 'Cargue de ordenes de pago', href: '/payments/microsite-closed/charge_invoice'},
+            ],
           },
           {
             title: 'Medios de pago',
