@@ -1,38 +1,10 @@
-import {Note} from "../../../../../components/Note";
 import {ApiReader, CodeGroup, Col, Row} from "../../../../../components/mdx";
 export const sectionMode = 'nav';
 export const apiRefs = ['/gateway/mpi/lookup', '/gateway/mpi/query']
 
-# 3DS process
-
-### Features and/or improvements of each version
-* **2x Version**:
-* Allows you to create a synchronous session which results in skipping the redirection process to 3DS verification pages, since the result that would be validated in the `gateway/mpi/query` service is included in the response.
-* New properties are defined that can be sent in the request which can significantly improve the rate of successful authentications by the 3DS service.
-* Maintains compatibility with version 2.
-* **2 Version**:
-* Allows you to create an asynchronous session on [3DS Server](three-d-s-server) by returning a verification URL.
-* **Deprecated Version**
-
----
-
 ## 3DS Lookup {{ id: 'mpi-lookup-request', tag: 'POST', label: '/gateway/mpi/lookup' }}
 
-Performs the initial validation process of [3DS Server](/three-d-s-server/api/integration/session), returning the data so that the user can continue with the process.
-3DS login can be done in two different scenarios:
-* **Subscription**: The `subscription` property is used with the respective values specific to a subscription.
-* **Payment**: The `payment` property is used with the respective values for a payment.
-
-**Session Type**
-
-There may be two types of sessions depending on the validations performed by the 3DS service and which will indicate whether the cardholder needs to perform additional authentication or not.
-
-* **Asynchronous**: A redirect URL is returned so that the user can continue with the authentication process. It is identified by the `action` property with the value `redirect`.
-* **Synchronous**: The final result of the authentication is returned and can be consulted in the `gateway/mpi/query` service. It is identified by the `action` property with the value `continue`.
-
-<Note>
-    **Note:** These session types only apply to the **2x** version.
-</Note>
+Performs the initial validation process of [3DS Server](/three-d-s-server/api/integration/session), returning the data so that the user can continue with the authentication process.
 
 <Row>
     <Col>
@@ -45,7 +17,61 @@ There may be two types of sessions depending on the validations performed by the
 
     <Col sticky={true}>
         <CodeGroup title="Solicitud" tag="POST" label="/gateway/mpi/lookup">
-            ```bash {{ title: 'Subscription v2x' }}
+            ```bash {{ title: 'V2x Payment' }}
+            curl -X "POST" https://api-co-dev.placetopay.ws/gateway/mpi/lookup \
+            -H "Content-Type: application/json" \
+            -d '{
+                "auth": {
+                    "login": "6dd490faf9cb87a9862245da41170ff2",
+                    "tranKey": "81RuiCFgrjJ5VlSzTLqyC2cekqvq7vXQQwG1131+WK0=",
+                    "nonce": "bmVybzNzYms4cmE=",
+                    "seed": "2024-11-21T11:30:33-05:00"
+                },
+                "buyer": {
+                    "address": {
+                        "country": "CO",
+                        "state": "CUN",
+                        "city": "Bogota",
+                        "street": "cra 75 c 57 f 55",
+                        "postalCode": "110741",
+                    }
+                },
+                "payer": {
+                    "name": "payer name",
+                    "surname": "payer surname",
+                    "email": "email@payer.com",
+                    "mobile": "+573195505458",
+                    "address": {
+                        "country": "CO",
+                        "state": "CUN",
+                        "city": "Bogota",
+                        "street": "cra 75 c 57 f 55",
+                        "postalCode": "110741",
+                        "phone": "3195505452"
+                    }
+                },
+                "payment": {
+                    "reference": "1234567890",
+                    "description": "Testing payment",
+                    "amount": {
+                        "currency": "COP",
+                        "total": 20000
+                    }
+                },
+                "instrument": {
+                    "card": {
+                        "number": "4111111111111111",
+                        "expiration": "05/28",
+                        "cvv": "123"
+                    }
+                },
+                "returnUrl": "https://www.your-site.com/return?reference=1234567890",
+                "version": "v2x"
+            }
+            '
+            ```
+
+            ```bash {{ title: 'V2x Subscription' }}
             curl -X "POST" https://api-co-dev.placetopay.ws/gateway/mpi/lookup \
             -H "Content-Type: application/json" \
             -d '{
@@ -95,89 +121,7 @@ There may be two types of sessions depending on the validations performed by the
             }'
             ```
 
-            ```bash {{ title: 'Subscription v2' }}
-            curl -X "POST" https://api-co-dev.placetopay.ws/gateway/mpi/lookup \
-            -H "Content-Type: application/json" \
-            -d '{
-                "locale": "es_CO",
-                "auth": {
-                    "login":"6dd490faf9cb87a9862245da41170ff2",
-                    "tranKey":"/90+dDQKT5XeVKvbjFHoGWFTQVVWHNaTdtAn9OqNXkU=",
-                    "nonce":"ZGEzNHgwcGhwYm0=",
-                    "seed":"2024-11-29T12:46:29-05:00"
-                },
-                "payer": {
-                    "name": "Nombres y Apellidos",
-                    "email": "email@payer.com",
-                    "mobile": "+573195505458"
-                },
-                "instrument": {
-                    "card": {
-                        "number": "4111111111111111",
-                        "expiration": "05/28",
-                        "cvv": "123"
-                    }
-                },
-                "returnUrl": "https://www.your-site.com/return?reference=1234567890",
-                "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
-            }'
-            ```
-
-            ```bash {{ title: 'Payment v2x' }}
-            curl -X "POST" https://api-co-dev.placetopay.ws/gateway/mpi/lookup \
-            -H "Content-Type: application/json" \
-            -d '{
-                "auth": {
-                    "login": "6dd490faf9cb87a9862245da41170ff2",
-                    "tranKey": "81RuiCFgrjJ5VlSzTLqyC2cekqvq7vXQQwG1131+WK0=",
-                    "nonce": "bmVybzNzYms4cmE=",
-                    "seed": "2024-11-21T11:30:33-05:00"
-                },
-                "buyer": {
-                    "address": {
-                        "country": "CO",
-                        "state": "CUN",
-                        "city": "Bogota",
-                        "street": "cra 75 c 57 f 55",
-                        "postalCode": "110741",
-                    }
-                },
-                "payer": {
-                    "name": "payer name",
-                    "surname": "payer surname",
-                    "email": "email@payer.com",
-                    "mobile": "+573195505458",
-                    "address": {
-                        "country": "CO",
-                        "state": "CUN",
-                        "city": "Bogota",
-                        "street": "cra 75 c 57 f 55",
-                        "postalCode": "110741",
-                        "phone": "3195505452"
-                    }
-                },
-                "payment": {
-                "reference": "1234567890",
-                "description": "Testing payment",
-                    "amount": {
-                        "currency": "COP",
-                        "total": 20000
-                    }
-                },
-                "instrument": {
-                    "card": {
-                        "number": "4111111111111111",
-                        "expiration": "05/28",
-                        "cvv": "123"
-                    }
-                },
-                "returnUrl": "https://www.your-site.com/return?reference=1234567890",
-                "version": "v2x"
-            }
-            '
-            ```
-
-            ```bash {{ title: 'Payment v2' }}
+            ```bash {{ title: 'V2 Payment' }}
             curl -X "POST" https://api-co-dev.placetopay.ws/gateway/mpi/lookup \
             -H "Content-Type: application/json" \
             -d '{
@@ -212,6 +156,34 @@ There may be two types of sessions depending on the validations performed by the
                 "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
             }'
             ```
+
+            ```bash {{ title: 'V2 Subscription' }}
+            curl -X "POST" https://api-co-dev.placetopay.ws/gateway/mpi/lookup \
+            -H "Content-Type: application/json" \
+            -d '{
+                "locale": "es_CO",
+                "auth": {
+                    "login":"6dd490faf9cb87a9862245da41170ff2",
+                    "tranKey":"/90+dDQKT5XeVKvbjFHoGWFTQVVWHNaTdtAn9OqNXkU=",
+                    "nonce":"ZGEzNHgwcGhwYm0=",
+                    "seed":"2024-11-29T12:46:29-05:00"
+                },
+                "payer": {
+                    "name": "Nombres y Apellidos",
+                    "email": "email@payer.com",
+                    "mobile": "+573195505458"
+                },
+                "instrument": {
+                    "card": {
+                        "number": "4111111111111111",
+                        "expiration": "05/28",
+                        "cvv": "123"
+                    }
+                },
+                "returnUrl": "https://www.your-site.com/return?reference=1234567890",
+                "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
+            }'
+            ```
         </CodeGroup>
     </Col>
 </Row>
@@ -229,7 +201,7 @@ There may be two types of sessions depending on the validations performed by the
     <Col sticky={true}>
         <br />
         <CodeGroup title="Response">
-            ```json {{ title: 'V2x response (asynchronous session)' }}
+            ```json {{ title: 'V2x response (redirect)' }}
             {
                 "status": {
                     "status": "OK",
@@ -247,7 +219,7 @@ There may be two types of sessions depending on the validations performed by the
             }
             ```
 
-            ```json {{ title: 'V2x response (synchronous session)' }}
+            ```json {{ title: 'V2x response (continue)' }}
             {
                 "status": {
                     "status": "OK",
@@ -303,7 +275,7 @@ There may be two types of sessions depending on the validations performed by the
 
 ## 3DS Query {{ id: 'mpi-query-request', tag: 'POST', label: '/gateway/mpi/query' }}
 
-Once an authentication session is started and the necessary validations have been generated, its status can be consulted to determine if the cardholder has been correctly authenticated. Similarly, a synchronous session can be consulted with the identifier returned in the response from the `gateway/mpi/lookup` service.
+Once an authentication session is started and the necessary validations have been generated, its status can be consulted to determine if the cardholder has been correctly authenticated.
 
 > ### Important Note
 >
@@ -372,8 +344,8 @@ Once an authentication session is started and the necessary validations have bee
 
     <Col sticky>
         <br />
-        <CodeGroup title="Response">
-            ```json {{ title: 'V2x response' }}
+        <CodeGroup title="Query Response">
+            ```json {{ title: 'Query Response' }}
             {
                 "status": {
                     "status": "OK",
@@ -382,12 +354,11 @@ Once an authentication session is started and the necessary validations have bee
                     "date": "2024-12-11T13:28:50-05:00"
                 },
                 "data": {
-                    "action": "continue",
                     "version": "v2x",
                     "id": 263238,
                     "enrolled": "Y",
                     "authenticated": "Y",
-                    "eci": "07",
+                    "eci": "05",
                     "cavv": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
                     "xid": "3581b9b5-d6e1-4fad-abfd-0627061fde32",
                     "extra": {
@@ -401,32 +372,6 @@ Once an authentication session is started and the necessary validations have bee
                         "authInd": "MASTERCARD_3RI_IS_FOR_AN_AGENT_PAYMENT_TRANSACTION"
                     },
                     "validSignature": true
-                }
-            }
-            ```
-
-            ```json {{ title: 'V2 response' }}
-            {
-                "status": {
-                    "status": "OK",
-                    "reason": "00",
-                    "message": "La petición se ha procesado correctamente",
-                    "date": "2021-09-21T11:40:03-05:00"
-                },
-                "data": {
-                    "identifier": 1,
-                    "enrolled": "Y",
-                    "authenticated": "Y",
-                    "validSignature": true,
-                    "eci": "05",
-                    "cavv": "AAACCZJiUGVlF4U5AmJQEwAAAAA=",
-                    "xid": "604a4cde-8964-4b75-9e3d-4809cf007a60",
-                    "version": "v2",
-                    "extra": {
-                        "transStatusReason": null,
-                        "acsTransId": "bc57ca81-efec-4d8d-b9fa-103876a0a80a",
-                        "threeDSServerTransID": "3eb7872e-9cb8-415c-ba9e-d69fb05160bd"
-                    }
                 }
             }
             ```
