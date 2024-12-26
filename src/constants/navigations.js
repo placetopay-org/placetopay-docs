@@ -207,7 +207,7 @@ export const TAB_NAVIGATION = {
           }, {
             title: 'Micrositio Cerrado',
             links: [
-              { title: 'Cargue de ordenes de pago', href: '/payments/microsite-closed/charge_invoice'},
+              { title: 'Cargue de órdenes de pago', href: '/payments/microsite-closed/charge_invoice'},
             ],
           },
           {
