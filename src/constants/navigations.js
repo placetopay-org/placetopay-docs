@@ -116,6 +116,14 @@ export const NAMESPACES_SELECTOR = {
       icon: Link,
     },
     {
+      title: 'Microsite closed',
+      description: 'Upload of Payment Orders',
+      href: '/en/microsite-closed',
+      icon: Link,
+      
+    },
+
+    {
       title: 'Microsites',
       description: 'Create and manage microsites',
       href: '/en/microsites',
@@ -246,6 +254,12 @@ export const TAB_NAVIGATION = {
               { title: 'Manage payment link', href: '/payments/payments-links/link_management' },
               { title: 'Process Pay', href: '/payments/payments-links/process_pay' },
 
+            ],
+          },
+          {
+            title: 'Microsite closed',
+            links: [
+              { title: 'Upload of Payment Orders', href: '/microsite-closed/charge_invoice'},
             ],
           },
           {
