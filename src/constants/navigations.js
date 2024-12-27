@@ -200,16 +200,22 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Introducción', href: '/payments/payments-links/introduction' },
               { title: 'Crear link de pagos', href: '/payments/payments-links/create_payment_link' },
-              { title: 'Gestionar link de pagos', href: '/payments/payments-links/link_management' },
-              { title: 'Proceso de pago', href: '/payments/payments-links/process_pay' },
-
+              { title: 'Gestionar link de pagos', href: '/payments/payments-links/link_management' }
             ],
-          }, {
+          }, 
+          {
             title: 'Micrositio Cerrado',
             links: [
+              { title: 'Introducción', href: '/payments/microsite-closed/introduction' },
               { title: 'Cargue de órdenes de pago', href: '/payments/microsite-closed/charge_invoice'},
             ],
           },
+          {
+            title: 'Proceso de pago en Web Checkout',
+            links: [
+              { title: 'Proceso de pago', href: '/payments/process_pay' },
+            ],
+          }, 
           {
             title: 'Medios de pago',
             links: [
