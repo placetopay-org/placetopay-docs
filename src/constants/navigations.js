@@ -219,7 +219,7 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Proceso de pago en Web Checkout',
+            title: 'Flujo de Pago en Web Checkout',
             links: [
               { title: 'Proceso de pago', href: '/payments/process_pay' },
             ],
