@@ -265,9 +265,11 @@ export const TAB_NAVIGATION = {
           {
             title: 'Microsite closed',
             links: [
-              { title: 'Upload of Payment Orders', href: '/microsite-closed/charge_invoice'},
+              { title: 'Introducción', href: '/payments/microsite-closed/introduction'},
+              { title: 'Upload of Payment Orders', href: '/payments/microsite-closed/charge_invoice'},
             ],
           },
+
           {
             title: 'Payment methods',
             links: [
