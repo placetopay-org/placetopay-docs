@@ -772,6 +772,10 @@ export const TAB_NAVIGATION = {
                 title: 'API Sucursales',
                 href: '/three-d-s-server/api/merchants/branch',
               },
+              {
+                title: 'Suscribir Modelos',
+                href: '/three-d-s-server/api/merchants/enrolment',
+              },
             ],
           },
         ],
@@ -930,6 +934,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Branches API',
                 href: '/three-d-s-server/api/merchants/branch',
+              },
+              {
+                title: 'Enrolment model',
+                href: '/three-d-s-server/api/merchants/enrolment',
               },
             ],
           },
