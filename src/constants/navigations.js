@@ -116,6 +116,14 @@ export const NAMESPACES_SELECTOR = {
       icon: Link,
     },
     {
+      title: 'Microsite closed',
+      description: 'Upload of Payment Orders',
+      href: '/en/microsite-closed',
+      icon: Link,
+      
+    },
+
+    {
       title: 'Microsites',
       description: 'Create and manage microsites',
       href: '/en/microsites',
@@ -200,11 +208,22 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Introducción', href: '/payments/payments-links/introduction' },
               { title: 'Crear link de pagos', href: '/payments/payments-links/create_payment_link' },
-              { title: 'Gestionar link de pagos', href: '/payments/payments-links/link_management' },
-              { title: 'Proceso de pago', href: '/payments/payments-links/process_pay' },
-
+              { title: 'Gestionar link de pagos', href: '/payments/payments-links/link_management' }
+            ],
+          }, 
+          {
+            title: 'Micrositio Cerrado',
+            links: [
+              { title: 'Introducción', href: '/payments/microsite-closed/introduction' },
+              { title: 'Cargue de órdenes de pago', href: '/payments/microsite-closed/charge_invoice'},
             ],
           },
+          {
+            title: 'Flujo de Pago en Web Checkout',
+            links: [
+              { title: 'Proceso de pago', href: '/payments/process_pay' },
+            ],
+          }, 
           {
             title: 'Medios de pago',
             links: [
@@ -234,7 +253,7 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Link de pagos',
+            title: 'Payment link',
             links: [
               { title: 'Introduction', href: '/payments/payments-links/introduction' },
               { title: 'Create payment link', href: '/payments/payments-links/create_payment_link' },
@@ -243,6 +262,14 @@ export const TAB_NAVIGATION = {
 
             ],
           },
+          {
+            title: 'Microsite closed',
+            links: [
+              { title: 'Introducción', href: '/payments/microsite-closed/introduction'},
+              { title: 'Upload of Payment Orders', href: '/payments/microsite-closed/charge_invoice'},
+            ],
+          },
+
           {
             title: 'Payment methods',
             links: [
