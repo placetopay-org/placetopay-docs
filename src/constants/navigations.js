@@ -120,7 +120,14 @@ export const NAMESPACES_SELECTOR = {
       description: 'Upload of Payment Orders',
       href: '/en/microsite-closed',
       icon: Link,
-      
+
+    },
+    {
+      title: 'Microsite open',
+      description: 'Upload of Payment Orders',
+      href: '/en/microsite-closed',
+      icon: Link,
+
     },
 
     {
@@ -210,12 +217,18 @@ export const TAB_NAVIGATION = {
               { title: 'Crear link de pagos', href: '/payments/payments-links/create_payment_link' },
               { title: 'Gestionar link de pagos', href: '/payments/payments-links/link_management' }
             ],
-          }, 
+          },
           {
             title: 'Micrositio Cerrado',
             links: [
               { title: 'Introducción', href: '/payments/microsite-closed/introduction' },
-              { title: 'Cargue de órdenes de pago', href: '/payments/microsite-closed/charge_invoice'},
+              { title: 'Cargue de órdenes de pago', href: '/payments/microsite-closed/charge_invoice' },
+            ],
+          }, {
+            title: 'Micrositio Abierto',
+            links: [
+              { title: 'Introducción', href: '/payments/microsite-open/introduction' },
+              { title: 'Campos predeterminados', href: '/payments/microsite-open/fields' },
             ],
           },
           {
@@ -223,7 +236,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Proceso de pago', href: '/payments/process_pay' },
             ],
-          }, 
+          },
           {
             title: 'Medios de pago',
             links: [
@@ -265,8 +278,8 @@ export const TAB_NAVIGATION = {
           {
             title: 'Microsite closed',
             links: [
-              { title: 'Introducción', href: '/payments/microsite-closed/introduction'},
-              { title: 'Upload of Payment Orders', href: '/payments/microsite-closed/charge_invoice'},
+              { title: 'Introducción', href: '/payments/microsite-closed/introduction' },
+              { title: 'Upload of Payment Orders', href: '/payments/microsite-closed/charge_invoice' },
             ],
           },
 
