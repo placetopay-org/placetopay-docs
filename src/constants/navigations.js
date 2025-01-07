@@ -269,7 +269,13 @@ export const TAB_NAVIGATION = {
               { title: 'Upload of Payment Orders', href: '/payments/microsite-closed/charge_invoice'},
             ],
           },
-
+          {
+            title: 'Payment Flow in Web Checkout',
+            links: [
+                { title: 'Payment Process', href: '/payments/process_pay' },
+            ],
+          },
+        
           {
             title: 'Payment methods',
             links: [
