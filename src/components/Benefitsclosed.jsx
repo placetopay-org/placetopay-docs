@@ -1,9 +1,9 @@
-import { BrushTwoToneIcon } from '@/components/iconsax/BrushTwoToneIcon'
-import { MonitorMobileTwoToneIcon } from '@/components/iconsax/MonitorMobileTwoToneIcon'
-import { MoneyReceiveTwoToneIcon } from '@/components/iconsax/MoneyReceiveTwoToneIcon'
-import { WalletTwoToneIcon } from '@/components/iconsax/WalletTwoToneIcon'
-import { SecuritySafeTwoToneIcon } from '@/components/iconsax/SecuritySafeTwoToneIcon'
-import { LampChargeTwoToneIcon } from '@/components/iconsax/LampChargeTwoToneIcon'
+import { DocumentTextTwoToneIcon } from '@/components/iconsax/DocumentTextTwoToneIcon'
+import { PeronalizationTwoToneIcon } from '@/components/iconsax/PeronalizationTwoToneIcon'
+import { ImportTwoToneIcon } from '@/components/iconsax/ImportTwoToneIcon'
+import { TransactionTwoToneIcon } from '@/components/iconsax/TransactionTwoToneIcon'
+import { FlexibilityTwoToneIcon } from '@/components/iconsax/FlexibilityTwoToneIcon'
+import { ErrorTwoToneIcon } from '@/components/iconsax/ErrorTwoToneIcon'
 import { useLocale } from './LocaleProvider'
 import { ResourceCard } from './ResourceCard'
 
@@ -17,7 +17,7 @@ const resources = [
       es: 'Permite crear, consultar, y eliminar órdenes de pago desde una consola administrativa, especificando detalles como referencias únicas, nombres de clientes, y valores a pagar.',
       en: 'Personalize the appearance of Checkout with your company logos and colors. Create a unique and consistent payment experience with your brand.',
     },
-    icon: BrushTwoToneIcon,
+    icon: DocumentTextTwoToneIcon,
     pattern: {
       y: 16,
       squares: [
@@ -35,7 +35,7 @@ const resources = [
       es: 'Ofrece la posibilidad de cargar hasta 5,000 órdenes de pago simultáneamente mediante archivos CSV, facilitando la gestión de grandes volúmenes de transacciones.',
       en: 'Accept payments in different languages and currencies to attract customers from all over the world. Expand your reach and increase your sales opportunities.',
     },
-    icon: MoneyReceiveTwoToneIcon,
+    icon: ImportTwoToneIcon,
     pattern: {
       y: -6,
       squares: [
@@ -53,7 +53,7 @@ const resources = [
       es: 'Proporciona opciones para configurar recargos (valor fijo, diario o diario apartir de la fecha de generación, fechas de vencimiento, y descripciones detalladas de servicios o productos asociados a las órdenes.',
       en: 'Summary of payment status in the history of the link created. Filter functionality for specific searches in the history. Record of related payments with basic details and possibility to consult more information from the administrative panel.',
     },
-    icon: MonitorMobileTwoToneIcon,
+    icon: PeronalizationTwoToneIcon,
     pattern: {
       y: 32,
       squares: [
@@ -68,7 +68,7 @@ const resources = [
       es: 'La herramienta agiliza el proceso de integración y administración de órdenes de pago, reduciendo tiempos operativos.',
       en: 'Payment links can be shared in a variety of ways, such as URL, email, QR code or WhatsApp, adapting to the needs of each user or merchant.',
     },
-    icon: WalletTwoToneIcon,
+    icon: TransactionTwoToneIcon,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -80,7 +80,7 @@ const resources = [
       es: 'La capacidad de configurar múltiples parámetros y opciones de pago permite a los comercios adaptarse a diversas necesidades y optimizar su flujo de caja.',
       en: 'The system allows the configuration of customized expiration times and approved payment limits, optimizing the control and security of transactions.',
     },
-    icon: SecuritySafeTwoToneIcon,
+    icon: FlexibilityTwoToneIcon,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -92,7 +92,7 @@ const resources = [
       es: 'El uso de cargues masivos y formatos estandarizados minimiza la probabilidad de inconsistencias en los datos ingresados manualmente.',
       en: 'It includes tools such as link history, forwarding capabilities, and related payment queries, making it easy to monitor and manage from a single dashboard.',
     },
-    icon: LampChargeTwoToneIcon,
+    icon: ErrorTwoToneIcon,
     pattern: {
       y: 22,
       squares: [[0, 1]],
