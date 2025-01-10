@@ -77,11 +77,11 @@ export const NavigationGroupProvider = ({ group, children }) => {
     setLinks((prevLinks) =>
       prevLinks.map((link, i) => ({
         ...link,
-        active: i === index - 1 ? !link.active : false,
+        active: i === index ? !link.active : false,
       }))
     )
 
-    const newActiveLinkIndex = links[index - 1].active
+    const newActiveLinkIndex = links[index].active
       ? foundActiveGroup(links, router.pathname)
       : foundActiveLink(links, router.pathname)
 
