@@ -101,8 +101,10 @@ export const NavigationGroupProvider = ({ group, children }) => {
   useEffect(() => {
     const handleRouteChange = () => {
       const localActiveGroupIndex = foundActiveGroup(links, router.pathname)
+      let newLinks = links;
+
       if (localActiveGroupIndex !== activeGroupIndex) {
-        const newLinks = links.map((link, i) => ({
+        newLinks = links.map((link, i) => ({
           ...link,
           active: i === localActiveGroupIndex || !link.href && link.active,
         }))
@@ -117,7 +119,7 @@ export const NavigationGroupProvider = ({ group, children }) => {
         return
       }
 
-      changeActiveLinkIndex(foundActiveLink(links, router.pathname))
+      changeActiveLinkIndex(foundActiveLink(newLinks, router.pathname))
     }
 
     router.events.on('routeChangeComplete', handleRouteChange)
