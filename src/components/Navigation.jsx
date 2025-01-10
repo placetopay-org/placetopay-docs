@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { twMerge } from 'tailwind-merge'
@@ -14,7 +14,7 @@ import { useLocale } from './LocaleProvider'
 import { NamespaceSelector } from './SelectMenu'
 import { useTabRouter } from './TabProvider'
 import { getNavigationByTab } from '@/utils/getNavigationByTab'
-import { NavigationGroupProvider, shouldShowLinks } from './contexts'
+import { NavigationGroupProvider } from './contexts'
 import { useNavigationGroupContext } from '@/hooks/useNavigationGroupContext'
 
 function useInitialValue(value, condition = true) {
@@ -239,7 +239,7 @@ function NavigationGroupItem({ index, link, withSections, sections, pathname }) 
   )
 }
 
-function NavigationGroup({ index, className, withSections = false }) {
+function NavigationGroup({ className, withSections = false }) {
   // If this is the mobile navigation then we always render the initial
   // state, so that the state does not change during the close animation.
   // The state will still update when we re-open (re-render) the navigation.
@@ -270,7 +270,7 @@ function NavigationGroup({ index, className, withSections = false }) {
           {isActiveGroup && <ActivePageMarker />}
         </AnimatePresence>
         <ul role="list" className="border-l border-transparent">
-          {links.map((link) => (
+          {links.map((link, index) => (
             <NavigationGroupItem
               key={link.href ?? link.title.replaceAll(' ', '/')}
               index={index}
@@ -320,7 +320,6 @@ export function Navigation({ withSections, ...props }) {
           <NavigationGroupProvider group={group} key={group.title}>
             <NavigationGroup
               group={group}
-              index={groupIndex}
               className={groupIndex === 0 && 'md:mt-0'}
               withSections={withSections}
             />
