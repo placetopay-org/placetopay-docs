@@ -124,6 +124,11 @@ function Feedback() {
 
 function PageLink({ label, page, previous = false, locale, hasPrefix }) {
   const href = hasPrefix ? `/${locale}${page.href}` : page.href
+
+  if (!href) {
+    return null
+  }
+
   return (
     <>
       <Button

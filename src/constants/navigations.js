@@ -192,13 +192,21 @@ export const TAB_NAVIGATION = {
           {
             title: 'Pagos',
             links: [
-              { title: 'Introducción', href: '/payments' },
+              {
+                title: 'Introducción', href: '/payments'
+              },
             ],
           },
           {
             title: 'Link de pagos',
             links: [
-              { title: 'Introducción', href: '/payments/payments-links/introduction' },
+              {
+                title: 'Introducciones', links: [
+                  // { title: 'Introducción', href: '/payments/payments-links/introduction' },
+                  { title: 'Introducción 1.0', href: '/payments/payments-links/introduction-1' },
+                  { title: 'Introducción 2.0', href: '/payments/payments-links/introduction-2' },
+                ]
+              },
               { title: 'Crear link de pagos', href: '/payments/payments-links/create-payment-link' },
               { title: 'Gestionar link de pagos', href: '/payments/payments-links/link-management' },
               { title: 'Proceso de pago', href: '/payments/payments-links/process-pay' },
