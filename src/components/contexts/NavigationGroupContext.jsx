@@ -45,12 +45,24 @@ const foundActiveGroup = (links, pathname) => {
   return links.findIndex((link) => shouldShowLinks(link, pathname))
 }
 
-const foundActiveLink = (links, pathname, withChilds = true) => {
-  if (withChilds) {
-    links = links.flatMap((link) => [link, ...link.links])
-  }
+const foundActiveLink = (links, pathname) => {
+  return links
+    .flatMap((link) => {
+      const localLinks = [link]
 
-  return links.findIndex((link) => pathname === link.href)
+      if (link.active && link.hasChildren) {
+        return [...localLinks, ...link.links]
+      }
+
+      return localLinks
+    })
+    .findIndex((link) => {
+      if (!link.active && link.hasChildren) {
+        return link.links.some((subLink) => subLink.href === pathname)
+      }
+
+      return pathname === link.href;
+    })
 }
 
 export const NavigationGroupProvider = ({ group, children }) => {
@@ -74,18 +86,16 @@ export const NavigationGroupProvider = ({ group, children }) => {
   )
 
   const toggleGroup = (index) => {
-    setLinks((prevLinks) =>
-      prevLinks.map((link, i) => ({
-        ...link,
-        active: i === index ? !link.active : false,
-      }))
-    )
+    const localLinks = links.map((link, i) => ({
+      ...link,
+      active: i === index ? !link.active : link.active,
+    }))
 
-    const newActiveLinkIndex = links[index].active
-      ? foundActiveGroup(links, router.pathname)
-      : foundActiveLink(links, router.pathname)
+    setLinks(localLinks)
 
-    changeActiveLinkIndex(newActiveLinkIndex);
+    const newActiveLinkIndex = foundActiveLink(localLinks, router.pathname)
+
+    changeActiveLinkIndex(newActiveLinkIndex)
   }
 
   useEffect(() => {
@@ -94,7 +104,7 @@ export const NavigationGroupProvider = ({ group, children }) => {
       if (localActiveGroupIndex !== activeGroupIndex) {
         const newLinks = links.map((link, i) => ({
           ...link,
-          active: i === localActiveGroupIndex,
+          active: i === localActiveGroupIndex || !link.href && link.active,
         }))
 
         setLinks(newLinks)
@@ -107,13 +117,7 @@ export const NavigationGroupProvider = ({ group, children }) => {
         return
       }
 
-      changeActiveLinkIndex(
-        foundActiveLink(
-          links,
-          router.pathname,
-          links[localActiveGroupIndex].hasChildren
-        )
-      )
+      changeActiveLinkIndex(foundActiveLink(links, router.pathname))
     }
 
     router.events.on('routeChangeComplete', handleRouteChange)
