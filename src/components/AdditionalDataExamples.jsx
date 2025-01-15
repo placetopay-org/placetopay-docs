@@ -168,6 +168,14 @@ const examples = [
         es: "Proveedor de control fiscal, de ejemplo ET como Evertec.",
         en: "Fiscal control provider, example ET as Evertec."
       }
+    },
+    {
+        key: "_wcTransactionId_",
+        example: "56",
+        description: {
+            es: "Identificador de transacción en comercio.",
+            en: "Transaction identifier in commerce."
+        }
     }
   ];
 
