@@ -64,3 +64,28 @@ Also, if you want to get more information about the session and the related tran
   }
 }
 ```
+
+## Improve your integration
+
+### Handling Duplicated Events
+
+While duplicated events are very rare, they can occasionally occur. As a merchant, it's important to handle these events properly to ensure the integrity of your transaction processing. Here are some guidelines:
+
+- **Verify Session Status:** Compare the current status of the session against the state of the notification. If the states match, you might already have the updated version of the session.
+- **Store Processed Notifications:** For more advanced integrations, store notifications that have been processed and compare any new notification by their signature to ensure it hasn't already been handled.
+
+### Webhook Retries
+
+It's important to note that the notification webhook is not retried. The notification is only executed once, regardless of whether there is no response, the response is an error, or the connection or response times out. There is only one call made for each notification. As a merchant, ensure that your system is prepared to handle the notification on the first attempt.
+
+### Webhook Responses
+
+The response for the webhook should be a 2xx success HTTP status. The response should be given as soon as possible. If the business logic is too complex or slow, we advise you to handle the notification in an asynchronous job. This ensures that the webhook call is acknowledged quickly, and the detailed processing can be done in the background without delaying the response.
+
+### Receiving Webhooks on an HTTPS Server
+
+The notification URL must be secure and must use HTTPS over the internet. Ensure that your server supports TLS 1.2 or 1.3 to maintain a high level of security for the notifications.
+
+### Verifying the Signature
+
+The signature of the message is sent in the `signature` property and must be verified to ensure the integrity and authenticity of the notification. Use the following formula to verify the signature: `SHA-1(requestId + status.status + status.date + secretKey)`. Make sure to replace `secretKey` with your actual secret key. This verification step is crucial to ensure that the notification has not been tampered with.

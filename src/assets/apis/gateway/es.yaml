@@ -57,20 +57,164 @@ paths:
         content:
           application/json:
             schema:
-              type: "object"
-              properties:
-                locale:
-                  type: "string"
-                  description: "Determina el idioma de la respuesta"
-                  example: "es-CO"
-                auth:
-                  $ref: "#/components/schemas/Authentication"
-                instrument:
-                  $ref: "#/components/schemas/Instrument"
-                payment:
-                  $ref: "#/components/schemas/Payment"
-                subscription:
-                  $ref: "#/components/schemas/Subscription"
+              oneOf:
+                - title: "Tarjeta"
+                  type: "object"
+                  properties:
+                    locale:
+                      type: "string"
+                      description: "Determina el idioma de la respuesta"
+                      example: "es-CO"
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    instrument:
+                      $ref: "#/components/schemas/Instrument"
+                    payment:
+                      $ref: "#/components/schemas/Payment"
+                    subscription:
+                      $ref: "#/components/schemas/Subscription"
+                - title: "PSE"
+                  type: "object"
+                  properties:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    locale:
+                      type: "string"
+                    payer:
+                      $ref: "#/components/schemas/Person"
+                    payment:
+                      type: "object"
+                      description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
+                      properties:
+                        reference:
+                          type: "string"
+                          minLength: 1
+                          maxLength: 32
+                        description:
+                          type: "string"
+                          maxLength: 250
+                        amount:
+                          $ref: "#/components/schemas/Amount"
+                    instrument:
+                      type: "object"
+                      description: "Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
+                      properties:
+                        redirection:
+                          type: "object"
+                          description: "Representa un medio de pago de redirección, es decir que requiere que se envíe el usuario a otra URL para completar el proceso."
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "_PSE_"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL para que una vez se termine el proceso de pago se retorne el control."
+                    ipAddress:
+                      type: "string"
+                    userAgent:
+                      type: "string"
+                  required:
+                    - "auth"
+                    - "payment"
+                    - "instrument"
+                - title: "Botón Bancolombia"
+                  type: "object"
+                  properties:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    locale:
+                      type: "string"
+                    payer:
+                      $ref: "#/components/schemas/Person"
+                    payment:
+                      type: "object"
+                      description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
+                      properties:
+                        reference:
+                          type: "string"
+                          minLength: 1
+                          maxLength: 32
+                        description:
+                          type: "string"
+                          maxLength: 250
+                        amount:
+                          $ref: "#/components/schemas/Amount"
+                    instrument:
+                      type: "object"
+                      description: "Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
+                      properties:
+                        redirection:
+                          type: "object"
+                          description: "Representa un medio de pago de redirección, es decir que requiere que se envíe el usuario a otra URL para completar el proceso."
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "BTNBC"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL para que una vez se termine el proceso de pago se retorne el control."
+                    ipAddress:
+                      type: "string"
+                    userAgent:
+                      type: "string"
+                  required:
+                    - "auth"
+                    - "payment"
+                    - "instrument"
+                - title: "Botón Aval"
+                  type: "object"
+                  properties:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    payment:
+                      type: "object"
+                      description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
+                      properties:
+                        reference:
+                          type: "string"
+                          minLength: 1
+                          maxLength: 32
+                        description:
+                          type: "string"
+                          maxLength: 250
+                        amount:
+                          $ref: "#/components/schemas/Amount"
+                    instrument:
+                      type: "object"
+                      description: "Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
+                      properties:
+                        redirection:
+                          type: "object"
+                          description: "Representa un medio de pago de redirección, es decir que requiere que se envíe el usuario a otra URL para completar el proceso."
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "BTNAV"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL para que una vez se termine el proceso de pago se retorne el control."
+                    locale:
+                      type: "string"
+                    ipAddress:
+                      type: "string"
+                    userAgent:
+                      type: "string"
+                  required:
+                    - "auth"
+                    - "payment"
+                    - "instrument"
             examples:
               Ejemplo:
                 value:
@@ -98,79 +242,238 @@ paths:
           content:
             application/json:
               schema:
-                type: "object"
-                properties:
-                  status:
-                    $ref: "#/components/schemas/Status"
-                  provider:
-                    type: "string"
-                    example: "EBUS"
-                    description: "Indica cual proveedor será utilizado en la transacción"
-                  serviceCode:
-                    type: "string"
-                    description: "Indica el código del servicio que procesará la transacción"
-                    example: "EB_VS"
-                  cardTypes:
-                    type: "array"
-                    description: "Indica los tipos de tarjeta soportados por el proveedor"
-                    items:
-                      $ref: "#/components/schemas/CardType"
-                  cardType:
-                    $ref: "#/components/schemas/CardType"
-                  requiereOtp:
-                    type: "boolean"
-                    description: "Indica si es necesario realizar el flujo de OTP"
-                  requiereCvv2:
-                    type: "boolean"
-                    description: "Indica si es requerido enviar CVV para el procesamiento de la transacción"
-                  threeDS:
-                    type: "string"
-                    enum:
-                    - "optional"
-                    - "required"
-                    - "unsupported"
-                    description: "Indica si es necesario 3DS"
-                  credits:
-                    type: "array"
-                    description: "Indica los créditos disponibles por proveedor"
-                    items:
-                      $ref: "#/components/schemas/Credit"
-                  requirePockets:
-                    type: "boolean"
-                    description: "Indica si es requerido bolsillo para el procesamiento de la transacción"
-                  pockets:
-                    type: "array"
-                    description: "Estructura que contiene los bolsillos de la tarjeta"
-                    items:
-                      $ref: "#/components/schemas/Pocket"
-                  requireAvs:
-                    type: "boolean"
-                    description: "Indica si es requerida la información de código postal"
-                  zipCodeFormat:
-                    type: "string"
-                    description: "Formato a ser utilizado para la validación del código postal"
-                    nullable: "true"
-                  accountVerification:
-                    type: "boolean"
-                    description: "Indica si es necesario realizar el flujo de verificación de cuentas"
-                  requirePin:
-                    type: "boolean"
-                    description: "Indica si es necesario pin para procesar la transacción"
-                  requireRedirection:
-                    type: "boolean"
-                    description: "Indica si el medio de pago es del tipo redirección"
-                  bankList:
-                    type: "array"
-                    description: "Lista de bancos disponibles para procesar un pago con PSE"
-                    items:
-                      $ref: "#/components/schemas/BankItem"
-                  requireBalance:
-                    type: "boolean"
-                    description: "Indica si es requerido el consumo del servicio de balance"
-                required:
-                  - "status"
-                  - "provider"
-                  - "serviceCode"
+                oneOf:
+                  - title: "Tarjeta"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "#/components/schemas/Status"
+                      provider:
+                        type: "string"
+                        example: "EBUS"
+                        description: "Indica cual proveedor será utilizado en la transacción"
+                      serviceCode:
+                        type: "string"
+                        description: "Indica el código del servicio que procesará la transacción"
+                        example: "EB_VS"
+                      cardTypes:
+                        type: "array"
+                        description: "Indica los tipos de tarjeta soportados por el proveedor"
+                        items:
+                          $ref: "#/components/schemas/CardType"
+                      cardType:
+                        $ref: "#/components/schemas/CardType"
+                      requiereOtp:
+                        type: "boolean"
+                        description: "Indica si es necesario realizar el flujo de OTP"
+                      requiereCvv2:
+                        type: "boolean"
+                        description: "Indica si es requerido enviar CVV para el procesamiento de la transacción"
+                      threeDS:
+                        type: "string"
+                        enum:
+                        - "optional"
+                        - "required"
+                        - "unsupported"
+                        description: "Indica si es necesario 3DS"
+                      credits:
+                        type: "array"
+                        description: "Indica los créditos disponibles por proveedor"
+                        items:
+                          $ref: "#/components/schemas/Credit"
+                      requirePockets:
+                        type: "boolean"
+                        description: "Indica si es requerido bolsillo para el procesamiento de la transacción"
+                      pockets:
+                        type: "array"
+                        description: "Estructura que contiene los bolsillos de la tarjeta"
+                        items:
+                          $ref: "#/components/schemas/Pocket"
+                      requireAvs:
+                        type: "boolean"
+                        description: "Indica si es requerida la información de código postal"
+                      zipCodeFormat:
+                        type: "string"
+                        description: "Formato a ser utilizado para la validación del código postal"
+                        nullable: "true"
+                      accountVerification:
+                        type: "boolean"
+                        description: "Indica si es necesario realizar el flujo de verificación de cuentas"
+                      requirePin:
+                        type: "boolean"
+                        description: "Indica si es necesario pin para procesar la transacción"
+                      requireRedirection:
+                        type: "boolean"
+                        description: "Indica si el medio de pago es del tipo redirección"
+                      bankList:
+                        type: "array"
+                        description: "Lista de bancos disponibles para procesar un pago"
+                        items:
+                          $ref: "#/components/schemas/BankItem"
+                      requireBalance:
+                        type: "boolean"
+                        description: "Indica si es requerido el consumo del servicio de balance"
+                      hasForwarding:
+                        type: "boolean"
+                        description: "Indica si el medio de pago tiene configurado enrutamiento transaccional"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "serviceCode"
+                  - title: "PSE"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "#/components/schemas/Status"
+                      provider:
+                        type: "string"
+                        example: "ACH"
+                        description: "Indica cual proveedor será utilizado en la transacción"
+                      serviceCode:
+                        type: "string"
+                        description: "Indica el código del servicio que procesará la transacción"
+                        example: "_PSE_"
+                      requireRedirection:
+                        type: "boolean"
+                        description: "Indica si el medio de pago es del tipo redirección"
+                      bankList:
+                        type: "array"
+                        description: "Lista de bancos disponibles para procesar un pago"
+                        items:
+                          $ref: "#/components/schemas/BankItem"
+                      cardType:
+                        $ref: "#/components/schemas/CardType"
+                      cardTypes:
+                        type: "array"
+                        description: "Indica los tipos de tarjeta soportados por el proveedor"
+                        items:
+                          $ref: "#/components/schemas/CardType"
+                      displayInterest:
+                        type: "boolean"
+                        description: "Indica si es requerido mostrar los intereses de la transacción"
+                      requiereOtp:
+                        type: "boolean"
+                        description: "Indica si es necesario realizar el flujo de OTP"
+                      requiereCvv2:
+                        type: "boolean"
+                        description: "Indica si es requerido enviar CVV para el procesamiento de la transacción"
+                      threeDS:
+                        type: "string"
+                        enum:
+                          - "optional"
+                          - "required"
+                          - "unsupported"
+                        description: "Indica si es necesario 3DS"
+                      credits:
+                        type: "array"
+                        description: "Indica los créditos disponibles por proveedor"
+                        items:
+                          $ref: "#/components/schemas/Credit"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "serviceCode"
+                  - title: "Botón Bancolombia"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "#/components/schemas/Status"
+                      provider:
+                        type: "string"
+                        example: "BANCOLOMBIA"
+                        description: "Indica cual proveedor será utilizado en la transacción"
+                      serviceCode:
+                        type: "string"
+                        description: "Indica el código del servicio que procesará la transacción"
+                        example: "BTNBC"
+                      requireRedirection:
+                        type: "boolean"
+                        description: "Indica si el medio de pago es del tipo redirección"
+                      cardType:
+                        $ref: "#/components/schemas/CardType"
+                      cardTypes:
+                        type: "array"
+                        description: "Indica los tipos de tarjeta soportados por el proveedor"
+                        items:
+                          $ref: "#/components/schemas/CardType"
+                      displayInterest:
+                        type: "boolean"
+                        description: "Indica si es requerido mostrar los intereses de la transacción"
+                      requiereOtp:
+                        type: "boolean"
+                        description: "Indica si es necesario realizar el flujo de OTP"
+                      requiereCvv2:
+                        type: "boolean"
+                        description: "Indica si es requerido enviar CVV para el procesamiento de la transacción"
+                      threeDS:
+                        type: "string"
+                        enum:
+                          - "optional"
+                          - "required"
+                          - "unsupported"
+                        description: "Indica si es necesario 3DS"
+                      credits:
+                        type: "array"
+                        description: "Indica los créditos disponibles por proveedor"
+                        items:
+                          $ref: "#/components/schemas/Credit"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "serviceCode"
+                  - title: "Botón Aval"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "#/components/schemas/Status"
+                      provider:
+                        type: "string"
+                        example: "AVAL"
+                        description: "Indica cual proveedor será utilizado en la transacción"
+                      serviceCode:
+                        type: "string"
+                        description: "Indica el código del servicio que procesará la transacción"
+                        example: "BTNAV"
+                      requireRedirection:
+                        type: "boolean"
+                        description: "Indica si el medio de pago es del tipo redirección"
+                      bankList:
+                        type: "array"
+                        description: "Lista de bancos disponibles para procesar un pago"
+                        items:
+                          $ref: "#/components/schemas/BankItem"
+                      cardType:
+                        $ref: "#/components/schemas/CardType"
+                      cardTypes:
+                        type: "array"
+                        description: "Indica los tipos de tarjeta soportados por el proveedor"
+                        items:
+                          $ref: "#/components/schemas/CardType"
+                      displayInterest:
+                        type: "boolean"
+                        description: "Indica si es requerido mostrar los intereses de la transacción"
+                      requiereOtp:
+                        type: "boolean"
+                        description: "Indica si es necesario realizar el flujo de OTP"
+                      requiereCvv2:
+                        type: "boolean"
+                        description: "Indica si es requerido enviar CVV para el procesamiento de la transacción"
+                      threeDS:
+                        type: "string"
+                        enum:
+                          - "optional"
+                          - "required"
+                          - "unsupported"
+                        description: "Indica si es necesario 3DS"
+                      credits:
+                        type: "array"
+                        description: "Indica los créditos disponibles por proveedor"
+                        items:
+                          $ref: "#/components/schemas/Credit"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "serviceCode"
               examples:
                 Ejemplo:
                   value:
@@ -243,37 +546,209 @@ paths:
         content:
           application/json:
             schema:
-              type: "object"
-              properties:
-                action:
-                  type: "string"
-                  enum:
-                    - "checkin"
-                  description: "Este campo debe ser enviado únicamente cuando se realice un proceso de checkin, de lo contrario, no debe ser enviado en la solicitud."
-                locale:
-                  type: "string"
-                auth:
-                  $ref: "#/components/schemas/Authentication"
-                payment:
-                  $ref: "#/components/schemas/Payment"
-                instrument:
-                  $ref: "#/components/schemas/Instrument"
-                payer:
-                  $ref: "#/components/schemas/Person"
-                buyer:
-                  $ref: "#/components/schemas/Person"
-                ipAddress:
-                  type: "string"
-                userAgent:
-                  type: "string"
-                additional:
+              oneOf:
+                - title: "Default"
                   type: "object"
-                  description: "Objeto dinámico clave valor de información que se desee guardar con la transacción. Las siguientes claves **NO** son permitidas: `_accountNumber`, `userAgent`, `fingerprint`, `sourcePlatform`, `tokenizationID`, `trazabilyCode`, `transactionCycle`, `RequestId`, `PartnerAuthCode`, `onTest`, `threeDSEnrolled`, `threeDSAuthenticated`."
-                notificationURL:
-                  type: "string"
-                  description: "URL a la que se enviará una notificación HTTP con la información de la transacción una vez que esta haya sido procesada. Ver más en [Notificación](/gateway/notification)"
+                  properties:
+                    action:
+                      type: "string"
+                      enum:
+                        - "checkin"
+                      description: "Este campo debe ser enviado únicamente cuando se realice un proceso de checkin, de lo contrario, no debe ser enviado en la solicitud."
+                    locale:
+                      type: "string"
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    payment:
+                      $ref: "#/components/schemas/Payment"
+                    instrument:
+                      $ref: "#/components/schemas/Instrument"
+                    payer:
+                      $ref: "#/components/schemas/Person"
+                    buyer:
+                      $ref: "#/components/schemas/Person"
+                    ipAddress:
+                      type: "string"
+                    userAgent:
+                      type: "string"
+                    additional:
+                      type: "object"
+                      description: "Objeto dinámico clave valor de información que se desee guardar con la transacción. Las siguientes claves **NO** son permitidas: `_accountNumber`, `userAgent`, `fingerprint`, `sourcePlatform`, `tokenizationID`, `trazabilyCode`, `transactionCycle`, `RequestId`, `PartnerAuthCode`, `onTest`, `threeDSEnrolled`, `threeDSAuthenticated`."
+                    notificationURL:
+                      type: "string"
+                      description: "URL a la que se enviará una notificación HTTP con la información de la transacción una vez que esta haya sido procesada. Ver más en [Notificación](/gateway/notification)"
+                - title: "PSE"
+                  type: "object"
+                  properties:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    locale:
+                      type: "string"
+                    payer:
+                      $ref: "#/components/schemas/Person"
+                    payment:
+                      type: "object"
+                      description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
+                      properties:
+                        reference:
+                          type: "string"
+                          minLength: 1
+                          maxLength: 32
+                        description:
+                          type: "string"
+                          maxLength: 250
+                        amount:
+                          $ref: "#/components/schemas/Amount"
+                    instrument:
+                      type: "object"
+                      description: "Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
+                      properties:
+                        redirection:
+                          type: "object"
+                          description: "Representa un medio de pago de redirección, es decir que requiere que se envíe el usuario a otra URL para completar el proceso."
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "_PSE_"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL para que una vez se termine el proceso de pago se retorne el control."
+                            additional:
+                              type: "object"
+                              description: "Estructura para relacionar datos adicionales en el proceso."
+                              properties:
+                                bankCode:
+                                  type: "string"
+                                  description: "Código que identifica al banco en la red."
+                                  example: "1007"
+                                userType:
+                                  type: "string"
+                                  example: "person"
+                    ipAddress:
+                      type: "string"
+                    userAgent:
+                      type: "string"
+                  required:
+                    - "auth"
+                    - "payer"
+                    - "instrument"
+                    - "payment"
+                - title: "Botón Bancolombia"
+                  type: "object"
+                  properties:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    locale:
+                      type: "string"
+                    payer:
+                      $ref: "#/components/schemas/Person"
+                    payment:
+                      type: "object"
+                      description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
+                      properties:
+                        reference:
+                          type: "string"
+                          minLength: 1
+                          maxLength: 32
+                        description:
+                          type: "string"
+                          maxLength: 250
+                        amount:
+                          $ref: "#/components/schemas/Amount"
+                    instrument:
+                      type: "object"
+                      description: "Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
+                      properties:
+                        redirection:
+                          type: "object"
+                          description: "Representa un medio de pago de redirección, es decir que requiere que se envíe el usuario a otra URL para completar el proceso."
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "BTNBC"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL para que una vez se termine el proceso de pago se retorne el control."
+                    ipAddress:
+                      type: "string"
+                    userAgent:
+                      type: "string"
+                  required:
+                    - "auth"
+                    - "payer"
+                    - "instrument"
+                    - "payment"
+                - title: "Botón Aval"
+                  type: "object"
+                  properties:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    payer:
+                      $ref: "#/components/schemas/Person"
+                    buyer:
+                      $ref: "#/components/schemas/Person"
+                    instrument:
+                      type: "object"
+                      description: "Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
+                      properties:
+                        redirection:
+                          type: "object"
+                          description: "Representa un medio de pago de redirección, es decir que requiere que se envíe el usuario a otra URL para completar el proceso."
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "BTNAV"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL para que una vez se termine el proceso de pago se retorne el control."
+                            additional:
+                              type: "object"
+                              description: "Estructura para relacionar datos adicionales en el proceso."
+                              properties:
+                                bankCode:
+                                  type: "string"
+                                  description: "Código que identifica al banco en la red."
+                                  example: "0001"
+                    payment:
+                      type: "object"
+                      description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
+                      properties:
+                        reference:
+                          type: "string"
+                          minLength: 1
+                          maxLength: 32
+                        description:
+                          type: "string"
+                          maxLength: 250
+                        amount:
+                          $ref: "#/components/schemas/Amount"
+                    locale:
+                      type: "string"
+                    ipAddress:
+                      type: "string"
+                    userAgent:
+                      type: "string"
+                    sourcePlatform:
+                      type: "string"
+                  required:
+                    - "auth"
+                    - "payer"
+                    - "instrument"
+                    - "payment"
             examples:
-              Simple:
+              Default:
                 value:
                   auth:
                     login: "c4ca4238a0b923820dcc509a6f75849b"
@@ -657,13 +1132,547 @@ paths:
                       installments: "2"
                   ipAddress: "190.85.90.130"
                   userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+              Botón Aval:
+                value:
+                  locale: "es_CO"
+                  payer:
+                    name: "Dr. Wilfredo Cole Sr."
+                    surname: "Corwin"
+                    email: "jewell32@abbott.com"
+                    documentType: "CC"
+                    document: "2504950080"
+                    mobile: "3006108300"
+                  payment:
+                    reference: "TEST_TRANSACTION"
+                    description: "Pago de prueba"
+                    amount:
+                      total: "10000"
+                      currency: "COP"
+                  instrument:
+                    redirection:
+                      paymentMethod: "BTNBC"
+                      returnURL: "https://your-site.com/your-return-path"
+                  ipAddress: "127.0.0.1"
+                  userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+                  auth:
+                    login: "6dd490faf9cb87a9862245da41170ff2"
+                    tranKey: "iVrCs2xc60jWqW9bAD0rEHdqZG1O0y+jh9s+urOlkzI="
+                    seed: "2021-10-14T19:44:06.820Z"
+                    nonce: "NHJqNXcz"
       responses:
         200:
           description: "OK"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Transaction"
+                oneOf:
+                  - title: "Default"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "#/components/schemas/Status"
+                      date:
+                        type: "string"
+                        description: |
+                          EJ: `2021-09-20T21:51:59-05:00`
+                      transactionDate:
+                        type: "string"
+                        description: |
+                          EJ: `2021-09-20T21:51:59-05:00`
+                      internalReference:
+                        type: "number"
+                      reference:
+                        type: "string"
+                        minLength: 1
+                      paymentMethod:
+                        type: "string"
+                        minLength: 1
+                      franchise:
+                        type: "string"
+                        minLength: 1
+                      franchiseName:
+                        type: "string"
+                        minLength: 1
+                      issuerName:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      amount:
+                        $ref: "#/components/schemas/Amount"
+                      conversion:
+                        $ref: "#/components/schemas/AmountConversion"
+                      authorization:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      receipt:
+                        type: "string"
+                        maxLength: 16
+                        nullable: true
+                      type:
+                        type: "string"
+                        minLength: 1
+                      refunded:
+                        type: "boolean"
+                      lastDigits:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      provider:
+                        type: "string"
+                        enum:
+                          - "CREDIBANCO"
+                          - "REDEBAN"
+                          - "INTERDIN"
+                          - "DATAFAST"
+                          - "TUYA-DIRECT"
+                          - "BRASPAG"
+                          - "TRANSERVER"
+                          - "SABRE"
+                          - "EVERTEC"
+                          - "ACH"
+                          - "ATH-AVALNET"
+                          - "SUPERGIROS"
+                          - "TECNICARD"
+                          - "MEDIANET"
+                          - "AUSTRO"
+                          - "COMFANDI"
+                          - "PAYSTUDIO"
+                          - "FLAMINGO"
+                          - "ATH-MOVIL"
+                          - "EBUS"
+                          - "BANCOLOMBIA"
+                      discount:
+                        type: "string"
+                      processorFields:
+                        type: "object"
+                        properties:
+                          id:
+                            type: "string"
+                          b24:
+                            type: "string"
+                      additional:
+                        type: "object"
+                        description: |
+                          Ver más en [Datos adicionales](/gateway/additional-data)
+                      preAuthorization:
+                        type: "object"
+                        items:
+                          type: "object"
+                          properties:
+                            condition:
+                              type: "string"
+                            internalReference:
+                              type: "number"
+                            authorization:
+                              type: "string"
+                              minLength: 1
+                              nullable: true
+                            receipt:
+                              type: "string"
+                              minLength: 1
+                              nullable: true
+                            amount:
+                              $ref: "#/components/schemas/Amount"
+                            salt:
+                              type: "string"
+                      dispersion:
+                        type: "array"
+                        items:
+                          type: "object"
+                          properties:
+                            status:
+                              $ref: "#/components/schemas/Status"
+                            agreement:
+                              type: "integer"
+                              nullable: true
+                            agreementType:
+                              type: "string"
+                              enum:
+                                - "AIRLINE"
+                                - "MERCHANT"
+                            authorization:
+                              type: "string"
+                              minLength: 1
+                              nullable: true
+                            receipt:
+                              type: "string"
+                              minLength: 1
+                              nullable: true
+                            amount:
+                              $ref: "#/components/schemas/Amount"
+                            refunded:
+                              type: "boolean"
+                            paymentMethod:
+                              type: "string"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "internalReference"
+                      - "reference"
+                      - "paymentMethod"
+                      - "franchise"
+                      - "franchiseName"
+                      - "issuerName"
+                      - "amount"
+                      - "conversion"
+                      - "authorization"
+                      - "receipt"
+                      - "type"
+                      - "refunded"
+                      - "lastDigits"
+                      - "discount"
+                      - "processorFields"
+                      - "additional"
+                  - title: "PSE"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "#/components/schemas/Status"
+                      date:
+                        type: "string"
+                        description: |
+                          EJ: `2021-09-20T21:51:59-05:00`
+                      transactionDate:
+                        type: "string"
+                        description: |
+                          EJ: `2021-09-20T21:51:59-05:00`
+                      internalReference:
+                        type: "number"
+                      reference:
+                        type: "string"
+                        minLength: 1
+                      paymentMethod:
+                        type: "string"
+                        minLength: 1
+                      franchise:
+                        type: "string"
+                        minLength: 1
+                      franchiseName:
+                        type: "string"
+                        minLength: 1
+                      issuerName:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      amount:
+                        $ref: "#/components/schemas/Amount"
+                      conversion:
+                        $ref: "#/components/schemas/AmountConversion"
+                      authorization:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      receipt:
+                        type: "string"
+                        maxLength: 16
+                        nullable: true
+                      type:
+                        type: "string"
+                        minLength: 1
+                      refunded:
+                        type: "boolean"
+                      lastDigits:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      provider:
+                        type: "string"
+                        enum:
+                          - "ACH"
+                      discount:
+                        type: "string"
+                      processorFields:
+                        type: "object"
+                        properties:
+                          id:
+                            type: "string"
+                          b24:
+                            type: "string"
+                          paymentURL:
+                            type: "string"
+                      additional:
+                        type: "object"
+                        description: |
+                          Ver más en [Datos adicionales](/gateway/additional-data)
+                        properties:
+                          merchantCode:
+                            type: "string"
+                            description: "Código de entidad"
+                          terminalNumber:
+                            type: "string"
+                            description: "Número de terminal del medio de pago"
+                          trazabilyCode:
+                            type: "string"
+                      redirection:
+                        type: "object"
+                        items:
+                          type: "object"
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "BTNAV"
+                            processURL:
+                              type: "string"
+                              format: "uri"
+                              maxLength: 250
+                              description: "URL a la cual se debe enviar al cliente para continuar el proceso, está es proporcionada por el servicio"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL para que una vez se termine el proceso de pago se retorne el control (cuando aplica)"
+                            additional:
+                              type: "object"
+                              properties:
+                                userType:
+                                  type: "string"
+                                bankCode:
+                                  type: "string"
+                                  description: "Código que identifica al banco en la red"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "internalReference"
+                      - "reference"
+                      - "paymentMethod"
+                      - "franchise"
+                      - "franchiseName"
+                      - "issuerName"
+                      - "amount"
+                      - "conversion"
+                      - "authorization"
+                      - "receipt"
+                      - "type"
+                      - "refunded"
+                      - "lastDigits"
+                      - "discount"
+                      - "processorFields"
+                      - "additional"
+                  - title: "Botón Bancolombia"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "#/components/schemas/Status"
+                      date:
+                        type: "string"
+                        description: |
+                          EJ: `2021-09-20T21:51:59-05:00`
+                      transactionDate:
+                        type: "string"
+                        description: |
+                          EJ: `2021-09-20T21:51:59-05:00`
+                      internalReference:
+                        type: "number"
+                      reference:
+                        type: "string"
+                        minLength: 1
+                      paymentMethod:
+                        type: "string"
+                        minLength: 1
+                      franchise:
+                        type: "string"
+                        minLength: 1
+                      franchiseName:
+                        type: "string"
+                        minLength: 1
+                      issuerName:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      amount:
+                        $ref: "#/components/schemas/Amount"
+                      conversion:
+                        $ref: "#/components/schemas/AmountConversion"
+                      authorization:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      receipt:
+                        type: "string"
+                        maxLength: 16
+                        nullable: true
+                      type:
+                        type: "string"
+                        minLength: 1
+                      refunded:
+                        type: "boolean"
+                      lastDigits:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      provider:
+                        type: "string"
+                        enum:
+                          - "BANCOLOMBIA"
+                      discount:
+                        type: "string"
+                      processorFields:
+                        type: "object"
+                        properties:
+                          id:
+                            type: "string"
+                          b24:
+                            type: "string"
+                          paymentURL:
+                            type: "string"
+                      additional:
+                        type: "object"
+                        description: |
+                          Ver más en [Datos adicionales](/gateway/additional-data)
+                      redirection:
+                        type: "object"
+                        items:
+                          type: "object"
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "BTNBC"
+                            processURL:
+                              type: "string"
+                              format: "uri"
+                              maxLength: 250
+                              description: "URL a la cual se debe enviar al cliente para continuar el proceso, está es proporcionada por el servicio"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL para que una vez se termine el proceso de pago se retorne el control (cuando aplica)"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "internalReference"
+                      - "reference"
+                      - "paymentMethod"
+                      - "franchise"
+                      - "franchiseName"
+                      - "issuerName"
+                      - "amount"
+                      - "conversion"
+                      - "authorization"
+                      - "receipt"
+                      - "type"
+                      - "refunded"
+                      - "lastDigits"
+                      - "discount"
+                      - "processorFields"
+                      - "additional"
+                  - title: "Botón Aval"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "#/components/schemas/Status"
+                      date:
+                        type: "string"
+                        description: |
+                          EJ: `2021-09-20T21:51:59-05:00`
+                      transactionDate:
+                        type: "string"
+                        description: |
+                          EJ: `2021-09-20T21:51:59-05:00`
+                      internalReference:
+                        type: "number"
+                      reference:
+                        type: "string"
+                        minLength: 1
+                      paymentMethod:
+                        type: "string"
+                        minLength: 1
+                      franchise:
+                        type: "string"
+                        minLength: 1
+                      franchiseName:
+                        type: "string"
+                        minLength: 1
+                      issuerName:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      amount:
+                        $ref: "#/components/schemas/Amount"
+                      conversion:
+                        $ref: "#/components/schemas/AmountConversion"
+                      authorization:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      receipt:
+                        type: "string"
+                        maxLength: 16
+                        nullable: true
+                      type:
+                        type: "string"
+                        minLength: 1
+                      refunded:
+                        type: "boolean"
+                      lastDigits:
+                        type: "string"
+                        minLength: 1
+                        nullable: true
+                      provider:
+                        type: "string"
+                        enum:
+                          - "AVAL"
+                      discount:
+                        type: "string"
+                      processorFields:
+                        type: "object"
+                        properties:
+                          id:
+                            type: "string"
+                          b24:
+                            type: "string"
+                          paymentURL:
+                            type: "string"
+                      additional:
+                        type: "object"
+                        description: |
+                          Ver más en [Datos adicionales](/gateway/additional-data)
+                      redirection:
+                        type: "object"
+                        items:
+                          type: "object"
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "BTNAV"
+                            processURL:
+                              type: "string"
+                              format: "uri"
+                              maxLength: 250
+                              description: "URL a la cual se debe enviar al cliente para continuar el proceso, está es proporcionada por el servicio"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL para que una vez se termine el proceso de pago se retorne el control (cuando aplica)"
+                            additional:
+                              type: "object"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "internalReference"
+                      - "reference"
+                      - "paymentMethod"
+                      - "franchise"
+                      - "franchiseName"
+                      - "issuerName"
+                      - "amount"
+                      - "conversion"
+                      - "authorization"
+                      - "receipt"
+                      - "type"
+                      - "refunded"
+                      - "lastDigits"
+                      - "discount"
+                      - "processorFields"
+                      - "additional"
               examples:
                 Ejemplo:
                   value:
@@ -2081,110 +3090,6 @@ paths:
     post:
       summary: "3DS Lookup"
       operationId: "post-mpi-lookup"
-      responses:
-        200:
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                description: ""
-                type: "object"
-                x-examples:
-                  example-1:
-                    status:
-                      status: "OK"
-                      reason: "00"
-                      message: "La petición se ha procesado correctamente"
-                      date: "2021-09-21T11:40:03-05:00"
-                    data:
-                      version: "v1"
-                      enrolled: "N"
-                      redirectUrl:
-                      identifier:
-                      eci: "07"
-                      formData:
-                properties:
-                  status:
-                    $ref: "#/components/schemas/Status"
-                  data:
-                    type: "object"
-                    required:
-                    - "version"
-                    properties:
-                      version:
-                        type: "string"
-                        minLength: "1"
-                        enum:
-                          - "v1"
-                          - "v2"
-                        maxLength: "2"
-                      enrolled:
-                        type: "string"
-                        minLength: "1"
-                        enum:
-                          - "N"
-                          - "Y"
-                          - "U"
-                        maxLength: "1"
-                      redirectUrl:
-                        type: "string"
-                        description: "URL a enviar al usuario para continuar con el proceso"
-                        nullable: "true"
-                      identifier:
-                        type: "string"
-                        description: "Identificador del proceso en 3DS"
-                        nullable: "true"
-                      eci:
-                        type: "string"
-                        minLength: "1"
-                        nullable: "true"
-                      formData:
-                        type: "object"
-                        nullable: "true"
-                required:
-                  - "status"
-                  - "data"
-              examples:
-                Ejemplo v1:
-                  value:
-                    status:
-                      status: "OK"
-                      reason: "00"
-                      message: "La petición se ha procesado correctamente"
-                      date: "2021-09-21T11:50:46-05:00"
-                    data:
-                      version: "v1"
-                      enrolled: "Y"
-                      redirectUrl: "https://3ds-server-to-authenticate.com/3ds"
-                      identifier: "1"
-                      eci:
-                      formData:
-                Ejemplo v2:
-                  value:
-                    status:
-                      status: "OK"
-                      reason: "00"
-                      message: "La petición se ha procesado correctamente"
-                      date: "2021-09-21T12:09:36-05:00"
-                    data:
-                      version: "v2"
-                      sessionToken: "60"
-                      redirectUrl: "https://www.google.com"
-                      identifier: "12"
-                No usa 3DS:
-                  value:
-                    status:
-                      status: "OK"
-                      reason: "00"
-                      message: "La petición se ha procesado correctamente"
-                      date: "2021-09-21T11:40:03-05:00"
-                    data:
-                      version: "v1"
-                      enrolled: "N"
-                      redirectUrl:
-                      identifier:
-                      eci: "07"
-                      formData:
       description: "Realiza el proceso inicial de validación de 3DS retornando los datos para que el usuario pueda continuar con el proceso"
       tags:
         - "Proceso 3DS"
@@ -2196,93 +3101,93 @@ paths:
               properties:
                 auth:
                   $ref: "#/components/schemas/Authentication"
-                payment:
-                  $ref: "#/components/schemas/Payment"
+                userAgent:
+                  type: "string"
+                  description: "Información del agente de usuario"
+                  example: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+                buyer:
+                  $ref: "#/components/schemas/Buyer"
+                payer:
+                  $ref: "#/components/schemas/Payer"
                 instrument:
                   $ref: "#/components/schemas/Instrument"
+                payment:
+                  $ref: "#/components/schemas/Payment"
+                subscription:
+                  $ref: "#/components/schemas/Subscription"
+                version:
+                  type: "string"
+                  nullable: true
+                  description: "Versión de 3DS en la que se procesara la petición."
+                  enum:
+                    - v2
+                    - v2x
                 returnUrl:
                   type: "string"
                   format: "uri"
                   maxLength: 250
                   description: "Url de retorno para retomar el control del usuario"
-                subscription:
-                  $ref: "#/components/schemas/Subscription"
-                action:
-                  type: "string"
-                  nullable: true
-                  description: "Tipo de transacción puede ser checkin, pre_authorization"
-                  enum:
-                    - checkin
-                    - pre_authorization
-                version:
-                  type: "string"
-                  nullable: true
-                  description: "Versión de 3DS en la que se procesara la petición. Puede ser v2, v2x"
-                  enum:
-                    - v2
-                    - v2x
                 additional:
                   type: object
                   properties:
                     initiatorIndicator:
                       type: string
-                      description: "Actor que genera la transacción. Puede ser AGENT cuando es diferente al tarjeta habiente o AGENT_COF cuando la tarjeta esta registrada en la wallet"
+                      description: "Actor que genera la transacción. Puede ser AGENT cuando es diferente al tarjeta habiente"
                       nullable: true
                       enum:
                         - AGENT
-                        - AGENT_CONF
-            examples:
-              Ejemplo:
-                value:
-                  auth:
-                    login: "c4ca4238a0b923820dcc509a6f75849b"
-                    tranKey: "HRAM4JvfAWrlG16GLR/6yKpctY/OVC1zeekbJLSifFc="
-                    nonce: "NjE0YTA5YjAxMzJkYw=="
-                    seed: "2021-09-21T11:34:56-05:00"
-                  payment:
-                    reference: "1234567890"
-                    description: "Testing Payment"
-                    amount:
-                      currency: "USD"
-                      total: "3000"
-                  instrument:
-                    card:
-                      number: "4111111111111111"
-                      expiration: "05/24"
-                      cvv: "123"
-                  returnUrl: "https://www.your-site.com/return?reference=1234567890"
-                  action: "checkin"
-                  version: "v2x"
-                  additional:
-                    initiatorIndicator: "AGENT"
-  /gateway/mpi/query:
-    post:
-      summary: "3DS Query"
-      operationId: "post-mpi-query"
       responses:
         200:
           description: "OK"
           content:
             application/json:
               schema:
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    oneOf:
+                      - $ref: "#/components/schemas/LookupResponseDataV2X"
+                      - $ref: "#/components/schemas/LookupResponseDataV2"
+        400:
+          description: "Bad request"
+          content:
+            application/json:
+              schema:
                 description: ""
                 type: "object"
-                x-examples:
-                  example-1:
-                    status:
-                      status: "OK"
-                      reason: "00"
-                      message: "La petición se ha procesado correctamente"
-                      date: "2021-09-21T11:58:09-05:00"
-                    data:
-                      id: "1"
-                      enrolled: "Y"
-                      authenticated: "Y"
-                      validSignature: "true"
-                      eci: "05"
-                      cavv: "AAACCZJiUGVlF4U5AmJQEwAAAAA="
-                      xid: "Z8UuHYF8Epz46M8V/MkGJDl2Y5E="
-                      version: "v1"
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+  /gateway/mpi/query:
+    post:
+      summary: "3DS Query"
+      operationId: "post-mpi-query"
+      tags:
+        - "Proceso 3DS"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                instrument:
+                  $ref: "#/components/schemas/Instrument"
+                id:
+                  type: "string"
+                  description: "Identificador retornado en el lookup inicial sobre el cual se va a consultar"
+              required:
+                - "auth"
+                - "id"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "object"
                 properties:
                   status:
                     $ref: "#/components/schemas/Status"
@@ -2291,96 +3196,6 @@ paths:
                 required:
                   - "status"
                   - "data"
-              examples:
-                Ejemplo v2:
-                  value:
-                    status:
-                      status: "OK"
-                      reason: "00"
-                      message: "La petición se ha procesado correctamente"
-                      date: "2021-09-21T12:17:32-05:00"
-                    data:
-                      id: "1"
-                      enrolled: "Y"
-                      authenticated: "Y"
-                      validSignature: "true"
-                      eci: "05"
-                      xid: "de018c08-bd14-426a-9d52-46500a17091e="
-                      cavv: "AAABBZEEBgAAAAAAAAQGAAAAAAA="
-                      version: "v2"
-                      extra:
-                        transStatusReason:
-                        acsTransId: "37a7b6e0-fd58-4e38-98de-79c70c526a47"
-                        threeDSServerTransID: "eadd3a60-b870-41d0-977f-921b3dbe6323/MkGJDl2Y5E="
-                Ejemplo v1:
-                  value:
-                    status:
-                      status: "OK"
-                      reason: "00"
-                      message: "La petición se ha procesado correctamente"
-                      date: "2021-09-21T12:18:37-05:00"
-                    data:
-                      id: "1"
-                      enrolled: "Y"
-                      authenticated: "Y"
-                      validSignature: "true"
-                      eci: "05"
-                      cavv: "AAACCZJiUGVlF4U5AmJQEwAAAAA="
-                      xid: "Z8UuHYF8Epz46M8V/MkGJDl2Y5E="
-                      version: "v1"
-      description: "Una vez el usuario ha terminado el proceso de autenticación en 3DS se usa este endpoint para obtener el resultado de su operación
-
-        <!-- theme: warning -->
-        > ### Nota Importante
-        >
-        > *Al consumir este servicio **NO** se está autenticando la transacción por defecto, se debe tomar de la respuesta el valor de \"data\" y enviarlo en el \"instrument.threeDS\"*"
-      tags:
-        - "Proceso 3DS"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              description: ""
-              type: "object"
-              x-examples:
-                example-1:
-                  auth:
-                    login: "c4ca4238a0b923820dcc509a6f75849b"
-                    tranKey: "TpLQlIz/3/85nk4tC94YOpaKlfspdcBt8PrAWmoJDhM="
-                    nonce: "NjE0YTBlMTljZWU0ZQ=="
-                    seed: "2021-09-21T11:53:45-05:00"
-                  instrument:
-                    card:
-                      number: "4532840681197602"
-                      expiration: "12/20"
-                      cvv: "123"
-                  id: "1"
-              properties:
-                auth:
-                  $ref: "#/components/schemas/Authentication"
-                instrument:
-                  $ref: "#/components/schemas/Instrument"
-                id:
-                  type: "string"
-                  description: "Identifier retornado en el lookup inicial sobre el cual se va a consultar"
-              required:
-                - "auth"
-                - "instrument"
-                - "id"
-            examples:
-              Ejemplo:
-                value:
-                  auth:
-                    login: "c4ca4238a0b923820dcc509a6f75849b"
-                    tranKey: "TpLQlIz/3/85nk4tC94YOpaKlfspdcBt8PrAWmoJDhM="
-                    nonce: "NjE0YTBlMTljZWU0ZQ=="
-                    seed: "2021-09-21T11:53:45-05:00"
-                  instrument:
-                    card:
-                      number: "4111111111111111"
-                      expiration: "05/24"
-                      cvv: "123"
-                  id: "1"
   /gateway/balance:
     post:
       summary: "Servicio de consulta de balance"
@@ -2745,20 +3560,23 @@ components:
           description: "Ciudad"
         state:
           type: "string"
-          description: "Estado /provincia /departamento"
+          description: "Estado /provincia /departamento. Código ISO 3166-2"
+          example: "CUN"
         postalCode:
           type: "string"
           maxLength: "10"
           description: "Código postal"
+          example: "110111"
         country:
           type: "string"
           maxLength: "2"
           example: "CO"
-          description: "País"
+          description: "País. Código ISO 3166-1 alpha-2"
         phone:
           type: "string"
           maxLength: "20"
           description: "Teléfono"
+          example: "3003003000"
     Account:
       title: "Account"
       type: "object"
@@ -3025,6 +3843,9 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
       title: "Amount"
       type: "object"
       description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
+      required:
+        - "currency"
+        - "total"
       properties:
         currency:
           type: "string"
@@ -3371,17 +4192,12 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
         - "additional"
     ThreeDS:
       type: "object"
-      x-examples:
-        example-1:
-          id: "1"
-          enrolled: "Y"
-          authenticated: "Y"
-          validSignature: "true"
-          eci: "05"
-          cavv: "AAACCZJiUGVlF4U5AmJQEwAAAAA="
-          xid: "Z8UuHYF8Epz46M8V/MkGJDl2Y5E="
-          version: "v1"
       properties:
+        version:
+          type: "string"
+          enum:
+            - "v2"
+            - "v2x"
         id:
           type: "number"
           description: "Este valor solo aplica si la validación se hizo con el servicio de 3DS de Placetopay"
@@ -3406,11 +4222,10 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             - "D"
             - "R"
           maxLength: 1
-        validSignature:
-          type: "boolean"
         eci:
           type: "string"
           minLength: 1
+          description: "Indicador del resultado de la autenticación generado por el comercio electrónico."
           enum:
             - "02"
             - "01"
@@ -3420,20 +4235,151 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             - "07"
         cavv:
           type: "string"
-          minLength: 1
+          minLength: 28
+          maxLength: 28
           nullable: true
+          description: "Valor de autenticación para la franquicia generado por el ACS. (3DS campo `authenticationValue`)."
+          example: "AJkBABIWcQAAAAM5FwIzdGiYeHM"
         xid:
           type: "string"
           minLength: 1
-        version:
-          type: "string"
-          minLength: 1
-          enum:
-            - "v1"
-            - "v2"
+          description: "ID de Transacción DS (3DS campo `dsTransID`)."
         extra:
           type: "object"
+          properties:
+            transStatusReason:
+              type: string
+              description: "Proporciona información sobre el estado de la transacción."
+              nullable: true
+            acsTransId:
+              type: string
+              description: "Identificador único de transacción generado por el ACS."
+              example: "37a7b6e0-fd58-4e38-98de-79c70c526a47"
+            threeDSServerTransID:
+              type: string
+              description: "Identificador único de transacción generado por el 3DS Server."
+              example: "eadd3a60-b870-41d0-977f-921b3dbe6323/MkGJDl2Y5E="
+        validSignature:
+          type: "boolean"
+      required:
+        - "enrolled"
+        - "authenticated"
+        - "eci"
+        - "cavv"
+        - "xid"
+        - "version"
+    LookupResponseDataV2:
+      title: "LookupResponseDataV2"
+      type: "object"
+      description: "Esta estructura contiene las propiedades necesarias para continuar con una autenticación 3DS."
+      properties:
+        version:
+          type: "string"
+          description: "Versión del api en la que se hizo la sesión de autenticación."
+          enum:
+            - "v2"
+        sessionToken:
+          type: "string"
+          example: "1bbf97e3660511d0ce82c15fca343307ba2f87fe84ba421368afb041ba1f638f"
+        redirectUrl:
+          type: "string"
+          description: "URL a la cual se debe redirigir al cliente para continuar con el proceso de autenticación."
+          example: "https://3dss-test.placetopay.com/threeds/v2/sessions/100950/examplea974d40500a650b6a77973985d367ad389a28b747dfdc918756a4ddc1"
+        identifier:
+          type: "number"
+          description: "Identificador de la sesión de autenticación."
+          example: 263325
+      required:
+        - "version"
+        - "identifier"
+        - "sessionToken"
+        - "redirectUrl"
+    LookupResponseDataV2X:
+      title: "LookupResponseDataV2X"
+      type: "object"
+      description: "Los campos aquí descritos corresponden a una respuesta del servicio [3DS](/three-d-s-server/api/transactions/values)."
+      properties:
+        action:
+          type: "string"
+          enum:
+            - "continue"
+            - "redirect"
+          example: "continue"
+        version:
+          type: "string"
+          enum:
+            - "v2x"
+        sessionToken:
+          type: "string"
+          example: "1bbf97e3660511d0ce82c15fca343307ba2f87fe84ba421368afb041ba1f638f"
+        redirectUrl:
+          type: "string"
+          description: "URL a la cual se debe redirigir al cliente para continuar con el proceso de autenticación"
+          example: "https://3dss-test.placetopay.com/threeds/v2/sessions/100950/examplea974d40500a650b6a77973985d367ad389a28b747dfdc918756a4ddc1"
+        id:
+          type: "number"
+          description: "Identificador de la sesión de autenticación."
+          example: 263325
+        enrolled:
+          type: "string"
+          enum:
+            - "Y"
+            - "N"
+            - "U"
+          description: "Presente si `action` fue `continue`. Indica si la tarjeta con la cual se realizó la transacción está enrolada (está registrada en los rangos de tarjeta para el emisor específico)."
+        authenticated:
+          type: "string"
+          description: "Presente si `action` fue `continue`. Informa el estado de la autenticación"
+          enum:
+            - "Y"
+            - "N"
+            - "U"
+            - "A"
+            - "I"
+            - "C"
+            - "D"
+            - "R"
+          maxLength: 1
+        validSignature:
+          type: "boolean"
+          description: "Presente si `action` fue `continue`. Informa si la firma de la respuesta es válida"
+        eci:
+          type: "string"
+          description: "Código de autenticación por franquicia. Indicador del resultado de la autenticación generado por el comercio electrónico."
+          enum:
+            - "02"
+            - "01"
+            - "00"
+            - "05"
+            - "06"
+            - "07"
+        cavv:
+          type: "string"
+          minLength: 28
+          maxLength: 28
           nullable: true
+          description: "Presente si `action` fue `continue`. Valor de autenticación para la franquicia generado por el ACS. (3DS campo `authenticationValue`)."
+          example: "AJkBABIWcQAAAAM5FwIzdGiYeHM"
+        xid:
+          type: "string"
+          minLength: 1
+          description: "Presente si `action` fue `continue`. ID de Transacción DS (3DS campo `dsTransID`)."
+        extra:
+          type: "object"
+          description: "presente si `action` fue `continue`. Información adicional de la transacción."
+          properties:
+            transStatusReason:
+              type: string
+              description: "Proporciona información sobre el estado de la transacción."
+              nullable: true
+            acsTransId:
+              type: string
+              description: "Identificador único de transacción generado por el ACS."
+              example: "37a7b6e0-fd58-4e38-98de-79c70c526a47"
+            threeDSServerTransID:
+              type: string
+              description: "Identificador único de transacción generado por el 3DS Server."
+              example: "eadd3a60-b870-41d0-977f-921b3dbe6323/MkGJDl2Y5E="
       required:
         - "enrolled"
         - "authenticated"
@@ -3538,3 +4484,26 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
       required:
         - "number"
         - "expiration"
+    Payer:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          example: "John"
+        surname:
+          type: "string"
+          example: "Doe"
+        email:
+          type: "string"
+          example: "johnDoe@email.com"
+        mobile:
+          type: "string"
+          description: "El numero celular puede contener el indicativo del país"
+          example: "+573195505452"
+        address:
+          $ref: "#/components/schemas/Address"
+    Buyer:
+      type: "object"
+      properties:
+        address:
+          $ref: "#/components/schemas/Address"
