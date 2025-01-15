@@ -482,6 +482,10 @@ export const TAB_NAVIGATION = {
                 title: 'Datos adicionales',
                 href: '/gateway/additional-data',
               },
+              {
+                title: 'Forwarding',
+                href: '/gateway/forwarding',
+              },
             ],
           },
         ],
@@ -571,6 +575,10 @@ export const TAB_NAVIGATION = {
                 title: 'Additional data',
                 href: '/gateway/additional-data',
               },
+              {
+                title: 'Forwarding',
+                href: '/gateway/forwarding',
+              }
             ],
           },
         ],
