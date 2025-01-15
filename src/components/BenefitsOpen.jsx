@@ -63,10 +63,10 @@ const resources = [
     },
   },
   {
-    name: { es: 'Eficiencia en la gestión de transacciones', en: 'Flexibility when sharing to users' },
+    name: { es: 'Facilidad de uso para clientes finales', en: 'Ease of use for end customers' },
     description: {
-      es: 'La herramienta agiliza el proceso de integración y administración de órdenes de pago, reduciendo tiempos operativos.',
-      en: 'Payment links can be shared in a variety of ways, such as URL, email, QR code or WhatsApp, adapting to the needs of each user or merchant.',
+      es: 'La interfaz estándar y la redirección automática simplifican el proceso de pago, haciendo que los usuarios puedan completar las transacciones sin complicaciones.',
+      en: 'The standard interface and automatic redirection simplify the payment process, allowing users to complete transactions effortlessly.',
     },
     icon: TransactionTwoToneIcon,
     pattern: {
@@ -75,10 +75,10 @@ const resources = [
     },
   },
   {
-    name: { es: 'Flexibilidad y control', en: 'Efficiency in the payment flow' },
+    name: { es: 'Flexibilidad en la personalización', en: 'Flexibility in customization' },
     description: {
-      es: 'La capacidad de configurar múltiples parámetros y opciones de pago permite a los comercios adaptarse a diversas necesidades y optimizar su flujo de caja.',
-      en: 'The system allows the configuration of customized expiration times and approved payment limits, optimizing the control and security of transactions.',
+      es: 'Los campos configurables permiten adaptarse a diferentes tipos de servicios o productos, asegurando que cada transacción incluya la información necesaria.',
+      en: 'Configurable fields allow adaptation to different types of services or products, ensuring that each transaction includes the necessary information.',
     },
     icon: FlexibilityTwoToneIcon,
     pattern: {
@@ -87,10 +87,10 @@ const resources = [
     },
   },
   {
-    name: { es: 'Reducción de errores', en: 'Centralized management' },
+    name: { es: 'Gestión centralizada', en: 'Centralized management' },
     description: {
-      es: 'El uso de cargues masivos y formatos estandarizados minimiza la probabilidad de inconsistencias en los datos ingresados manualmente.',
-      en: 'It includes tools such as link history, forwarding capabilities, and related payment queries, making it easy to monitor and manage from a single dashboard.',
+      es: 'La consola administrativa ofrece un punto único de control para configurar, actualizar y monitorear el micrositio, lo que mejora la eficiencia operativa.',
+      en: 'The administrative console provides a single point of control to configure, update, and monitor the microsite, enhancing operational efficiency.',
     },
     icon: ErrorTwoToneIcon,
     pattern: {
@@ -100,7 +100,7 @@ const resources = [
   },
 ]
 
-export function Benefitsclosed() {
+export function BenefitsOpen() {
   const { locale } = useLocale()
   return (
     <div className="xl:max-w-none">
