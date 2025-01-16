@@ -1,29 +1,30 @@
 ### Forwarding
 
-Forwarding es una configuración a nivel de sitio necesaria cuando un sitio cuenta con más de un medio de pago de la misma marca (Visa y Mastercard), pero con diferentes proveedores y se requiere definir un adquirente principal.
+Es una configuración a nivel de comercios, necesaria cuando  un sitio cuenta con más de un medio de pago de la misma marca (Visa y Mastercard), pero con diferentes proveedores y se requiere definir un adquirente principal.
 
-Esta funcionalidad le permite al comercio determinar qué proveedor y adquirente se debe utilizar en cada transacción con tipo de crédito corriente, asegurando que no ocurran conflictos entre los diferentes proveedores disponibles.
+Esta funcionalidad le permite al comercio determinar cuál proveedor y adquirente debe utilizar en cada transacción con tarjeta de crédito corriente, asegurando un flujo consistente entre los diferentes procesadores disponibles.
 
-**Esto sólo aplica para transacciones con tarjetas Visa, Master y tipo de crédito pago corriente.**
-
-Para solicitar esta funcionalidad comunicarse  al correo electrónico: servicioposventa@placetopay.ec
+<Note>Esto aplica solo para transacciones con tarjeta Visa, Mastercard y tipo de crédito pago corriente.</Note>
 
 ### ¿Cómo verificar si un medio de pago tiene configurado forwarding?
 
-Al consumir el servicio **information**, la respuesta incluirá el atributo **hasForwarding**. Si este atributo tiene un valor de `true`, significa que el forwarding está configurado; en caso contrario, su valor será `false`.
+Cuando se realiza una solicitud al endpoint de información, la propiedad `hasForwarding` siempre está presente en la respuesta. Sin embargo, su valor será `true` únicamente cuando la funcionalidad de forwarding esté configurada correctamente. Esto indica que el sistema puede dirigir las transacciones al proveedor adecuado según las reglas definidas para el medio de pago.
 
-Para que el valor sea `true`, deben cumplirse las siguientes condiciones:
+### Comportamiento de créditos en el flujo de forwarding
 
-- Contar con al menos dos proveedores de la misma marca (por ejemplo: Visa Interdin y Visa Medianet).
-- Tener configuradas las reglas de selección de acuerdo a los créditos a enrutar por el adquirente.
-- Tipo de crédito Corriente
-- Medios de pago Visa y Mastercard
+Cuando se obtiene una respuesta donde la propiedad `hasForwarding` es `true`, es fundamental que los créditos incluidos en esa misma respuesta sean almacenados en una memoria temporal. Estos créditos llegan junto con la primera solicitud de información y no deben ser modificados en las siguientes solicitudes.
+
+En todas las transacciones y solicitudes posteriores a la primera solicitud de información, se deben trabajar y mostrar al usuario final los mismos créditos obtenidos inicialmente. Esto garantiza consistencia y precisión en el flujo, especialmente en la solicitud de procesamiento u otras interacciones relacionadas.
+
+De esta forma, el forwarding opera correctamente, asegurando que las reglas configuradas se respeten y se eviten inconsistencias en los datos enviados.
 
 ### Flujo de forwarding con API 
 
 ![Flujo](/ForwardingFlow_es.webp)
 
-Cuando la bandera **hasForwarding** se establece en `true` en la petición **solicitud de Información**, es necesario incluir el atributo **credit** en el objeto **instrument** de las siguientes solicitudes:
+### Ejemplo de solicitud para forwarding
+
+Cuando la propiedad **hasForwarding** se establece en `true` en la petición **solicitud de Información**, es necesario incluir el atributo **credit** en el objeto **instrument** de las siguientes solicitudes:
 - **Solicitud de Información**
 - **3DS Lookup**
 - **Generación de OTP**
@@ -44,6 +45,11 @@ Cuando la bandera **hasForwarding** se establece en `true` en la petición **sol
     }
     // ...
 ```
-
 Para más información sobre **credit**, revisar la documentación de [Credit](/gateway/additional-data#additional-data-credit).
+
+## FAQs
+<details>
+<summary>¿Cómo solicitar la configuración de forwarding en un sitio?</summary>
+<p>Se debe realizar una solicitud a nuestro equipo de posventa a través del correo electrónico servicioposventa@placetopay.ec </p>
+</details>
 
