@@ -207,7 +207,9 @@ export const TAB_NAVIGATION = {
           {
             title: 'Pagos',
             links: [
-              { title: 'Introducción', href: '/payments' },
+              {
+                title: 'Introducción', href: '/payments'
+              },
             ],
           },
           {
@@ -241,6 +243,7 @@ export const TAB_NAVIGATION = {
             title: 'Medios de pago',
             links: [
               { title: 'ACH Débito Bancario', href: '/payments/ach-bank-debit' },
+              { title: 'Click to Pay', href: '/payments/clicktopay' },
             ],
           },
           {
@@ -269,9 +272,9 @@ export const TAB_NAVIGATION = {
             title: 'Payment link',
             links: [
               { title: 'Introduction', href: '/payments/payments-links/introduction' },
-              { title: 'Create payment link', href: '/payments/payments-links/create_payment_link' },
-              { title: 'Manage payment link', href: '/payments/payments-links/link_management' },
-              { title: 'Process Pay', href: '/payments/payments-links/process_pay' },
+              { title: 'Create payment link', href: '/payments/payments-links/create-payment-link' },
+              { title: 'Manage payment link', href: '/payments/payments-links/link-management' },
+              { title: 'Process Pay', href: '/payments/payments-links/process-pay' },
 
             ],
           },
@@ -287,6 +290,7 @@ export const TAB_NAVIGATION = {
             title: 'Payment methods',
             links: [
               { title: 'ACH Bank Debit', href: '/payments/ach-bank-debit' },
+              { title: 'Click to Pay', href: '/payments/clicktopay' },
             ],
           },
           {
@@ -763,10 +767,6 @@ export const TAB_NAVIGATION = {
                 title: 'DAF: Digital Authentication Framework',
                 href: '/three-d-s-server/api/integration/session-d-a-f',
               },
-              {
-                title: 'Obtener información de una autenticación',
-                href: '/three-d-s-server/api/integration/authentication-info',
-              },
             ],
           },
           {
@@ -797,6 +797,10 @@ export const TAB_NAVIGATION = {
                 title: 'Valores devueltos en la respuesta',
                 href: '/three-d-s-server/api/transactions/values',
               },
+              {
+                title: 'Obtener información de una autenticación',
+                href: '/three-d-s-server/api/transactions/authentication-info',
+              },
             ],
           },
           {
@@ -809,6 +813,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'API Sucursales',
                 href: '/three-d-s-server/api/merchants/branch',
+              },
+              {
+                title: 'Suscribir Modelos',
+                href: '/three-d-s-server/api/merchants/enrolment',
               },
             ],
           },
@@ -922,10 +930,6 @@ export const TAB_NAVIGATION = {
                 title: 'DAF: Digital Authentication Framework',
                 href: '/three-d-s-server/api/integration/session-d-a-f',
               },
-              {
-                title: 'Get authentication information',
-                href: '/three-d-s-server/api/integration/authentication-info',
-              },
             ],
           },
           {
@@ -956,6 +960,10 @@ export const TAB_NAVIGATION = {
                 title: 'Values returned in the response',
                 href: '/three-d-s-server/api/transactions/values',
               },
+              {
+                title: 'Get authentication information',
+                href: '/three-d-s-server/api/transactions/authentication-info',
+              },
             ],
           },
           {
@@ -968,6 +976,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Branches API',
                 href: '/three-d-s-server/api/merchants/branch',
+              },
+              {
+                title: 'Enrolment model',
+                href: '/three-d-s-server/api/merchants/enrolment',
               },
             ],
           },
