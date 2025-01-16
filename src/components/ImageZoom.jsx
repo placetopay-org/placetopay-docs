@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { createContext, useContext, useState } from "react"
 
 const ImageZoomContext = createContext()
@@ -38,5 +39,5 @@ export function ImageZoomProvider(props) {
 export function ImageZoom(props) {
   const { toggleZoom } = useContext(ImageZoomContext)
 
-  return <img {...props} tabIndex={0} onClick={() => toggleZoom(props.src)} />
+  return <img alt="image with zoom" {...props} tabIndex={0} onClick={() => toggleZoom(props.src)} />
 }

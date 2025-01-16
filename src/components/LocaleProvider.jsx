@@ -6,18 +6,23 @@ export const LANGUAGES_CODES = {
   ES: 'es',
 }
 
+const LANGUAGES_WITH_PREFIX = {
+  en: true,
+}
+
 const CODES = Object.values(LANGUAGES_CODES)
 export const LANGUAGE_DEFAULT = LANGUAGES_CODES.ES
 
 const LocaleContext = createContext()
 
 export const useLocale = () => {
-  const { locale, changeLocale, isEn } = useContext(LocaleContext)
-  return { locale, changeLocale , isEn}
+  const { locale, changeLocale, isEn, hasPrefix } = useContext(LocaleContext)
+  return { locale, changeLocale , isEn, hasPrefix}
 }
 
 const LocaleProvider = ({ children }) => {
   const router = useRouter()
+  const [hasPrefix, setHasPrefix] = useState(LANGUAGES_WITH_PREFIX[router.pathname.split('/')[1]] ?? false);
   const [locale, setLocale] = useState(
     CODES.find((code) => code === router.pathname.split('/')[1]) ??
       LANGUAGE_DEFAULT
@@ -25,6 +30,8 @@ const LocaleProvider = ({ children }) => {
 
   const changeLocale = (locale) => {
     setLocale(locale)
+    setHasPrefix(LANGUAGES_WITH_PREFIX[locale] ?? false)
+
     const possibleLanguage = router.pathname.split('/')[1]
     if (possibleLanguage !== locale && LANGUAGE_DEFAULT !== locale) {
       router.push(`/${locale}${router.asPath}`)
@@ -45,7 +52,7 @@ const LocaleProvider = ({ children }) => {
   }
 
   return (
-    <LocaleContext.Provider value={{ locale, changeLocale, isEn }}>
+    <LocaleContext.Provider value={{ locale, changeLocale, isEn, hasPrefix }}>
       {children}
     </LocaleContext.Provider>
   )
