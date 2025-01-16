@@ -220,19 +220,28 @@ export const TAB_NAVIGATION = {
               { title: 'Gestionar link de pagos', href: '/payments/payments-links/link_management' }
             ],
           },
+
           {
-            title: 'Micrositio Cerrado',
+            title: 'Micrositios',
             links: [
-              { title: 'Introducción', href: '/payments/microsite-closed/introduction' },
-              { title: 'Cargue de órdenes de pago', href: '/payments/microsite-closed/charge_invoice' },
-            ],
-          }, {
-            title: 'Micrositio Abierto',
-            links: [
-              { title: 'Introducción', href: '/payments/microsite-open/introduction' },
-              { title: 'Campos predeterminados', href: '/payments/microsite-open/fields' },
+              { title: 'Introducción', href: '/payments/introduction-to-microsites' },
+
+              { 
+                title: 'Micrositio Abierto',  links: [
+                  { title: 'Explora', href: '/payments/microsite-open/introduction' },
+                  { title: 'Campos predeterminados', href: '/payments/microsite-open/fields' },
+                ],
+              },
+
+              { title: 'Micrositio Cerrado', links: [
+                  { title: 'Explora', href: '/payments/microsite-closed/introduction' },
+                  { title: 'Cargue de órdenes de pago', href: '/payments/microsite-closed/charge_invoice' },
+                ],
+              },
+
             ],
           },
+
           {
             title: 'Flujo de Pago en Web Checkout',
             links: [
