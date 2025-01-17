@@ -170,11 +170,11 @@ const examples = [
       }
     },
     {
-        key: "_wcTransactionId_",
+        key: "invoice_id",
         example: "56",
         description: {
-            es: "Identificador de transacción en comercio.",
-            en: "Transaction identifier in commerce."
+            es: "Identificador de factura del comercio.",
+            en: "Merchant invoice ID."
         }
     }
   ];
