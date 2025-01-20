@@ -1,0 +1,449 @@
+---
+openapi: "3.0.0"
+info:
+  title: "SOAP"
+  version: "1.0"
+  license:
+    name: "Privative"
+  description: "This web service and its architecture allows any application to connect to Placetopay to process transactions, independent of the development language.
+
+      To use the web service, you will need to have a programming language that can communicate with a SOAP service.
+
+      ### Services
+
+      All consumption is made to the base URL, which will be provided by the operations area and the endpoint of the service to be consumed is added to said URL.
+
+      For example, if the base URL was https://placetopay.com, to consume the service and request information, a POST is made with the data from the example to the URL https://placetopay.com/soap"
+  contact:
+    name: "Diego Calle"
+    email: "desarrollo@evertecinc.com"
+servers:
+  - url: "https://api-co-dev.placetopay.ws"
+    description: "Pruebas Colombia"
+  - url: "https://api-ec-dev.placetopay.ws"
+    description: "Pruebas Ecuador"
+tags:
+  - name: "Cash payment order"
+    description: ""
+paths:
+  /cashorder:
+    post:
+      operationId: cashOrder
+      requestBody:
+        content:
+          application/xml:
+            schema:
+              oneOf:
+                - title: "Get order"
+                  $ref: '#/components/schemas/rootElement_getOrderRequest'
+                - title: "Get order pdf"
+                  $ref: '#/components/schemas/rootElement_getOrderPdfRequest'
+                - title: "Add order"
+                  $ref: '#/components/schemas/rootElement_addOrderRequest'
+                - title: "Delete order"
+                  $ref: '#/components/schemas/rootElement_deleteOrderRequest'
+      responses:
+        200:
+          description: ""
+          content:
+            application/xml:
+              schema:
+                oneOf:
+                  - title: "Get order"
+                    $ref: '#/components/schemas/rootElement_getOrderResponse'
+                  - title: "Get order pdf"
+                    $ref: '#/components/schemas/rootElement_addOrderPdfResponse'
+                  - title: "Add order"
+                    $ref: '#/components/schemas/rootElement_addOrderResponse'
+                  - title: "Delete order"
+                    $ref: '#/components/schemas/rootElement_deleteOrderResponse'
+components:
+  schemas:
+    Authentication:
+      title: "Authentication"
+      type: "object"
+      properties:
+        login:
+          type: "string"
+          example: "6dd490faf9cb87a9862245da41170ff2"
+        tranKey:
+          type: "string"
+          example: "ee38a90bca7e3b85c88d6cef7c76ce4efd5e4b9a"
+        nonce:
+          type: "string"
+        seed:
+          type: "string"
+          example: "2025-01-17T17:22:11-05:00"
+      description: "Structure that contains the site authentication information generated according to the WSSE UsernameToken Profile 1.1"
+    Person:
+      title: "Person"
+      type: "object"
+      description: "Structure that reflects the information of a person involved in a transaction."
+      properties:
+        documentType:
+          type: "string"
+          description: "[Type of identification document](/gateway/document-types)"
+          enum:
+            - "CC"
+            - "NIT"
+            - "RUT"
+            - "TI"
+            - "PNN"
+          example: "CC"
+          maxLength: 3
+        document:
+          type: "string"
+          description: "Identification document number."
+          example: "10337415"
+        firstName:
+          type: "string"
+          description: "Names"
+          example: "John"
+        lastName:
+          type: "string"
+          description: "Lastnames"
+          example: "Doe"
+        company:
+          type: "string"
+          description: "Company name"
+          example: "ACME S.A"
+        emailAddress:
+          type: "string"
+          description: "Email address."
+          example: "jonhDoe@domain.com"
+        address:
+          type: "string"
+          maxLength: 128
+          description: "Object that contains information about a person's address."
+          example: "Street 123"
+        city:
+          type: "string"
+          maxLength: 30
+          description: "City"
+          example: "Bogotá"
+        province:
+          type: "string"
+          description: "State / Province . ISO 3166-2 code"
+          example: "DC"
+        country:
+          type: "string"
+          maxLength: 2
+          description: "Country. ISO 3166-1 alpha-2 code"
+          example: "CO"
+        phone:
+          type: "string"
+          maxLength: 20
+          description: "Phone number"
+          example: "3003003000"
+        mobile:
+          type: "string"
+          description: "mobile phone number"
+          example: "+573003003000"
+    rootElement_getOrderRequest:
+      type: object
+      description: "Request for a payment order"
+      properties:
+        body:
+          type: object
+          properties:
+            getOrder:
+              type: object
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                id:
+                  type: "number"
+                  description: "Payment order id"
+                  example: 1
+              xml:
+                prefix: ns1
+                namespace: "https://www.placetopay.com/soap/cashorder/"
+          xml:
+            prefix: env
+            name: Body
+      xml:
+        prefix: env
+        name: Envelope
+        namespace: http://www.w3.org/2003/05/soap-envelope/
+    rootElement_getOrderResponse:
+      type: object
+      description: "Response to the request for a payment order"
+      properties:
+        body:
+          type: object
+          properties:
+            getOrderResponse:
+              type: object
+              properties:
+                getOrderResult:
+                  type: object
+                  properties:
+                    reference:
+                      type: "string"
+                      minLength: 1
+                      description: "Unique payment reference"
+                      example: 'Order payment Ref 003'
+                    description:
+                      type: "string"
+                      description: "Description or detail of the payment order"
+                      example: 'Grocery order payment'
+                    language:
+                      type: "string"
+                      description: "Expected language for transactions according to ISO 631-1"
+                      enum:
+                        - 'ES'
+                        - 'EN'
+                    currency:
+                      type: "string"
+                      example: "Currency to be used for collection according to ISO 4217"
+                      enum:
+                        - "USD"
+                        - "COP"
+                        - "CRC"
+                        - "EUR"
+                        - "CAD"
+                        - "AUD"
+                        - "GBP"
+                        - "MXN"
+                        - "CLP"
+                    totalAmount:
+                      type: "number"
+                      description: "Total amount to be collected (corresponds to subtotalAmount + taxAmount)"
+                      example: 200000
+                    taxAmount:
+                      type: "number"
+                      description: "Discrimination of the applied tax"
+                      example: 0
+                    subtotalAmount:
+                      type: "number"
+                      description: "Base value before taxes"
+                      example: 200000
+                    expiration:
+                      type: "string"
+                      description: "Date and time until which payment is received [YYYY-MM-DDTHH:NN:SS]"
+                      example: "2025-01-17T18:22:01-05:00"
+                    notificationURL:
+                      type: "string"
+                      description: "URL to which an HTTP notification with transaction information will be sent once the transaction has been processed. See more at [Notifications](/gateway/notification)"
+                      example: "https://your-site.com/your-notification-path"
+                    status:
+                      type: "string"
+                      enum:
+                        - "NOT_FOUND"
+                        - "PENDING"
+                    status_date:
+                      type: "string"
+                      example: "2025-01-19T13:37:03-05:00"
+                    transaction:
+                      type: "string"
+                      nullable: true
+              xml:
+                prefix: ns1
+                namespace: "https://www.placetopay.com/soap/cashorder/"
+          xml:
+            prefix: SOAP-ENV
+            name: Body
+      xml:
+        prefix: SOAP-ENV
+        name: Envelope
+        namespace: http://www.w3.org/2003/05/soap-envelope/
+    rootElement_getOrderPdfRequest:
+      type: object
+      description: "Request to obtain the pdf of a payment order"
+      properties:
+        body:
+          type: object
+          properties:
+            getOrderPDF:
+              type: object
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                id:
+                  type: "number"
+                  description: "Payment order id"
+                  example: 1
+              xml:
+                prefix: ns1
+                namespace: "https://www.placetopay.com/soap/cashorder/"
+          xml:
+            prefix: env
+            name: Body
+      xml:
+        prefix: env
+        name: Envelope
+        namespace: http://www.w3.org/2003/05/soap-envelope/
+    rootElement_addOrderPdfResponse:
+      type: object
+      description: "Response to the request to obtain the pdf of a payment order"
+      properties:
+        body:
+          type: object
+          properties:
+            getOrderPDFResponse:
+              type: object
+              properties:
+                getOrderPDFResult:
+                  type: "string"
+                  description: "Pdf content"
+                  example: "SlZCRVJpMHhMamNLTVNBd0lHOWlhZ284UENBdlZIbHdaU0F2UTJGMFlXeHZad292VDNWMGJHbHVaWE1nTWlBd0lGSUtMMUJoWjJWeklETWdNQ0JTSUQ0K0NtVnVaRzlpYWdveUlEQWdiMkpxQ2p3OElDOVVlWEJsSUM5UGRYUnNhVzVsY3lBdlEyOTFiblFnTUNBK1BncGxibVJ2WW1vS015QXdJRzlpYWdvOFBDQXZWSGx3WlNBdlVHRm5aWE1LTDB0cFpITWdXellnTU..."
+              xml:
+                prefix: ns1
+                namespace: "https://www.placetopay.com/soap/cashorder/"
+          xml:
+            prefix: SOAP-ENV
+            name: Body
+      xml:
+        prefix: SOAP-ENV
+        name: Envelope
+        namespace: http://www.w3.org/2003/05/soap-envelope/
+    rootElement_addOrderRequest:
+      type: object
+      description: "Request to add a payment order"
+      properties:
+        body:
+          type: object
+          properties:
+            addOrder:
+              type: object
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                order:
+                  type: object
+                  properties:
+                    reference:
+                      type: "string"
+                      minLength: 1
+                      description: "Unique payment reference"
+                      example: 'Ref webcheckout 003'
+                    description:
+                      type: "string"
+                      description: "Description or detail of the payment order"
+                      example: 'cash payment from eCommerce'
+                    language:
+                      type: "string"
+                      description: "Expected language for transactions according to ISO 631-1"
+                      enum:
+                        - "ES"
+                        - "EN"
+                    currency:
+                      type: "string"
+                      example: "Currency to be used for collection according to ISO 4217"
+                      enum:
+                        - "COP"
+                    totalAmount:
+                      type: "number"
+                      description: "Total amount to be collected (corresponds to subtotalAmount + taxAmount)"
+                      example: 200000
+                    taxAmount:
+                      type: "number"
+                      description: "Discrimination of the applied tax"
+                      example: 0
+                    subtotalAmount:
+                      type: "number"
+                      description: "Base value before taxes"
+                      example: 200000
+                    expiration:
+                      type: "string"
+                      description: "Date and time until which payment is received [YYYY-MM-DDTHH:NN:SS]"
+                      example: "2025-01-17T18:22:01-05:00"
+                    buyer:
+                      $ref: "#/components/schemas/Person"
+                    ipAddress:
+                      type: "string"
+                      example: "127.0.0.1"
+                    userAgent:
+                      type: "string"
+                      example: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+                notificationURL:
+                  type: "string"
+                  description: "URL to which an HTTP notification with transaction information will be sent once the transaction has been processed. See more at [Notifications](/gateway/notification)"
+                  example: "https://your-site.com/your-notification-path"
+                additionalData:
+                  type: object
+                  description: "Additional data to be stored with the transaction."
+              xml:
+                prefix: ns1
+                namespace: "https://www.placetopay.com/soap/cashorder/"
+          xml:
+            prefix: env
+            name: Body
+      xml:
+        prefix: env
+        name: Envelope
+        namespace: http://www.w3.org/2003/05/soap-envelope/
+    rootElement_addOrderResponse:
+      type: object
+      description: "Response to the request to add a payment order"
+      properties:
+        body:
+          type: object
+          properties:
+            addOrderResponse:
+              type: object
+              properties:
+                addOrderResult:
+                  type: "number"
+                  description: ""
+                  example: 1
+              xml:
+                prefix: ns1
+                namespace: "https://www.placetopay.com/soap/cashorder/"
+          xml:
+            prefix: SOAP-ENV
+            name: Body
+      xml:
+        prefix: SOAP-ENV
+        name: Envelope
+        namespace: http://www.w3.org/2003/05/soap-envelope/
+    rootElement_deleteOrderRequest:
+      type: object
+      description: "Request to delete a payment order"
+      properties:
+        body:
+          type: object
+          properties:
+            deleteOrder:
+              type: object
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                id:
+                  type: "number"
+                  description: ""
+                  example: 1
+              xml:
+                prefix: ns1
+                namespace: "https://www.placetopay.com/soap/cashorder/"
+          xml:
+            prefix: env
+            name: Body
+      xml:
+        prefix: env
+        name: Envelope
+        namespace: http://www.w3.org/2003/05/soap-envelope/
+    rootElement_deleteOrderResponse:
+      type: object
+      description: "Response to the request to delete a payment order"
+      properties:
+        body:
+          type: object
+          properties:
+            deleteOrderResponse:
+              type: object
+              properties:
+                deleteOrderResult:
+                  type: "number"
+                  description: ""
+                  example: 1
+              xml:
+                prefix: ns1
+                namespace: "https://www.placetopay.com/soap/cashorder/"
+          xml:
+            prefix: SOAP-ENV
+            name: Body
+      xml:
+        prefix: SOAP-ENV
+        name: Envelope
+        namespace: http://www.w3.org/2003/05/soap-envelope/

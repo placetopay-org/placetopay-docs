@@ -291,7 +291,9 @@ export const ApiResponses = ({ responses = {} }) => {
   const [bodySelected, setBodySelected] = useState(0)
 
   const response = responses[selected]
-  let body = response?.content?.['application/json']?.schema
+  let body =
+      response?.content?.['application/json']?.schema ??
+      response?.content?.['application/xml']?.schema
 
   const multiBodies = body?.oneOf ?? body?.anyOf ?? []
   const isMulti = multiBodies.length > 0
@@ -386,7 +388,9 @@ export const ApiRequest = ({ request = {} }) => {
 
   const requestBody =
     request?.content?.['application/json'] ??
-    request?.content?.['multipart/form-data']
+    request?.content?.['multipart/form-data'] ??
+    request?.content?.['application/xml']
+
   let body = requestBody?.schema
 
   const multiBodies = requestBody?.schema.oneOf ?? requestBody?.schema.anyOf ?? [];

@@ -157,6 +157,7 @@ export const NAMESPACE_ROUTES = {
   core: 'core',
   'account-validator': 'accountValidator',
   'api-scudo': 'apiScudo',
+  soap: 'soap',
 }
 
 /**
@@ -1856,6 +1857,54 @@ export const TAB_NAVIGATION = {
               {
                 title: '[Webhook] Notification of transaction resolved',
                 href: '/api-scudo/api/reference/notify-resolved-validation'
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  soap: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'API',
+        identifier: 'soap/api',
+        href: '/soap/api/cashOrder',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'Introducción',
+                href: '/soap/api',
+              },
+              {
+                title: 'Orden de pago en efectivo',
+                href: '/soap/api/cashOrder',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'API',
+        identifier: 'soap/api',
+        href: '/soap/api/cashOrder',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              {
+                title: 'Introduction',
+                href: '/soap/api',
+              },
+              {
+                title: 'Cash payment order',
+                href: '/soap/api/cashOrder',
               },
             ],
           },
