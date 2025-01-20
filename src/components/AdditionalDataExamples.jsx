@@ -169,14 +169,6 @@ const examples = [
         en: "Fiscal control provider, example ET as Evertec."
       }
     },
-    {
-        key: "invoice_id",
-        example: "56",
-        description: {
-            es: "Identificador de factura del comercio.",
-            en: "Merchant invoice ID."
-        }
-    }
   ];
 
 export function AdditionalDataExamples({extraExamples}) {
