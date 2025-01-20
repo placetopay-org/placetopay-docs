@@ -233,6 +233,13 @@ const groupsByFranchise = [
            en: 'It takes 180 seconds to respond and is in approved status',
           },
       },
+      {
+        number : '4931119220729333',
+        behavior: {
+          es: 'Aprueba 3DS-Y para una sesión 3RI con los detalles de la autenticación',
+          en: 'Approve 3DS-Y for a 3RI session with authentication details',
+        },
+      },
     ]
   },
   {
