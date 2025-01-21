@@ -5,19 +5,20 @@ import { createContext, useEffect, useMemo, useState } from 'react'
 export const NavigationGroupContext = createContext()
 
 export const isLinkActive = (link, pathname) => {
-  return pathname.startsWith(link.href?.split(0, -1).join('/'))
+  return pathname.startsWith(link.hrefLocalized?.split(0, -1).join('/'))
 }
 
 export const shouldShowLinks = (link, pathname) => {
   return (
-    pathname === link.href ||
-    !!link.links?.some((subLink) => pathname === subLink.href)
+    pathname === link.hrefLocalized ||
+    !!link.links?.some((subLink) => pathname === subLink.hrefLocalized)
   )
 }
 
 const addLocalizedLink = (link, localizePath) => ({
   ...link,
-  href: localizePath(link.href),
+  href: link.href ? localizePath(link.href) : false,
+  hrefLocalized: link.href ? localizePath(link.href) : false,
 })
 
 const adaptLinks = (link, pathname, localizePath) => {
@@ -58,10 +59,10 @@ const foundActiveLink = (links, pathname) => {
     })
     .findIndex((link) => {
       if (!link.active && link.hasChildren) {
-        return link.links.some((subLink) => subLink.href === pathname)
+        return link.links.some((subLink) => subLink.hrefLocalized === pathname)
       }
 
-      return pathname === link.href;
+      return pathname === link.hrefLocalized;
     })
 }
 

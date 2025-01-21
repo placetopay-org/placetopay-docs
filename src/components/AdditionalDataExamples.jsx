@@ -168,7 +168,7 @@ const examples = [
         es: "Proveedor de control fiscal, de ejemplo ET como Evertec.",
         en: "Fiscal control provider, example ET as Evertec."
       }
-    }
+    },
   ];
 
 export function AdditionalDataExamples({extraExamples}) {
