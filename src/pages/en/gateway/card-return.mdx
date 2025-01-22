@@ -1,0 +1,47 @@
+# Card Return
+
+To enable the card return functionality, it is necessary to coordinate with our help desk or notify us during the initial phase of the integration process with the payment gateway.
+
+<Note type="warning"> It is essential to remember that accessing credit card data requires a valid PCI DSS certificate. </Note>
+
+To return the encrypted card, we currently offer the following algorithms along with their respective key sizes:
+
+* aes-128-cbc (16)
+* aes-192-cbc (24)
+* aes-256-cbc (32)
+* des-ede3-cbc (24)
+
+<Note>The "PAN" field can be obtained in the response of [transaction processing](/gateway/api/reference/transaction) and in the [transaction query](/gateway/api/reference/transaction#query-request). This field is one of the properties available within [additional fields](/gateway/additional-data).</Note>
+
+The PAN field is encoded in BASE64 and is the concatenation of the encrypted card plus the initialization vector (IV), which is generated with the same key size used for encryption.
+
+```json {{ title: 'Service Response' }}
+{
+  "additional": {
+    "PAN": "klbrfTC1ol9BV7sFP9bw66nLH77QMYAA3GRZrzjutciFv/gqg9xZs8n7gPNxRRsl"
+  }
+}
+```
+
+The encryption key used in this example with the "aes-128-cbc" algorithm comes from the site's configuration and is provided during the implementation with the payment gateway.
+In this case, the key is oX1R9A2DoxEziVqT.
+
+```php {{ title: 'Card Return' }}
+<?php
+// Initial values
+$PAN = 'klbrfTC1ol9BV7sFP9bw66nLH77QMYAA3GRZrzjutciFv/gqg9xZs8n7gPNxRRsl';
+$key = 'oX1R9A2DoxEziVqT';
+$algorithm = 'aes-128-cbc';
+$iv_size = strlen($key);
+
+// Convert from BASE64 to binary
+$encoded = base64_decode($PAN);
+
+// Extract the IV and the encrypted card
+$iv = mb_substr($encoded, -$iv_size, null, '8bit');
+$encrypted = mb_substr($encoded, 0, -$iv_size, '8bit');
+
+// Proceed to decrypt the card
+$cardNumber = openssl_decrypt($encrypted, $algorithm, $key, OPENSSL_RAW_DATA, $iv);
+?>
+```
