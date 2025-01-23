@@ -6,8 +6,8 @@ const examples = [
       key: "credit",
       example: "{\"type\": \"00\", \"groupCode\": \"C\", \"code\": \"0\", \"installments\": 0}",
       description: {
-        es: "Datos de credito.",
-        en: "Credit data."
+        es: "Datos de crédito, conoce más en [Credit](#additional-data-credit).",
+        en: "Credit data, learn more at [Credit](#additional-data-credit)."
       }
     },
     {
@@ -174,8 +174,8 @@ const examples = [
       key: "PAN",
       example: "klbrfTC1ol9BV7sFP9bw66\nnLH77QMYAA3GRZrzjutci\nFv/gqg9xZs8n7gPNxRRsl",
       description: {
-          es: "Número de tarjeta + vector de inicialización encriptado en base64, conoce más en: [Retorno de tarjeta](/gateway/card-return)",
-          en: "Card number + initialization vector encrypted in base64, learn more at: [Card return](/en/gateway/card-return)"
+          es: "Número de tarjeta + vector de inicialización encriptado en base64, conoce más en [Retorno de tarjeta](/gateway/card-return)",
+          en: "Card number + initialization vector encrypted in base64, learn more at [Card return](/en/gateway/card-return)"
       }
     },
   ];
