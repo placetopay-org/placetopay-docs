@@ -217,6 +217,7 @@ export const TAB_NAVIGATION = {
                 title: 'Micrositio Abierto',  links: [
                   { title: 'Introducción', href: '/payments/microsite-open/introduction' },
                   { title: 'Estructura de Campos', href: '/payments/microsite-open/fields' },
+                  
                 ],
               },
 
@@ -228,7 +229,27 @@ export const TAB_NAVIGATION = {
 
             ],
           },
-
+          {
+            title: 'Micrositio Personalizado',
+            links: [
+              { title: 'Introduccion', href: '/payments/microsite-customized/introduction' },
+              { title: 'Cómo Funciona', href: '/payments/microsite-customized/how-checkout-works' },
+              {
+                title: 'Integración',
+                links: [
+                  { title: 'Autenticación', href: '/payments/microsite-customized/authentication' },
+                  { title: 'Crear Sesión', href: '/payments/microsite-customized/create-session' },
+                  { title: 'Localización', href: '/payments/microsite-customized/localization' },
+                  { title: 'Tipos de documento', href: '/payments/microsite-customized/document-types' },
+                  { title: 'Campos Adicionales', href: '/payments/microsite-customized/additional-fields'},
+                  { title: 'Montos y Monedas', href: '/payments/microsite-customized/tax-details' },
+                  { title: 'Métodos de pago', href: '/payments/microsite-customized/payment-methods' },
+             
+                ],
+              },
+              
+            ],
+          },
           {
             title: 'Flujo de Pago en Web Checkout',
             links: [
@@ -296,7 +317,27 @@ export const TAB_NAVIGATION = {
           
             ],
           },
-          
+          {
+            title: 'Custom Microsite',
+            links: [
+              { title: 'Introduction', href: '/payments/microsite-customized/introduction' },
+              { title: 'How It Works', href: '/payments/microsite-customized/how-checkout-works' },
+              {
+                title: 'Integration',
+                links: [
+                  { title: 'Authentication', href: '/payments/microsite-customized/authentication' },
+                  { title: 'Create Session', href: '/payments/microsite-customized/create-session' },
+                  { title: 'Localization', href: '/payments/microsite-customized/localization' },
+                  { title: 'Document Types', href: '/payments/microsite-customized/document-types' },
+                  { title: 'Additional Fields', href: '/payments/microsite-customized/additional-fields'},
+                  { title: 'Amounts and Currencies', href: '/payments/microsite-customized/tax-details' },
+                  { title: 'Payment Methods', href: '/payments/microsite-customized/payment-methods' },
+             
+                ],
+              },
+              
+            ],
+          },          
           {
             title: 'Payment Flow in Web Checkout',
             links: [
