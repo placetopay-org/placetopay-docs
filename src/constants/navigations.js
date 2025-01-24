@@ -546,6 +546,10 @@ export const TAB_NAVIGATION = {
                 title: 'Forwarding',
                 href: '/gateway/forwarding',
               },
+              {
+                title: 'Retorno de tarjeta',
+                href: '/gateway/card-return',
+              },
             ],
           },
         ],
@@ -638,7 +642,11 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Forwarding',
                 href: '/gateway/forwarding',
-              }
+              },
+              {
+                title: 'Card return',
+                href: '/gateway/card-return',
+              },
             ],
           },
         ],

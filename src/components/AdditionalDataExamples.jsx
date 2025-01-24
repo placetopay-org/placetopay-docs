@@ -1,3 +1,4 @@
+import ReactMarkdown from 'react-markdown';
 import { useLocale } from './LocaleProvider'
 
 const examples = [
@@ -5,8 +6,8 @@ const examples = [
       key: "credit",
       example: "{\"type\": \"00\", \"groupCode\": \"C\", \"code\": \"0\", \"installments\": 0}",
       description: {
-        es: "Datos de credito.",
-        en: "Credit data."
+        es: "Datos de crédito, conoce más en [Credit](#additional-data-credit).",
+        en: "Credit data, learn more at [Credit](#additional-data-credit)."
       }
     },
     {
@@ -169,6 +170,14 @@ const examples = [
         en: "Fiscal control provider, example ET as Evertec."
       }
     },
+    {
+      key: "PAN",
+      example: "klbrfTC1ol9BV7sFP9bw66\nnLH77QMYAA3GRZrzjutci\nFv/gqg9xZs8n7gPNxRRsl",
+      description: {
+          es: "Número de tarjeta + vector de inicialización encriptado en base64, conoce más en [Retorno de tarjeta](/gateway/card-return)",
+          en: "Card number + initialization vector encrypted in base64, learn more at [Card return](/en/gateway/card-return)"
+      }
+    },
   ];
 
 export function AdditionalDataExamples({extraExamples}) {
@@ -193,7 +202,7 @@ export function AdditionalDataExamples({extraExamples}) {
               {example.example}
             </td>
             <td className="w-full">
-              {example.description[locale]}
+              <ReactMarkdown>{example.description[locale]}</ReactMarkdown>
             </td>
           </tr>
         ))}
@@ -206,7 +215,7 @@ export function AdditionalDataExamples({extraExamples}) {
               {example.example}
             </td>
             <td className="w-full">
-              {example.description[locale]}
+              <ReactMarkdown>{example.description[locale]}</ReactMarkdown>
             </td>
           </tr>
         ))}
