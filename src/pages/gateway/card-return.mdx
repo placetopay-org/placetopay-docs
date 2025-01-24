@@ -1,0 +1,53 @@
+# Retorno de tarjeta
+
+Esta funcionalidad permite al sitio obtener la tarjeta utilizada en una transacción, esta información es útil para acciones de dispersión o servicios internos del comercio que la requieran.
+
+<Note type="warning"> Es fundamental recordar que para acceder a los datos de una tarjeta de crédito es obligatorio contar con un certificado PCI DSS vigente. </Note>
+
+Para retornar la tarjeta cifrada actualmente disponemos de los siguientes algoritmos junto con sus respectivos tamaños de llave:
+
+* aes-128-cbc (16)
+* aes-192-cbc (24)
+* aes-256-cbc (32)
+* des-ede3-cbc (24)
+
+<Note>El campo "PAN" se puede obtener en la respuesta del [procesamiento de una transacción](/gateway/api/reference/transaction) y en la [consulta de una transacción](/gateway/api/reference/transaction#query-request). Este campo es una de las propiedades disponibles dentro de los [campos adicionales](/gateway/additional-data).</Note>
+
+El campo PAN está codificado en BASE64 y es la concatenación de la tarjeta cifrada más el vector de inicialización (IV), el cual se genera con el mismo tamaño de la llave utilizada para el cifrado.
+
+```json {{ title: 'Respuesta del servicio' }}
+{
+  "additional": {
+    "PAN": "klbrfTC1ol9BV7sFP9bw66nLH77QMYAA3GRZrzjutciFv/gqg9xZs8n7gPNxRRsl"
+  }
+}
+```
+
+La llave de cifrado utilizada en este ejemplo con el algoritmo "aes-128-cbc" proviene de la configuración del sitio y se proporciona durante la implementación con la pasarela de pagos.
+En este caso, la llave es `oX1R9A2DoxEziVqT`.
+
+```php {{ title: 'Retorno de tarjeta' }}
+<?php
+// Valores iniciales
+$PAN = 'klbrfTC1ol9BV7sFP9bw66nLH77QMYAA3GRZrzjutciFv/gqg9xZs8n7gPNxRRsl';
+$key = 'oX1R9A2DoxEziVqT';
+$algorithm = 'aes-128-cbc';
+$iv_size = strlen($key);
+
+// Se convierte de BASE64 a binario
+$encoded = base64_decode($PAN);
+
+// Se extrae el IV y la tarjeta cifrada
+$iv = mb_substr($encoded, -$iv_size, null, '8bit');
+$encrypted = mb_substr($encoded, 0, -$iv_size, '8bit');
+
+// Se procede a descifrar la tarjeta
+$cardNumber = openssl_decrypt($encrypted, $algorithm, $key, OPENSSL_RAW_DATA, $iv);
+```
+
+## FAQs
+
+<details>
+  <summary>¿Cómo habilitar la funcionalidad de retorno de tarjeta?</summary>
+  <p>Se debe solicitar durante la fase inicial del proceso de integración del comercio o comunicarse con nuestra mesa de ayuda.</p>
+</details>
