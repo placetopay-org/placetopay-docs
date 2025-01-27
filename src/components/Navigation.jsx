@@ -189,7 +189,7 @@ function NavigationGroupItem({ index, link, withSections, sections, pathname }) 
 
       {link.hasChildren && link.active && (
         <AnimatePresence mode="popLayout" initial={false}>
-          <ul role="list" className="border-l border-transparent pl-6">
+          <ul role="list" className="border-l border-transparent">
             {link.links.map((subLink) => (
               <motion.li key={subLink.href} layout="position">
                 <NavLink
