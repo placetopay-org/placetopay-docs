@@ -1,0 +1,462 @@
+import { CenteredContainer } from '@/components/CenteredContainer'
+
+export const description =
+    'Aprende a crear una sesión de Checkout y conoce las diferentes funcionalidades que te ofrece Checkout para recibir pagos en línea.'
+
+# Servicios
+
+Todos los consumos se realizan a la URL base, que será proporcionada por el comercio y
+se le adiciona a dicha URL el endpoint del servicio a consumir
+
+<CenteredContainer>
+  <ImageZoom
+      src="/customized_microsite_flow.png"
+      alt="diagrama flujo micrositio personaliza"
+      className="w-full h-auto shadow rounded-md my-0 transition-transform duration-300 ease-in-out cursor-pointer hover:scale-110 focus:scale-110" 
+  />
+</CenteredContainer>
+<br/>
+
+## Búsqueda de facturas {{ tag: 'POST', label: '/invoice/search/' }} 
+
+**Parámetros**
+
+| Nombre    | Tipo                     |  Descripción                                                  |
+|-----------| ------------------------ |-------------------------------------------------------- |
+| `auth`        | Pago Corriente           | Pago a una cuota                                        |
+| `agreement`   | Diferido sin intereses   | Pago por cuotas sin interés.                            |
+| `searchType`  | Diferido plus            | Mezcla con o sin interes, definido por el banco emisor  |
+| `searchValue `| Diferido con intereses.  | Pago por cuotas con interés.                            |
+| `siteId`      | Plan pagos normal        |                                                         |
+| `filters (Opcional)`  | Plan pagos especial      | Pago Sin cobro de intereses                             |
+| `locale `     | Diferido preferente      | Pago por cuotas con interés más bajo                    |
+
+
+
+``` json {{ 'title' : 'Ejemplo de petición'}}
+ {
+    "auth": {
+        "login": "test_user_login",
+        "tranKey": "+ZmLlE0ZgHa/C9wxTfDaHHIjb4krPxj/zQzpJsmI81w=",
+        "nonce": "TldFeFpqZGpPRE5rTVRNd1pUUTJPREZoTTJNeE1UYzFOekJsWVRVNFl6TT0=",
+        "seed": "2018-03-06T10:43:36-05:00"
+    },
+
+    "agreement": "1234567",
+    "searchType": "reference/alt_reference/document",
+    "searchValue": "1040035000",
+    "siteId": "657853a1y192317v2k59764fdb547e80"
+ }
+ 
+```
+
+``` json {{ 'title' : 'Ejemplo de respuesta'}}
+    
+{
+  "status": {
+    "status": "OK",
+    "reason": "00",
+    "message": "La petición se ha procesado correctamente",
+    "date": "2018-11-13T11:24:27-05:00"
+  },
+  "data": [
+    {
+      "id": 4,
+      "status": "ACTIVE",
+      "debtor": {
+        "document": "1040035000",
+        "documentType": "CC",
+        "name": "Diego",
+        "surname": "Calle",
+        "email": "dnetix@testing.com"
+      },
+      "payment": {
+        "reference": "1234",
+        "description": "Testing",
+        "amount": {
+          "taxes": [
+            {
+              "kind": "valueAddedTax",
+              "amount": 1900,
+              "base": 10000
+            }
+          ],
+          "details": [
+            {
+              "kind": "subtotal",
+              "amount": 130000
+            }
+          ],
+          "currency": "COP",
+          "total": 140000.00
+        },
+        "allowPartial": false,
+        "subscribe": false
+      },
+      "paymentMethod": ["visa", "pse"],
+      "altReference": null,
+      "createdAt": "2018-10-28T00:00:00-05:00",
+      "expirationDate": "2018-11-27T23:59:59-05:00"
+    },
+    {
+      "id": 5,
+      "status": "EXPIRED",
+      "debtor": {
+        "document": "1040035000",
+        "documentType": "CC"
+      },
+      "payment": {
+        "reference": "1234",
+        "description": "Testing",
+        "amount": {
+          "taxes": [
+            {
+              "kind": "valueAddedTax",
+              "amount": 1900
+            }
+          ],
+          "details": [
+            {
+              "kind": "subtotal",
+              "amount": 130000
+            }
+          ],
+          "currency": "COP",
+          "total": 140000.00
+        },
+        "allowPartial": false,
+        "subscribe": false
+      },
+      "altReference": null,
+      "createdAt": "2018-09-26T00:00:00-05:00",
+      "expirationDate": "2018-10-26T23:59:59-05:00"
+    },
+    {
+      "id": 2,
+      "status": "EXPIRED",
+      "debtor": {
+        "document": "1040035000",
+        "documentType": "CC"
+      },
+      "payment": {
+        "reference": "1234",
+        "description": "Viaje",
+        "amount": {
+          "taxes": [
+            {
+              "kind": "valueAddedTax",
+              "amount": 12,
+              "base": 90
+            }
+          ],
+          "details": [
+            {
+              "kind": "subtotal",
+              "amount": 108
+            }
+          ],
+          "currency": "COP",
+          "total": 120.00
+        },
+        "allowPartial": false,
+        "subscribe": false
+      },
+      "altReference": "9000",
+      "createdAt": "2018-04-10T00:00:00-05:00",
+      "expirationDate": "2018-05-10T23:59:59-05:00"
+    }
+  ]
+}
+
+```
+
+### Ejemplo de petición con la opción “filters”
+
+**Nota:** los filters enviados corresponden a los "Campos de acceso” configurados en el micrositio.
+
+``` json {{ 'title' : 'Ejemplo'}}
+
+{
+  "auth": {
+    "login": "test_user_login",
+    "tranKey": "+ZmLlE0ZgHa/C9wxTfDaHHIjb4krPxj/zQzpJsmI81w=",
+    "nonce": "TldFeFpqZGpPRE5rTVRNd1pUUTJPREZoTTJNeE1UYzFOekJsWVRVNFl6TT0=",
+    "seed": "2018-03-06T10:43:36-05:00"
+  },
+  "agreement": "1234567",
+  "searchType": "reference/alt_reference/document",
+  "searchValue": "1040035000",
+  "siteId": "657853a1y192317v2k59764fdb547e80",
+  "filters": {
+    "reference": "7890",
+    "alt_reference": "788042"
+  }
+}
+
+```
+
+**Ejemplo de respuesta sin facturas encontradas**  
+El objeto **data** debe ser un arreglo vacío o un nulo
+
+``` json {{ 'title' : 'Ejemplo'}}
+
+{
+    "status": {
+    "status": "OK",
+    "reason": "00",
+    "message": "La petición se ha procesado correctamente",
+    "date": "2018-11-13T11:24:27-05:00"
+ },
+ "data": []
+}
+
+```
+
+**Ejemplo de respuesta cuando se va a permitir la modificación del monto a pagar de las facturas
+(se incluye la llave minAmountToPay y maxAmountToPay)**
+
+``` json {{ 'title' : 'Ejemplo'}}
+
+{
+  "status": {
+    "status": "OK",
+    "reason": "00",
+    "message": "La petición se ha procesado correctamente",
+    "date": "2021-06-22T11:24:27-05:00"
+  },
+  "data": [
+    {
+      "id": 4,
+      "status": "ACTIVE",
+      "debtor": {
+        "document": "1040035000",
+        "documentType": "CC",
+        "name": "Diego",
+        "surname": "Calle",
+        "email": "dnetix@testing.com"
+      },
+      "payment": {
+        "reference": "1234",
+        "description": "Testing",
+        "amount": {
+          "taxes": [
+            {
+              "kind": "valueAddedTax",
+              "amount": 1900,
+              "base": 10000
+            }
+          ],
+          "details": [
+            {
+              "kind": "subtotal",
+              "amount": 130000
+            }
+          ],
+          "currency": "COP",
+          "total": 140000.00
+        },
+        "allowPartial": false,
+        "subscribe": false
+      },
+      "altReference": null,
+      "createdAt": "2021-06-10T00:00:00-05:00",
+      "expirationDate": "2021-07-27T23:59:59-05:00",
+      "minAmountToPay": 50000,
+      "maxAmountToPay": 140000
+    },
+    {
+      "id": 2,
+      "status": "ACTIVE",
+      "debtor": {
+        "document": "1040035000",
+        "documentType": "CC"
+      },
+      "payment": {
+        "reference": "1234",
+        "description": "Viaje",
+        "amount": {
+          "taxes": [
+            {
+              "kind": "valueAddedTax",
+              "amount": 12,
+              "base": 90
+            }
+          ],
+          "details": [
+            {
+              "kind": "subtotal",
+              "amount": 108
+            }
+          ],
+          "currency": "COP",
+          "total": 120.00
+        },
+        "allowPartial": false,
+        "subscribe": false
+      },
+      "altReference": "9000",
+      "createdAt": "2021-05-22T00:00:00-05:00",
+      "expirationDate": "2021-07-22T23:59:59-05:00",
+      "minAmountToPay": 40,
+      "maxAmountToPay": 120
+    }
+  ]
+}
+
+```
+
+**Ejemplo de respuesta cuando se va a permitir la modificación del monto máximo a pagar de las facturas (se incluye la llave maxAmoutToPay).**  Este escenario, donde se
+puede modificar el monto máximo a pagar, lo podemos ver como por ejemplo: 
+
+- Diferir la deuda en cuotas:
+    - Valor Total: $ 12000000
+    - Cuota mensual: $ 1000000
+    - Cuotas: 12
+    - El deudor, podria decidir pagar el total de la deuda en el pago #6, por lo cual tendriamos:
+
+``` json {{ 'title' : 'Ejemplo'}}
+
+    {
+  "status": {
+    "status": "OK",
+    "reason": "00",
+    "message": "La petición se ha procesado correctamente",
+    "date": "2021-06-22T11:24:27-05:00"
+  },
+  "data": [
+    {
+      "id": 4,
+      "status": "ACTIVE",
+      "debtor": {
+        "document": "1040035000",
+        "documentType": "CC",
+        "name": "Diego",
+        "surname": "Calle",
+        "email": "dnetix@testing.com"
+      },
+      "payment": {
+        "reference": "1234",
+        "description": "Testing",
+        "amount": {
+          "taxes": [
+            {
+              "kind": "valueAddedTax",
+              "amount": 0,
+              "base": 0
+            }
+          ],
+          "currency": "COP",
+          "total": 1000000.0
+        },
+        "allowPartial": false,
+        "subscribe": false
+      },
+      "altReference": null,
+      "createdAt": "2021-06-10T00:00:00-05:00",
+      "expirationDate": "2021-07-27T23:59:59-05:00",
+      "minAmountToPay": 1000000.00,
+      "maxAmountToPay": 6000000.00
+    }
+  ]
+}
+
+```
+
+<Note> La gestión del monto pendiente de pagar se debe gestionar por parte del
+proveedor de las facturas.</Note>
+
+Ejemplo de respuesta con métodos de pago que se requiren fusionar para pago múltiple
+
+``` json {{ 'title' : 'Ejemplo'}}
+{
+  "status": {
+    "status": "OK",
+    "reason": "00",
+    "message": "La petición se ha procesado correctamente",
+    "date": "2021-06-22T11:24:27-05:00"
+  },
+  "data": [
+    {
+      "id": 1,
+      "status": "ACTIVE",
+      "debtor": {
+        "document": "1040035000",
+        "documentType": "CC",
+        "name": "Diego",
+        "surname": "Calle",
+        "email": "dnetix@testing.com"
+      },
+      "payment": {
+        "reference": "1234",
+        "description": "Testing",
+        "amount": {
+          "taxes": [
+            {
+              "kind": "valueAddedTax",
+              "amount": 1900,
+              "base": 10000
+            }
+          ],
+          "details": [
+            {
+              "kind": "subtotal",
+              "amount": 130000
+            }
+          ],
+          "currency": "COP",
+          "total": 140000.00
+        },
+        "allowPartial": false,
+        "subscribe": false
+      },
+      "altReference": null,
+      "paymentMethod": ["pse", "amex"],
+      "createdAt": "2021-06-10T00:00:00-05:00",
+      "expirationDate": "2021-07-27T23:59:59-05:00"
+    },
+    {
+      "id": 2,
+      "status": "ACTIVE",
+      "debtor": {
+        "document": "1040035000",
+        "documentType": "CC"
+      },
+      "payment": {
+        "reference": "1234",
+        "description": "Viaje",
+        "amount": {
+          "taxes": [
+            {
+              "kind": "valueAddedTax",
+              "amount": 12,
+              "base": 90
+            }
+          ],
+          "details": [
+            {
+              "kind": "subtotal",
+              "amount": 108
+            }
+          ],
+          "currency": "COP",
+          "total": 120.00
+        },
+        "allowPartial": false,
+        "subscribe": false
+      },
+      "altReference": "9000",
+      "paymentMethod": ["amex", "pse"],
+      "createdAt": "2021-05-22T00:00:00-05:00",
+      "expirationDate": "2021-07-22T23:59:59-05:00"
+    }
+  ],
+  "options": {
+    "mergePaymentMethods": true
+  }
+}
+
+
+```
+El parámetro ```mergePaymentMethods``` dentro de la estructura ```options``` es el que permite definir el comportamiento esperado en este caso.
+
+

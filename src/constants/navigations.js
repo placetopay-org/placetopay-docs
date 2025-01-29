@@ -238,7 +238,7 @@ export const TAB_NAVIGATION = {
                 title: 'Integración',
                 links: [
                   { title: 'Autenticación', href: '/payments/microsite-customized/authentication' },
-                  { title: 'Crear Sesión', href: '/payments/microsite-customized/create-session' },
+                  { title: 'Servicios', href: '/payments/microsite-customized/services' },
                   { title: 'Localización', href: '/payments/microsite-customized/localization' },
                   { title: 'Tipos de documento', href: '/payments/microsite-customized/document-types' },
                   { title: 'Campos Adicionales', href: '/payments/microsite-customized/additional-fields'},
