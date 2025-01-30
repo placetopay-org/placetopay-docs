@@ -460,3 +460,232 @@ Ejemplo de respuesta con métodos de pago que se requiren fusionar para pago mú
 El parámetro ```mergePaymentMethods``` dentro de la estructura ```options``` es el que permite definir el comportamiento esperado en este caso.
 
 
+## Bloqueo y liberación de facturas {{ tag: 'POST', label:'/invoice/hold'}}
+
+
+
+| Nombre    | Tipo                     |  Descripción                                                |
+|-----------| ------------------------ |--------------------------------------------------------     |
+| `auth`        | Pago Corriente           | Pago a una cuota                                        |
+| `agreement`   | Diferido sin intereses   | Pago por cuotas sin interés.                            |
+| `searchType`  | Diferido plus            | Mezcla con o sin interes, definido por el banco emisor  |
+| `searchValue `| Diferido con intereses.  | Pago por cuotas con interés.                            |
+| `siteId`      | Plan pagos normal        |                                                         |
+| `filters (Opcional)`  | Plan pagos especial      | Pago Sin cobro de intereses                     |
+| `locale `     | Diferido preferente      | Pago por cuotas con interés más bajo                    |
+
+
+**Ejemplo de petición para bloquear factura.**  
+La bandera `revoke` en este caso siempre debe ser false.
+ 
+``` json {{ 'title' : 'Ejemplo bloquear factura'}}
+
+{
+    "auth": {
+    "login": "dnetix",
+    "tranKey": "z1NGjj551My0JkNvYXU\/2B4T3tgBB43Ek3UFDwqTx\/Y=",
+    "nonce": "MTE5ODE0",
+    "seed": "2019-03-20T08:53:42-05:00"
+  },
+    "id": 8777,
+    "reference":“6313ccx”,
+    "invoice": 6,
+    "revoke": false,
+    "siteId": "657853a1y192317v2k59764fdb547e80"
+}
+
+```
+
+**Ejemplo de respuesta de factura bloqueada.**
+
+En este caso el estado de la factura debe ser
+`HOLD` con el objetivo que Micrositios no permita realizar un pago de la misma factura mientras ésta no sea liberada.
+
+``` json {{ 'title' : 'Ejemplo factura bloqueada'}}
+{
+  "status": {
+    "status": "OK",
+    "reason": "00",
+    "message": "La petición se ha procesado correctamente",
+    "date": "2019-03-20T10:45:33-05:00"
+  },
+  "data": {
+    "id": 6,
+    "status": "HOLD",
+    "debtor": {
+      "document": "1040035000",
+      "documentType": "CC"
+    },
+    "payment": {
+      "reference": "20328",
+      "description": "123",
+      "amount": {
+        "taxes": [
+          {
+            "kind": "valueAddedTax",
+            "amount": 1000,
+            "base": 0
+          }
+        ],
+        "details": [
+          {
+            "kind": "subtotal",
+            "amount": 99000
+          }
+        ],
+        "currency": "COP",
+        "total": 100000.00
+      },
+      "allowPartial": false,
+      "shipping": null,
+      "items": null,
+      "recurring": null,
+      "subscribe": false,
+      "fields": null,
+      "agreement": null,
+      "agreementType": null,
+      "gds": null
+    },
+    "altReference": null,
+    "createdAt": "2019-03-20",
+    "expirationDate": "2019-04-19 23:59:59",
+    "finalDate": "2019-04-19 23:59:59",
+    "siteId": 1
+  }
+}
+
+
+```
+
+**Ejemplo de petición para liberar factura.**  
+
+La bandera revoke en este caso siempre debe ser `true`
+ 
+``` json {{ 'title' : 'Ejemplo bloquear factura'}}
+
+{
+  "auth": {
+  "login": "dnetix",
+  "tranKey": "z1NGjj551My0JkNvYXU\/2B4T3tgBB43Ek3UFDwqTx\/Y=",
+  "nonce": "MTE5ODE0",
+  "seed": "2019-03-20T08:53:42-05:00"
+  },
+  "id": 8777,
+  "reference": “6313ccx”,
+  "invoice": 6,
+  "revoke": true,
+  "siteId": "657853a1y192317v2k59764fdb547e80"
+}
+
+```
+
+**Ejemplo de respuesta de factura liberada.** 
+
+En este caso el estado de la factura debe ser distinto de `HOLD`.
+
+``` json {{ 'title' : 'Ejemplo factura liberada'}}
+
+{
+  "status": {
+    "status": "OK",
+    "reason": "00",
+    "message": "La petición se ha procesado correctamente",
+    "date": "2019-03-20T10:45:33-05:00"
+  },
+  "data": {
+    "id": 6,
+    "status": "ACTIVE",
+    "debtor": {
+      "document": "1040035000",
+      "documentType": "CC"
+    },
+    "payment": {
+      "reference": "20328",
+      "description": "123",
+      "amount": {
+        "taxes": [
+          {
+            "kind": "valueAddedTax",
+            "amount": 1000,
+            "base": 0
+          }
+        ],
+        "details": [
+          {
+            "kind": "subtotal",
+            "amount": 99000
+          }
+        ],
+        "currency": "COP",
+        "total": 100000.00
+      },
+      "allowPartial": false,
+      "shipping": null,
+      "items": null,
+      "recurring": null,
+      "subscribe": false,
+      "fields": null,
+      "agreement": null,
+      "agreementType": null,
+      "gds": null
+    },
+    "altReference": null,
+    "createdAt": "2019-03-20",
+    "expirationDate": "2019-04-19 23:59:59",
+    "finalDate": "2019-04-19 23:59:59",
+    "siteId": 1
+  }
+}
+
+```
+
+
+## Asentamiento de factura {{tag:'POST', label:'/invoice/settle/'}}
+
+
+// CUADRITO 
+
+``` json {{ 'title' : 'Ejemplo de petición '}}
+ {
+    "auth": {
+    "login": "test_user_login",
+    "tranKey": "dsRL5wIymrySr9TgsYtxWZEIb5/RtW1v3n3xLqQZKj4=",
+    "nonce": "MTIzNDU2Nzg=",
+    "seed": "2018-03-06T10:44:49-05:00"
+  },
+    "id": 1,
+    "reference": "12345",
+    "agreement": "1234567",
+    "authorization": "8785757",
+    "receipt": "000000",
+    "franchise": "_PSE_",
+    "internalReference": 150324,
+      "amount": {
+      "currency": "COP",
+      "total": 108900
+    },
+    "date": "2018-10-24T11:48:35-05:00",
+    "channel": "OFC",
+    "paymentMethod": "pse",
+    "location": "point_1",
+    "siteId": "657853a1y192317v2k59764fdb547e80",
+    "requestId": 4018,
+ }
+
+```
+
+``` json {{'title' : 'Ejemplo de respuesta'}}
+{
+  "status": {
+  "status": "OK",
+  "reason": "00",
+  "message": "La petición se ha procesado correctamente",
+  "date": "2018-11-13T11:30:37-05:00"
+  },
+ "receipt": 1511
+}
+```
+
+
+
+

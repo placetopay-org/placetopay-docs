@@ -232,22 +232,17 @@ export const TAB_NAVIGATION = {
           {
             title: 'Micrositio Personalizado',
             links: [
-              { title: 'Introduccion', href: '/payments/microsite-customized/introduction' },
+              { title: 'Introducción', href: '/payments/microsite-customized/introduction' },
               { title: 'Cómo Funciona', href: '/payments/microsite-customized/how-checkout-works' },
               {
                 title: 'Integración',
                 links: [
                   { title: 'Autenticación', href: '/payments/microsite-customized/authentication' },
                   { title: 'Servicios', href: '/payments/microsite-customized/services' },
-                  { title: 'Localización', href: '/payments/microsite-customized/localization' },
-                  { title: 'Tipos de documento', href: '/payments/microsite-customized/document-types' },
-                  { title: 'Campos Adicionales', href: '/payments/microsite-customized/additional-fields'},
-                  { title: 'Montos y Monedas', href: '/payments/microsite-customized/tax-details' },
-                  { title: 'Métodos de pago', href: '/payments/microsite-customized/payment-methods' },
-             
+                  { title: 'Manejo de errores', href: '/payments/microsite-customized/error-handling' },
+                  { title: 'Estructuras de datos', href: '/payments/microsite-customized/data-structures' },
                 ],
               },
-              
             ],
           },
           {
