@@ -233,7 +233,7 @@ export const TAB_NAVIGATION = {
             title: 'Micrositio Personalizado',
             links: [
               { title: 'Introducción', href: '/payments/microsite-customized/introduction' },
-              { title: 'Cómo Funciona', href: '/payments/microsite-customized/how-checkout-works' },
+              { title: 'Cómo Funciona', href: '/payments/microsite-customized/how-to-work' },
               {
                 title: 'Integración',
                 links: [
