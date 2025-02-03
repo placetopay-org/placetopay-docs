@@ -236,6 +236,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'ACH Débito Bancario', href: '/payments/ach-bank-debit' },
               { title: 'Click to Pay', href: '/payments/clicktopay' },
+              { title: 'CeroPay', href: '/payments/ceropay' },
             ],
           },
           {
@@ -300,6 +301,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'ACH Bank Debit', href: '/payments/ach-bank-debit' },
               { title: 'Click to Pay', href: '/payments/clicktopay' },
+              { title: 'CeroPay', href: '/payments/ceropay' },
             ],
           },
           {
