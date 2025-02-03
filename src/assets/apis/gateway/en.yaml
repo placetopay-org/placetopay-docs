@@ -216,6 +216,77 @@ paths:
                     - "auth"
                     - "payment"
                     - "instrument"
+                - title: "CeroPay"
+                  type: "object"
+                  properties:
+                    locale:
+                      type: "string"
+                      description: "Determine the language of the response"
+                      example: "es-CO"
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    payment:
+                      type: "object"
+                      description: "Structure that contains the information about the payment of the transaction required to the web service"
+                      properties:
+                        reference:
+                          type: "string"
+                          minLength: 1
+                          maxLength: 32
+                        description:
+                          type: "string"
+                          maxLength: 250
+                        amount:
+                          title: "Amount"
+                          type: "object"
+                          description: "Structure that contains the information about the payment of the transaction required to the web service"
+                          required:
+                            - "currency"
+                            - "total"
+                          properties:
+                            currency:
+                              type: "string"
+                              enum:
+                                - "COP"
+                              example: "COP"
+                              minLength: 3
+                              maxLength: 3
+                            total:
+                              type: "number"
+                            taxes:
+                              type: "array"
+                              items:
+                                $ref: "#/components/schemas/TaxDetail"
+                            details:
+                              type: "array"
+                              items:
+                                $ref: "#/components/schemas/AmountDetail"
+                    instrument:
+                      type: "object"
+                      description: "Structure that contains information about the means of payment to be used in a transaction. This structure is variable according to the request that is generated. Each service requires that one or another data be used."
+                      properties:
+                        redirection:
+                          type: "object"
+                          description: "It represents a redirect payment method, meaning that it requires the user to be sent to another URL to complete the process."
+                          properties:
+                            paymentMethod:
+                              type: "string"
+                              enum:
+                                - "BB_CP"
+                            returnURL:
+                              type: "string"
+                              format: "uri"
+                              example: "http://your-site.com/your-return-route"
+                              maxLength: 250
+                              description: "URL so that once the payment process is completed, control is returned (when applicable)"
+                    ipAddress:
+                      type: "string"
+                    userAgent:
+                      type: "string"
+                  required:
+                    - "auth"
+                    - "payment"
+                    - "instrument"
             examples:
               Ejemplo:
                 value:
@@ -443,6 +514,54 @@ paths:
                         description: "List of banks available to process a payment"
                         items:
                           $ref: "#/components/schemas/BankItem"
+                      cardType:
+                        $ref: "#/components/schemas/CardType"
+                      cardTypes:
+                        type: "array"
+                        description: "Indicates the card types supported by the provider"
+                        items:
+                          $ref: "#/components/schemas/CardType"
+                      displayInterest:
+                        type: "boolean"
+                        description: "Indicates if it is necessary display the interest for transaction"
+                      requiereOtp:
+                        type: "boolean"
+                        description: "Indicates if it is necessary to perform the OTP flow"
+                      requiereCvv2:
+                        type: "boolean"
+                        description: "Indicates whether it is required to send CVV for transaction processing"
+                      threeDS:
+                        type: "string"
+                        enum:
+                          - "optional"
+                          - "required"
+                          - "unsupported"
+                        description: "Indicates if 3DS is necessary"
+                      credits:
+                        type: "array"
+                        description: "Indicates the credits available per supplier"
+                        items:
+                          $ref: "#/components/schemas/Credit"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "serviceCode"
+                  - title: "CeroPay"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "#/components/schemas/Status"
+                      provider:
+                        type: "string"
+                        example: "BANCO_BOGOTA"
+                        description: "Indicates which provider will be used in the transaction"
+                      serviceCode:
+                        type: "string"
+                        description: "Indicates the code of the service that will process the transaction"
+                        example: "BB_CP"
+                      requireRedirection:
+                        type: "boolean"
+                        description: "Indicates if the payment method is of the redirect type"
                       cardType:
                         $ref: "#/components/schemas/CardType"
                       cardTypes:
@@ -1029,7 +1148,7 @@ paths:
                   type: "string"
                   description: |
                       Type of operation to be performed on the transaction
-                      
+
                       `reverse` to reverse a transaction.
                       `reauthorization` to modify a checkin transaction.
                       `checkout` to close and collect a checkin transaction.
@@ -1071,7 +1190,7 @@ paths:
                             type: "number"
                             description: |
                               Alphabetical code of the currency to use (ISO 4217 alpha code)
-                              
+
                               EJ: `USD`
                           total:
                             type: "number"
@@ -1954,15 +2073,15 @@ paths:
               examples:
                 example:
                   value: "id	date transaction_date		reference	currency_code		amount tax payment_method	internal_reference	 status		reason merchant		terminal	 authorization refunded		installments	 last_digits	 bank_currency bank_factor bank_amount issuer_name payer_document	payer_first_name payer_last_name payer_email ip_address	batch_number line_number	 type
-                  c42977b5d4ff9d9613320c7ee98e9eb0		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		4113943		USD		2327	 442.13		ID_VS	221			 APPROVED	 000468232	00990101				1 0008		USD		1	2327 Testing Bank		32694548	 Miss Joanne Fadel MD	Price		blangworth@hotmail.com 237.234.250.30	AUTH_ONLY	 
-                  315c9ca9e64bed46f24a2e18bdd76468		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		8122	 USD	 4457	846.83	 ID_VS 222 			APPROVED		 000468232 00990101				 1		0008	 USD	 1 4457		Testing Bank	 44056172	Charlotte Maggio Steuber drutherford@gmail.com	 164.233.22.247	AUTH_ONLY			 
-                  fd239e99125c326e92137197fd5d1959		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		753446151	USD	3798 721.62	ID_VS		223				 APPROVED	 000468232		00990101			1	 0008	USD	1		3798	 Testing Bank	51751981 Mr. Abdiel Schroeder DDS		McKenzie	 leonard.beier@runte.com	 250.136.231.200		AUTH_ONLY		 
-                  be945b27ff13291409b929cc9cb15274		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		482657 USD 1401		266.19 ID_VS	 224					APPROVED	 0468232	 00990101			 1	0008 USD 1	 1401	Testing Bank 98958097		Dr. Mia Abshire		Douglas		antonia.blanda@wyman.com	 32.1.213.30 	AUTH_ONLY		 
-                  3aaa74df49cf3634276675c95e49f2af		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		77616851	 USD	 1921	364.99	 ID_VS 225 			APPROVED		 000468232 00990101				 1		0008	 USD	 1 1921		Testing Bank	 6211299	 Dr. Marcelina Huel I	Considine		vlangworth@emard.biz	 249.218.136.4	AUTH_ONLY		 
-                  6e89e692975bb117db78360c8ebf0a00		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		74141	USD	773	146.87	 ID_VS 226 				APPROVED		 000468232 00990101				 1		0008	 USD	 1 773 Testing Bank		22736252	 Melody Goodwin DDS		Gerlach		iblock@ohara.com	 168.87.8.132	AUTH_ONLY	 
-                  b50e4e8cca851a578fa40917030397a3		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		828		USD		473		89.87	ID_VS		227					APPROVED	 000468232		00990101			1	 0008	USD	1		473		Testing Bank	 9397147	 Freeman Kirlin		Aufderhar	drobel@kshlerin.com	21.185.38.170		AUTH_ONLY			 
-                  b66ffe1bff91a15986cba677bbaeaa7f		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		581122 USD 1767		335.73 ID_VS	 228					APPROVED	 0468232	 00990101			 1	0008 USD 1	 1767	Testing Bank 62818359		Mrs. Rosina Mann	 Schaefer	ctremblay@gmail.com	15.8.188.238 	AUTH_ONLY		 
-                  135afcb2f872cf55168461e7e874242a		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		3896507		USD		7	1.33 ID_VS	 229					APPROVED	 0468232	 00990101			 1	0008 USD 1	 7 Testing Bank		10597030	 Kristy Purdy IV	 Mills clyde68@hotmail.com 148.232.85.97 	AUTH_ONLY		 
+                  c42977b5d4ff9d9613320c7ee98e9eb0		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		4113943		USD		2327	 442.13		ID_VS	221			 APPROVED	 000468232	00990101				1 0008		USD		1	2327 Testing Bank		32694548	 Miss Joanne Fadel MD	Price		blangworth@hotmail.com 237.234.250.30	AUTH_ONLY
+                  315c9ca9e64bed46f24a2e18bdd76468		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		8122	 USD	 4457	846.83	 ID_VS 222 			APPROVED		 000468232 00990101				 1		0008	 USD	 1 4457		Testing Bank	 44056172	Charlotte Maggio Steuber drutherford@gmail.com	 164.233.22.247	AUTH_ONLY
+                  fd239e99125c326e92137197fd5d1959		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		753446151	USD	3798 721.62	ID_VS		223				 APPROVED	 000468232		00990101			1	 0008	USD	1		3798	 Testing Bank	51751981 Mr. Abdiel Schroeder DDS		McKenzie	 leonard.beier@runte.com	 250.136.231.200		AUTH_ONLY
+                  be945b27ff13291409b929cc9cb15274		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		482657 USD 1401		266.19 ID_VS	 224					APPROVED	 0468232	 00990101			 1	0008 USD 1	 1401	Testing Bank 98958097		Dr. Mia Abshire		Douglas		antonia.blanda@wyman.com	 32.1.213.30 	AUTH_ONLY
+                  3aaa74df49cf3634276675c95e49f2af		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		77616851	 USD	 1921	364.99	 ID_VS 225 			APPROVED		 000468232 00990101				 1		0008	 USD	 1 1921		Testing Bank	 6211299	 Dr. Marcelina Huel I	Considine		vlangworth@emard.biz	 249.218.136.4	AUTH_ONLY
+                  6e89e692975bb117db78360c8ebf0a00		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		74141	USD	773	146.87	 ID_VS 226 				APPROVED		 000468232 00990101				 1		0008	 USD	 1 773 Testing Bank		22736252	 Melody Goodwin DDS		Gerlach		iblock@ohara.com	 168.87.8.132	AUTH_ONLY
+                  b50e4e8cca851a578fa40917030397a3		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		828		USD		473		89.87	ID_VS		227					APPROVED	 000468232		00990101			1	 0008	USD	1		473		Testing Bank	 9397147	 Freeman Kirlin		Aufderhar	drobel@kshlerin.com	21.185.38.170		AUTH_ONLY
+                  b66ffe1bff91a15986cba677bbaeaa7f		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		581122 USD 1767		335.73 ID_VS	 228					APPROVED	 0468232	 00990101			 1	0008 USD 1	 1767	Testing Bank 62818359		Mrs. Rosina Mann	 Schaefer	ctremblay@gmail.com	15.8.188.238 	AUTH_ONLY
+                  135afcb2f872cf55168461e7e874242a		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		3896507		USD		7	1.33 ID_VS	 229					APPROVED	 0468232	 00990101			 1	0008 USD 1	 7 Testing Bank		10597030	 Kristy Purdy IV	 Mills clyde68@hotmail.com 148.232.85.97 	AUTH_ONLY
                   19868ea1110eca766186806ef0e38f71		2021-01-13T01:54:50-05:00	2021-01-13T01:54:50-05:00		68490	USD	4987 947.53	ID_VS		230				 APPROVED	 000468232		00990101			1	 0008	USD	1		4987	 Testing Bank	32385057 Mr. Harley Howe Rogahn	oreilly.onie@hotmail.com 87.121.113.190		AUTH_ONLY	 "
         425:
           description: "When the request is made before the report is finished generating"
@@ -2636,7 +2755,7 @@ components:
       description: "Structure that contains the token information associated with the card.
 
         For entry, only the token or subtoken and the cvv are necessary if it is an operation where the user is present.
-        
+
         For output if all data is returned when tokenizing."
       properties:
         token:
