@@ -21,6 +21,7 @@ import logoCompensar from '@/images/cards/compensar_wallet.svg'
 import logoCash from '@/images/cards/cash.svg'
 import logoPse from '@/images/cards/pse.svg'
 import logoBancolombia from '@/images/cards/bancolombia.svg'
+import ceropay from '@/images/cards/ceropay.svg'
 import logoBank from '@/images/cards/bank.svg'
 import logoAthMovil from '@/images/cards/ath_movil.svg'
 import logoAthCard from '@/images/cards/ath_card.svg'
@@ -67,6 +68,19 @@ const groupsByCountry = [
         logo: logoPse,
       },
       {
+        name: 'Botón Bancolombia',
+        code: 'bancolombia',
+        logo: logoBancolombia,
+      },
+      {
+        name: {
+          es: 'CeroPay del Banco de Bogóta', en: 'CeroPay from Banco de Bogóta'
+        },
+        code: 'banco_bogota',
+        logo: ceropay,
+      },
+      { name: { es: 'Efectivo', en: 'Cash' }, code: 'ath', logo: logoCash },
+      {
         name: { es: 'Tarjeta débito Visa Electron', en: 'Visa Electron' },
         code: 'visa_electron',
         logo: logoVisaElectron,
@@ -80,11 +94,6 @@ const groupsByCountry = [
         name: { es: 'Tarjeta CODENSA', en: 'CODENSA' },
         code: 'codensa',
         logo: logoCodensa,
-      },
-      {
-        name: 'Botón Bancolombia',
-        code: 'bancolombia',
-        logo: logoBancolombia,
       },
       { name: 'Comfandi', code: 'comfandi', logo: logoComfandi },
       { name: 'CAFAM', code: 'cafam', logo: logoCafam },
@@ -108,8 +117,7 @@ const groupsByCountry = [
         name: { es: 'Billetera Compensar', en: 'Wallet Compensar' },
         code: 'procesa',
         logo: logoCompensar,
-      },
-      { name: { es: 'Efectivo', en: 'Cash' }, code: 'ath', logo: logoCash },
+      }
     ],
   },
 
@@ -163,7 +171,7 @@ const groupsByCountry = [
         name: { es: 'Tarjeta Discover - EBUS', en: 'Discover - EBUS' },
         logo: logoDiscover,
       },
-      
+
     ],
   },
   {
@@ -190,7 +198,7 @@ export function PaymentMethods() {
           <table className="mt-6">
             <thead>
               <tr>
-                <th>{isEn() ? 'Name': 'Nombre'}</th>
+                <th>{isEn() ? 'Name' : 'Nombre'}</th>
                 <th>ID</th>
               </tr>
             </thead>
