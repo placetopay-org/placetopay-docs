@@ -115,12 +115,14 @@ export const NAMESPACES_SELECTOR = {
       href: '/en/payment-links',
       icon: Link,
     },
+
     {
       title: 'Microsites',
       description: 'Create and manage microsites',
       href: '/en/microsites',
       icon: Calendar,
     },
+
     {
       title: 'Account Validator',
       description: 'Account verification',
@@ -192,7 +194,9 @@ export const TAB_NAVIGATION = {
           {
             title: 'Pagos',
             links: [
-              { title: 'Introducción', href: '/payments' },
+              {
+                title: 'Introducción', href: '/payments'
+              },
             ],
           },
           {
@@ -200,9 +204,35 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Introducción', href: '/payments/payments-links/introduction' },
               { title: 'Crear link de pagos', href: '/payments/payments-links/create-payment-link' },
-              { title: 'Gestionar link de pagos', href: '/payments/payments-links/link-management' },
-              { title: 'Proceso de pago', href: '/payments/payments-links/process-pay' },
+              { title: 'Gestionar link de pagos', href: '/payments/payments-links/link-management' }
+            ],
+          },
 
+          {
+            title: 'Micrositios',
+            links: [
+              { title: 'Introducción', href: '/payments/introduction-to-microsites' },
+
+              { 
+                title: 'Micrositio Abierto',  links: [
+                  { title: 'Introducción', href: '/payments/microsite-open/introduction' },
+                  { title: 'Estructura de Campos', href: '/payments/microsite-open/fields' },
+                ],
+              },
+
+              { title: 'Micrositio Cerrado', links: [
+                  { title: 'Introducción', href: '/payments/microsite-closed/introduction' },
+                  { title: 'Carga de Órdenes', href: '/payments/microsite-closed/charge-invoice' },
+                ],
+              },
+
+            ],
+          },
+
+          {
+            title: 'Flujo de Pago en Web Checkout',
+            links: [
+              { title: 'Proceso de pago', href: '/payments/process-pay' },
             ],
           },
           {
@@ -210,6 +240,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'ACH Débito Bancario', href: '/payments/ach-bank-debit' },
               { title: 'Click to Pay', href: '/payments/clicktopay' },
+              { title: 'CeroPay', href: '/payments/ceropay' },
             ],
           },
           {
@@ -234,21 +265,52 @@ export const TAB_NAVIGATION = {
               { title: 'Introduction', href: '/payments' },
             ],
           },
+
           {
-            title: 'Payment link',
+            title: 'Payment Links',
             links: [
               { title: 'Introduction', href: '/payments/payments-links/introduction' },
-              { title: 'Create payment link', href: '/payments/payments-links/create-payment-link' },
-              { title: 'Manage payment link', href: '/payments/payments-links/link-management' },
-              { title: 'Process Pay', href: '/payments/payments-links/process-pay' },
-
+              { title: 'Create Payment Link', href: '/payments/payments-links/create-payment-link' },
+              { title: 'Manage Payment Links', href: '/payments/payments-links/link-management' }
             ],
           },
+          
+          {
+            title: 'Microsites',
+            links: [
+              { title: 'Introduction', href: '/payments/introduction-to-microsites' },
+          
+              { 
+                title: 'Open Microsite',  
+                links: [
+                  { title: 'Introduction', href: '/payments/microsite-open/introduction' },
+                  { title: 'Field Structure', href: '/payments/microsite-open/fields' },
+                ],
+              },
+          
+              { title: 'Closed Microsite', 
+                links: [
+                  { title: 'Introduction', href: '/payments/microsite-closed/introduction' },
+                  { title: 'Order Upload', href: '/payments/microsite-closed/charge-invoice' },
+                ],
+              },
+          
+            ],
+          },
+          
+          {
+            title: 'Payment Flow in Web Checkout',
+            links: [
+              { title: 'Payment Process', href: '/payments/process-pay' },
+            ],
+          },
+          
           {
             title: 'Payment methods',
             links: [
               { title: 'ACH Bank Debit', href: '/payments/ach-bank-debit' },
               { title: 'Click to Pay', href: '/payments/clicktopay' },
+              { title: 'CeroPay', href: '/payments/ceropay' },
             ],
           },
           {
@@ -482,6 +544,14 @@ export const TAB_NAVIGATION = {
                 title: 'Datos adicionales',
                 href: '/gateway/additional-data',
               },
+              {
+                title: 'Forwarding',
+                href: '/gateway/forwarding',
+              },
+              {
+                title: 'Retorno de tarjeta',
+                href: '/gateway/card-return',
+              },
             ],
           },
         ],
@@ -570,6 +640,14 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Additional data',
                 href: '/gateway/additional-data',
+              },
+              {
+                title: 'Forwarding',
+                href: '/gateway/forwarding',
+              },
+              {
+                title: 'Card return',
+                href: '/gateway/card-return',
               },
             ],
           },
