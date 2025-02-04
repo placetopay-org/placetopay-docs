@@ -1411,7 +1411,8 @@ export const TAB_NAVIGATION = {
               { title: '¿Cómo funciona?', href: '/account-validator/how-to-work' },
               { title: 'Flujo del usuario', href: '/account-validator/user-flow' },
               { title: 'Micro depósitos', href: '/account-validator/micro-deposits' },
-              { title: 'Soporte para Lightbox', href: '/account-validator/support' }
+              { title: 'Soporte para Lightbox', href: '/account-validator/support' },
+              { title: 'Webhook de Eventos', href: '/account-validator/webhooks' }
             ]
           },
           {
@@ -1440,7 +1441,8 @@ export const TAB_NAVIGATION = {
               { title: '¿How it works?', href: '/account-validator/how-to-work' },
               { title: 'User flow', href: '/account-validator/user-flow' },
               { title: 'Micro deposits', href: '/account-validator/micro-deposits' },
-              { title: 'Lightbox Support', href: '/account-validator/support' }
+              { title: 'Lightbox Support', href: '/account-validator/support' },
+              { title: 'Webhooks', href: '/account-validator/webhooks' }
             ]
           },
           {
