@@ -88,8 +88,7 @@ export function CashIcons(){
         <div className='flex gap-1 w-full flex-wrap bg-gray-100 dark:bg-gray-800/40 p-1 rounded-sm'>
             {
                 icons.map((icon, index) => (
-                    <Image src={icon.icon} key={index} alt={icon.name} title={icon.name} 
-                    className='m-0' unoptimized />
+                    <Image src={icon.icon} key={index} alt={icon.name} title={icon.name}  className='m-0' unoptimized />
                 ))
             }
         </div>
