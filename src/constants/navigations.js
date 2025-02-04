@@ -241,7 +241,7 @@ export const TAB_NAVIGATION = {
               { title: 'ACH Débito Bancario', href: '/payments/ach-bank-debit' },
               { title: 'Click to Pay', href: '/payments/clicktopay' },
               { title: 'CeroPay', href: '/payments/ceropay' },
-              { title: 'Efectivo', href: '/payments/cash' },
+              { title: 'Pago en efectivo', href: '/payments/cash' },
             ],
           },
           {
@@ -312,7 +312,7 @@ export const TAB_NAVIGATION = {
               { title: 'ACH Bank Debit', href: '/payments/ach-bank-debit' },
               { title: 'Click to Pay', href: '/payments/clicktopay' },
               { title: 'CeroPay', href: '/payments/ceropay' },
-              { title: 'Cash', href: '/payments/cash' },
+              { title: 'Cash payment', href: '/payments/cash' },
             ],
           },
           {
