@@ -85,10 +85,10 @@ const icons = [
 
 export function CashIcons(){
     return (
-        <div className='flex gap-1 w-full flex-wrap bg-gray-100 dark:bg-gray-800/40 p-1 rounded-sm'>
+        <div className='flex gap-4 w-full flex-wrap bg-gray-100 dark:bg-gray-800/40 p-4 rounded-2xl ring-1 ring-gray-950/5 ring-inset mt-8'>
             {
                 icons.map((icon, index) => (
-                    <Image src={icon.icon} key={index} alt={icon.name} title={icon.name}  className='m-0' unoptimized />
+                    <Image src={icon.icon} key={index} alt={icon.name} title={icon.name}  className='m-0 h-10' unoptimized />
                 ))
             }
         </div>
