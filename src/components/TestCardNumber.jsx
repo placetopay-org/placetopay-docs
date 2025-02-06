@@ -12,6 +12,7 @@ import logoAlkosto from '@/images/cards/alkosto.svg'
 import logoExito from '@/images/cards/exito_card.svg'
 import logoAthCard from '@/images/cards/ath_card.svg'
 import logoDilo from '@/images/cards/dilo.svg'
+import logoEBT from '@/images/cards/EBT.svg'
 import { Heading } from './Heading'
 import { useLocale } from './LocaleProvider'
 import { CopyContent } from '@/components/CopyContent'
@@ -302,7 +303,7 @@ const groupsByFranchise = [
     items: [
       {
         number : '6550590000000001',
-        behavior: { es: 'Apreuba', en: 'Approve' }
+        behavior: { es: 'Aprueba', en: 'Approve' }
       },
       {
         number : '6557351234543156',
@@ -521,6 +522,28 @@ const groupsByFranchise = [
       },
     ],
   },
+  {
+    id: 'ebt',
+    logo: logoEBT,
+    franchise: 'EBT',
+    items: [
+      {
+        number : '5077120000008725945',
+        behavior: { es: 'Aprueba', en: 'Approve' },
+      },
+      {
+        number : '5077122000019136403',
+        behavior: {es: 'Rechaza', en: 'Denies'},
+      },
+      {
+        number : '5077122291247660955',
+        behavior: {
+          es: 'Arroja una excepción en el proceso',
+          en: 'Throws an exception in the process',
+        },
+      },
+    ],
+  }
 ]
 
 export function TestCardNumbers() {
