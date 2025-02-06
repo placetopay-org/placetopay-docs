@@ -1076,9 +1076,33 @@ export const TAB_NAVIGATION = {
             links: [{ title: 'Inicio', href: '/token-requestor/api' }],
           },
           {
-            title: 'API',
+            title: 'Registro de comerciante',
             links: [
-              { title: 'Onboarding', href: '/token-requestor/api/onboarding' },
+              {
+                title: 'Onboarding',
+                href: '/token-requestor/api/onboarding'
+              },
+              {
+                title: 'Onboarding status',
+                href: '/token-requestor/api/onboarding-status',
+              },
+              {
+                title: 'Get Merchant Subscriptions',
+                href: '/token-requestor/api/get-merchant-subscriptions'
+              },
+              {
+                title: 'Generate new authentication token',
+                href: '/token-requestor/api/generate-new-authentication-token',
+              },
+              {
+                title: 'Delete authentication tokens',
+                href: '/token-requestor/api/delete-authentication-tokens',
+              },
+            ],
+          },
+          {
+            title: 'Administracion del ciclo del token',
+            links: [
               {
                 title: 'Enroll card',
                 href: '/token-requestor/api/enroll-card',
@@ -1089,10 +1113,9 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/api/get-token-status',
               },
               {
-                title: 'Onboarding status',
-                href: '/token-requestor/api/onboarding-status',
+                title: 'Get Keys',
+                href: '/token-requestor/api/keys'
               },
-              { title: 'Get Keys', href: '/token-requestor/api/keys' },
             ],
           },
         ],
@@ -1149,23 +1172,49 @@ export const TAB_NAVIGATION = {
             links: [{ title: 'Home', href: '/token-requestor/api' }],
           },
           {
-            title: 'API',
+            title: 'Merchant registration',
             links: [
-              { title: 'Onboarding', href: '/token-requestor/api/onboarding' },
               {
-                title: 'Enroll card',
-                href: '/token-requestor/api/enroll-card',
-              },
-              { title: 'Checkout', href: '/token-requestor/api/checkout' },
-              {
-                title: 'Get token status',
-                href: '/token-requestor/api/get-token-status',
+                title: 'Onboarding',
+                href: '/token-requestor/api/onboarding'
               },
               {
                 title: 'Onboarding status',
                 href: '/token-requestor/api/onboarding-status',
               },
-              { title: 'Get Keys', href: '/token-requestor/api/keys' },
+              {
+                title: 'Get Merchant Subscriptions',
+                href: '/token-requestor/api/get-merchant-subscriptions'
+              },
+              {
+                title: 'Generate new authentication token',
+                href: '/token-requestor/api/generate-new-authentication-token',
+              },
+              {
+                title: 'Delete authentication tokens',
+                href: '/token-requestor/api/delete-authentication-tokens',
+              },
+            ],
+          },
+          {
+            title: 'Token cycle management',
+            links: [
+              {
+                title: 'Enroll card',
+                href: '/token-requestor/api/enroll-card',
+              },
+              {
+                title: 'Checkout',
+                href: '/token-requestor/api/checkout'
+              },
+              {
+                title: 'Get token status',
+                href: '/token-requestor/api/get-token-status',
+              },
+              {
+                title: 'Get Keys',
+                href: '/token-requestor/api/keys'
+              },
             ],
           },
         ],
