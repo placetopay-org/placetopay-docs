@@ -12,6 +12,7 @@ import { useMobileNavigationStore } from '@/components/MobileNavigation'
 import '@/styles/tailwind.css'
 import 'reactflow/dist/style.css';
 import 'focus-visible'
+import Chatbot from '@/components/chatbot/chatbot'
 
 function onRouteChange() {
   useMobileNavigationStore.getState().close()
@@ -51,6 +52,7 @@ export default function App({ Component, pageProps }) {
       <ImageZoomProvider>
         <MDXProvider components={mdxComponents}>
           <LocaleProvider>
+            <Chatbot></Chatbot>
             <LayoutComponent {...pageProps}>
               <Component {...pageProps} />
             </LayoutComponent>
