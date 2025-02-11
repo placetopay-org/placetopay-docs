@@ -225,7 +225,7 @@ export function PaymentMethods() {
                     </div>
                   </td>
                   <td className="align-middle">
-                    {Array.isArray(item.code) ? (<> {item.code.map((code) => <code className='ml-2'>{code}</code>)}</>) : <code>{item.code}</code>}
+                    {typeof item.code === "string" ? <code>{item.code}</code> : (<> {item.code.map((code) => <code className='ml-2'>{code}</code>)}</>)}
                   </td>
                 </tr>
               ))}
