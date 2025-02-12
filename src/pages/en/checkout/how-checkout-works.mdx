@@ -24,6 +24,29 @@ The following diagram describes visually and in more detail the life cycle of a 
 
 ![Alt text](/Checkout_flow_v2_2x.webp 'title') {{ className: "bg-gray-100 dark:bg-transparent rounded-xl"}}
 
+## Security Considerations {{ id: 'security-considerations' }}
+
+### Prohibition of Browser Usage  
+**Webcheckout endpoints MUST NOT be accessed directly from the browser** (e.g., JavaScript/AJAX). Doing so exposes API credentials and sensitive data to risks such as:
+- **Key interception** by malicious scripts  
+- **Data exposure** in the client console  
+- **Vulnerability to XSS attacks**  
+
+```js
+// ❌ Incorrect (browser)
+fetch('https://webcheckout-api/payment', { 
+    body: JSON.stringify({ apiKey: "YOUR_KEY" }) // Exposed key!
+});
+
+// ✅ Correct (server)
+app.post('/process-payment', async (req, res) => {
+    const response = await axios.post('https://webcheckout-api/payment', {
+        apiKey: process.env.SECURE_API_KEY // Protected key
+    });
+    // [...] 
+});
+```
+
 ### Start Checkout
 
 **Create a payment session**  
