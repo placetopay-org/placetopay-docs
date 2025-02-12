@@ -24,6 +24,29 @@ En el siguiente diagrama se describe de forma visual y con más detalle el ciclo
 
 ![Alt text](/Checkout_flow_v2_2x.webp 'title'){{ className: "bg-gray-100 dark:bg-transparent rounded-xl"}}
 
+### Consideraciones de Seguridad {{ id: 'security-considerations' }}
+
+#### Prohibición de Uso en Navegador
+**Los endpoints de Webcheckout NO deben consumirse directamente desde el navegador** (ej: JavaScript/AJAX). Esto expone credenciales API y datos sensibles a riesgos de:
+- **Interceptación de claves** por scripts maliciosos
+- **Exposición de datos** en consola del cliente
+- **Vulnerabilidad a ataques XSS**
+
+```js
+// ❌ Incorrecto (navegador)
+fetch('https://webcheckout-api/payment', { 
+    body: JSON.stringify({ apiKey: "TU_CLAVE" }) // ¡Clave expuesta!
+});
+
+// ✅ Correcto (servidor)
+app.post('/procesar-pago', async (req, res) => {
+    const response = await axios.post('https://webcheckout-api/payment', {
+        apiKey: process.env.SECURE_API_KEY // Clave protegida
+    });
+    // [...] 
+});
+```
+
 ### Iniciar Checkout
 
 **Crear una sesión de pago**  
