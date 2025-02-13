@@ -1,0 +1,559 @@
+openapi: 3.1.0
+info:
+  title: PlacetoPay Account Validator
+  version: '1.0'
+  description: |
+    Account Validator es un proyecto encargado de la verificación de cuentas a través de servicios externos.
+  contact:
+    url: 'https://www.evertecinc.com/pasarela-de-pagos-e-commerce/'
+    name: PlacetoPay by Evertec
+servers:
+  - description: 'Sandbox (CO)'
+    url: 'https://sites-test.placetopay.com/'
+paths:
+  /api/create-session:
+    post:
+      summary: "Crear Session"
+      description: "Este endpoint permite crear una sesión de verificación de cuenta"
+      operationId: "create-session"
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - user
+                - returnUrl
+                - locale
+              properties:
+                auth:
+                  type: object
+                  description: Estructura que contiene la información de autenticación del sitio generada de acuerdo al WSSE UsernameToken Profile 1.1.
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                    tranKey:
+                      type: string
+                    nonce:
+                      type: string
+                    seed:
+                      type: string
+                user:
+                  type: object
+                  description: |
+                    Usuario dueño de la cuenta a validar
+                  required:
+                    - name
+                    - email
+                  properties:
+                    name:
+                      type: string
+                      description: |
+                        Primer nombre o nombres del usuario propietario de la cuenta
+                        
+                        `>= 1 characters` `<= 50 characters`
+                        
+                        EJ: `John`
+                    surname:
+                      type: string
+                      description: |
+                        Apellidos del usuario propietario de la cuenta
+                        
+                        `<= 50 characters`
+
+                        EJ: `Due`
+                    email:
+                      type: email
+                      description: |
+                        Correo Electrónico del usuario propietario de la cuenta
+                        
+                        `<= 80 characters`
+
+                        EJ: `John.doe@test.com`
+                returnUrl:
+                  type: string
+                  description: |
+                    Url de retorno una vez culmine el proceso de validación de cuentas
+                    
+                    `<= 255 characters`
+                    
+                    EJ: `https://www.placetopay.com/return`
+                locale:
+                  type: string
+                  description: |
+                    Determina el idioma de la respuesta
+                    
+                    `<= 5 characters`
+                    
+                    EJ: `es_CO`
+                isAuthenticated:
+                  type: boolean
+                  description: |
+                    Determina si ya se ha realizado un proceso de autenticación externa. La intención de no validar el correo electrónico del usuario dos veces. por defecto es false, quiere decir que se realizara envio de OTP para validar el usuario si este ya ha validado cuentas con microdepositos en el sistema
+                    
+                    EJ: `false`
+      responses:
+        "200":
+          description: "Sesión creada exitosamente"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    description: Estructura que contiene la respuesta a la solicitud en el caso de que el estado sea exitoso
+                    properties:
+                      requestId:
+                        type: string
+                        description: |
+                          Identificador unico de la sesión que desea consultar.
+                          
+                          `<= 36 characters`
+                          
+                          EJ: `9bd89c8d-6097-4d69-8ce9-d9b5ec35d8ea`
+                          
+                          Match pattern:
+                          `[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`
+                      redirectUrl:
+                        type: string <url>
+                        description: |
+                          Código de respuesta
+                          
+                          EJ: `https://dev-account-validator.placetopay.ws/verification/redirect/9bd89c8d-6097-4d69-8ce9-d9b5ec35d8ea`
+                      expiresAt:
+                        type: string
+                        description: |
+                          Fecha de expiración de la sesión
+                          
+                          EJ: `2024-04-19 17:36:57`
+                  status:
+                    type: object
+                    description: Estructura que contiene la información sobre el estado de la solicitud.
+                    properties:
+                      status:
+                        type: string
+                        description: |
+                          Estado de la solicitud
+                          
+                          Allowed values: `OK` `FAILED` `APPROVED` `APPROVED_PARTIAL` `PARTIAL_EXPIRED` `REJECTED` `PENDING` `PENDING_VALIDATION` `PENDING_PROCESS` `REFUNDED` `REVERSED` `ERROR` `UNKNOWN` `MANUAL` `DISPUTE`
+                      reason:
+                        type: integer
+                        description: |
+                          Código de respuesta
+                          
+                          `>= 1 characters` `<= 4 characters`
+                      message:
+                        type: string
+                        description: |
+                          Mensaje de respuesta
+                      date:
+                        type: string
+                        description: |
+                          Fecha y hora de la respuesta
+                          
+                           EJ: `2021-09-21T09:34:48-05:00`
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+        "400":
+          description: |
+            Petición inválida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Estructura que contiene la información sobre el estado de la solicitud.
+                    properties:
+                      status:
+                        type: string
+                        description: |
+                          Estado de la solicitud
+                          
+                          Allowed values: `OK` `FAILED` `APPROVED` `APPROVED_PARTIAL` `PARTIAL_EXPIRED` `REJECTED` `PENDING` `PENDING_VALIDATION` `PENDING_PROCESS` `REFUNDED` `REVERSED` `ERROR` `UNKNOWN` `MANUAL` `DISPUTE`
+                      reason:
+                        type: integer
+                        description: |
+                          Código de respuesta
+                          
+                          `>= 1 characters` `<= 4 characters`
+                      message:
+                        type: string
+                        description: |
+                          Mensaje de respuesta
+                      date:
+                        type: string
+                        description: |
+                          Fecha y hora de la respuesta
+                          
+                           EJ: `2021-09-21T09:34:48-05:00`
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                required:
+                  - Status
+  /api/check-session-status:
+    post:
+      summary: "Consultar estado de sesión"
+      description: "Este endpoint te permitirá consultar el estado de la sesión creada."
+      operationId: check-session-status
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  type: object
+                  description: |
+                    Estructura que contiene la información de autenticación del sitio generada de acuerdo al WSSE UsernameToken Profile 1.1"
+                  properties:
+                    login:
+                      type: string
+                      description: |
+                        Identificador del sitio
+                    tranKey:
+                      type: string
+                      description: |
+                        Credencial **tranKey** generado
+                    nonce:
+                      type: string
+                      description: |
+                        Valor **aleatorio** para cada solicitud codificado en **Base64**.
+                    seed:
+                      type: string
+                      description: |
+                        Fecha **actual**, la cual se genera en formato **ISO 8601**.
+                requestId:
+                  type: string
+                  description: |
+                    Identificador unico de la sesión que desea consultar.
+                    
+                     `<= 36 characters`
+                    
+                     EJ: `1f630ff7-9c02-4da4-82d4-d676709acb21`
+              required:
+                - auth
+                - requestId
+      responses:
+        "200":
+          description: "Consulta exitosa"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Estructura que contiene la información sobre una solicitud o pago, informa al estado actual de la misma.
+                    properties:
+                      status:
+                        type: string
+                        description: |
+                          Estado de la solicitud
+                          
+                          Allowed values: `OK` `FAILED` `APPROVED` `APPROVED_PARTIAL` `PARTIAL_EXPIRED` `REJECTED` `PENDING` `PENDING_VALIDATION` `PENDING_PROCESS` `REFUNDED` `REVERSED` `ERROR` `UNKNOWN` `MANUAL` `DISPUTE`
+                      reason:
+                        type: integer
+                        description: |
+                          Código de respuesta
+                          
+                          `>= 1 characters` `<= 4 characters`
+                      message:
+                        type: string
+                        description: |
+                          Mensaje de respuesta
+                      date:
+                        type: string
+                        description: |
+                          Fecha y hora de la respuesta
+                          
+                           EJ: `2021-09-21T09:34:48-05:00`
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                  data:
+                    type: object
+                    description: Estructura que contiene la respuesta a la solicitud en el caso de que el estado sea exitoso
+                    properties:
+                      requestId:
+                        type: string
+                        description: |
+                          Identificador unico de la sesión que desea consultar.
+                          
+                           EJ: `1f630ff7-9c02-4da4-82d4-d676709acb21`
+                      expiresAt:
+                        type: string
+                        description: |
+                          Fecha de expiración de la sesión
+                          
+                           EJ: `2022-08-30 15:19:33`
+                      account:
+                        type: object
+                        description: Información de la cuenta verificada (este campo está disponible solo si la verificación fue Aprobada y solo podrá ser visualizada los 10 primero minutos)
+                        properties:
+                          bankName:
+                            type: string
+                            description: |
+                              Nombre del banco de la cuenta a procesar
+                              
+                              `<= 30 characters`
+                          bankCode:
+                            type: string
+                            description: |
+                              Código que identifica al banco en la red
+                              
+                              `<= 17 characters`
+                          accountType:
+                            type: string
+                            description: |
+                              Tipo de cuenta
+                              
+                              Allowed values: `SAV` `DDA`
+                          accountNumber:
+                            type: string
+                            description: |
+                              Número de cuenta
+                              
+                              `<= 17 characters`
+                          franchise:
+                            type: string
+                            description: |
+                              `<= 17 characters`
+                          verificationCode:
+                            type: string
+                            description: |
+                              El verificationCode es un JSON Web Signature (JWS). Tiene el fin de ser el instrumento verificador del estado de la cuenta.
+                              
+                               EJ:`eyJhbGciOiJSUzI1NiJ9.eyJhY2NvdW50SGFzaCI6ImM5YWM2ZjFhZDhjNDA3Y2ZjNzMyNDljNTE2MTJjNTdmMWQxZGNiNTA4YjE4ZGJlYWE1MWQ0NDI5NjBjMjUwNDUyMzY4ZTg2YmUzMWQ3MDMxMDY4ZDM2MjM2NzVjYzhkYTUzNzhhODNmMTUwZjg5OTczOTBiZTEyMGU1ZmExN2RhIiwib25UZXN0Ijp0cnVlLCJzZXJ2aWNlIjoibW9jayIsImlkIjo0MDB9.dFMY4EwCrWq9EBmERFkKCoLHExPH4vgaCgnZaqB_mf8n3Sv6Qnu6Pb79onluX1OZecmYmBuHqZ_ykKXWSD4RMZSpckYFCiO3mlcJKI4qb91COhl_c2qXxYJuLEdbLfGlzf0k8-oJgFcO9gAS1Xm0hpTP4iiXF6st1hFwlfR3fpX4rr-bTsKgMvRSReMuxa0Vs92DykfqUR_3udlc0DFCPB9ZTaSqeRNHFAPAWNniUPWURQlW5c9J9xcyKTgKGzfI1_7h2I4ALQeRifptE2nC-HZtEMwtcToNh7hn0oL9lNFXnXGK9sWKORcyWKVfpEChS8z30UfX6kOhU6fp_qUwmA`
+        "400":
+          description: |
+            Solicitud inválida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Estructura que contiene la información sobre una solicitud o pago, informa al estado actual de la misma.
+                    properties:
+                      status:
+                        type: string
+                        description: |
+                          Estado de la solicitud
+                          
+                          Allowed values: `OK` `FAILED` `APPROVED` `APPROVED_PARTIAL` `PARTIAL_EXPIRED` `REJECTED` `PENDING` `PENDING_VALIDATION` `PENDING_PROCESS` `REFUNDED` `REVERSED` `ERROR` `UNKNOWN` `MANUAL` `DISPUTE`
+                      reason:
+                        type: integer
+                        description: |
+                          Código de respuesta
+                          
+                          `>= 1 characters` `<= 4 characters`
+                      message:
+                        type: string
+                        description: |
+                          Mensaje de respuesta
+                      date:
+                        type: string
+                        description: |
+                          Fecha y hora de la respuesta
+                          
+                           EJ: `2021-09-21T09:34:48-05:00`
+                required:
+                  - Status
+  /api/validate-existing-account:
+    post:
+      summary: "Validar Cuenta existente"
+      description: "Una vez realizada de manera exitosa la creación inicial de la sesión podrá realizar validaciones a la cuenta las veces que considere necesarias, solo debe tener la información de la cuenta y el código de verificación entregado en el proceso anterior."
+      operationId: "validate-existing-account"
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - user
+              properties:
+                auth:
+                  type: object
+                  description: La autenticación del sitio.
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      examples:
+                        - "1441d14df19ec88431e513bb990326e1"
+                    tranKey:
+                      type: string
+                      examples:
+                        - "DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY="
+                    nonce:
+                      type: string
+                      examples:
+                        - "enQ4dXh3YWhkMWM="
+                    seed:
+                      type: string
+                      examples:
+                        - "2023-06-21T09:56:06-05:00"
+                account:
+                  type: object
+                  description: |
+                    Cuenta a la que se le realizará la validación. El código de verificación es requerido.
+                  required:
+                    - name
+                    - email
+                  properties:
+                    bankName:
+                      type: string
+                      description: |
+                        Nombre del banco de la cuenta a procesar
+                        
+                        `<= 30 characters`
+                    bankCode:
+                      type: string
+                      description: |
+                        Código que identifica al banco en la red
+                        
+                         `<= 17 characters`
+                    accountType:
+                      type: string
+                      description: |
+                        Tipo de cuenta
+                        
+                        Allowed values: `SAV` `DDA` `CCD`
+                    accountNumber:
+                      type: string
+                      description: |
+                        Número de cuenta
+                        
+                         `<= 17 characters`
+                    franchise:
+                      type: string
+                      description: |
+                        `<= 20 characters`
+                    verificationCode:
+                      type: string
+                      description: |
+                        El verificationCode es un JSON Web Signature (JWS). Tiene el fin de ser el instrumento verificador del estado de la cuenta.
+                        
+                        EJ:`eyJhbGciOiJSUzI1NiJ9.eyJhY2NvdW50SGFzaCI6ImM5YWM2ZjFhZDhjNDA3Y2ZjNzMyNDljNTE2MTJjNTdmMWQxZGNiNTA4YjE4ZGJlYWE1MWQ0NDI5NjBjMjUwNDUyMzY4ZTg2YmUzMWQ3MDMxMDY4ZDM2MjM2NzVjYzhkYTUzNzhhODNmMTUwZjg5OTczOTBiZTEyMGU1ZmExN2RhIiwib25UZXN0Ijp0cnVlLCJzZXJ2aWNlIjoibW9jayIsImlkIjo0MDB9.dFMY4EwCrWq9EBmERFkKCoLHExPH4vgaCgnZaqB_mf8n3Sv6Qnu6Pb79onluX1OZecmYmBuHqZ_ykKXWSD4RMZSpckYFCiO3mlcJKI4qb91COhl_c2qXxYJuLEdbLfGlzf0k8-oJgFcO9gAS1Xm0hpTP4iiXF6st1hFwlfR3fpX4rr-bTsKgMvRSReMuxa0Vs92DykfqUR_3udlc0DFCPB9ZTaSqeRNHFAPAWNniUPWURQlW5c9J9xcyKTgKGzfI1_7h2I4ALQeRifptE2nC-HZtEMwtcToNh7hn0oL9lNFXnXGK9sWKORcyWKVfpEChS8z30UfX6kOhU6fp_qUwmA`
+                payment:
+                  type: object
+                  description: |
+                    Estructura que contiene la información acerca del pago de la transacción.
+                  required:
+                    - name
+                    - email
+                  properties:
+                    amount:
+                      type: object
+                      description: |
+                        Estructura que contiene la información acerca del pago de la transacción.
+                      properties:
+                        currency:
+                          type: string
+                          description: |
+                            `>= 3 characters` `<= 3 characters`
+                            
+                             EJ : `USD`
+                        total:
+                          type: number
+                locale:
+                  type: string
+                  description: |
+                    Default: `en`
+                    
+                    EJ: `es_CO`
+
+      responses:
+        "200":
+          description: "Respuesta estado de validación"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Estructura que contiene la información sobre una solicitud o pago, informa al estado actual de la misma.
+                    properties:
+                      status:
+                        type: string
+                        description: |
+                          Estado de la solicitud
+                          
+                          Allowed values: `OK` `FAILED` `APPROVED` `APPROVED_PARTIAL` `PARTIAL_EXPIRED` `REJECTED` `PENDING` `PENDING_VALIDATION` `PENDING_PROCESS` `REFUNDED` `REVERSED` `ERROR` `UNKNOWN` `MANUAL` `DISPUTE`
+                      reason:
+                        type: integer
+                        description: |
+                          Código de respuesta
+                          
+                          `>= 1 characters` `<= 4 characters`
+                      message:
+                        type: string
+                        description: |
+                          Mensaje de respuesta
+                      date:
+                        type: string
+                        description: |
+                          Fecha y hora de la respuesta
+                          
+                           EJ: `2021-09-21T09:34:48-05:00`
+        "400":
+          description: |
+            Solicitud  inválida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Estructura que contiene la información sobre una solicitud o pago, informa al estado actual de la misma.
+                    properties:
+                      status:
+                        type: string
+                        description: |
+                          Estado de la solicitud
+
+                          Allowed values: `OK` `FAILED` `APPROVED` `APPROVED_PARTIAL` `PARTIAL_EXPIRED` `REJECTED` `PENDING` `PENDING_VALIDATION` `PENDING_PROCESS` `REFUNDED` `REVERSED` `ERROR` `UNKNOWN` `MANUAL` `DISPUTE`
+                      reason:
+                        type: integer
+                        description: |
+                          Código de respuesta
+
+                          `>= 1 characters` `<= 4 characters`
+                      message:
+                        type: string
+                        description: |
+                          Mensaje de respuesta
+                      date:
+                        type: string
+                        description: |
+                          Fecha y hora de la respuesta
+
+                           EJ: `2021-09-21T09:34:48-05:00`

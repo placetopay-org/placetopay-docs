@@ -1,0 +1,93 @@
+## Webhook de Eventos {{id: "webhooks"}}
+
+El **Webhook de Eventos** permite notificar a los comercios sobre el estado final de la cuenta, proporcionando acceso más rápido a dicha información y mejorando la experiencia del usuario.
+
+<Note>
+    Para poder recibir estas notificaciones se debe configurar el endpoint de notificaciones en el panel administrativo de Placetopay en el apartado integraciones -> account-validator.
+</Note>
+
+## Estructura del Webhook
+
+El webhook enviado tiene la siguiente estructura con los datos:
+
+- **Estado (`status`)**: Contiene la información del estado de la cuenta.
+- **Identificador de la sesión (`requestId`)**: Permite identificar a qué sesión corresponde el webhook. Se envía el `requestId` proporcionado desde la creación de la sesión.
+- **Firma (`signature`)**: Permite que el comercio valide que el webhook proviene del aplicativo **Account Validator** y asegurar el flujo. Se enviará utilizando la siguiente fórmula:
+
+  ```plaintext
+  sha1(requestId + status.status + tranKey)
+  ```
+
+Donde `tranKey` corresponde a la clave con la que se autenticó el comercio.
+
+## Consulta del Estado de la Sesión
+
+Es **necesario** que, al recibir el webhook, el comercio consulte el endpoint de [consultar el estado de la verificación](/account-validator/api/session#check-session-status) cuando la respuesta sea aprobada. Esto se debe a que, por motivos de seguridad, la cuenta bancaria no puede viajar en el webhook. Con este endpoint, el comercio podrá recuperarla para continuar con el flujo.
+
+---
+
+## Ejemplos de Respuestas
+
+### 1. Sesión Aprobada
+
+```json
+{
+  "status": {
+    "status": "APPROVED",
+    "reason": "00",
+    "message": "La solicitud ha sido aprobada exitosamente"
+  },
+  "requestId": "53eccc5c-bbb8-36ae-a4f0-dfc8a791e736",
+  "signature": "0cd51ffd7cb58c0a36fb7b926838b1feb6336512"
+}
+```
+
+### 2. Fallo por Intentos Fallidos
+
+```json
+{
+  "status": {
+    "status": "REJECTED",
+    "reason": "38",
+    "message": "Ha realizado el número máximo de intentos fallidos"
+  },
+  "requestId": "53eccc5c-bbb8-36ae-a4f0-dfc8a791e736",
+  "signature": "0cd51ffd7cb58c0a36fb7b926838b1feb6336512"
+}
+```
+
+### 3. Sesión Expirada
+
+```json
+{
+  "status": {
+    "status": "REJECTED",
+    "reason": "XD",
+    "message": "La solicitud ha vencido"
+  },
+  "requestId": "53eccc5c-bbb8-36ae-a4f0-dfc8a791e736",
+  "signature": "0cd51ffd7cb58c0a36fb7b926838b1feb6336512"
+}
+```
+
+### 4. Sesión Cancelada por el Usuario
+
+```json
+{
+  "status": {
+    "status": "REJECTED",
+    "reason": "?C",
+    "message": "Verificación cancelada por el usuario"
+  },
+  "requestId": "53eccc5c-bbb8-36ae-a4f0-dfc8a791e736",
+  "signature": "0cd51ffd7cb58c0a36fb7b926838b1feb6336512"
+}
+```
+
+---
+<Note>
+## Consideraciones
+- El comercio **debe validar** la firma (`signature`) para asegurarse de que el webhook proviene del **Account Validator**.
+ - La información del estado **no incluye datos bancarios** por seguridad, por lo que es obligatorio consultar el **endpoint de estado de sesión**.
+</Note>
+---
