@@ -1,6 +1,7 @@
+export const sectionMode = 'nav';
 
 
-# Términos y Definiciones
+## Términos generales
 
 Las siguientes definiciones pretenden dar claridad sobre la información presentada a lo largo de este documento.
 
@@ -51,3 +52,94 @@ Las siguientes definiciones pretenden dar claridad sobre la información present
 - **Token de autenticación:**  Es una cadena de texto que no pretende tener un significado alguno y representa un acceso de autorización que es emitido al cliente. El token permite reemplazar las credenciales de autenticación del propietario directamente, con el fin de proteger la información.
 - **Valor de autenticación - AV:** Un valor criptográfico generado por el ACS para proporcionar una forma, durante el procesamiento de autorización, para que el sistema de autorización valide la integridad del resultado de la autenticación. El algoritmo AV es definido por cada Sistema de Pago.
 - **Versión del Mensaje:** Se refiere a la versión del protocolo que será utilizada por todos los componentes para procesar la transacción 3-D Secure. La versión del mensaje siempre es consistente en todos los mensajes del protocolo 3-D Secure para una transacción específica.
+- **Transacción iniciada por el Titular de la Tarjeta (CIT):** Cualquier transacción en la que el titular de la tarjeta participa activamente en la transacción. Las transacciones pueden realizarse con base en las credenciales proporcionadas por el titular de la tarjeta en el momento de la transacción o una credencial almacenada de una interacción previa. Las transacciones pueden ocurrir como una transacción en punto de venta **POS** en tienda, una transacción de comercio electrónico, una orden por correo/teléfono, o en un cajero automático **ATM**.
+- **Transacción Iniciada por el Comerciante (MIT):** Una transacción donde el titular de la tarjeta no participa activamente en la transacción. Las **MIT** a menudo pueden ser precedidas por una CIT **que involucre una PA - Payment Authentication** o una Consulta de Estado de Cuenta **ASI, por sus siglas en inglés**.
+- **Payment Authentication (PA):** Implica monto de autenticación
+- **Not Payment Authentication (NPA):** No implica monto
+
+
+---
+
+## Pago Recurrente / Cuotas
+
+Una transacción que surge de un acuerdo entre el titular de la tarjeta y el comerciante mediante el cual el titular de la tarjeta acepta que el comerciante almacene la credencial del titular de la tarjeta y utilice esa credencial almacenada para una compra subsiguiente de bienes o servicios. Estas transacciones pueden clasificarse como:
+
+* Orden permanente
+* Suscripción
+* Cuota pagos diferidos
+* CREDENCIAL-ON-FILE no programada
+
+---
+
+## Práctica de la Industria MIT
+
+Una transacción iniciada por el comerciante para cumplir con una práctica comercial que ocurre más a menudo después de una interacción inicial con el titular de la tarjeta. Las transacciones pueden realizarse con credenciales que están almacenadas en archivo, o credenciales que no están almacenadas en archivo, sino que son temporalmente retenidas por el comerciante según lo acordado por el consumidor. Estas MIT de práctica de la industria pueden clasificarse como:
+
+* Envíos parciales
+* Entregas parciales o retrasadas
+* No presentación (Tarjetahabiente no está presente para tomar el servicio)
+* Reenvío
+
+---
+
+## Tipos de mensajes 3RI admitidos
+
+La funcionalidad 3RI abarca varios casos de uso técnicos y comerciales diferentes que son principalmente definidos por los siguientes campos EMV 3DS:
+
+• **Canal de dispositivo (deviceChannel)** = RI (03)
+
+• **Campo Indicador 3RI (tresRIInd)** en la solicitud de autenticación **AReq** que define el tipo de Transacción 3RI. No todos los valores de campo del indicador 3RI documentados en la especificación EMV 3DS actualmente son compatibles con las marcas
+
+| 3RI Indicador (threeRIInd)                   | Marcas                   | Pago (PA) | No Pago (NPA) |
+|----------------------------------------------|--------------------------|-----------|---------------|
+| **RECURRING_TRANSACTION** (01)               | Visa con DAF, Mastercard | SI        | NO            |
+| **INSTALMENT_TRANSACTION** (02)              | Visa con DAF, Mastercard | SI        | NO            |
+| **ADD_CARD** (03)                            | Visa, Mastercard         | NO        | SI            |
+| **MAINTAIN_CARD_INFORMATION** (04)           | Visa, Mastercard         | NO        | SI            |
+| **ACCOUNT_VERIFICATION** (05)                | Visa, Mastercard         | NO        | SI            |
+| **SPLIT_OR_DELAYED_SHIPMENT** (06)           | Visa, Mastercard         | SI        | NO            |
+| **TOP_UP** (07)                              | Visa, Mastercard         | NO        | NO            |
+| **MAIL_ORDER** (08)                          | Visa, Mastercard         | NO        | NO            |
+| **TELEPHONE_ORDER** (09)                     | Visa, Mastercard         | NO        | NO            |
+| **WHITELIST_STATUS_CHECK** (10)              | Visa, Mastercard         | NO        | SI            |
+| **OTHER_PAYMENT** (11)                       | Visa, Mastercard         | SI        | NO            |
+| **VISA_UNSCHEDULED_CREDENTIAL_ON_FILE** (81) | Visa con DAF             | SI        | NO            |
+
+
+
+
+
+
+
+
+
+
+
+---
+
+## Preguntas frecuentes
+
+* **¿Es posible Agregar Tarjeta ***"threeDSAuthenticationInd": ADD_CARD (04)*** y hacer la Autenticación de un Pago (PA) al mismo tiempo?**
+
+No es posible. En el proceso de Agregar Tarjeta a un comercio para validar la identidad de la tarjeta habiente, es permitido enviar un monto, en cuyo caso se descontará el monto para la verificación de fondos y DEBE ser reembolsado posteriormente por el comercio, lo cual no representa una Autenticación Pago en sí mismo.
+
+Es necesario enviar posterior al proceso de Agregar Tarjeta otra autenticación con el monto a Autenticacior
+
+* **¿Se puede usar una CIT NPA como PriorInformation para una MIT PA?**
+
+Es posible UNICAMENTE en el escenario de un pago único, en este caso, se podrá utilizar una CIT NPA de tipo “Agregar Tarjeta” **este es el único caso confirmado para este uso**. La transacción MIT deberá mandarse con el indicativo threeRIInd=81 **Unscheduled Credential-on-File**, este tipo de transacción no requiere ningún valor de recurrencia **recurringExpiry, recurringFrequency** únicamente el monto que se va a pagar.  Eventualmente otros casos de uso pueden ser agregados en versiones del Protocolo. Esto aplica exclusivamente para VISA usando la extensión DAF
+
+La razón principal es que estas dos categorías de transacciones tienen naturalezas diferentes y propósitos distintos:
+
+  1. **MIT (Merchant Initiated Transaction):** Una MIT es iniciada por el comerciante en lugar del titular de la tarjeta. Por lo general, las MIT se utilizan para pagos recurrentes, como suscripciones mensuales o anuales, donde el comerciante tiene la autorización del titular de la tarjeta para cargar periódicamente el monto acordado en su tarjeta. En las MIT, la autenticación suele ser realizada por el comerciante y no requiere la interacción activa del titular de la tarjeta en el momento de la transacción.
+  2. **CIT NPA ***Customer Initiated Transaction - Non Payment Authentication***:** Una CIT NPA es una transacción iniciada por el titular de la tarjeta que no implica un pago directo, sino que se utiliza para otros fines, como la verificación de la tarjeta o la consulta de saldo. En una CIT NPA, se puede realizar una autenticación sin que se realice una transferencia de fondos directa.
+
+Dado que una MIT implica un pago por parte del comerciante y una CIT NPA no implica un pago directo, no tendría sentido lanzar una transacción MIT junto con una CIT NPA. Cada tipo de transacción tiene su propio propósito y aplicación específica en el contexto del protocolo **3D Secure**.
+
+En pocas palabras: es posible unsar una CIT NPA en una MIT PA si el pago es único **no recurrente**.
+
+Unscheduled card-on-file transactions **UCOF**: A transaction using a stored credential for a fixed or variable amount that does not occur on a scheduled or regularly occurring transaction date, where the cardholder has provided consent for the merchant to initiate one or more future transactions
+
+* **Visa Digital Authentication Framework DAF**
+
+Visa Digital Authentication Framework DAF es una extensión de mensaje del protocolo 3DS que le permite a Visa identificar a titulares de tarjetas que superaron el flujo de autenticación con desafío en un determinado comercio - adquirente, para así otorgarles un estado de confiabilidad al determinarlos como credencial de pago autenticada ***Authenticated Credential Payment - ACP***, esto permite que las siguientes transacciones que ejecute el tarjetahabiente en el mismo comercio sean autenticadas de inmediato.

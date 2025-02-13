@@ -96,7 +96,7 @@ const Select = ({ id, value, onChange, options }) => (
     onChange={onChange}
   >
     {options.map((option, index) => (
-      <option key={index} value={option.value}>
+      <option className="text-gray-950" key={index} value={option.value}>
         {option.label}
       </option>
     ))}
@@ -153,7 +153,7 @@ export const PinpadPlayground = () => {
 
   useEffect(() => {
     const src =
-      'https://unpkg.com/@placetopay/pinpad-sdk@2/dist/pinpad-sdk.umd.js'
+      'https://unpkg.com/@placetopay/pinpad-sdk@latest/dist/pinpad-sdk.umd.js'
     const container = pinpadContainerRef.current
 
     if (document.querySelector(`script[src="${src}"]`)) {
