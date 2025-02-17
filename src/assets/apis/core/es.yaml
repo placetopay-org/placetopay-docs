@@ -9574,7 +9574,7 @@ paths:
     post:
       summary: Crear facturas
       operationId: post-core-invoice-create
-      description: Este servicio permite crear facturas.
+      description: Este servicio permite crear multiples facturas. Si una factura es creada con la misma referencia de una factura ya existente, la misma será sustituida si no está pagada.
       responses:
         "200":
           description: OK
@@ -9685,6 +9685,138 @@ paths:
                       "serviceCode": "1234"
                     }
                   ]
+      tags:
+        - Acciones sobre facturas
+    parameters: []
+  "/core/invoice/remove":
+    post:
+      summary: Eliminar una factura
+      operationId: post-core-invoice-remove
+      description: Este servicio permite eliminar una factura.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+                  data:
+                    type: object
+                    description: Objeto con la información de la factura eliminada.
+                    "$ref": "#/components/schemas/Invoice"
+              examples:
+                Respuesta exitosa:
+                  value:
+                    status:
+                      status: OK
+                      reason: "00"
+                      message: La petición se ha procesado correctamente.
+                      date: "2021-09-21T09:34:48-05:00"
+                    data: {
+                      id: 33,
+                      status: "ACTIVE",
+                      serviceCode: "1234",
+                      debtor: {
+                        document: "1234567890",
+                        documentType: "CC",
+                        name: "NAME"
+                      },
+                      payment: {
+                        reference: "REFERENCE",
+                        description: "DESCRIPTION",
+                        amount: [
+                          taxes: {
+                            kind": "valueAddedTax",
+                            amount: 0,
+                            base: 0
+                          },
+                          details: [
+                            {
+                              kind": "subtotal",
+                              amount": 2.22
+                            }
+                          ],
+                          currency: "USD",
+                          total: 2.22
+                        ],
+                        allowPartial: false,
+                        subscribe: false
+                      },
+                      altReference: "ALT_REFERENCE",
+                      createdAt: "2021-03-25",
+                      expirationDate: "2025-02-25 10:14:24",
+                      finalDate: "2025-02-25 23:59:59",
+                      siteId: 3
+                    }
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Respuesta fallida:
+                  value:
+                    Status:
+                      status: FAILED
+                      reason: BR
+                      message: El campo site es obligatorio.
+                      date: "2021-09-21T09:34:48-05:00"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Auntenticación fallida:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "401"
+                      message:
+                        la autenticación no contiene todos los parámetros requeridos
+                        (login, tranKey, seed, nonce)
+                      date: "2021-09-21T09:34:48-05:00"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  "$ref": "#/components/schemas/Autentication"
+                site:
+                  type: integer
+                  example: 1
+                  description: Id del sitio al cual pertenece la factura.
+                invoice:
+                  type: integer
+                  example: 1
+                  description: Número de identificación de la factura a eliminar.
+              required:
+                - auth
+                - site
+                - invoice
+            examples:
+              Eliminación de una factura:
+                value:
+                  auth:
+                    login: 613822f45568191a8cdf4ad2299f6d23
+                    tranKey: bHehjzNcMQVQ1zto0GhmZxjeMhwA+3OlFPbOup16HGc=
+                    nonce: NjE1MWQ4MDE5YWViMw==
+                    seed: "2021-09-27T09:41:05-05:00"
+                  site: 1
+                  invoice: 1
       tags:
         - Acciones sobre facturas
     parameters: []
@@ -12641,6 +12773,131 @@ components:
         - debtor
         - serviceCode
         - expiration
+    Invoice:
+      title: Invoice
+      type: object
+      description: Estructura que contiene información de la factura.
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: Id de la factura
+        status:
+          type: integer
+          enum:
+            - PAYED
+            - EXPIRED
+            - ACTIVE
+            - INACTIVE
+            - HOLD
+          example: ACTIVE
+          description: Id del plan
+        serviceCode:
+          type: integer
+          example: 1
+          description: Id del plan
+        payment:
+          type: object
+          description: Información sobre el pago de la factura.
+          properties:
+            reference:
+              type: string
+              description: Número de referencia.
+              minLength: 1
+              maxLength: 30
+            description:
+              type: string
+              description: Descripción del pago.
+              maxLength: 255
+            amount:
+              type: object
+              description: Estructura que contiene la información sobre el valor de la factura.
+              properties:
+                total:
+                  type: number
+                  description: Monto total de la factura.
+                  format: decimal
+                  maximum: 9999999999.99
+                currency:
+                  type: string
+                  description: Moneda acorde al ISO 4217 (alphabetic code).
+                  maxLength: 3
+                  example: COP
+                taxes:
+                  type: object
+                  description: Estructura que contiene la información sobre impuestos de la factura.
+                  properties:
+                    kind:
+                      type: string
+                      description: Tipo de clasificación de impuesto.
+                    amount:
+                      type: number
+                      description: Valor del impuesto.
+                      format: decimal
+                    base:
+                      type: number
+                      description: Valor base para calcular el impuesto.
+                      format: decimal
+            modifiers:
+              type: object
+              description: Estructura que contiene la información sobre los modificadores de pago de la factura.
+              properties:
+                type:
+                  type: string
+                  description: Tipo de modificador.
+                  enum:
+                    - FEDERAL_GOVERNMENT
+                code:
+                  type: string
+                  description: Código del modificador.
+                  enum:
+                    - 17934
+                    - 18083
+                    - 18910
+                    - 18999
+                    - 19210
+                additional:
+                  type: object
+                  description: Información adicional del modificador.
+        debtor:
+          type: object
+          description: Información del deudor de la factura.
+          properties:
+            document:
+              type: string
+              description: Número de documento del deudor.
+              maxLength: 16
+            documentType:
+              type: string
+              description: Tipo de documento del deudor.
+            name:
+              type: string
+              description: Nombre del deudor.
+            surname:
+              type: string
+              description: Apellidos del deudor.
+        altReference:
+          type: string
+          description: Referencia alterna de la factura.
+          minLength: 1
+          maxLength: 30
+        createdAt:
+          type: string
+          description: Fecha de creación de la factura.
+          format: date
+          example: 2025-01-01
+        expirationDate:
+          type: string
+          description: Fecha y hora de expiración de la factura.
+          format: date-time
+        finalDate:
+          type: string
+          description: Fecha y hora de finalización de plazo para pago. Es generada basada en la fecha de expiración pero con hora igual a 23:59:59.
+          format: date-time
+        siteId:
+          type: integer
+          example: 1
+          description: Identificador del sitio.
   securitySchemes:
   responses:
   requestBodies:
