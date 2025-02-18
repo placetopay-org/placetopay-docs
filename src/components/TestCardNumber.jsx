@@ -542,6 +542,13 @@ const groupsByFranchise = [
           en: 'Throws an exception in the process',
         },
       },
+      {
+        number : '5077122223995193780',
+        behavior: {
+          es: 'Aprueba si el monto es inferior a 200USD, de lo contrario rechaza',
+          en: 'Approves if the amount is less than 200 USD, otherwise rejects'
+        },
+      },
     ],
   }
 ]
