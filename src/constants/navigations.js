@@ -307,16 +307,17 @@ export const TAB_NAVIGATION = {
             title: 'Gestión ante Redes Procesadoras',
             links: [
               { title: 'Introducción', href: '/payments/processing-network/introduction' },
-              { title: 'Preguntas Frecuentes (FAQ)', href: '/payments/processing-network/introduction' },
+              { title: 'Preguntas Frecuentes (FAQ)', href: '/payments/processing-network/frequent-questions' },
               {
-                title: 'Funcionalidades de las Redes Procesadoras', links: [
-                  { title: 'Credibanco', href: '/payments/cash' },
-                  { title: 'Redeban', href: '/payments/cash' },
+                title: 'Procedimientos redes procesadoras', links: [
+                  { title: 'Credibanco', href: '/payments/processing-network/credibanco' },
+                  { title: 'Redeban', href: '/payments/processing-network/redeban' },
+                  { title: 'Errores Comunes', href: '/payments/processing-network/errors' },
                 ],
               },
             ],
           },
-
+          
           {
             title: 'Integraciones',
             links: [
