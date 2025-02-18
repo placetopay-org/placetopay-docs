@@ -10043,6 +10043,168 @@ paths:
       tags:
         - Acciones sobre facturas
     parameters: []
+  "/core/invoice/settle":
+    post:
+      summary: Marcar factura como pagada
+      operationId: post-core-invoice-settle
+      description: Este servicio permite marcar una factura como pagada. Esto significa que se han recibido los pagos correspondientes y la factura se ha cerrado.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+                  data:
+                    type: object
+                    description: Objeto con la información de la factura.
+                    "$ref": "#/components/schemas/Invoice"
+              examples:
+                Respuesta exitosa:
+                  value:
+                    status:
+                      status: OK
+                      reason: "00"
+                      message: La petición se ha procesado correctamente.
+                      date: "2021-09-21T09:34:48-05:00"
+                    data: {
+                      id: 33,
+                      status: "PAYED",
+                      serviceCode: "1234",
+                      debtor: {
+                        document: "1234567890",
+                        documentType: "CC",
+                        name: "NAME"
+                      },
+                      payment: {
+                        reference: "REFERENCE",
+                        description: "DESCRIPTION",
+                        amount: [
+                          taxes: {
+                            kind": "valueAddedTax",
+                            amount: 0,
+                            base: 0
+                          },
+                          details: [
+                            {
+                              kind": "subtotal",
+                              amount": 2.22
+                            }
+                          ],
+                          currency: "USD",
+                          total: 2.22
+                        ],
+                        allowPartial: false,
+                        subscribe: false
+                      },
+                      altReference: "ALT_REFERENCE",
+                      createdAt: "2021-03-25",
+                      expirationDate: "2025-02-25 10:14:24",
+                      finalDate: "2025-02-25 23:59:59",
+                      siteId: 3,
+                      settlement: {
+                        authorization: "00000",
+                        receipt: "12345",
+                        bankName: null,
+                        amount: 2,
+                        paymentDate: "2025-02-17 10:46:49"
+                      }
+                    }
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Respuesta fallida:
+                  value:
+                    Status:
+                      status: FAILED
+                      reason: BR
+                      message: El campo site es obligatorio.
+                      date: "2021-09-21T09:34:48-05:00"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Auntenticación fallida:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "401"
+                      message:
+                        la autenticación no contiene todos los parámetros requeridos
+                        (login, tranKey, seed, nonce)
+                      date: "2021-09-21T09:34:48-05:00"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  "$ref": "#/components/schemas/Autentication"
+                site:
+                  type: integer
+                  example: 1
+                  description: Id del sitio al cual pertenece la factura.
+                invoice:
+                  type: integer
+                  example: 1
+                  description: Número de identificación de la factura.
+                amount:
+                  type: number
+                  description: Monto total de la factura.
+                  format: decimal
+                  minimum: 0
+                authorization:
+                  type: alpha_dash
+                  description: Código de autorización del pago.
+                  maxLength: 40
+                receipt:
+                  type: alpha_num
+                  description: Recibo del pago.
+                  maxLength: 16
+                bankName:
+                  type: string
+                  description: Nombre del banco.
+                  maxLength: 80
+              required:
+                - auth
+                - site
+                - invoice
+                - amount
+                - authorization
+                - receipt
+            examples:
+              Marcar factura como pagada:
+                value:
+                  auth:
+                    login: 613822f45568191a8cdf4ad2299f6d23
+                    tranKey: bHehjzNcMQVQ1zto0GhmZxjeMhwA+3OlFPbOup16HGc=
+                    nonce: NjE1MWQ4MDE5YWViMw==
+                    seed: "2021-09-27T09:41:05-05:00"
+                  site: 1
+                  invoice: 42
+                  amount: 200
+                  authorization: "00000"
+                  receipt: "12345"
+      tags:
+        - Acciones sobre facturas
+    parameters: []
 components:
   schemas:
     Person:
