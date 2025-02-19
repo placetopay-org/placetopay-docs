@@ -148,7 +148,6 @@ export const NAMESPACES_SELECTOR = {
 export const NAMESPACE_ROUTES = {
   payments: 'payments',
   checkout: 'checkout',
-  public: 'public',
   gateway: 'gateway',
   'three-d-s-server': 'threeDsServer',
   acs: 'acs',
