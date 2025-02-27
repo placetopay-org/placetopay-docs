@@ -16,13 +16,26 @@ La Transferencia Electrónica de Beneficios (EBT, por sus siglas en inglés) es 
 
 ![Flujo pago EBT](/payments/pm-ebt-flow.webp)
 
+- **Integraciones por**: [Webcheckout](/checkout)
+El medio de pago **EBT** está disponible a través de **Webcheckout**, ofreciendo un proceso de pago seguro y automatizado. **PlacetoPay** gestiona la transacción, garantizando una experiencia fluida para el usuario.
+
+- **Integraciones por**: [Gateway](/gateway)
+Para integraciones avanzadas, **Gateway** permite capturar y procesar pagos **EBT** directamente desde la plataforma del comercio, ofreciendo mayor control en escenarios específicos como:  
+- Integraciones con sistemas de audiorespuesta.  
+- Procesamiento de múltiples transacciones con la misma información del tarjetahabiente. 
+  
+
+## Billetera Placetopay
+
+- EBT es compatible con Wallet Placetopay, lo que permite a los usuarios almacenar información de sus tarjetas para realizar compras rápidas y seguras sin necesidad de ingresarla manualmente en cada transacción.
+
+## Restricciones
+
+- Las tarjetas EBT no pueden utilizarse en determinados lugares, como licorerías, casinos y otros establecimientos de juego.
+
 ## Integración por Webcheckout  
-
-El medio de pago **EBT** ya está disponible y listo para su uso a través de [Webcheckout](/checkout). Placetopay gestiona todo el proceso de pago de forma segura y automatizada, garantizando una experiencia fluida para el usuario.  
-Al finalizar cada transacción, el usuario recibirá un voucher con los detalles de la operación, incluyendo el saldo actualizado de su cuenta EBT.
-
-EBT admite dos formas de pago: **Regular** y **Cash**, que pueden utilizarse en la misma transacción.   
-Para solicitar una sesión de pago con este medio, se deben enviar los siguientes parámetros en la solicitud:  
+El medio de pago **EBT** permite a los comercios aceptar pagos electrónicos a través de **Webcheckout**, con un proceso seguro y automatizado. EBT admite dos tipos de pago: **Regular** y **Cash**, los cuales pueden utilizarse en la misma transacción.  
+Para iniciar una sesión de pago con este método, es necesario enviar los siguientes parámetros en la solicitud.  
 
 ### **Creación de sesión de pago**  
 Para [crear una sesión](/checkout/api/reference/session#create-a-session), se deben incluir los siguientes campos:  
@@ -34,28 +47,77 @@ Para [crear una sesión](/checkout/api/reference/session#create-a-session), se d
   - **EBTRG**: Para pagos solo con Regular.  
 
 - **metadata**: Define el tipo de entrega. Se pueden enviar las siguientes opciones:  
-  - `DIRECT_DELIVERY`,  `CUSTOMER_PICKUP`, `COMMERCIAL_SHIPPING`, `OTHER`, `DATA_NOT_AVAILABLE`
+  - `DIRECT_DELIVERY`,  
+  - `CUSTOMER_PICKUP`, 
+  - `COMMERCIAL_SHIPPING`, 
+  - `OTHER`, 
+  - `DATA_NOT_AVAILABLE`
 
 - **payment.shipping.address**: Información de dirección del comprador.
     - `country`, `state`, `city`, `postalCode`, `street`, `phone`
+
+```json
+{
+    ...
+    "payment": {
+        "reference": "ebt_payment",
+        "description": "test ebt",
+        "amount": {
+            "currency": "USD",
+            "total": "10"
+        },
+        "shipping" : {
+            "address": {
+                "country" : "CO",
+                "city" : "San Juan",
+                "street" : "Lonie Jaskolski IV",
+                "state" : "PR", 
+                "postalCode" : "43015",
+                "phone" : "+1-787-555-1875"
+            }
+        }
+    },
+    "paymentMethod" : "ebt",
+    "metadata": {
+        "EBTDeliveryIndicator": "DIRECT_DELIVERY"
+    },
+    ...
+}
+```
 
 ### **Cobro usando token**
 Para realizar un [cobro usando token](/checkout/api/reference/token#charge-using-token), se deben enviar los mismos parámetros que en la creación de una sesión, más el siguiente campo:
 
 - **provider** Código del proveedor de procesamiento EBT:
-  - `EBUS`, `EBUS/EBTCH`, `EBUS/EBTRG`
+  - `EBUS`, 
+  - `EBUS/EBTCH`, 
+  - `EBUS/EBTRG`
+
 - **instrument.pin**: Código PinPad.
-  - Las integraciones que deseen utilizar este tipo de cobro deben integrarse con el servicio [PinPad](/sdks/pinpad) para generar y validar el código.   
-    Este código debe ser enviado en la solicitud dentro de la propiedad: 
-    `CollectRequest.instrument.pin`
+Para utilizar este método de cobro, la integración debe incluir el servicio de [PinPad](/sdks/pinpad) para generar y validar el código PIN. Este código debe ser enviado en la solicitud dentro de la propiedad: 
+`CollectRequest.instrument.pin`
 
-## Billetera Placetopay
-
-- EBT es compatible con Wallet Placetopay, lo que permite a los usuarios almacenar información de sus tarjetas para realizar compras rápidas y seguras sin necesidad de ingresarla manualmente en cada transacción.
-
-## Restricciones
-
-- Las tarjetas EBT no pueden utilizarse en determinados lugares, como licorerías, casinos y otros establecimientos de juego.
+```json
+{
+    ...
+    "payment": {
+        "reference": "ebt_collect",
+        "description": "test ebt",
+        "amount": {
+            "currency": "USD",
+            "total": 10
+        },
+    },
+    "instrument": {
+        "token": {
+            "token": "faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891"
+        },
+        "pin" : "7567F2E727200490"
+    },
+    "provider" : "EBUS/EBTCH"
+    ...
+}
+```
 
 ## FAQs
 
