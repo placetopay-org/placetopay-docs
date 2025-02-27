@@ -1812,6 +1812,10 @@ export const TAB_NAVIGATION = {
                 title: 'Procedimientos adicionales',
                 href: '/core/reference/tools'
               },
+              {
+                title: 'Acciones sobre facturas',
+                href: '/core/reference/invoice'
+              },
             ]
           },
         ],
@@ -1862,6 +1866,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Additional Procedures',
                 href: '/core/reference/tools'
+              },
+              {
+                title: 'Actions on Invoices',
+                href: '/core/reference/invoice'
               },
             ]
           },
