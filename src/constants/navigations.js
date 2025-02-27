@@ -241,9 +241,14 @@ export const TAB_NAVIGATION = {
                 ],
               },
               {
-                title: 'Redireccionamientos bancarios',
+                title: 'Débitos bancarios',
                 links: [
                   { title: 'ACH Débito Bancario', href: '/payments/bank-redirects/ach-bank-debit' },
+                ],
+              },
+              {
+                title: 'Redireccionamientos bancarios',
+                links: [
                   { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
                 ],
               },
@@ -328,9 +333,14 @@ export const TAB_NAVIGATION = {
                 ],
               },
               {
-                title: 'Bank redirects',
+                title: 'Bank Debits',
                 links: [
                   { title: 'ACH Bank Debit', href: '/payments/bank-redirects/ach-bank-debit' },
+                ],
+              },
+              {
+                title: 'Bank redirects',
+                links: [
                   { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
                 ],
               },
