@@ -1,10 +1,12 @@
 import Image from 'next/image'
 import ebt from '@/images/cards/ebt.svg'
 import { PageTitle } from '@/components/PageTitle'
+import { CountryFlags } from '@/components/Flags'
 
 export const description = 'Electronic Benefit Transfer EBT: is an electronic system that allows participants of the Supplemental Nutrition Assistance Program';
 
 <PageTitle title='EBT' imageSrc={ebt} />
+<CountryFlags countries="US, PR"  prefix="Available for: " className='mt-4'/>
 
 Electronic Benefits Transfer (EBT) is an electronic system that allows a Supplemental Nutrition Assistance Program (SNAP) participant to pay for food using SNAP benefits. When a participant shops at a SNAP authorized retail store, their SNAP EBT account is debited to reimburse the store for food that was purchased.
 
@@ -16,38 +18,16 @@ Electronic Benefits Transfer (EBT) is an electronic system that allows a Supplem
 
 ![EBT Payment Flow](/en/payments/pm-ebt-flow.webp)  
 
-## Webcheckout Integration  
+## Integration Options  
 
-The EBT payment method is now available and ready to use through [Webcheckout](/checkout). Placetopay securely and automatically manages the entire payment process, ensuring a seamless user experience.  
-At the end of each transaction, the user will receive a voucher with the transaction details, including the updated balance of their EBT account.
+- **Integration via**: [Webcheckout](/en/checkout)  
+The **EBT** payment method is available through **Webcheckout**, providing a secure and automated payment process. **PlacetoPay** manages the transaction, ensuring a seamless user experience.  
 
-EBT supports two payment types: **Regular** and **Cash**, which can be used within the same transaction.   
-To request a payment session using this method, the following parameters must be included in the request:  
+- **Integration via**: [Gateway](/en/gateway)  
+For advanced integrations, **Gateway** allows merchants to capture and process **EBT** payments directly from their platform, offering greater control in specific scenarios such as:  
+- Integrations with interactive voice response (IVR) systems.  
+- Processing multiple transactions using the same cardholder information. 
 
-### **Creating a Payment Session**  
-To [create a session](/en/checkout/api/reference/session#create-a-session), the following fields must be included:  
-
-- **paymentMethod**: Defines the type of EBT payment to be used. The following codes must be sent:  
-  - **ebt**: For Regular and Cash payments.  
-  - **EBTCH,EBTRG**: For Regular and Cash payments.  
-  - **EBTCH**: For Cash-only payments.  
-  - **EBTRG**: For Regular-only payments.  
-
-- **metadata**: Defines the delivery type. The following options can be sent:  
-  - `DIRECT_DELIVERY`, `CUSTOMER_PICKUP`, `COMMERCIAL_SHIPPING`, `OTHER`, `DATA_NOT_AVAILABLE`
-
-- **`payment.shipping.address`**: Buyer's address information.  
-    - `country`, `state`, `city`, `postalCode`, `street`, `phone`
-
-### **Charging Using a Token**  
-To process a [charge using a token](/en/checkout/api/reference/token#charge-using-token),  you must send the same parameters as in the session creation, plus the following field:
-
-- **provider** EBT processing provider code:
-  - `EBUS`, `EBUS/EBTCH`, `EBUS/EBTRG`
-- **instrument.pin**: PinPad Code.
-  - Integrations that wish to use this type of charge must integrate with the [PinPad](/en/sdks/pinpad) service to generate and validate the code.   
-    This code must be sent in the request within the property:
-    `CollectRequest.instrument.pin`
 
 ## Placetopay Wallet  
 
@@ -56,6 +36,91 @@ To process a [charge using a token](/en/checkout/api/reference/token#charge-usin
 ## Restrictions  
 
 - EBT cards cannot be used at certain locations, such as liquor stores, casinos, and other gambling establishments.  
+
+## Webcheckout Integration  
+The **EBT** payment method allows merchants to accept electronic payments through **Webcheckout**, with a secure and automated process. EBT supports two types of payment: **Regular** and **Cash**, which can be used in the same transaction.  
+To initiate a payment session using this method, the following parameters must be included in the request.  
+
+### **Payment Session Creation**  
+To [create a session](/checkout/api/reference/session#create-a-session), the following fields must be included:  
+
+- **paymentMethod**: Defines the type of EBT payment to be used. The following codes must be sent:  
+  - **ebt**: For both Regular and Cash payments.  
+  - **EBTCH, EBTRG**: For both Regular and Cash payments.  
+  - **EBTCH**: For Cash-only payments.  
+  - **EBTRG**: For Regular-only payments.  
+
+- **metadata**: Defines the delivery type. The following options can be sent:  
+  - `DIRECT_DELIVERY`  
+  - `CUSTOMER_PICKUP`  
+  - `COMMERCIAL_SHIPPING`  
+  - `OTHER`  
+  - `DATA_NOT_AVAILABLE`  
+
+- **payment.shipping.address**: Buyer’s address information.  
+  - `country`, `state`, `city`, `postalCode`, `street`, `phone`  
+
+```json
+{
+    ...
+    "payment": {
+        "reference": "ebt_payment",
+        "description": "test ebt",
+        "amount": {
+            "currency": "USD",
+            "total": "10"
+        },
+        "shipping" : {
+            "address": {
+                "country" : "CO",
+                "city" : "San Juan",
+                "street" : "Lonie Jaskolski IV",
+                "state" : "PR", 
+                "postalCode" : "43015",
+                "phone" : "+1-787-555-1875"
+            }
+        }
+    },
+    "paymentMethod" : "ebt",
+    "metadata": {
+        "EBTDeliveryIndicator": "DIRECT_DELIVERY"
+    },
+    ...
+}
+```
+
+### **Token-Based Payment**
+To perform a [token-based payment](/en/checkout/api/reference/token#charge-using-token), the same parameters as in session creation must be sent, along with the following field:
+
+- **provider**: EBT processing provider code:  
+  - `EBUS`  
+  - `EBUS/EBTCH`  
+  - `EBUS/EBTRG`  
+
+- **instrument.pin**: PinPad code.  
+To use this payment method, the integration must include the [PinPad](/en/sdks/pinpad) service to generate and validate the PIN code. This code must be sent in the request within the property:  
+
+```json
+{
+    ...
+    "payment": {
+        "reference": "ebt_collect",
+        "description": "test ebt",
+        "amount": {
+            "currency": "USD",
+            "total": 10
+        },
+    },
+    "instrument": {
+        "token": {
+            "token": "faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891"
+        },
+        "pin" : "7567F2E727200490"
+    },
+    "provider" : "EBUS/EBTCH"
+    ...
+}
+```
 
 ## FAQs  
 
