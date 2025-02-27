@@ -234,10 +234,36 @@ export const TAB_NAVIGATION = {
           {
             title: 'Medios de pago',
             links: [
-              { title: 'ACH Débito Bancario', href: '/payments/ach-bank-debit' },
-              { title: 'Click to Pay', href: '/payments/clicktopay' },
-              { title: 'CeroPay', href: '/payments/ceropay' },
-              { title: 'Pago en efectivo', href: '/payments/cash' },
+              {
+                title: 'Tarjetas',
+                links: [
+                  { title: 'EBT', href: '/payments/cards/ebt' },
+                ],
+              },
+              {
+                title: 'Débitos bancarios',
+                links: [
+                  { title: 'ACH Débito Bancario', href: '/payments/bank-redirects/ach-bank-debit' },
+                ],
+              },
+              {
+                title: 'Redireccionamientos bancarios',
+                links: [
+                  { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
+                ],
+              },
+              {
+                title: 'Efectivo',
+                links: [
+                  { title: 'Pago en efectivo', href: '/payments/cash/cash' },
+                ],
+              },
+              {
+                title: 'Billeteras',
+                links: [
+                  { title: 'Click to Pay', href: '/payments/wallets/clicktopay' },
+                ],
+              }
             ],
           },
           {
@@ -300,10 +326,36 @@ export const TAB_NAVIGATION = {
           {
             title: 'Payment methods',
             links: [
-              { title: 'ACH Bank Debit', href: '/payments/ach-bank-debit' },
-              { title: 'Click to Pay', href: '/payments/clicktopay' },
-              { title: 'CeroPay', href: '/payments/ceropay' },
-              { title: 'Cash payment', href: '/payments/cash' },
+              {
+                title: 'Cards',
+                links: [
+                  { title: 'EBT', href: '/payments/cards/ebt' },
+                ],
+              },
+              {
+                title: 'Bank Debits',
+                links: [
+                  { title: 'ACH Bank Debit', href: '/payments/bank-redirects/ach-bank-debit' },
+                ],
+              },
+              {
+                title: 'Bank redirects',
+                links: [
+                  { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
+                ],
+              },
+              {
+                title: 'Cash',
+                links: [
+                  { title: 'Cash payment', href: '/payments/cash/cash' },
+                ],
+              },
+              {
+                title: 'Wallets',
+                links: [
+                  { title: 'Click to Pay', href: '/payments/wallets/clicktopay' },
+                ],
+              }
             ],
           },
           {
