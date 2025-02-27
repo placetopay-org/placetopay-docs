@@ -1,0 +1,131 @@
+import Image from 'next/image'
+import ebt from '@/images/cards/ebt.svg'
+import { PageTitle } from '@/components/PageTitle'
+import { CountryFlags } from '@/components/Flags'
+
+export const description = 'Transferencia Electrónica de Beneficios (EBT): sistema electrónico que permite a los participantes del Programa de Asistencia Nutricional Suplementaria (SNAP) acceder a sus beneficios y realizar compras en establecimientos autorizados';
+
+<PageTitle title='EBT' imageSrc={ebt} />
+<CountryFlags countries="US, PR"  prefix="Disponible para: " className='mt-4'/>
+
+La Transferencia Electrónica de Beneficios (EBT, por sus siglas en inglés) es un sistema electrónico que permite a los participantes del Programa de Asistencia Nutricional Complementaria (SNAP, por sus siglas en inglés) pagar los alimentos utilizando los beneficios del SNAP. Cuando un participante compra en una tienda autorizada SNAP, su cuenta EBT SNAP se carga para reembolsar a la tienda por los alimentos comprados.
+
+## Flujo de pago
+1. El usuario selecciona EBT como método de pago en el checkout.
+2. Ingresa los datos de su tarjeta EBT.
+3. Completa la validación mediante OTP (código de un solo uso).
+4. Placetopay procesa la transacción y notifica al comercio y al usuario el estado de la operación.
+
+![Flujo pago EBT](/payments/pm-ebt-flow.webp)
+
+## **Opciones de integración**
+
+- **Integraciones por**: [Webcheckout](/checkout)
+El medio de pago **EBT** está disponible a través de **Webcheckout**, ofreciendo un proceso de pago seguro y automatizado. **PlacetoPay** gestiona la transacción, garantizando una experiencia fluida para el usuario.
+
+- **Integraciones por**: [Gateway](/gateway)
+Para integraciones avanzadas, **Gateway** permite capturar y procesar pagos **EBT** directamente desde la plataforma del comercio, ofreciendo mayor control en escenarios específicos como:  
+- Integraciones con sistemas de audiorespuesta.  
+- Procesamiento de múltiples transacciones con la misma información del tarjetahabiente. 
+
+
+## Billetera Placetopay
+
+- EBT es compatible con Wallet Placetopay, lo que permite a los usuarios almacenar información de sus tarjetas para realizar compras rápidas y seguras sin necesidad de ingresarla manualmente en cada transacción.
+
+## Restricciones
+
+- Las tarjetas EBT no pueden utilizarse en determinados lugares, como licorerías, casinos y otros establecimientos de juego.
+
+## Integración por Webcheckout  
+El medio de pago **EBT** permite a los comercios aceptar pagos electrónicos a través de **Webcheckout**, con un proceso seguro y automatizado. EBT admite dos tipos de pago: **Regular** y **Cash**, los cuales pueden utilizarse en la misma transacción.  
+Para iniciar una sesión de pago con este método, es necesario enviar los siguientes parámetros en la solicitud.  
+
+### **Creación de sesión de pago**  
+Para [crear una sesión](/checkout/api/reference/session#create-a-session), se deben incluir los siguientes campos:  
+
+- **paymentMethod**: Define el tipo de pago EBT a utilizar. Se deben enviar los siguientes códigos:  
+  - **ebt**: Para pagos regulares y Cash.  
+  - **EBTCH,EBTRG**: Para pagos regulares y Cash.  
+  - **EBTCH**: Para pagos solo con Cash.  
+  - **EBTRG**: Para pagos solo con Regular.  
+
+- **metadata**: Define el tipo de entrega. Se pueden enviar las siguientes opciones:  
+  - `DIRECT_DELIVERY`,  
+  - `CUSTOMER_PICKUP`, 
+  - `COMMERCIAL_SHIPPING`, 
+  - `OTHER`, 
+  - `DATA_NOT_AVAILABLE`
+
+- **payment.shipping.address**: Información de dirección del comprador.
+    - `country`, `state`, `city`, `postalCode`, `street`, `phone`
+
+```json
+{
+    ...
+    "payment": {
+        "reference": "ebt_payment",
+        "description": "test ebt",
+        "amount": {
+            "currency": "USD",
+            "total": "10"
+        },
+        "shipping" : {
+            "address": {
+                "country" : "CO",
+                "city" : "San Juan",
+                "street" : "Lonie Jaskolski IV",
+                "state" : "PR", 
+                "postalCode" : "43015",
+                "phone" : "+1-787-555-1875"
+            }
+        }
+    },
+    "paymentMethod" : "ebt",
+    "metadata": {
+        "EBTDeliveryIndicator": "DIRECT_DELIVERY"
+    },
+    ...
+}
+```
+
+### **Cobro usando token**
+Para realizar un [cobro usando token](/checkout/api/reference/token#charge-using-token), se deben enviar los mismos parámetros que en la creación de una sesión, más el siguiente campo:
+
+- **provider** Código del proveedor de procesamiento EBT:
+  - `EBUS`, 
+  - `EBUS/EBTCH`, 
+  - `EBUS/EBTRG`
+
+- **instrument.pin**: Código PinPad.
+Para utilizar este método de cobro, la integración debe incluir el servicio de [PinPad](/sdks/pinpad) para generar y validar el código PIN. Este código debe ser enviado en la solicitud dentro de la propiedad: 
+`CollectRequest.instrument.pin`
+
+```json
+{
+    ...
+    "payment": {
+        "reference": "ebt_collect",
+        "description": "test ebt",
+        "amount": {
+            "currency": "USD",
+            "total": 10
+        },
+    },
+    "instrument": {
+        "token": {
+            "token": "faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891"
+        },
+        "pin" : "7567F2E727200490"
+    },
+    "provider" : "EBUS/EBTCH"
+    ...
+}
+```
+
+## FAQs
+
+<details>
+    <summary>¿Cómo configurar EBT en tu cuenta de Placetopay?</summary>
+    <p>Contacta a nuestro equipo de operaciones para habilitar esta funcionalidad en tu sitios a través del correo servicioposventa@placetopay.com</p>
+</details>

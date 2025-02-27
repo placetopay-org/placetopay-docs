@@ -23,6 +23,7 @@ import logoPse from '@/images/cards/pse.svg'
 import logoBancolombia from '@/images/cards/bancolombia.svg'
 import ceropay from '@/images/cards/ceropay.svg'
 import logoBank from '@/images/cards/bank.svg'
+import logoEbt from '@/images/cards/ebt.svg'
 import logoAthMovil from '@/images/cards/ath_movil.svg'
 import logoAthCard from '@/images/cards/ath_card.svg'
 import logoTarjetaClave from '@/images/cards/tarjeta_clave.svg'
@@ -171,6 +172,11 @@ const groupsByCountry = [
         name: { es: 'Tarjeta Discover - EBUS', en: 'Discover - EBUS' },
         logo: logoDiscover,
       },
+      {
+        code: ['ebt', 'EBTCH', 'EBTRG'],
+        name: { es: 'EBT', en: 'EBT' },
+        logo: logoEbt,
+      },
 
     ],
   },
@@ -204,7 +210,7 @@ export function PaymentMethods() {
             </thead>
             <tbody>
               {group.items.map((item) => (
-                <tr key={item.code} className="">
+                <tr key={item.code} className="text-end">
                   <td className="w-full">
                     <div className="not-prose flex gap-3">
                       <Image
@@ -219,7 +225,7 @@ export function PaymentMethods() {
                     </div>
                   </td>
                   <td className="align-middle">
-                    <code>{item.code}</code>
+                    {typeof item.code === "string" ? <code>{item.code}</code> : (<> {item.code.map((code) => <code className='ml-2'>{code}</code>)}</>)}
                   </td>
                 </tr>
               ))}
