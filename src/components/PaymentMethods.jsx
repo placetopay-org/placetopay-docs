@@ -193,7 +193,8 @@ const groupsByCountry = [
 ]
 
 export function PaymentMethods() {
-  const { locale, isEn } = useLocale()
+  const { locale, isEn } = useLocale();
+
   return (
     <div>
       {groupsByCountry.map((group) => (
@@ -204,13 +205,13 @@ export function PaymentMethods() {
           <table className="mt-6">
             <thead>
               <tr>
-                <th>{isEn() ? 'Name' : 'Nombre'}</th>
+                <th>{isEn() ? "Name" : "Nombre"}</th>
                 <th>ID</th>
               </tr>
             </thead>
             <tbody>
               {group.items.map((item) => (
-                <tr key={item.code} className="text-end">
+                <tr key={item.code}>
                   <td className="w-full">
                     <div className="not-prose flex gap-3">
                       <Image
@@ -219,13 +220,23 @@ export function PaymentMethods() {
                         className="h-7 w-9"
                         unoptimized
                       />
-                      {typeof item.name === 'string'
+                      {typeof item.name === "string"
                         ? item.name
                         : item.name[locale]}
                     </div>
                   </td>
-                  <td className="align-middle">
-                    {typeof item.code === "string" ? <code>{item.code}</code> : (<> {item.code.map((code) => <code className='ml-2'>{code}</code>)}</>)}
+                  <td className="align-middle text-end">
+                    {typeof item.code === "string" ? (
+                      <code>{item.code}</code>
+                    ) : (
+                      <>
+                        {item.code.map((code, index) => (
+                          <code key={index} className="ml-2">
+                            {code}
+                          </code>
+                        ))}
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -234,5 +245,5 @@ export function PaymentMethods() {
         </div>
       ))}
     </div>
-  )
+  );
 }
