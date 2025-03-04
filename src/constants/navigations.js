@@ -215,12 +215,29 @@ export const TAB_NAVIGATION = {
                 title: 'Micrositio Abierto', links: [
                   { title: 'Introducción', href: '/payments/microsite-open/introduction' },
                   { title: 'Estructura de Campos', href: '/payments/microsite-open/fields' },
+                  
                 ],
               },
               {
                 title: 'Micrositio Cerrado', links: [
                   { title: 'Introducción', href: '/payments/microsite-closed/introduction' },
                   { title: 'Carga de Órdenes', href: '/payments/microsite-closed/charge-invoice' },
+                ],
+              },
+            ],
+          },
+          {
+            title: 'Micrositio Personalizado',
+            links: [
+              { title: 'Introducción', href: '/payments/microsite-customized/introduction' },
+              { title: 'Cómo Funciona', href: '/payments/microsite-customized/how-to-work' },
+              {
+                title: 'Integración',
+                links: [
+                  { title: 'Autenticación', href: '/payments/microsite-customized/authentication' },
+                  { title: 'Servicios', href: '/payments/microsite-customized/services' },
+                  { title: 'Manejo de errores', href: '/payments/microsite-customized/error-handling' },
+                  { title: 'Estructuras de datos', href: '/payments/microsite-customized/data-structures' },
                 ],
               },
             ],
@@ -313,6 +330,22 @@ export const TAB_NAVIGATION = {
                 links: [
                   { title: 'Introduction', href: '/payments/microsite-closed/introduction' },
                   { title: 'Order Upload', href: '/payments/microsite-closed/charge-invoice' },
+                ],
+              },
+            ],
+          },
+          {
+            title: 'Custom Microsite',
+            links: [
+              { title: 'Introduction', href: '/payments/microsite-customized/introduction' },
+              { title: 'How to Work', href: '/payments/microsite-customized/how-to-work' },
+              {
+                title: 'Integration',
+                links: [
+                  { title: 'Authentication', href: '/payments/microsite-customized/authentication' },
+                  { title: 'Services', href: '/payments/microsite-customized/services' },
+                  { title: 'Error handling', href: '/payments/microsite-customized/error-handling' },
+                  { title: 'Data structures', href: '/payments/microsite-customized/data-structures' },
                 ],
               },
             ],
