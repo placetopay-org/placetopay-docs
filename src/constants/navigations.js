@@ -222,12 +222,29 @@ export const TAB_NAVIGATION = {
                 title: 'Micrositio Abierto', links: [
                   { title: 'Introducción', href: '/payments/microsite-open/introduction' },
                   { title: 'Estructura de Campos', href: '/payments/microsite-open/fields' },
+                  
                 ],
               },
               {
                 title: 'Micrositio Cerrado', links: [
                   { title: 'Introducción', href: '/payments/microsite-closed/introduction' },
                   { title: 'Carga de Órdenes', href: '/payments/microsite-closed/charge-invoice' },
+                ],
+              },
+            ],
+          },
+          {
+            title: 'Micrositio Personalizado',
+            links: [
+              { title: 'Introducción', href: '/payments/microsite-customized/introduction' },
+              { title: 'Cómo Funciona', href: '/payments/microsite-customized/how-to-work' },
+              {
+                title: 'Integración',
+                links: [
+                  { title: 'Autenticación', href: '/payments/microsite-customized/authentication' },
+                  { title: 'Servicios', href: '/payments/microsite-customized/services' },
+                  { title: 'Manejo de errores', href: '/payments/microsite-customized/error-handling' },
+                  { title: 'Estructuras de datos', href: '/payments/microsite-customized/data-structures' },
                 ],
               },
             ],
@@ -241,12 +258,53 @@ export const TAB_NAVIGATION = {
           {
             title: 'Medios de pago',
             links: [
-              { title: 'ACH Débito Bancario', href: '/payments/ach-bank-debit' },
-              { title: 'Click to Pay', href: '/payments/clicktopay' },
-              { title: 'CeroPay', href: '/payments/ceropay' },
-              { title: 'Pago en efectivo', href: '/payments/cash' },
+              {
+                title: 'Tarjetas',
+                links: [
+                  { title: 'EBT', href: '/payments/cards/ebt' },
+                ],
+              },
+              {
+                title: 'Débitos bancarios',
+                links: [
+                  { title: 'ACH Débito Bancario', href: '/payments/bank-redirects/ach-bank-debit' },
+                ],
+              },
+              {
+                title: 'Redireccionamientos bancarios',
+                links: [
+                  { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
+                ],
+              },
+              {
+                title: 'Efectivo',
+                links: [
+                  { title: 'Pago en efectivo', href: '/payments/cash/cash' },
+                ],
+              },
+              {
+                title: 'Billeteras',
+                links: [
+                  { title: 'Click to Pay', href: '/payments/wallets/clicktopay' },
+                ],
+              }
             ],
           },
+          {
+            title: 'Gestión ante Redes Procesadoras',
+            links: [
+              { title: 'Introducción', href: '/payments/processing-network/introduction' },
+              { title: 'Preguntas Frecuentes (FAQ)', href: '/payments/processing-network/frequent-questions' },
+              {
+                title: 'Procedimientos redes procesadoras', links: [
+                  { title: 'Credibanco', href: '/payments/processing-network/credibanco' },
+                  { title: 'Redeban', href: '/payments/processing-network/redeban' },
+                  { title: 'Errores Comunes', href: '/payments/processing-network/errors' },
+                ],
+              },
+            ],
+          },
+          
           {
             title: 'Integraciones',
             links: [
@@ -299,6 +357,22 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
+            title: 'Custom Microsite',
+            links: [
+              { title: 'Introduction', href: '/payments/microsite-customized/introduction' },
+              { title: 'How to Work', href: '/payments/microsite-customized/how-to-work' },
+              {
+                title: 'Integration',
+                links: [
+                  { title: 'Authentication', href: '/payments/microsite-customized/authentication' },
+                  { title: 'Services', href: '/payments/microsite-customized/services' },
+                  { title: 'Error handling', href: '/payments/microsite-customized/error-handling' },
+                  { title: 'Data structures', href: '/payments/microsite-customized/data-structures' },
+                ],
+              },
+            ],
+          },
+          {
             title: 'Payment Flow in Web Checkout',
             links: [
               { title: 'Payment Process', href: '/payments/process-pay' },
@@ -307,10 +381,50 @@ export const TAB_NAVIGATION = {
           {
             title: 'Payment methods',
             links: [
-              { title: 'ACH Bank Debit', href: '/payments/ach-bank-debit' },
-              { title: 'Click to Pay', href: '/payments/clicktopay' },
-              { title: 'CeroPay', href: '/payments/ceropay' },
-              { title: 'Cash payment', href: '/payments/cash' },
+              {
+                title: 'Cards',
+                links: [
+                  { title: 'EBT', href: '/payments/cards/ebt' },
+                ],
+              },
+              {
+                title: 'Bank Debits',
+                links: [
+                  { title: 'ACH Bank Debit', href: '/payments/bank-redirects/ach-bank-debit' },
+                ],
+              },
+              {
+                title: 'Bank redirects',
+                links: [
+                  { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
+                ],
+              },
+              {
+                title: 'Cash',
+                links: [
+                  { title: 'Cash payment', href: '/payments/cash/cash' },
+                ],
+              },
+              {
+                title: 'Wallets',
+                links: [
+                  { title: 'Click to Pay', href: '/payments/wallets/clicktopay' },
+                ],
+              }
+            ],
+          },
+          {
+            title: 'Management with Processing Networks',
+            links: [
+              { title: 'Introduction', href: '/payments/processing-network/introduction' },
+              { title: 'Frequently Asked Questions (FAQ)', href: '/payments/processing-network/frequent-questions' },
+              {
+                title: 'Processing network procedures', links: [
+                  { title: 'Credibanco', href: '/payments/processing-network/credibanco' },
+                  { title: 'Redeban', href: '/payments/processing-network/redeban' },
+                  { title: 'Common Errors', href: '/payments/processing-network/errors' },
+                ],
+              },
             ],
           },
           {

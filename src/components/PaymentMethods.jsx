@@ -23,6 +23,7 @@ import logoPse from '@/images/cards/pse.svg'
 import logoBancolombia from '@/images/cards/bancolombia.svg'
 import ceropay from '@/images/cards/ceropay.svg'
 import logoBank from '@/images/cards/bank.svg'
+import logoEbt from '@/images/cards/ebt.svg'
 import logoAthMovil from '@/images/cards/ath_movil.svg'
 import logoAthCard from '@/images/cards/ath_card.svg'
 import logoTarjetaClave from '@/images/cards/tarjeta_clave.svg'
@@ -171,6 +172,11 @@ const groupsByCountry = [
         name: { es: 'Tarjeta Discover - EBUS', en: 'Discover - EBUS' },
         logo: logoDiscover,
       },
+      {
+        code: ['ebt', 'EBTCH', 'EBTRG'],
+        name: { es: 'EBT', en: 'EBT' },
+        logo: logoEbt,
+      },
 
     ],
   },
@@ -187,7 +193,8 @@ const groupsByCountry = [
 ]
 
 export function PaymentMethods() {
-  const { locale, isEn } = useLocale()
+  const { locale, isEn } = useLocale();
+
   return (
     <div>
       {groupsByCountry.map((group) => (
@@ -198,13 +205,13 @@ export function PaymentMethods() {
           <table className="mt-6">
             <thead>
               <tr>
-                <th>{isEn() ? 'Name' : 'Nombre'}</th>
+                <th>{isEn() ? "Name" : "Nombre"}</th>
                 <th>ID</th>
               </tr>
             </thead>
             <tbody>
               {group.items.map((item) => (
-                <tr key={item.code} className="">
+                <tr key={item.code}>
                   <td className="w-full">
                     <div className="not-prose flex gap-3">
                       <Image
@@ -213,13 +220,23 @@ export function PaymentMethods() {
                         className="h-7 w-9"
                         unoptimized
                       />
-                      {typeof item.name === 'string'
+                      {typeof item.name === "string"
                         ? item.name
                         : item.name[locale]}
                     </div>
                   </td>
-                  <td className="align-middle">
-                    <code>{item.code}</code>
+                  <td className="align-middle text-end">
+                    {typeof item.code === "string" ? (
+                      <code>{item.code}</code>
+                    ) : (
+                      <>
+                        {item.code.map((code, index) => (
+                          <code key={index} className="ml-2">
+                            {code}
+                          </code>
+                        ))}
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -228,5 +245,5 @@ export function PaymentMethods() {
         </div>
       ))}
     </div>
-  )
+  );
 }
