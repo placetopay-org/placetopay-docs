@@ -10,10 +10,10 @@ import { ResourceCard } from './ResourceCard'
 const resources = [
  
   {
-    name: { es: 'Facilidad de Autogestión', en: 'Flexibility when sharing to users' },
+    name: { es: 'Facilidad de Autogestión', en: 'Ease of self-management' },
     description: {
       es: 'Los clientes pueden generar, compartir y administrar sus códigos QR de manera sencilla, sin necesidad de asistencia técnica especializada.',
-      en: 'Payment links can be shared in a variety of ways, such as URL, email, QR code or WhatsApp, adapting to the needs of each user or merchant.',
+      en: 'Customers can easily generate, share and manage their QR codes without the need for specialized technical support.',
     },
     icon: TransactionTwoToneIcon,
     pattern: {
@@ -22,10 +22,10 @@ const resources = [
     },
   },
   {
-    name: { es: 'Optimización del Proceso de Pago', en: 'Efficiency in the payment flow' },
+    name: { es: 'Optimización del Proceso de Pago', en: 'Payment Process Optimization' },
     description: {
       es: 'Permite a los usuarios finales acceder rápidamente a la plataforma de pago mediante el escaneo del QR o el enlace compartido, agilizando las transacciones.',
-      en: 'The system allows the configuration of customized expiration times and approved payment limits, optimizing the control and security of transactions.',
+      en: 'Allows end-users to quickly access the payment platform by scanning the QR or shared link, streamlining transactions',
     },
     icon: FlexibilityTwoToneIcon,
     pattern: {
@@ -34,10 +34,10 @@ const resources = [
     },
   },
   {
-    name: { es: 'Visualización y Gestión de Transacciones', en: 'Centralized management' },
+    name: { es: 'Visualización y Gestión de Transacciones', en: 'Visualization and Transaction Management' },
     description: {
       es: 'A través del panel administrativo, es posible revisar los pagos recibidos y acceder a información detallada sobre las transacciones realizadas.',
-      en: 'It includes tools such as link history, forwarding capabilities, and related payment queries, making it easy to monitor and manage from a single dashboard.',
+      en: 'Through the administrative panel, it is possible to review payments received and access detailed information on transactions made.',
     },
     icon: ErrorTwoToneIcon,
     pattern: {
