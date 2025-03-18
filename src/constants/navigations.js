@@ -211,7 +211,7 @@ export const TAB_NAVIGATION = {
             title: 'QR',
             links: [
               { title: 'Introducción', href: '/payments/qr/introduction' },
-              { title: 'Gestionar QR', href: '/payments/qr/qr-managament' },
+              { title: 'Gestionar QR', href: '/payments/qr/qr-management' },
             ],
           },
           {
