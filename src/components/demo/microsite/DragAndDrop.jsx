@@ -76,6 +76,10 @@ export function DragAndDrop({ isVisiblePDF, fields, setFields, fieldCounter, set
                 borderRadius: "0.5rem",
                 backgroundColor: isDragged || isSelected ? "#EEE" : "#FFF",
                 zIndex: isDragged ? 1000 : "auto",
+                display: "grid",
+                gridTemplateColumns: `repeat(${value.columns.length}, 1fr)`,
+                gap: "8px",
+                width: "100%",
               }}
               className="col-span-2"
             >
