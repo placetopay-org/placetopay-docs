@@ -55,8 +55,11 @@ export function DragAndDrop({ isVisiblePDF, fields, setFields, fieldCounter, set
       onChange={({ oldIndex, newIndex }) =>
         setFields(arrayMove(fields, oldIndex, newIndex))
       }
-      renderList={({ children, props, isDragged }) => (
-        <div {...props} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      renderList={({ children, props }) => (
+        <div
+          {...props}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           {children}
         </div>
       )}
@@ -73,10 +76,6 @@ export function DragAndDrop({ isVisiblePDF, fields, setFields, fieldCounter, set
                 borderRadius: "0.5rem",
                 backgroundColor: isDragged || isSelected ? "#EEE" : "#FFF",
                 zIndex: isDragged ? 1000 : "auto",
-                display: "grid",
-                gridTemplateColumns: `repeat(${value.columns.length}, 1fr)`,
-                gap: "8px",
-                width: "100%",
               }}
               className="col-span-2"
             >
