@@ -28,7 +28,7 @@ export const img = function Img({ zoom = true, ...props }) {
     <ImageZoom
       {...props}
       className={twMerge(
-        'my-0 h-auto w-full cursor-pointer rounded-md shadow transition-transform duration-300 ease-in-out hover:scale-110 focus:scale-110',
+        'my-0 h-auto w-full cursor-pointer rounded-xl ring-1 ring-inset ring-gray-950/10 transition-transform duration-300 ease-in-out hover:scale-105 focus:scale-105',
         props.className
       )}
     />

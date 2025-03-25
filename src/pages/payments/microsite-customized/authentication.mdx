@@ -1,11 +1,14 @@
+import { HeroPattern } from '@/components/HeroPattern'
 import { CenteredContainer } from '@/components/CenteredContainer'
+
+<HeroPattern />
 
 export const description =
   'Conoce el protocolo de autenticación de Checkout API y cómo generar tu autenticación.';
   
 # Autenticación
 
-Soporte para dos tipos de autenticación del servicio al que se conecta. {{ className: 'lead' }}
+Para el servicio de micrositio personalizado existe las siguientes autenticaciones:
 
 ## Web Services Security (WSS)  {{ id: 'WSS' }}
 
@@ -17,30 +20,26 @@ Placetopay-evertec.
 
 Todas las solicitudes al web deben ser autenticadas con Web Services Security
 UsernameToken Profile 1.1.
-https://groups.oasis-open.org/higherlogic/ws/public/document?document_id=13392
 
-### Usando PasswordDigest
+Placetopay siempre enviara el siguiente objeto de autenticación por cada peticion realizada.
 
-`(PasswordDigest = Base64 ( SHA-256 ( nonce + seed + tranKey )))`
 
-**Ejemplo**
+**Ejemplo**: 
 
-Para conectarse con la API REST, la autenticación debe fusionarse como parámetro
-auth con los datos de la petición.
+- **login:** Credencial `login` provista al inicar tu integración. Identificador del sitio.
 
-**login :** usuarioprueba  
-**tranKey :** ABCD1234
+- **secretKey**: Credencial `secretKey` provista al iniciar tu integración. Llave secreta del sitio.
 
-### Datos generados por el usuario**
+- **seed:** Se trata de la fecha en la que se generó la autenticación. La fecha debe estar en formato ISO 8601.    
+Ejemplo: `2025-06-21T09:56:06-05:00`
 
-Valor aleatorio para cada petición  
+- **nonce:** Valor arbitrario que identifica a una petición cómo única.   
+Se genera y se utiliza para otras operaciones.   
+Al momento de enviarlo, debe ser codificado en base 64.   
 Ejemplo: `nonce = 12345678`
 
-Fecha ISO 8601 `(Y-m-d\TH:i:s\Z)` o `(Y-m-d\TH:i:sP)`  
-Ejemplo: `seed = 2018-01-29T17:02:49-05:00`
-
 Ten en cuenta que `nonce` y `seed` son generados, `login` y `trankey` son proporcionados por
-el comercio, con esa información los datos a enviar deben ser:
+el comercio o la pasarela, con esa información los datos a enviar deben ser:
 
 - ` Base64(SHA-256(nonce + seed + tranKey))`  
 - `tranKey = dsRL5wIymrySr9TgsYtxWZEIb5/RtW1v3n3xLqQZKj4=`  
@@ -53,22 +52,20 @@ El valor del trankey resultante es `Base64(SHA-256(nonce + seed + tranKey))`
 El nonce dentro del `SHA-256` no es codificado en `Base64`, sólo está codificado como
 parámetro.
 
-Las estructuras en REST son las mismas que se describieron anteriormente, pero están
-codificadas en JSON.
 
 ``` json {{ 'title': 'Autenticación de Ejemplo' }}
 {
  "auth": {
- "login": "usuarioprueba",
- "tranKey": "dsRL5wIymrySr9TgsYtxWZEIb5/RtW1v3n3xLqQZKj4=",
- "nonce": "MTIzNDU2Nzg=",
- "seed": "2018-01-29T17:02:49-05:00"
+  "login": "usuarioprueba",
+  "tranKey": "dsRL5wIymrySr9TgsYtxWZEIb5/RtW1v3n3xLqQZKj4=",
+  "nonce": "MTIzNDU2Nzg=",
+  "seed": "2025-01-29T17:02:49-05:00"
  }
  ...
 }
 ```
 
-### JSON Web Token (JWT) 
+## JSON Web Token (JWT) 
 Tipo de autenticación creada para seguir el estándar JSON Web Token (JWT). 
 
 <CenteredContainer>
@@ -79,31 +76,32 @@ Tipo de autenticación creada para seguir el estándar JSON Web Token (JWT).
   />
 </CenteredContainer>
 
-Micrositios consulta la url de autenticación configurada usando la autenticación básica.
+Placetopay usa el servicio de autenticación para obtener el token que posteriormente será enviado en cada peticion.
 La autenticación básica se construye concatenando el username y el password,
 codificado en base64.
+
+<Note> La peticion para obtener el token se realiza via GET </Note>
 
 ``` json
 {
  "headers": {
- "Authorization": "Basic base64(username . password)"
+   "Authorization": "Basic base64(username . password)"
  }
 }
 ```
 
-### Esperando la siguiente estructura:
+Al momento de realizar la peticion de autenticacion Placetopay espera la siguiente estructura como respuesta:
 ``` json 
 
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIi
-  wibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
   "token_type": "Bearer",
   "expires": "1674520892"
 }
 
 ```
 
-El **“expires”** corresponde al timestamp que indica la fecha en la que el token expirará
+El campo **“expires”** corresponde al timestamp que indica la fecha en la que el token expirará.
 Se recomienda seguir el estándar del tiempo de expiración del token de 1 hora de
 duración.
 
@@ -114,9 +112,7 @@ servicio:
 
 {
  "headers": {
- "Authorization": "Bearer
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG
-4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+   "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
  }
 }
 ```
@@ -124,8 +120,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG
 ## Soporte para headers personalizados
 
 Adicionalmente, con el tipo de autenticación JWT soportamos el envío de headers
-personalizados según requiera el servicio en cada una de las peticiones.
-https://docs.guzzlephp.org/en/stable/request-options.html#headers
+personalizados según requiera el servicio en cada una de las peticiones. [Headers personalizados](https://docs.guzzlephp.org/en/stable/request-options.html#headers)
 
 
 

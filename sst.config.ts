@@ -12,6 +12,7 @@ export default {
   stacks(app) {
     app.stack(function Site({ stack }) {
       const site = new StaticSite(stack, "site", {
+        purgeFiles: true,
         buildOutput: "out",
         buildCommand: "npm run build",
         customDomain: {

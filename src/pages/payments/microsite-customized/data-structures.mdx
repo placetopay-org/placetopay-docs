@@ -1,0 +1,98 @@
+import { HeroPattern } from '@/components/HeroPattern'
+import { CenteredContainer } from '@/components/CenteredContainer'
+
+
+<HeroPattern />
+
+
+export const description =
+    'Conoce los tipos de documento disponibles en Placetopay Checkout y sus reglas de validación.'
+
+# Estructura de datos
+
+En este apartado podras encontrar los tipos de datos y estructuras que puedes enviar al momento de realizar la integracion con micrositio personalizado.
+
+## Configuración de métodos de pago 
+El campo **paymentMethod** puede ser utilizado durante el flujo de consulta para restringir los métodos de pago disponibles por factura a pagar, respetando todos los métodos de pago 
+habilitados en el sitio de recaudo, esta configuración permite definir los métodos de pago disponibles por factura con el objetivo de cumplir y adaptar necesidades específicas de negocio de los comercios.
+
+| Nombre del parámetro     |  Tipo de dato          | Valores de ejemplo
+|------------------------  |---------------------   | --------------------
+| paymentMethod            |  array                 | [“visa”] ["pse," “amex”, “paypal”]   
+
+
+<Note> Si el valor del parámetro es una lista vacía entonces se tomarán todos los métodos de pago habilitados para el sitio.
+Los métodos de pago disponibles se encuentran en la documentación oficial de la pasarela de pago: [Medios de Pago](https://docs.placetopay.dev/checkout/payment-methods). </Note>
+
+## Fusión de métodos de pago (mergePaymentMethods) 
+Define si se debe realizar fusión o intersección de los métodos de pago cuando se procesan múltiples facturas en una sola transacción. Esta opción sólo aplica para facturas que usen
+
+Si se envia en la petición el campo **mergePaymentMethods:** **true**
+
+Esta forma permite realizar la fusión o unión del conjunto de métodos de pago de las facturas seleccionadas. Por ejemplo:
+
+| ID    | Métodos de pago              |  Métodos de pago que se enviarán en la transacción          |
+|---------| -------------------------- | -------------------------------------------------------     |
+| 1       | [“visa”, “pse”, “amex”]    | [“visa”, "pse," “amex”, “paypal”]       |
+| 2       | [“visa”, “amex”, “paypal”] | [“visa”, "pse," “amex”, “paypal”]       |
+
+Como resultado se enviará **[“visa”, “pse”, “amex”, “paypal”]** debido a que corresponde a la combinación de los métodos de pago de cada factura.
+
+## Manejo de la restricción con pagos múltiples 
+
+Cuando el micrositio tiene habilitada la configuración “Permite pagar varias órdenes de pago a la vez” es posible definir la forma en que se deben resolver los métodos de pago haciendo uso de la opción “mergePaymentMethods”. Ver detalle en la estructura InvoiceOptions.
+
+A continuación, se indica cómo configurar esta opción:
+
+**Intersección de métodos de pago**
+
+Si se envia en la petición el campo **mergePaymentMethods:** **false** 
+
+Por defecto, se realizará la intersección del conjunto de los métodos de pago de las facturas 
+seleccionadas, garantizando así que se respeten los métodos de pago de cada una de las 
+facturas. Por ejemplo:
+
+| ID    | Métodos de pago              |  Métodos de pago que se enviarán en la transacción          |
+|----------| ------------------------ |--------------------------------------------------------     |
+| 1       | [“visa”, “pse”, “amex”]    | [“visa”, “amex”]       |
+| 2       | [“visa”, “amex”, “paypal”] | [“visa”, “amex”]       |
+
+Como resultado se enviará [“visa”, “amex”] debido a que son los métodos de pago que están presentes en las facturas seleccionadas.
+
+## AmountBase
+Estructura que representa una cantidad que define la moneda y el total.
+
+| Nombre    | Tipo              |  Descripción           |
+|----------| ------------------------ |--------------------------------------------------------     |
+| currency (Requerido)      | String  | Moneda acorde al [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) (alphabetic code)      |
+| total    (Requerido)      | Decimal | Valor total       |
+
+## AmountDetail
+Estructura para almacenar información sobre el valor. 
+
+| Nombre    | Tipo              |  Descripción           |
+|----------| ------------------------ |--------------------------------------------------------     |
+| kind (Requerido)          | String  | Valor de clasificación, puede ser [discount, additional, shipping, subtotal, fee, tip]      |
+| amount   (Requerido)      | float   | Valor discriminado       |
+
+## TaxDetail 
+Estructura para almacenar información sobre un impuesto.
+
+| Nombre    | Tipo              |  Descripción           |
+|----------| ------------------------ |--------------------------------------------------------     |
+| kind (Requerido)          | String  | Valor de clasificación, puede ser [valueAddedTax, exciseDuty]      |
+| amount (Requerido)        | float   | Valor discriminado       |
+| base   (Opcional)         | float   | Valor base       |
+
+## Amount
+Se basa en [AmountBase](/payments/microsite-customized/data-structures#amount-base) y detalla el monto total, desglosando impuestos y otros conceptos.
+| Nombre    | Tipo              |  Descripción           |
+|----------| ------------------------ |--------------------------------------------------------     |
+| currency (Requerido)      | String  | Moneda acorde al [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) (alphabetic code)      |
+| total    (Requerido)      | Decimal | Valor total       |
+| taxes    (Requerido)      | [TaxDetail](/payments/microsite-customized/data-structures#tax-detail) | Descripción de los impuestos.       |
+| details  (Requerido)      | [AmountDetail](/payments/microsite-customized/data-structures#amount-detail) | Descripción del importe total.       |
+
+## Tipos de documento 
+
+En la siguiente documentación se puede visualizar los tipos de documentos aceptados [Tipos de documentos](/document-types)

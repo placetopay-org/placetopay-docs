@@ -58,8 +58,6 @@ paths:
               required:
                 - payer
                 - payment
-                - ip_address
-                - user_agent
               properties:
                 locale:
                   type: string
@@ -67,7 +65,7 @@ paths:
                   pattern: '^[a-z]{2}_[A-Z]{2}$'
                   example: es_CO
                 payer:
-                  $ref: '#/components/schemas/Person'
+                  $ref: '#/components/schemas/Payer'
                 buyer:
                   $ref: '#/components/schemas/Person'
                 shipping:
@@ -386,7 +384,7 @@ paths:
                                 - $ref: '#/components/schemas/Score'
                                 - $ref: '#/components/schemas/Details'
               examples:
-                ejemplo exitoso:
+                ejemplo-exitoso:
                   value:
                     status:
                       code: 1200
@@ -522,6 +520,27 @@ paths:
                         - action: continue_with_next_rule
                           name: Número de transacciones por tarjeta
                           rule_code: number_of_transactions_by_card
+                          type: filter
+                          response:
+                            match: false
+                            failed: false
+                        - action: continue_with_next_rule
+                          name: La tarjeta pertenece al usuario
+                          rule_code: card_belongs_to_user
+                          type: filter
+                          response:
+                            match: false
+                            failed: false
+                        - action: continue_with_next_rule
+                          name: Número de transacciones por entidad
+                          rule_code: number_of_transactions_by_entity
+                          type: filter
+                          response:
+                            match: false
+                            failed: false
+                        - action: continue_with_next_rule
+                          name: Monto por entidad
+                          rule_code: amount_by_entity
                           type: filter
                           response:
                             match: false
@@ -1085,6 +1104,9 @@ paths:
                               - amount_by_transaction
                               - number_of_emails_by_card
                               - number_of_transactions_by_card
+                              - card_belongs_to_user
+                              - number_of_transactions_by_entity
+                              - amount_by_entity
                             description: Código de la regla que define la acción recomendada
                       rules:
                         type: array
@@ -1130,6 +1152,9 @@ paths:
                                 - BIN
                                 - number_of_emails_by_card
                                 - number_of_transactions_by_card
+                                - card_belongs_to_user
+                                - number_of_transactions_by_entity
+                                - amount_by_entity
                               description: Código de la regla
                             type:
                               type: string
@@ -1218,6 +1243,27 @@ paths:
                         - action: continue_with_next_rule
                           name: Número de transacciones por tarjeta
                           rule_code: number_of_transactions_by_card
+                          type: filter
+                          response:
+                            match: false
+                            failed: false
+                        - action: continue_with_next_rule
+                          name: La tarjeta pertenece al usuario
+                          rule_code: card_belongs_to_user
+                          type: filter
+                          response:
+                            match: false
+                            failed: false
+                        - action: continue_with_next_rule
+                          name: Número de transacciones por entidad
+                          rule_code: number_of_transactions_by_entity
+                          type: filter
+                          response:
+                            match: false
+                            failed: false
+                        - action: continue_with_next_rule
+                          name: Monto por entidad
+                          rule_code: amount_by_entity
                           type: filter
                           response:
                             match: false
@@ -1488,6 +1534,9 @@ paths:
                                     - amount_by_transaction
                                     - number_of_emails_by_card
                                     - number_of_transactions_by_card
+                                    - card_belongs_to_user
+                                    - number_of_transactions_by_entity
+                                    - amount_by_entity
                                   description: Código de la regla que define la acción recomendada
                             rules:
                               type: array
@@ -1533,6 +1582,9 @@ paths:
                                       - BIN
                                       - number_of_emails_by_card
                                       - number_of_transactions_by_card
+                                      - card_belongs_to_user
+                                      - number_of_transactions_by_entity
+                                      - amount_by_entity
                                     description: Código de la regla
                                   type:
                                     type: string
@@ -1622,6 +1674,27 @@ paths:
                             - action: continue_with_next_rule
                               name: Número de transacciones por tarjeta
                               rule_code: number_of_transactions_by_card
+                              type: filter
+                              response:
+                                match: false
+                                failed: false
+                            - action: continue_with_next_rule
+                              name: La tarjeta pertenece al usuario
+                              rule_code: card_belongs_to_user
+                              type: filter
+                              response:
+                                match: false
+                                failed: false
+                            - action: continue_with_next_rule
+                              name: Número de transacciones por entidad
+                              rule_code: number_of_transactions_by_entity
+                              type: filter
+                              response:
+                                match: false
+                                failed: false
+                            - action: continue_with_next_rule
+                              name: Monto por entidad
+                              rule_code: amount_by_entity
                               type: filter
                               response:
                                 match: false
@@ -2304,7 +2377,58 @@ components:
     Person:
       title: Person
       type: object
-      description: 'Estructura que define los campos para una persona de tipo ''shipping'', ''buyer'' y ''payer'''
+      description: 'Estructura que define los campos para una persona de tipo ''buyer y shipping'''
+      properties:
+        document:
+          type: string
+          example: '555777888'
+          maxLength: 30
+          description: Número de identificación
+          nullable: true
+        document_type:
+          type: string
+          description: Tipo de documento
+          example: CC
+          minLength: 2
+          maxLength: 10
+          nullable: true
+        first_name:
+          type: string
+          maxLength: 40
+          example: John
+          description: Nombres
+          nullable: true
+        last_name:
+          type: string
+          maxLength: 40
+          example: Doe
+          description: Apellidos
+          nullable: true
+        email:
+          type: string
+          maxLength: 80
+          example: john@mail.com
+          description: Correo electronico
+        mobile:
+          type: string
+          maxLength: 15
+          minLength: 7
+          description: Número de celular
+          example: '3158889999'
+        phone:
+          type: string
+          maxLength: 15
+          minLength: 7
+          example: '4455667'
+          description: Número de teléfono
+        address:
+          $ref: '#/components/schemas/Address'
+      required:
+        - email
+    Payer:
+      title: Payer
+      type: object
+      description: 'Estructura que define los campos para una persona de tipo ''payer'''
       properties:
         document:
           type: string
@@ -2350,7 +2474,6 @@ components:
           $ref: '#/components/schemas/Address'
       required:
         - first_name
-        - last_name
         - email
     Payment:
       title: Payment

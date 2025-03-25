@@ -21,7 +21,9 @@ import logoCompensar from '@/images/cards/compensar_wallet.svg'
 import logoCash from '@/images/cards/cash.svg'
 import logoPse from '@/images/cards/pse.svg'
 import logoBancolombia from '@/images/cards/bancolombia.svg'
+import ceropay from '@/images/cards/ceropay.svg'
 import logoBank from '@/images/cards/bank.svg'
+import logoEbt from '@/images/cards/ebt.svg'
 import logoAthMovil from '@/images/cards/ath_movil.svg'
 import logoAthCard from '@/images/cards/ath_card.svg'
 import logoTarjetaClave from '@/images/cards/tarjeta_clave.svg'
@@ -67,6 +69,19 @@ const groupsByCountry = [
         logo: logoPse,
       },
       {
+        name: 'Botón Bancolombia',
+        code: 'bancolombia',
+        logo: logoBancolombia,
+      },
+      {
+        name: {
+          es: 'CeroPay del Banco de Bogóta', en: 'CeroPay from Banco de Bogóta'
+        },
+        code: 'banco_bogota',
+        logo: ceropay,
+      },
+      { name: { es: 'Efectivo', en: 'Cash' }, code: 'ath', logo: logoCash },
+      {
         name: { es: 'Tarjeta débito Visa Electron', en: 'Visa Electron' },
         code: 'visa_electron',
         logo: logoVisaElectron,
@@ -80,11 +95,6 @@ const groupsByCountry = [
         name: { es: 'Tarjeta CODENSA', en: 'CODENSA' },
         code: 'codensa',
         logo: logoCodensa,
-      },
-      {
-        name: 'Botón Bancolombia',
-        code: 'bancolombia',
-        logo: logoBancolombia,
       },
       { name: 'Comfandi', code: 'comfandi', logo: logoComfandi },
       { name: 'CAFAM', code: 'cafam', logo: logoCafam },
@@ -108,8 +118,7 @@ const groupsByCountry = [
         name: { es: 'Billetera Compensar', en: 'Wallet Compensar' },
         code: 'procesa',
         logo: logoCompensar,
-      },
-      { name: { es: 'Efectivo', en: 'Cash' }, code: 'ath', logo: logoCash },
+      }
     ],
   },
 
@@ -163,7 +172,12 @@ const groupsByCountry = [
         name: { es: 'Tarjeta Discover - EBUS', en: 'Discover - EBUS' },
         logo: logoDiscover,
       },
-      
+      {
+        code: ['ebt', 'EBTCH', 'EBTRG'],
+        name: { es: 'EBT', en: 'EBT' },
+        logo: logoEbt,
+      },
+
     ],
   },
   {
@@ -179,7 +193,8 @@ const groupsByCountry = [
 ]
 
 export function PaymentMethods() {
-  const { locale, isEn } = useLocale()
+  const { locale, isEn } = useLocale();
+
   return (
     <div>
       {groupsByCountry.map((group) => (
@@ -190,13 +205,13 @@ export function PaymentMethods() {
           <table className="mt-6">
             <thead>
               <tr>
-                <th>{isEn() ? 'Name': 'Nombre'}</th>
+                <th>{isEn() ? "Name" : "Nombre"}</th>
                 <th>ID</th>
               </tr>
             </thead>
             <tbody>
               {group.items.map((item) => (
-                <tr key={item.code} className="">
+                <tr key={item.code}>
                   <td className="w-full">
                     <div className="not-prose flex gap-3">
                       <Image
@@ -205,13 +220,23 @@ export function PaymentMethods() {
                         className="h-7 w-9"
                         unoptimized
                       />
-                      {typeof item.name === 'string'
+                      {typeof item.name === "string"
                         ? item.name
                         : item.name[locale]}
                     </div>
                   </td>
-                  <td className="align-middle">
-                    <code>{item.code}</code>
+                  <td className="align-middle text-end">
+                    {typeof item.code === "string" ? (
+                      <code>{item.code}</code>
+                    ) : (
+                      <>
+                        {item.code.map((code, index) => (
+                          <code key={index} className="ml-2">
+                            {code}
+                          </code>
+                        ))}
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -220,5 +245,5 @@ export function PaymentMethods() {
         </div>
       ))}
     </div>
-  )
+  );
 }

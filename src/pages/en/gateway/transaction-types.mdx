@@ -3,64 +3,79 @@
 ## Authorization
 An authorization refers to the process that is executed after the user enters the requested information and it is sent to the network to make the payment.
 
+---
+
 ## Recurring payment
 It is a periodic charge made by PlacetoPay for the same value with an interval (daily, monthly, annual) according to the indication given in the request.
 
 To make use of this functionality, in the payment structure of the Recurring Payment it is necessary to send the mandatory data for this structure in the recurring object.
 
-## Pre-authorization
-These types of transactions are used in order to reserve (checkin) an amount of money on a credit card to later debit it (checkout). This amount may change over time (reauthorization) according to the needs of the merchant or changes in the services chosen by the cardholder.
+---
+
+# Pre-authorization
+
+Pre-authorization is a transaction used to reserve (**checkin**) an amount of money on a credit card. This amount can later be debited (**checkout**). During the process, the amount may change (**reauthorization**) according to the merchant’s needs or modifications in the services chosen by the cardholder. 
+
+> Note: If a **CHECKIN**, **REAUTHORIZATION**, or **CHECKOUT** transaction fails due to an abnormal status, it will be canceled and marked as rejected, but it can be retried. The failed transaction will have a **VR** status.
+
+---
 
 ## Check-In
-The CHECKIN type transaction is used to obtain authorization from the bank (provider). This is defined as: Making a debit to a credit/debit card which is used as a guarantee deposit for the use of a good or service.
 
-![Flujo](/GatewayFlow.png)
+The **CHECKIN** transaction is used to obtain authorization from the bank (provider). It is defined as a debit to a credit or debit card that serves as a guarantee deposit for the use of a good or service.
+![Flow](/GatewayFlow.png)
 
 ### Checkin Request
 
-To allow quick integration by merchants, requests of this type are similar to the one described in the `processTransaction` method with some differences mentioned below:
+To ensure quick integration, **CHECKIN** requests are similar to those of the `processTransaction` method, with the following differences:
 
-- Verify the `action` equal to `checkin`.
-- The payment reference used here will also be used in subsequent REAUTHORIZATION and CHECKOUT.
-- The payment currency used here is also used in subsequent REAUTHORIZATION and CHECKOUT.
-- Dispersion details will not be taken into account in the application. (Multiple transactions to different collectors with the same cardholder information).
-- Recurrence details will not be taken into account in the application. (Recurring charges from a proprietary database).
+- The **"action"** must be `checkin`.
+- The payment reference will be reused in subsequent **REAUTHORIZATION** and **CHECKOUT** operations.
+- The payment currency will also remain the same in **REAUTHORIZATION** and **CHECKOUT**.
+- **Dispersion details** (multiple transactions to different collectors with the same cardholder information) are not considered.
+- **Recurrence details** (recurring charges from a proprietary database) are not included.
+ 
+> **IMPORTANT:** The `preAuthorization` node contains the data that will be used in subsequent **REAUTHORIZATION** and **CHECKOUT** operations. Additionally, it reflects the general status of the pre-authorization process.
 
-IMPORTANT: Pay special attention to the node: “preAuthorization”, these are the data that will be used in subsequent REAUTHORIZATION and CHECKOUT operations. Additionally, this section shows the general status of the preauthorization process.
+---
 
 ## Re-Authorization
 
-> No aplica a Puerto Rico
+> Not applicable to Puerto Rico
 
-The REAUTHORIZATION type transaction is used to modify the amount defined as a security deposit previously separated with a CHECKIN type transaction. This performs a new authorization (reauthorization) by the bank (provider).
+The **REAUTHORIZATION** transaction modifies the previously defined security deposit amount in a **CHECKIN** transaction, requesting a new authorization from the bank (provider).
 
 ### Reauthorization Request
 
-It is necessary to first make a CHECKIN request to process a REAUTHORIZATION since:
+A **CHECKIN** request must be made before processing a **REAUTHORIZATION**. Considerations:
 
-- The payment reference for REAUTHORIZATION cases is overwritten by the original CHECKIN session
-- The payment currency for REAUTHORIZATION cases is overwritten by the original CHECKIN session
-- The data used in the “internalReference” and “authorization” of the request correspond to the data delivered by the CHECKIN response in the “preAuthorization” node
-- It is possible to do n (several) REAUTHORIZATION, of course, all before the CHECKOUT operation
-- Reauthorizations must always be for a value greater than 0
+- The payment reference is overwritten by the original **CHECKIN** session.
+- The payment currency is overwritten by the original **CHECKIN** session.
+- The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
+- Multiple **REAUTHORIZATION** transactions can be performed before **CHECKOUT**.
+- Each reauthorization must be for an amount greater than `0`.
+ 
+After this operation, the pre-authorization remains in a **pending** state until a **CHECKOUT** is performed.
 
-To highlight that after this operation the pre-authorization process is still in a pending state, this is because it is still waiting for a CHECKOUT operation.
+---
 
 ## Check-out
 
-The CHECKOUT type transaction is used to confirm the previously separated security deposit amount with a CHECKIN/REAUTHORIZATION type transaction. This formalizes the transaction (purchase/settlement) at the (supplier).
+The **CHECKOUT** transaction confirms the security deposit amount previously separated with a **CHECKIN** or **REAUTHORIZATION** transaction. This formalizes the transaction (purchase/settlement) with the provider.
 
 ### Checkout Request
+ 
+Key considerations:
+ 
+- A **CHECKOUT** can be performed without a prior **REAUTHORIZATION**.
+- The payment reference is overwritten by the original **CHECKIN** session.
+- The payment currency is overwritten by the original **CHECKIN** session.
+- The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
+- If the **CHECKOUT** amount is `0`, the pre-authorization is canceled, and the retained amount is released.
+ 
+> **IMPORTANT:** The values of `status`, `authorization`, and `receipt` within the `preAuthorization` node change after a successful **CHECKOUT**. These updated values must be used in **REVERSE** requests.
 
-According to this definition, within Evertec these types of transactions:
-
-- You can do a CHECKOUT without having to do a REAUTHORIZATION
-- The payment reference for CHECKOUT cases is overwritten by the original CHECKIN session
-- The payment currency for CHECKOUT cases is overwritten by the original CHECKIN session
-- The data used in the “internalReference” and “authorization” correspond to the data delivered by the CHECKIN process in the “preAuthorization” node
-- If the CHECKOUT value is 0, the pre-authorization is canceled and the amount retained in previous requests is released
-
-IMPORTANT: Note that the "status", "authorization" and "receipt" of the "preAuthorization" node change during a successful CHECKOUT, so, in REVERSE requests, these new values ​​must be used in the request.
+---
 
 ## Dispersion
 
