@@ -310,12 +310,28 @@ const groupsByFranchise = [
         behavior: { es: 'Aprueba', en: 'Approve' }
       },
       {
+        number : '6508410000000001',
+        behavior: { es: 'Aprueba 3DS-Y', en: 'Approve 3DS-Y' }
+      },
+      {
+        number : '6508410000000047',
+        behavior: { es: 'Aprueba 3DS-C', en: 'Approve 3DS-C' }
+      },
+      {
         number : '6550590000000019',
         behavior: { es: 'Rechaza', en: 'Denies' }
       },
       {
         number : '6557351234543164',
         behavior: { es: 'Rechaza', en: 'Denies'}
+      },
+      {
+        number : '6508410000000021',
+        behavior: { es: 'Rechaza 3DS-N', en: 'Denies 3DS-N'}
+      },
+      {
+        number : '6508410000000039',
+        behavior: { es: 'Rechaza 3DS-R', en: 'Denies 3DS-R'}
       },
       {
         number : '6550590000000027',
@@ -329,6 +345,13 @@ const groupsByFranchise = [
         behavior: { 
           es: 'Deja la transacción en estado pendiente y se resuelve a rechazado', 
           en: 'Leaves the transaction in pending status and resolves to rejected' 
+        }
+      },
+      {
+        number : '6508410000000054',
+        behavior: {
+          es: 'Deja la transacción en estado pendiente y se resuelve a aprobado 3DS-D',
+          en: 'Leaves the transaction in pending status and resolves to approved 3DS-D'
         }
       }
     ],
