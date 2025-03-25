@@ -4,6 +4,7 @@ import { ColorPicker } from '@/components/demo/microsite/HexColorPicker';
 import { ImageToBase64 } from '@/components/demo/microsite/PopupLogoMicrositeOpen';
 import { ContrastText } from '@/components/demo/microsite/AutomaticTextContrast';
 import { DragAndDrop, handleFieldSelection } from '@/components/demo/microsite/DragAndDrop';
+import { DragAndDrop2 } from '@/components/demo/microsite/DragAndDrop2';
 import { Palette, ImagePlus } from "lucide-react";
 import Image from 'next/image';
 import footerSvg from '@/images/logos/footer.svg';
@@ -80,7 +81,8 @@ export function MicrositeOpenPlayground() {
   };
 
   return (
-    <div>
+    <div className="flex flex-col min-h-0">
+      {/* Top buttons section */}
       <div className="flex flex-wrap items-center gap-4">
         <button className="mt-4 p-2 bg-gray-500 text-white rounded-lg flex items-center justify-center" onClick={() => handleClickPDF()}>Descargar PDF</button>
         <div className="flex flex-row gap-4 items-start cursor-pointer mt-4">
@@ -95,14 +97,17 @@ export function MicrositeOpenPlayground() {
             <option value="3">1 Fila de 3 Campos</option>
           </select>
         </div>
-
-
       </div>
-      <div ref={targetRef} className="mt-8 rounded-xl border border-gray-300 dark:border-gray-700 w-full">
-        <div className="mx-auto w-full grow flex">
-          <div className="flex-1 h-fit xl:flex">
-            <div className="mx-auto w-full">
-              <div className="card-main h-fit flex flex-col justify-between" name="EGM Demostración - Comercio de Pruebas Test Lina" header="https://placetopay-static-uat-bucket.s3.us-east-2.amazonaws.com/co/test/microsites/images/8V4kVIZ5f9tdiIcNOXmKwxXwkZBTohX6ga7SiGu6.png">
+
+      {/* Main content container - updated classes */}
+      <div
+        ref={targetRef}
+        className="mt-8 rounded-xl border border-gray-300 dark:border-gray-700 w-full flex flex-col"
+      >
+        <div className="mx-auto w-full flex">
+          <div className="flex-1">
+            <div className="w-full">
+              <div className="card-main flex flex-col">
                 <div className="p-4 flex-grow">
                   <div className="w-full flex justify-center mt-4 mb-8">
                     <ImageToBase64 isVisible={isVisibleLogo}></ImageToBase64>
@@ -113,30 +118,33 @@ export function MicrositeOpenPlayground() {
                   <div className="my-4 md:my-6 text-center">
                     <p className="font-bold">Comience el proceso de pago, ingresando la siguiente información</p>
                   </div>
-                  <div className="md:mt-6 mb-24 md:mb-12 md:mx-auto flex flex-row w-full ">
-
-                    <form noValidate="" className="p-0 lg:p-0 md:p-2 flex flex-col">
-                      <div className="form-layout w-full">
-
-                        <DragAndDrop
-                          isVisiblePDF={isVisiblePDF}
-                          fields={fields}
-                          setFields={setFields}
-                          fieldCounter={fieldCounter}
-                          setFieldCounter={setFieldCounter}
-                        />
-
+                  <div className="md:mt-6 md:mb-12 md:mx-auto flex flex-row w-full">
+                    <form noValidate="" className="md:mt-6 mb-24 md:mb-12 md:mx-auto flex flex-row w-full">
+                      {/* <form noValidate="" className="w-full p-0 lg:p-0 md:p-2 flex flex-col"> */}
+                      <div className="form-layout w-full flex flex-col">
+                        <div className="w-full">
+                          {/* <DragAndDrop2 /> */}
+                          <DragAndDrop
+                            isVisiblePDF={isVisiblePDF}
+                            fields={fields}
+                            setFields={setFields}
+                            fieldCounter={fieldCounter}
+                            setFieldCounter={setFieldCounter}
+                          />
+                        </div>
                         <div className="mt-6">
                           <p className="text-gray-500 text-sm text-justify">
                             Al continuar, acepto las <span>políticas</span> aplicables para el tratamiento de mis datos personales según la jurisdicción local del responsable y de
                             <a href="https://www.placetopay.com/web/politicas-de-privacidad/" target="_blank" rel="noopener noreferrer" className="font-bold" tabIndex="-1"> Evertec PlacetoPay</a> en su calidad de encargado.
                           </p>
                         </div>
-                        <p className="flex flex-col items-center mt-6">
+
+                        {/* Payment button section with proper spacing */}
+                        <div className="flex flex-col items-center w-full">
                           {isVisibleBtn && (
                             <ColorPicker color={colorBtn} setColor={setColorBtn} />
                           )}
-                          <div class="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2">
                             <ContrastText bgColor={colorBtn}>
                               <button type="button" className="mt-4 mb-4 pl-20 pr-20 p-2 rounded-lg flex items-center justify-center" style={{ backgroundColor: colorBtn }}>Pagar</button>
                             </ContrastText>
@@ -144,7 +152,7 @@ export function MicrositeOpenPlayground() {
                               <button type="button" onClick={() => handleClickBtn()}><Palette size={16} /></button>
                             )}
                           </div>
-                        </p>
+                        </div>
                       </div>
                     </form>
                   </div>
@@ -152,7 +160,12 @@ export function MicrositeOpenPlayground() {
               </div>
             </div>
           </div>
-          <div style={{ backgroundColor: colorSidePanel }} className="shrink-0 flex flex-col justify-between relative p-8 w-1/3 z-0">
+
+          {/* Side panel */}
+          <div
+            style={{ backgroundColor: colorSidePanel }}
+            className="shrink-0 flex flex-col justify-between relative p-8 w-1/3"
+          >
             <div className="text-black">
               <ContrastText bgColor={colorSidePanel}>
                 <h2 className="font-bold text-2xl mb-3 md:mb-5">Pagos electrónicos</h2>
