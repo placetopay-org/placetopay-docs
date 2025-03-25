@@ -1,4 +1,5 @@
-// Extracted from
+// Extracted from https://www.hover.dev/components/boards
+// Non-commercial purposes, open source documentation.
 
 import React, { useState } from "react";
 import { Trash2, Plus, Pencil, Check, refreshCw } from "lucide-react";
