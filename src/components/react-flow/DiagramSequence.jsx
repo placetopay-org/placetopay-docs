@@ -19,7 +19,10 @@ function DiagramSequence({children}) {
         id: child.props.name,
         type: 'sequenceActor',
         position: { x: index * 200, y: 0 },
-        data: { label: child.props.label },
+        data: { 
+          label: child.props.label,
+          color: child.props.color
+        },
       };
     }
     return null;
