@@ -208,7 +208,7 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'QR',
+            title: 'Pagos con codigo QR',
             links: [
               { title: 'Introducción', href: '/payments/qr/introduction' },
               { title: 'Gestionar QR', href: '/payments/qr/qr-management' },
@@ -319,6 +319,13 @@ export const TAB_NAVIGATION = {
               { title: 'Introduction', href: '/payments/payments-links/introduction' },
               { title: 'Create Payment Link', href: '/payments/payments-links/create-payment-link' },
               { title: 'Manage Payment Links', href: '/payments/payments-links/link-management' }
+            ],
+          },
+         {
+            title: 'QR code payments',
+            links: [
+              { title: 'Introduction', href: '/payments/qr/introduction' },
+              { title: 'Manage QR code', href: '/payments/qr/qr-management' },
             ],
           },
           {
