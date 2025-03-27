@@ -208,7 +208,7 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Pagos con codigo QR',
+            title: 'Pagos con código QR',
             links: [
               { title: 'Introducción', href: '/payments/qr/introduction' },
               { title: 'Gestionar QR', href: '/payments/qr/qr-management' },
