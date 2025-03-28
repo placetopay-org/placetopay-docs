@@ -208,6 +208,13 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
+            title: 'Pagos con código QR',
+            links: [
+              { title: 'Introducción', href: '/payments/qr/introduction' },
+              { title: 'Gestionar QR', href: '/payments/qr/qr-management' },
+            ],
+          },
+          {
             title: 'Micrositios',
             links: [
               { title: 'Introducción', href: '/payments/introduction-to-microsites' },
@@ -282,22 +289,7 @@ export const TAB_NAVIGATION = {
                 ],
               }
             ],
-          },
-          {
-            title: 'Gestión ante Redes Procesadoras',
-            links: [
-              { title: 'Introducción', href: '/payments/processing-network/introduction' },
-              { title: 'Preguntas Frecuentes (FAQ)', href: '/payments/processing-network/frequent-questions' },
-              {
-                title: 'Procedimientos redes procesadoras', links: [
-                  { title: 'Credibanco', href: '/payments/processing-network/credibanco' },
-                  { title: 'Redeban', href: '/payments/processing-network/redeban' },
-                  { title: 'Errores Comunes', href: '/payments/processing-network/errors' },
-                ],
-              },
-            ],
-          },
-          
+          },          
           {
             title: 'Integraciones',
             links: [
@@ -327,6 +319,13 @@ export const TAB_NAVIGATION = {
               { title: 'Introduction', href: '/payments/payments-links/introduction' },
               { title: 'Create Payment Link', href: '/payments/payments-links/create-payment-link' },
               { title: 'Manage Payment Links', href: '/payments/payments-links/link-management' }
+            ],
+          },
+         {
+            title: 'QR code payments',
+            links: [
+              { title: 'Introduction', href: '/payments/qr/introduction' },
+              { title: 'Manage QR code', href: '/payments/qr/qr-management' },
             ],
           },
           {
@@ -406,20 +405,7 @@ export const TAB_NAVIGATION = {
               }
             ],
           },
-          {
-            title: 'Management with Processing Networks',
-            links: [
-              { title: 'Introduction', href: '/payments/processing-network/introduction' },
-              { title: 'Frequently Asked Questions (FAQ)', href: '/payments/processing-network/frequent-questions' },
-              {
-                title: 'Processing network procedures', links: [
-                  { title: 'Credibanco', href: '/payments/processing-network/credibanco' },
-                  { title: 'Redeban', href: '/payments/processing-network/redeban' },
-                  { title: 'Common Errors', href: '/payments/processing-network/errors' },
-                ],
-              },
-            ],
-          },
+          
           {
             title: 'Integrations',
             links: [
