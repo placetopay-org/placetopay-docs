@@ -16,14 +16,21 @@ export const DragAndDrop = ({ isVisiblePDF }) => {
 const Board = ({ isVisiblePDF }) => {
   const [cards, setCards] = useState(DEFAULT_CARDS);
   const [rows, setRows] = useState(['row_1', 'row_2', 'row_3', 'row_4', 'row_5', 'row_6']);
+  const [lastRowId, setLastRowId] = useState(6);
+  const [lastCardId, setLastCardId] = useState(DEFAULT_CARDS.length); // Initialize using array length
 
   const handleAddRow = () => {
-    const newRowId = `row_${rows.length + 1}`;
+    const newRowId = `row_${lastRowId + 1}`;
     setRows([...rows, newRowId]);
+    setLastRowId(lastRowId + 1);
+
+    // Use lastCardId + 1 for the new card's ID
+    const newCardId = (lastCardId + 1).toString();
+    setLastCardId(lastCardId + 1);
 
     setCards((prevCards) => [...prevCards, {
-      title: `Nuevo campo ${cards.length + 1}`,
-      id: `${cards.length + 1}`,
+      title: `Nuevo campo ${newCardId}`,
+      id: newCardId,
       column: newRowId
     }]);
   };
@@ -114,6 +121,8 @@ const Row = ({ headingColor, cards, column, setCards, rows, setRows, isVisiblePD
 
     // Remove all cards in this row
     setCards(prevCards => prevCards.filter(card => card.column !== column));
+
+    // No need to update lastRowId since we're keeping track of it separately
   };
 
   const filteredCards = cards.filter((c) => c.column === column);
