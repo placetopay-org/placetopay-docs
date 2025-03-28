@@ -1,3 +1,5 @@
+import { Handle, Position } from "reactflow";
+
 function SequenceActor({ data, color = "bg-green-500" }) {
   const barColor = data?.color || color;
   return (

@@ -1,55 +1,153 @@
-import React, { useCallback, useState } from 'react';
+import React from 'react';
 import {
   ReactFlow,
-  addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
   Background,
-  Controls
+  Controls,
+  MarkerType,
 } from 'reactflow';
  
-import SequenceActor from '@/components/react-flow/SequenceActor';
+import {nodeTypes} from "@/components/react-flow/react-flow";
 
-const nodeTypes = { sequenceActor: SequenceActor };
- 
+function generateFlowId(type, ...parts) {
+  return `${type}-${parts.join('-')}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+}
+
 function DiagramSequence({children}) {
-  const initialNodes = React.Children.map(children, (child, index) => {
-    if (React.isValidElement(child) && child.type.name === "SequenceActor") {
-      return {
-        id: child.props.name,
-        type: 'sequenceActor',
-        position: { x: index * 200, y: 0 },
-        data: { 
-          label: child.props.label,
-          color: child.props.color
-        },
-      };
-    }
-    return null;
-  }).filter(Boolean);
+  const data = {};
+  const initialEdges = [];
 
-  const [nodes, setNodes] = useState(initialNodes);
-  const [edges, setEdges] = useState([]);
- 
-  const onNodesChange = useCallback(
-    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
-    [setNodes],
-  );
-  const onEdgesChange = useCallback(
-    (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    [setEdges],
-  );
-  const onConnect = useCallback(
-    (connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges],
-  );
- 
+  const initialNodes = children
+  .reduce((acc, child) => {
+    if (React.isValidElement(child)) {
+      if (child.type.name === "SequenceActor") {
+        
+        data[child.props.name] = {
+          positionX: Number(child.props.positionX),
+          positionY: Number(child.props.positionY),
+          color: child.props.color,
+          name: child.props.name
+        };
+
+        acc.push({
+          id: child.props.name,
+          type: 'actor',
+          position: { x: Number(child.props.positionX), y: Number(child.props.positionY) },
+          data: { 
+            label: child.props.label,
+            color: child.props.color,
+            positionX: child.props.positionX,
+            positionY: child.props.positionY
+          },
+        });
+      }
+
+      if (child.type.name === "SequenceAction") {
+        const idsNode = {
+          [child.props.from]: {
+            id: `node' + ${child.props.from} - ${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            positionX: data[child.props.from].positionX,
+            positionY: Number(child.props.positionY) - 10
+          },
+          [child.props.to]: {
+            id: `node' + ${child.props.to} - ${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            positionX: data[child.props.to].positionX,
+            positionY: Number(child.props.positionY) - 10
+          } ,
+        };
+
+        const newNodes = [];
+
+        const fromNodeExists = acc.some(existingNode => 
+          existingNode.type === 'nodeAction' &&
+          existingNode.data?.from === child.props.from &&
+          existingNode.position.x === idsNode[child.props.from].positionX &&
+          existingNode.position.y === idsNode[child.props.from].positionY
+        );
+
+        if (!fromNodeExists) {
+          newNodes.push({
+            id: idsNode[child.props.from].id,
+            type: 'nodeAction',
+            position: { 
+              x: idsNode[child.props.from].positionX, 
+              y: idsNode[child.props.from].positionY
+            },
+            data: {
+              label: child.props.label,
+              from: child.props.from,
+              to: child.props.to,
+              color: data[child.props.from].color
+            }
+          });
+        }
+
+        const toNodeExists = acc.some(existingNode => 
+          existingNode.type === 'nodeAction' &&
+          existingNode.data?.to === child.props.to &&
+          existingNode.position.x === idsNode[child.props.to].positionX &&
+          existingNode.position.y === idsNode[child.props.to].positionY
+        );
+
+        if (!toNodeExists) {
+          newNodes.push({
+            id: idsNode[child.props.to].id,
+            type: 'nodeAction',
+            position: { 
+              x: idsNode[child.props.to].positionX, 
+              y: idsNode[child.props.to].positionY
+            },
+            data: {
+              label: child.props.label,
+              from: child.props.from,
+              to: child.props.to,
+              color: data[child.props.to].color
+            }
+          });
+        }
+        const actionName = `action-${child.props.from}-${child.props.to}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+        newNodes.push({
+          id: actionName,
+          type: 'action',
+          position: { 
+            x: Number(child.props.positionX), 
+            y: Number(child.props.positionY) 
+          },
+          data: { 
+            label: child.props.message,
+            rounded: true
+          }
+        });
+      
+        acc.push(...newNodes);
+
+        initialEdges.push({
+          id: `edge-${child.props.from}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+          source: idsNode[child.props.from].id,
+          target: actionName,
+          type: 'default',
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+          }
+        },
+        {
+          id: `edge-${child.props.to}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}` ,
+          source: actionName,
+          target: idsNode[child.props.to].id,
+          type: 'default',
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+          }
+        });
+      }
+    }
+    return acc;
+  }, []);
+
   return (
     <div style={{ width: '100%', height: '300px' }} className="overflow-hidden ring-1 ring-gray-900/7.5 dark:ring-white/10 rounded-2xl">
         <ReactFlow
-        nodes={nodes}
-        edges={edges}
-
+        nodes={initialNodes}
+        edges={initialEdges}
         nodeTypes={nodeTypes}
         fitView
         className="bg-gray-50 dark:bg-gray-800">
