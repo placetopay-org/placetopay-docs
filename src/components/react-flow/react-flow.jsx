@@ -23,8 +23,13 @@ export function TagNode({data}) {
 export function CustomNode({data}) {
     const targetHandle = data.targetHandle ?? true;
     const sourceHandle = data.sourceHandle ?? true;
-    const targetPosition = data.targetPosition ?? Position.Left;
-    const sourcePosition = data.sourcePosition ?? Position.Right;
+    const targetPosition = data.isBack 
+    ? Position.Right 
+    : data.targetPosition ?? Position.Left;
+  
+  const sourcePosition = data.isBack 
+    ? Position.Left 
+    : data.sourcePosition ?? Position.Right;
 
     return (
         <div
@@ -59,17 +64,20 @@ function SequenceActor({ data, color = "bg-green-500" }) {
   function SequenceAction({ data, color = "bg-green-500" }) {
     const barColor = data?.color || color;
 
+    const targetPosition = data.isBack ? Position.Right : Position.Left;
+    const sourcePosition = data.isBack ? Position.Left : Position.Right;
+
     return (
         <div className="relative h-16 w-[6px]">
           <div className={`absolute inset-0 ${barColor} rounded-lg`}>
           <Handle 
             type="target" 
-            position={Position.Left} 
+            position={targetPosition} 
             className="!w-3 !h-3 !bg-primary-500"
           />
           <Handle 
             type="source" 
-            position={Position.Right} 
+            position={sourcePosition} 
             className="!w-3 !h-3 !bg-primary-500"
           />
           </div>

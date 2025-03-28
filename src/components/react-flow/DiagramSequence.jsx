@@ -46,12 +46,12 @@ function DiagramSequence({children}) {
           [child.props.from]: {
             id: `node' + ${child.props.from} - ${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
             positionX: data[child.props.from].positionX,
-            positionY: Number(child.props.positionY) - 10
+            positionY: Number(child.props.positionY) - 11
           },
           [child.props.to]: {
             id: `node' + ${child.props.to} - ${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
             positionX: data[child.props.to].positionX,
-            positionY: Number(child.props.positionY) - 10
+            positionY: Number(child.props.positionY) - 11
           } ,
         };
 
@@ -76,7 +76,8 @@ function DiagramSequence({children}) {
               label: child.props.label,
               from: child.props.from,
               to: child.props.to,
-              color: data[child.props.from].color
+              color: data[child.props.from].color,
+              isBack: child.props.isBack,
             }
           });
         }
@@ -100,21 +101,24 @@ function DiagramSequence({children}) {
               label: child.props.label,
               from: child.props.from,
               to: child.props.to,
-              color: data[child.props.to].color
+              color: data[child.props.to].color,
+              isBack: child.props.isBack,
             }
           });
         }
-        const actionName = `action-${child.props.from}-${child.props.to}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+
         newNodes.push({
-          id: actionName,
+          id: child.props.name,
           type: 'action',
           position: { 
             x: Number(child.props.positionX), 
             y: Number(child.props.positionY) 
           },
           data: { 
+            name: child.props.name,
             label: child.props.message,
-            rounded: true
+            rounded: true,
+            isBack: child.props.isBack,
           }
         });
       
@@ -123,7 +127,7 @@ function DiagramSequence({children}) {
         initialEdges.push({
           id: `edge-${child.props.from}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
           source: idsNode[child.props.from].id,
-          target: actionName,
+          target: child.props.name,
           type: 'default',
           markerEnd: {
             type: MarkerType.ArrowClosed,
@@ -131,7 +135,7 @@ function DiagramSequence({children}) {
         },
         {
           id: `edge-${child.props.to}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}` ,
-          source: actionName,
+          source: child.props.name,
           target: idsNode[child.props.to].id,
           type: 'default',
           markerEnd: {
