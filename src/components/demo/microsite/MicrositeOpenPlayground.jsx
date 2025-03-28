@@ -3,8 +3,7 @@ import { useRef, useState } from 'react';
 import { ColorPicker } from '@/components/demo/microsite/HexColorPicker';
 import { ImageToBase64 } from '@/components/demo/microsite/PopupLogoMicrositeOpen';
 import { ContrastText } from '@/components/demo/microsite/AutomaticTextContrast';
-import { DragAndDrop, handleFieldSelection } from '@/components/demo/microsite/DragAndDrop';
-import { DragAndDrop2 } from '@/components/demo/microsite/DragAndDrop2';
+import { DragAndDrop } from '@/components/demo/microsite/DragAndDrop';
 import { Palette, ImagePlus } from "lucide-react";
 import Image from 'next/image';
 import footerSvg from '@/images/logos/footer.svg';
@@ -18,18 +17,6 @@ export function MicrositeOpenPlayground() {
   const [isVisiblePDF, setIsVisiblePDF] = useState(true);
   const [colorBtn, setColorBtn] = useState("#64748B");
   const [colorSidePanel, setColorSidePanel] = useState("#F1F5F9");
-  const [fields, setFields] = useState([
-    { id: "reference", label: "Referencia", subLabel: "(Referencia)", type: "text", required: true },
-    { id: "payment_description", label: "Descripción del pago", subLabel: "(Descripción del pago)", type: "text", required: true },
-    { id: "currency", label: "Moneda", subLabel: "(Moneda)", type: "select", options: ["Selecciona una opción", "Peso colombiano", "Dólar estadounidense"], required: true },
-    { id: "amount", label: "Monto", subLabel: "(Monto)", type: "text", required: true },
-    { id: "buyer_id_type", label: "Tipo de documento", type: "select", options: ["Selecciona una opción", "Cédula de ciudadanía", "Cédula de extranjería", "NIT"] },
-    { id: "buyer_id", label: "Documento del comprador", type: "text" },
-    { id: "buyer_name", label: "Nombre del comprador", type: "text" },
-    { id: "buyer_surname", label: "Apellido del comprador", type: "text" },
-    { id: "buyer_email", label: "Correo electrónico", type: "email" },
-  ]);
-  const [fieldCounter, setFieldCounter] = useState(9);
 
   const handleClickSidePanel = () => {
     setIsVisibleSidePanel(!isVisibleSidePanel);
@@ -57,27 +44,23 @@ export function MicrositeOpenPlayground() {
   };
 
   const handleClickPDF = () => {
-    const contentSize = getContentSize();
-    const pdfOptions = {
-      page: {
-        format: [contentSize.width + 20, contentSize.height + 20],
-        orientation: contentSize.width > contentSize.height ? 'landscape' : 'portrait',
-        margin: 10 // 10mm margin on all sides
-      },
-      filename: 'MicrositeOpen.pdf'
-    }
     setIsVisiblePDF(false);
     setIsVisibleBtn(false);
     setIsVisibleLogo(false);
     setIsVisibleSidePanel(false);
     setTimeout(() => {
+      const contentSize = getContentSize();
+      const pdfOptions = {
+        page: {
+          format: [contentSize.width + 20, contentSize.height + 20],
+          orientation: contentSize.width > contentSize.height ? 'landscape' : 'portrait',
+          margin: 10 // 10mm margin on all sides
+        },
+        filename: 'MicrositeOpen.pdf'
+      }
       generatePDF(targetRef, pdfOptions);
       setIsVisiblePDF(true);
     }, 1000);
-  };
-
-  const handleOnChange = (e) => {
-    handleFieldSelection(e, fields, setFields, fieldCounter, setFieldCounter);
   };
 
   return (
@@ -85,18 +68,6 @@ export function MicrositeOpenPlayground() {
       {/* Top buttons section */}
       <div className="flex flex-wrap items-center gap-4">
         <button className="mt-4 p-2 bg-gray-500 text-white rounded-lg flex items-center justify-center" onClick={() => handleClickPDF()}>Descargar PDF</button>
-        <div className="flex flex-row gap-4 items-start cursor-pointer mt-4">
-          <select
-            id="fieldSelector"
-            className="p-2 bg-gray-500 text-white rounded-lg flex items-center justify-center cursor-pointer focus:outline-none hover:bg-gray-600"
-            onChange={handleOnChange}
-          >
-            <option value="">Agregar Campo</option>
-            <option value="1">1 Fila de 1 Campo</option>
-            <option value="2">1 Fila de 2 Campos</option>
-            <option value="3">1 Fila de 3 Campos</option>
-          </select>
-        </div>
       </div>
 
       {/* Main content container - updated classes */}
@@ -123,14 +94,7 @@ export function MicrositeOpenPlayground() {
                       {/* <form noValidate="" className="w-full p-0 lg:p-0 md:p-2 flex flex-col"> */}
                       <div className="form-layout w-full flex flex-col">
                         <div className="w-full">
-                          {/* <DragAndDrop2 /> */}
-                          <DragAndDrop
-                            isVisiblePDF={isVisiblePDF}
-                            fields={fields}
-                            setFields={setFields}
-                            fieldCounter={fieldCounter}
-                            setFieldCounter={setFieldCounter}
-                          />
+                          <DragAndDrop isVisiblePDF={isVisiblePDF} />
                         </div>
                         <div className="mt-6">
                           <p className="text-gray-500 text-sm text-justify">
