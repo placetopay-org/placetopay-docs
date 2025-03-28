@@ -206,11 +206,17 @@ const Row = ({ headingColor, cards, column, setCards, rows, setRows, isVisiblePD
   );
 };
 
-const Card = ({ title, subtitle, required, id, column, handleDragStart, className = "", setCards, isVisiblePDF }) => {
+const Card = ({ title, subtitle, required, id, column, type = 'text', handleDragStart, className = "", setCards, isVisiblePDF }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
-  const [inputType, setInputType] = useState('text'); // Add this state
-  const [options, setOptions] = useState(['Seleccione una opción', 'Opción 1', 'Opción 2', 'Opción 3']); // Add this for select options
+  const [inputType, setInputType] = useState(type); // Initialize with the type from props
+  const [options, setOptions] = useState(
+    inputType === 'select' && title === 'Tipo de documento' 
+      ? ['Seleccione tipo', 'CC - Cédula de ciudadanía', 'CE - Cédula de extranjería', 'TI - Tarjeta de identidad', 'PP - Pasaporte'] 
+      : inputType === 'select' && title === 'Moneda'
+      ? ['Seleccione moneda', 'COP - Peso colombiano', 'USD - Dólar estadounidense', 'EUR - Euro']
+      : ['Seleccione una opción', 'Opción 1', 'Opción 2', 'Opción 3']
+  );
 
   const handleDelete = () => {
     setCards((prevCards) => prevCards.filter((card) => card.id !== id));
@@ -387,13 +393,13 @@ const AddCard = ({ column, isVisiblePDF, setCards, className = "" }) => {
 };
 
 const DEFAULT_CARDS = [
-  { title: "Referencia", subtitle: "(Referencia)", required: true, id: "1", column: "row_1" },
-  { title: "Descripción de pago", subtitle: "(Descripción de pago)", required: true, id: "2", column: "row_2" },
-  { title: "Moneda", subtitle: "(Moneda)", required: true, id: "3", column: "row_3" },
-  { title: "Monto", subtitle: "(Monto)", required: true, id: "4", column: "row_3" },
-  { title: "Tipo de documento", required: false, id: "5", column: "row_4" },
-  { title: "Documento del comprador", required: false, id: "6", column: "row_4" },
-  { title: "Nombre del comprador", required: false, id: "7", column: "row_5" },
-  { title: "Apellido del comprador", required: false, id: "8", column: "row_5" },
-  { title: "Correo electrónico", required: false, id: "9", column: "row_6" },
+  { title: "Referencia", subtitle: "(Referencia)", required: true, id: "1", column: "row_1", type: "text" },
+  { title: "Descripción de pago", subtitle: "(Descripción de pago)", required: true, id: "2", column: "row_2", type: "text" },
+  { title: "Moneda", subtitle: "(Moneda)", required: true, id: "3", column: "row_3", type: "select" },
+  { title: "Monto", subtitle: "(Monto)", required: true, id: "4", column: "row_3", type: "text" },
+  { title: "Tipo de documento", required: false, id: "5", column: "row_4", type: "select" },
+  { title: "Documento del comprador", required: false, id: "6", column: "row_4", type: "text" },
+  { title: "Nombre del comprador", required: false, id: "7", column: "row_5", type: "text" },
+  { title: "Apellido del comprador", required: false, id: "8", column: "row_5", type: "text" },
+  { title: "Correo electrónico", required: false, id: "9", column: "row_6", type: "text" },
 ];
