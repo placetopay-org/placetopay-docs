@@ -8,7 +8,7 @@ import {
 
 import { nodeTypes } from "@/components/react-flow/react-flow";
 
-function SequenceDiagram({ children }) {
+function SequenceDiagram({ customView = null, children }) {
   const nodes = [];
   const edges = [];
 
@@ -113,23 +113,27 @@ function SequenceDiagram({ children }) {
     nodes.push(nodeData);
   }
 
+  const viewportProps = customView 
+  ? { 
+      defaultViewport: { 
+        x: Number(customView.x), 
+        y: Number(customView.y), 
+        zoom: 0.75 
+      } 
+    }
+  : { fitView: true };
   return (
-    <div style={{ width: '100%', height: '600px' }} className="overflow-hidden ring-1 ring-gray-900/7.5 dark:ring-white/10 rounded-2xl">
+    <div style={{ width: '100%', height: customView?.height ?? '400px' }} className="overflow-hidden ring-1 ring-gray-900/7.5 dark:ring-white/10 rounded-2xl">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        defaultViewport={{
-          x: 130,
-          y: 27.2727,
-          zoom: 0.75
-        }}
+        {...viewportProps}
         className="bg-gray-50 dark:bg-gray-800">
         <Background variant="dots" gap={12} size={1} />
         <Controls showInteractive={false}/>
       </ReactFlow>
     </div>
-
   );
 }
 
