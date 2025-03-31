@@ -1,17 +1,13 @@
-import { Handle, Position } from "reactflow";
-
 function SequenceActor({ data, color = "bg-green-500" }) {
   const barColor = data?.color || color;
   return (
-  <div className="SequenceDiagramActorNode Box-root rounded-l" style={{height: '400px'}}>
-    <div className="SequenceDiagramActorNode-heading Box-root w-40">
-    <div className={`absolute left-0 top-0 h-6 w-[6px] ${barColor} rounded-lg`}></div>
-    <div className="w-fit h-fit pl-4">
-    <p className="font-bold text-gray-900 mt-0">{data.label ?? "Actor"}</p>
+    <div>
+      <div className="relative h-6 w-40 items-center flex">
+        <div className={`h-6 w-[6px] ${barColor} rounded-lg`}></div>
+        <p className="font-bold text-gray-900 m-0 mt-0 ml-4">{data.label ?? "Actor"}</p>
+      </div>
+      <div className="relative bg-gray-300 left-[2px] w-[2px] rounded" style={{ height: data.height }}></div>
     </div>
-    </div>
-  </div>
-
   );
 }
 
