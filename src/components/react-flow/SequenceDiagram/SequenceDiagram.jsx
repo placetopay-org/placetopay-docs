@@ -8,11 +8,7 @@ import {
 
 import { nodeTypes } from "@/components/react-flow/react-flow";
 
-function DiagramSequence({ children }) {
-  const data = {};
-
-  const initialEdges = [];
-
+function SequenceDiagram({ children }) {
   const nodes = [];
   const edges = [];
 
@@ -39,12 +35,18 @@ function DiagramSequence({ children }) {
       nodeData['data']['height'] = child.props.height;
       actorsData[child.props.name] = { position: nodeData.position, color: child.props.color };
 
+    }else if(child.type.name === "Line"){
+      nodeData['id'] = 'line:' + child.props.id;
+      nodeData['type'] = 'line';
+      nodeData['data']['label'] = child.props.label;
+      nodeData['data']['width'] = child.props.width;
+      
     } else if (child.type.name === "SequenceAction") {
 
       nodeData['id'] = 'action_' + child.props.name;
       nodeData['type'] = 'action';
       nodeData['data']['label'] = child.props.message;
-      nodeData['data']['isBack'] = child.props.isBack;
+      nodeData['data']['isReturned'] = child.props.isReturned;
       nodeData['data']['selfAction'] = child.props.selfAction;
 
       let sourceActionPointPositionY = child.props.selfAction ? Number(child.props.sourcePositionY) : nodeData.position.y;
@@ -59,7 +61,7 @@ function DiagramSequence({ children }) {
           },
           data: {
             color: actorsData[child.props.from].color,
-            isBack: child.props.isBack,
+            isReturned: child.props.isReturned,
             actor: child.props.from,
           }
         };
@@ -78,7 +80,7 @@ function DiagramSequence({ children }) {
           },
           data: {
             color: actorsData[child.props.to].color,
-            isBack: child.props.isBack,
+            isReturned: child.props.isReturned,
             actor: child.props.to,
           }
         };
@@ -88,7 +90,7 @@ function DiagramSequence({ children }) {
       edges.push( {
         id: `edge_${nodeData['id']}_${child.props.from}_${Math.random().toString(36)}`,
         source: sourceActionPoint.id,
-        sourceHandle:  Boolean(child.props.isBack) && !Boolean(sourceActionPoint.data.isBack) ? 'source_self_action' : 'default_source',
+        sourceHandle:  Boolean(child.props.isReturned) && !Boolean(sourceActionPoint.data.isReturned) ? 'source_self_action' : 'default_source',
         target: nodeData['id'],
         targetHandle: 'default_target',
         type: 'default',
@@ -112,19 +114,23 @@ function DiagramSequence({ children }) {
   }
 
   return (
-    <div style={{ width: '100%', height: '300px' }} className="overflow-hidden ring-1 ring-gray-900/7.5 dark:ring-white/10 rounded-2xl">
+    <div style={{ width: '100%', height: '600px' }} className="overflow-hidden ring-1 ring-gray-900/7.5 dark:ring-white/10 rounded-2xl">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        fitView
+        defaultViewport={{
+          x: 130,
+          y: 27.2727,
+          zoom: 0.75
+        }}
         className="bg-gray-50 dark:bg-gray-800">
         <Background variant="dots" gap={12} size={1} />
-        <Controls showInteractive={false} />
+        <Controls showInteractive={false}/>
       </ReactFlow>
     </div>
 
   );
 }
 
-export default DiagramSequence;
+export default SequenceDiagram;
