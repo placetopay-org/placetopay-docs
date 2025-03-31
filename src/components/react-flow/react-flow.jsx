@@ -2,8 +2,10 @@ import { Tag } from "@/components/Tag";
 import { Handle, Position } from "reactflow";
 import clsx from "clsx";
 
-import SequenceActor from "@/components/react-flow/SequenceActor";
-import SequenceAction from "@/components/react-flow/SequenceAction";
+import SequenceActor from "@/components/react-flow/SequenceDiagram/SequenceActor";
+import SequenceAction from "@/components/react-flow/SequenceDiagram/SequenceAction";
+import Line from "@/components/react-flow/SequenceDiagram/Line";
+
 
 export function TagNode({ data }) {
   const targetHandle = data.targetHandle ?? true;
@@ -27,8 +29,8 @@ export function CustomAction({ data }) {
   const targetHandle = data.targetHandle ?? true;
   const sourceHandle = data.sourceHandle ?? true;
 
-  let targetPosition = data.isBack ? Position.Right : data.targetPosition ?? Position.Left;
-  let sourcePosition = data.isBack
+  let targetPosition = data.isReturned ? Position.Right : data.targetPosition ?? Position.Left;
+  let sourcePosition = data.isReturned
     ? Position.Left
     : data.sourcePosition ?? Position.Right;
 
@@ -56,5 +58,6 @@ export const nodeTypes = {
   action: CustomAction,
   tag: TagNode,
   actor: SequenceActor,
-  actionPoint: SequenceAction
+  actionPoint: SequenceAction,
+  line: Line
 };
