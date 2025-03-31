@@ -4,7 +4,7 @@ function Line({ data }) {
       width: data.width 
     }}>
       <div className="flex items-center w-full">
-        <span className="font-medium">{data.label ?? "Line"}</span>
+        <span className="font-bold text-gray-900 dark:text-white">{data.label ?? "Line"}</span>
         <div className="flex-grow border-b-2 border-dashed border-gray-300 ml-2"></div>
       </div>
     </div>

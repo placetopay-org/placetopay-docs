@@ -48,16 +48,20 @@ function SequenceDiagram({ customView = null, children }) {
       nodeData['data']['label'] = child.props.message;
       nodeData['data']['isReturned'] = child.props.isReturned;
       nodeData['data']['selfAction'] = child.props.selfAction;
-
+      
       let sourceActionPointPositionY = child.props.selfAction ? Number(child.props.sourcePositionY) : nodeData.position.y;
       let sourceActionPoint = nodes.find(node => node.data.actor === child.props.from && node.position.y === sourceActionPointPositionY);
+      let regex = /<br>/;
+      let yAdjustment = regex.test(child.props.message) ? 1 : -11;
+      let sourceActionPointPositionYFinal = sourceActionPointPositionY + yAdjustment;
+      
       if (sourceActionPoint === undefined) {
         sourceActionPoint = {
           id: 'action_point_' + nodeData['id'] + '_' + child.props.from + Math.random().toString(36),
           type: 'actionPoint',
           position: {
             x: actorsData[child.props.from].position.x,
-            y: sourceActionPointPositionY
+            y: sourceActionPointPositionYFinal
           },
           data: {
             color: actorsData[child.props.from].color,
@@ -70,13 +74,15 @@ function SequenceDiagram({ customView = null, children }) {
 
       let targetActionPointPositionY = child.props.selfAction ? Number(child.props.targetPositionY) : nodeData.position.y;
       let targetActionPoint = nodes.find(node => node.data.actor === child.props.to && node.position.y === targetActionPointPositionY);
+      let targetActionPointPositionYFinal = targetActionPointPositionY + yAdjustment;
+
       if (targetActionPoint === undefined) {
         targetActionPoint = {
           id: 'action_point_' + nodeData['id'] + '_' + child.props.to + '_' + Math.random().toString(36),
           type: 'actionPoint',
           position: {
             x: actorsData[child.props.to].position.x,
-            y: targetActionPointPositionY
+            y: targetActionPointPositionYFinal
           },
           data: {
             color: actorsData[child.props.to].color,
