@@ -124,10 +124,13 @@ function SequenceDiagram({ customView = null, children }) {
       defaultViewport: { 
         x: Number(customView.x), 
         y: Number(customView.y), 
-        zoom: 0.75 
+        zoom: customView.zoom ? customView.zoom : 0.75
       } 
     }
   : { fitView: true };
+
+  console.log(viewportProps)
+
   return (
     <div style={{ width: '100%', height: customView?.height ?? '400px' }} className="overflow-hidden ring-1 ring-gray-900/7.5 dark:ring-white/10 rounded-2xl">
       <ReactFlow
