@@ -30,10 +30,10 @@ function SequenceDiagram({ customView = null, children }) {
 
     if (child.type.name === "SequenceActor") {
 
-      nodeData['id'] = 'actor_' + child.props.name;
+      nodeData['id'] = 'actor_' + child.props.id;
       nodeData['type'] = 'actor';
       nodeData['data']['height'] = child.props.height;
-      actorsData[child.props.name] = { position: nodeData.position, color: child.props.color };
+      actorsData[child.props.id] = { position: nodeData.position, color: child.props.color };
 
     }else if(child.type.name === "Line"){
       nodeData['id'] = 'line:' + child.props.id;
@@ -43,7 +43,7 @@ function SequenceDiagram({ customView = null, children }) {
       
     } else if (child.type.name === "SequenceAction") {
 
-      nodeData['id'] = 'action_' + child.props.name;
+      nodeData['id'] = 'action_' + child.props.id;
       nodeData['type'] = 'action';
       nodeData['data']['label'] = child.props.message;
       nodeData['data']['isReturned'] = child.props.isReturned;
