@@ -4,6 +4,17 @@ This documentation project contains all the information necessary to perform int
 
 This project is made with the [Tailwind UI](https://tailwindui.com) Protocol template which was built using [Tailwind CSS](https://tailwindcss.com) and [Next.js](https://nextjs.org).
 
+- [Getting started](#getting-started)
+- [Usage](#usage)
+    - [Sequence diagram](#sequence-diagram)
+- [Customizing](#customizing)
+- [API page](#api-page)
+- [Navigation](#navigation)
+- [Translations](#translations)
+- [How to contribute to git](#how-to-contribute-to-git)
+- [License](#license)
+- [Learn more](#learn-more)
+
 ## Getting started
 
 To get started with this template, first install the npm dependencies:
@@ -19,6 +30,9 @@ npm run dev
 ```
 
 Finally, open [http://localhost:3000](http://localhost:3000) in your browser to view the website.
+## Usage
+### Sequence diagram
+SequenceDiagram is a component built with [reactflow](https://reactflow.dev/) to easily create a sequence diagram. You can find more information [here](documentation/diagrams/sequence.md)
 
 ## Customizing
 
