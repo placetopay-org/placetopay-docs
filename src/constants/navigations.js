@@ -406,20 +406,6 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Management with Processing Networks',
-            links: [
-              { title: 'Introduction', href: '/payments/processing-network/introduction' },
-              { title: 'Frequently Asked Questions (FAQ)', href: '/payments/processing-network/frequent-questions' },
-              {
-                title: 'Processing network procedures', links: [
-                  { title: 'Credibanco', href: '/payments/processing-network/credibanco' },
-                  { title: 'Redeban', href: '/payments/processing-network/redeban' },
-                  { title: 'Common Errors', href: '/payments/processing-network/errors' },
-                ],
-              },
-            ],
-          },
-          {
             title: 'Integrations',
             links: [
               { title: 'Transaction Modifiers', href: '/payments/integrations/transaction-modifiers' },
