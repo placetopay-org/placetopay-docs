@@ -129,8 +129,6 @@ function SequenceDiagram({ customView = null, children }) {
     }
   : { fitView: true };
 
-  console.log(viewportProps)
-
   return (
     <div style={{ width: '100%', height: customView?.height ?? '400px' }} className="overflow-hidden ring-1 ring-gray-900/7.5 dark:ring-white/10 rounded-2xl">
       <ReactFlow
