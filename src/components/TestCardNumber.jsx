@@ -12,6 +12,7 @@ import logoAlkosto from '@/images/cards/alkosto.svg'
 import logoExito from '@/images/cards/exito_card.svg'
 import logoAthCard from '@/images/cards/ath_card.svg'
 import logoDilo from '@/images/cards/dilo.svg'
+import logoEBT from '@/images/cards/ebt.svg'
 import { Heading } from './Heading'
 import { useLocale } from './LocaleProvider'
 import { CopyContent } from '@/components/CopyContent'
@@ -302,11 +303,19 @@ const groupsByFranchise = [
     items: [
       {
         number : '6550590000000001',
-        behavior: { es: 'Apreuba', en: 'Approve' }
+        behavior: { es: 'Aprueba', en: 'Approve' }
       },
       {
         number : '6557351234543156',
         behavior: { es: 'Aprueba', en: 'Approve' }
+      },
+      {
+        number : '6508410000000001',
+        behavior: { es: 'Aprueba 3DS-Y', en: 'Approve 3DS-Y' }
+      },
+      {
+        number : '6508410000000047',
+        behavior: { es: 'Aprueba 3DS-C', en: 'Approve 3DS-C' }
       },
       {
         number : '6550590000000019',
@@ -315,6 +324,14 @@ const groupsByFranchise = [
       {
         number : '6557351234543164',
         behavior: { es: 'Rechaza', en: 'Denies'}
+      },
+      {
+        number : '6508410000000021',
+        behavior: { es: 'Rechaza 3DS-N', en: 'Denies 3DS-N'}
+      },
+      {
+        number : '6508410000000039',
+        behavior: { es: 'Rechaza 3DS-R', en: 'Denies 3DS-R'}
       },
       {
         number : '6550590000000027',
@@ -328,6 +345,13 @@ const groupsByFranchise = [
         behavior: { 
           es: 'Deja la transacción en estado pendiente y se resuelve a rechazado', 
           en: 'Leaves the transaction in pending status and resolves to rejected' 
+        }
+      },
+      {
+        number : '6508410000000054',
+        behavior: {
+          es: 'Deja la transacción en estado pendiente y se resuelve a aprobado 3DS-D',
+          en: 'Leaves the transaction in pending status and resolves to approved 3DS-D'
         }
       }
     ],
@@ -521,6 +545,35 @@ const groupsByFranchise = [
       },
     ],
   },
+  {
+    id: 'ebt',
+    logo: logoEBT,
+    franchise: 'EBT',
+    items: [
+      {
+        number : '5077120000008725945',
+        behavior: { es: 'Aprueba', en: 'Approve' },
+      },
+      {
+        number : '5077122000019136403',
+        behavior: {es: 'Rechaza', en: 'Denies'},
+      },
+      {
+        number : '5077122291247660955',
+        behavior: {
+          es: 'Arroja una excepción en el proceso',
+          en: 'Throws an exception in the process',
+        },
+      },
+      {
+        number : '5077122223995193780',
+        behavior: {
+          es: 'Aprueba si el monto es inferior a 200USD, de lo contrario rechaza',
+          en: 'Approves if the amount is less than 200 USD, otherwise rejects'
+        },
+      },
+    ],
+  }
 ]
 
 export function TestCardNumbers() {
