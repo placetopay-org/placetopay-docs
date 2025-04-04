@@ -289,11 +289,68 @@ const groupsByFranchise = [
     franchise: 'American Express',
     items: [
       {
+        number : '377222581193005',
+        behavior: { es: 'Aprueba', en: 'Approve' }
+      },
+      {
+        number : '376651792202224',
+        behavior: { es: 'Rechaza', en: 'Denies' }
+      },
+      {
+        number : '376651552907400',
+        behavior: {
+          es: 'Deja la transacción en estado pendiente y se resuelve a aprobado' ,
+          en: 'Leave the transaction in pending status and it is resolved to approved',
+        }
+      },
+      {
+        number : '376651743308161',
+        behavior: {
+          es: 'Deja la transacción en estado pendiente y se resuelve a rechazado' ,
+          en: 'Leaves the transaction in pending status and resolves to rejected',
+        }
+      },
+      {
+        number : '376651736695301',
+        behavior: {
+          es: 'Deja la transacción en estado pendiente y se resuelve a rechazado' ,
+          en: 'Leaves the transaction in pending status and resolves to rejected',
+        }
+      },
+      {
+        number : '376651841246735',
+        behavior: {
+          es: 'Arroja una excepción en el proceso',
+          en: 'Throws an exception in the process'
+        }
+      },
+      {
+        number : '376651911424709',
+        behavior: {
+          es: 'Aprueba si el monto es inferior a 200USD, de lo contrario rechaza',
+          en: 'Approves if the amount is less than 200 USD, otherwise rejects'
+        }
+      },
+      {
         number : '376651001281274',
-        behavior: { 
+        behavior: {
           es: 'Aprueba si se proporciona la expiración 06/34 y el cvv 4637 de lo contrario rechaza',
           en: 'Approves if expiration 06/34 is given and cvv 4637 otherwise rejects' },
       },
+      {
+        number : '376651707554974',
+        behavior: {
+          es: 'Deja la transacción en procesamiento manual y si se procesa queda en estado aprobado',
+          en: 'Leave the transaction in manual processing and if it is processed it remains in approved status'
+        }
+      },
+      {
+        number : '376651242830343',
+        behavior: {
+          es: 'Se tarda 180 segundos en responder y queda en estado aprobado',
+          en: 'It takes 180 seconds to respond and is in approved status'
+        }
+      }
     ],
   },
   {
