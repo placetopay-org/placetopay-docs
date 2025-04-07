@@ -289,7 +289,7 @@ export const TAB_NAVIGATION = {
                 ],
               }
             ],
-          },  
+          },
           {
             title: 'Integraciones',
             links: [
@@ -405,7 +405,6 @@ export const TAB_NAVIGATION = {
               }
             ],
           },
-          
           {
             title: 'Integrations',
             links: [
