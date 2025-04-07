@@ -12,7 +12,6 @@ function SequenceDiagram({ customView = null, children }) {
   const nodes = [];
   const edges = [];
 
-
   const actorsData = {};
 
   for (const child of children) {
@@ -42,14 +41,16 @@ function SequenceDiagram({ customView = null, children }) {
       nodeData['data']['width'] = child.props.width;
       
     } else if (child.type.name === "SequenceAction") {
-
+      const arrowsRerverse = actorsData[child.props.from].position.x > actorsData[child.props.to].position.x;
+      const selfAction = child.props.from === child.props.to;
+      
       nodeData['id'] = 'action_' + child.props.id;
       nodeData['type'] = 'action';
       nodeData['data']['label'] = child.props.message;
-      nodeData['data']['isReturned'] = child.props.isReturned;
-      nodeData['data']['selfAction'] = child.props.selfAction;
+      nodeData['data']['isReturned'] = arrowsRerverse;
+      nodeData['data']['selfAction'] = selfAction;
       
-      let sourceActionPointPositionY = child.props.selfAction ? Number(child.props.sourcePositionY) : nodeData.position.y;
+      let sourceActionPointPositionY = selfAction ? Number(child.props.sourcePositionY) : nodeData.position.y;
       let sourceActionPoint = nodes.find(node => node.data.actor === child.props.from && node.position.y === sourceActionPointPositionY);
       let regex = /<br>/;
       let yAdjustment = regex.test(child.props.message) ? 1 : -11;
@@ -65,14 +66,14 @@ function SequenceDiagram({ customView = null, children }) {
           },
           data: {
             color: actorsData[child.props.from].color,
-            isReturned: child.props.isReturned,
+            isReturned: arrowsRerverse,
             actor: child.props.from,
           }
         };
       }
       nodes.push(sourceActionPoint);
 
-      let targetActionPointPositionY = child.props.selfAction ? Number(child.props.targetPositionY) : nodeData.position.y;
+      let targetActionPointPositionY = selfAction ? Number(child.props.targetPositionY) : nodeData.position.y;
       let targetActionPoint = nodes.find(node => node.data.actor === child.props.to && node.position.y === targetActionPointPositionY);
       let targetActionPointPositionYFinal = targetActionPointPositionY + yAdjustment;
 
@@ -86,7 +87,7 @@ function SequenceDiagram({ customView = null, children }) {
           },
           data: {
             color: actorsData[child.props.to].color,
-            isReturned: child.props.isReturned,
+            isReturned: arrowsRerverse,
             actor: child.props.to,
           }
         };
@@ -96,7 +97,7 @@ function SequenceDiagram({ customView = null, children }) {
       edges.push( {
         id: `edge_${nodeData['id']}_${child.props.from}_${Math.random().toString(36)}`,
         source: sourceActionPoint.id,
-        sourceHandle:  Boolean(child.props.isReturned) && !Boolean(sourceActionPoint.data.isReturned) ? 'source_self_action' : 'default_source',
+        sourceHandle:  Boolean(arrowsRerverse) && !Boolean(sourceActionPoint.data.isReturned) ? 'source_self_action' : 'default_source',
         target: nodeData['id'],
         targetHandle: 'default_target',
         type: 'default',
@@ -108,7 +109,7 @@ function SequenceDiagram({ customView = null, children }) {
         source: nodeData['id'],
         sourceHandle: 'default_source',
         target: targetActionPoint.id,
-        targetHandle: Boolean(child.props.selfAction) ? 'target_self_action' : 'default_target',
+        targetHandle: Boolean(selfAction) ? 'target_self_action' : 'default_target',
         type: 'default',
         markerEnd: {
           type: MarkerType.ArrowClosed,
