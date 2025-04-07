@@ -289,7 +289,7 @@ export const TAB_NAVIGATION = {
                 ],
               }
             ],
-          },          
+          },  
           {
             title: 'Integraciones',
             links: [
