@@ -1,6 +1,19 @@
 # SequenceDiagram
 
-The `SequenceDiagram` is the main component and has three children
+The `SequenceDiagram` is the component to build a sequence diagram easier, it has 3 elements for creating the flows
+
+- [Customize the rendering position](#customize-the-rendering-position)
+- [Elements](#elements)
+  - [Actor](#sequenceactor)
+  - [Action](#sequenceaction)
+    - [Simple example](#simple-example)
+    - [Example of message with HTML](#example-of-message-with-html)
+    - [Example with reverse order of arrows](#example-with-reverse-order-of-arrows)
+    - [Example when the action start and end on the same actor](#example-when-the-action-start-and-end-on-the-same-actor)
+  - [Line](#line)
+- [Example of how to implement](#example-of-how-to-implement)
+
+## Customize the rendering position
 
 You can customize the diagrams view adding the parameter **customView** and it receives these attributes 
 
@@ -25,7 +38,7 @@ import SequenceDiagram from "@/components/react-flow/SequenceDiagram/SequenceDia
 
 <SequenceDiagram>
 ```
-## Children
+## Elements
 
 ### SequenceActor
 
@@ -79,7 +92,7 @@ import SequenceActor from "@/components/react-flow/SequenceDiagram/SequenceActor
 | positionX | Horizontal position || Yes |
 | positionY | Upright position || Yes |
 
-**Example simple**
+#### Simple example
 ```jsx
 import SequenceAction from "@/components/react-flow/SequenceDiagram/SequenceAction"
 
@@ -93,7 +106,7 @@ import SequenceAction from "@/components/react-flow/SequenceDiagram/SequenceActi
   />
 ```
 
-**Example message with HTML**
+#### Example of message with HTML
 ```jsx
 import SequenceAction from "@/components/react-flow/SequenceDiagram/SequenceAction"
 
@@ -107,7 +120,7 @@ import SequenceAction from "@/components/react-flow/SequenceDiagram/SequenceActi
   />
 ```
 
-**Example with isReturned**
+#### Example with reverse order of arrows
 
 By default the arrows start from left to right,  if you need it in reverse order use **isReturned** attribute
 
@@ -125,7 +138,7 @@ import SequenceAction from "@/components/react-flow/SequenceDiagram/SequenceActi
   />
 ```
 
-**Example with selfAction**
+#### Example when the action start and end on the same actor
 
 If the action starts and ends on the same actor, use **selfAction** attribute
 
@@ -169,7 +182,7 @@ import Line from "@/components/react-flow/SequenceDiagram/Line"
   width="800px" 
   />
 ```
-## Complete example
+## Example of how to implement
 
 ```jsx
 import SequenceDiagram from "@/components/react-flow/SequenceDiagram/SequenceDiagram"
