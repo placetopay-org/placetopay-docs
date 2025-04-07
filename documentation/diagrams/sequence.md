@@ -8,7 +8,6 @@ The `SequenceDiagram` is the component to build a sequence diagram easier, it ha
   - [Action](#sequenceaction)
     - [Simple example](#simple-example)
     - [Example of message with HTML](#example-of-message-with-html)
-    - [Example with reverse order of arrows](#example-with-reverse-order-of-arrows)
     - [Example when the action start and end on the same actor](#example-when-the-action-start-and-end-on-the-same-actor)
   - [Line](#line)
 - [Example of how to implement](#example-of-how-to-implement)
@@ -85,10 +84,8 @@ import SequenceActor from "@/components/react-flow/SequenceDiagram/SequenceActor
 | from | Receives the actor's id where it starts ||Yes |
 | to | Receives the id of the actor where to end || Yes |
 | message | Action message, can receive text or html || Yes |
-| isReturned | Add this attribute if the action is returned || No |
-| selfAction | Add this attribute when the action starts and ends on the same actor, mean **to** and **from** have the same value || No |
-| sourcePositionY | If the action is selfAction, you must add this attribute to start the position from where it starts || Only if is a **selfAction** |
-| targetPositionY | If the action is selfAction, you must add this attribute to start the position from where it ends || Only if is a **selfAction** |
+| sourcePositionY | Position of source handle || Only if **the action start and end on the same actor** |
+| targetPositionY | Position of target handle || Only if **the action start and end on the same actor**|
 | positionX | Horizontal position || Yes |
 | positionY | Upright position || Yes |
 
@@ -120,27 +117,7 @@ import SequenceAction from "@/components/react-flow/SequenceDiagram/SequenceActi
   />
 ```
 
-#### Example with reverse order of arrows
-
-By default the arrows start from left to right,  if you need it in reverse order use **isReturned** attribute
-
-```jsx
-import SequenceAction from "@/components/react-flow/SequenceDiagram/SequenceAction"
-
-  <SequenceAction 
-    id="process"
-    from="server" 
-    to="site" 
-    message={`<span>Retornar <b>requestId</b><br> de pago y <b>processUrl</b></span>`} 
-    isReturned="true"
-    positionX="50" 
-    positionY="70" 
-  />
-```
-
 #### Example when the action start and end on the same actor
-
-If the action starts and ends on the same actor, use **selfAction** attribute
 
 ```jsx
 import SequenceAction from "@/components/react-flow/SequenceDiagram/SequenceAction"
@@ -151,7 +128,6 @@ import SequenceAction from "@/components/react-flow/SequenceDiagram/SequenceActi
     to="server"
     positionX="550" v
     positionY="320" 
-    selfAction="true"
     sourcePositionY="240"
     targetPositionY="400"
     message={`<span>Usuario completa<br> el proceso</span>`} 
@@ -207,7 +183,6 @@ import Line from "@/components/react-flow/SequenceDiagram/Line"
     from="server" 
     to="site" 
     message="Crear sesión de pago" 
-    isReturned="true"
     positionX="35" 
     positionY="140" 
   />
@@ -217,7 +192,6 @@ import Line from "@/components/react-flow/SequenceDiagram/Line"
     to="server"
     positionX="250" 
     positionY="270" 
-    selfAction="true"
     sourcePositionY="180"
     targetPositionY="360"
     message={`<span>Usuario completa<br> el proceso</span>`} 
