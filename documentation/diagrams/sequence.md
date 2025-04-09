@@ -46,7 +46,7 @@ import SequenceDiagram from "@/components/react-flow/SequenceDiagram/SequenceDia
 | Name | Description | Default | Required|
 | :--- | :--- | :--- | :--- |
 | id | The value must be unique || Yes |
-| color       | Custom color, use **tailwind** | `bg-green-500` | No |
+| color       | Custom color, use **tailwind** | `bg-greenFlow` | No |
 | label       | Text | `Actor` | No |
 | positionX | Horizontal position || Yes |
 | positionY | Upright position || Yes |
