@@ -1,7 +1,7 @@
 import { Handle, Position, useEdges } from "reactflow";
 
 function SequenceAction({ id, data }) {
-  const barColor = data?.color || "bg-green-500";
+  const barColor = data?.color || "bg-greenFlow";
   const edges = useEdges(); 
   const targetPosition = data.isReturned ? Position.Right : Position.Left;
   const sourcePosition = data.isReturned ? Position.Left : Position.Right;
