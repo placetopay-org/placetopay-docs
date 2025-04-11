@@ -652,6 +652,10 @@ export const TAB_NAVIGATION = {
                 title: 'Retorno de tarjeta',
                 href: '/gateway/card-return',
               },
+              {
+                title: 'Webhooks',
+                href: '/gateway/webhooks',
+              },
             ],
           },
         ],
@@ -748,6 +752,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Card return',
                 href: '/gateway/card-return',
+              },
+              {
+                title: 'Webhooks',
+                href: '/gateway/webhooks',
               },
             ],
           },
