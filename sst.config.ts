@@ -12,6 +12,7 @@ export default {
   stacks(app) {
     app.stack(function Site({ stack }) {
       const site = new StaticSite(stack, "site", {
+        purgeFiles: true,
         buildOutput: "out",
         buildCommand: "npm run build",
         customDomain: {
@@ -23,6 +24,7 @@ export default {
         },
         environment: {
           NEXT_PUBLIC_FEEDBACK_FORM_URL: process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL,
+          NEXT_PUBLIC_GITHUB_REPO_URL: process.env.NEXT_PUBLIC_GITHUB_REPO_URL,
         }
       });
 

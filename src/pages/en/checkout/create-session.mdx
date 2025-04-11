@@ -151,7 +151,7 @@ To make use of this functionality it is important to know the identifier of the 
 - The total sum of the scatters must be equal to the total payout.
 - All scatter coins must be equal to the payout currency
 
-For the sending of taxes, it is important that it is in the structure of each of the dispersions
+For the sending of taxes, it is important that it is in the [amount](/payments/microsite-customized/data-structures#amount) structure of each of the dispersions
 
 ```json {{ 'title': 'CreateSessionRequest - Dispersion Payment Taxes' }}
 {
@@ -162,24 +162,23 @@ For the sending of taxes, it is important that it is in the structure of each of
             {
                 "amount": {
                     "total": 700,
-                    "currency": "USD"
+                    "currency": "USD",
+                    "taxes": [
+                        {
+                            "kind": "airportTax",
+                            "amount": 16.13
+                        }
+                    ],
+                    "details": [
+                        {
+                            "kind": "tip",
+                            "amount": 11
+                        }
+                    ]
                 },
                 "agreement": 30,
                 "agreementType": "AIRLINE",
-                "taxes": [
-                    {
-                        "kind": "airportTax",
-                        "amount": 16.13
-                    }
-                ],
-                "details": [
-                    {
-                        "kind": "tip",
-                        "amount": 11
-                    }
-                ]
             },
-            
         ],
     }
     ...
@@ -194,6 +193,11 @@ A pre-authorization session is a session in which the user completes the process
 
 This workflow is used in order to reserve (CHECKIN) an amount of money in the cardholder to later debit it, in this case (CHECKOUT). This amount may change over time (REAUTHORIZATION) according to the needs of the business or changes in the services chosen by the cardholder. Finally, the reverse (REVERSE) is a type of transaction, which allows you to reverse an approved or debited payment with the internal reference code.
 
+- The **"action"** porperty must be `checkin`.
+- The payment reference will be reused in subsequent **REAUTHORIZATION** and **CHECKOUT** operations.
+- The payment currency will also remain the same in **REAUTHORIZATION** and **CHECKOUT**.
+- Pre-authorization payments are not allowed when you want to make a mixed payment.
+- Pre-authorization payments with scatter values are not allowed.
 
 ```json {{ 'title': 'CreateSessionRequest - Preauthorization Payment' }}
 {
@@ -211,16 +215,21 @@ This workflow is used in order to reserve (CHECKIN) an amount of money in the ca
 }
 ```
 
-The CHECKIN type transaction is used to obtain authorization from the bank. Make a debit to a credit/debit card which is used as a guarantee deposit for the use of a good or service.
-
-- Pre-authorization payments are not allowed when you want to make a mixed payment.
-- Pre-authorization payments with scatter values are not allowed.
-
 ### Reauthorization
+
+> Not applicable to Puerto Rico
 
 It is applied on pre-authorization transactions and is used to modify the previously reserved amount.
 
 The REAUTHORIZATION type transaction is used to modify the amount defined as previously separated guarantee deposit, with a CHECKIN type transaction. This performs a new authorization by the bank.
+
+- The payment reference is overwritten by the original **CHECKIN** session.
+- The payment currency is overwritten by the original **CHECKIN** session.
+- The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
+- Multiple **REAUTHORIZATION** transactions can be performed before **CHECKOUT**.
+- Each reauthorization must be for an amount greater than `0`.
+
+After this operation, the pre-authorization remains in a **pending** state until a **CHECKOUT** is performed.
 
 ```json {{ 'title': 'TransactionActionRequest - Reauthorization' }}
 {
@@ -241,6 +250,11 @@ It is applied to pre-authorization transactions and is used to confirm and close
 
 The CHECKOUT type transaction is used to confirm the security deposit amount previously separated, with a CHECKIN/REAUTHORIZATION type transaction. This formalizes the purchase transaction with the bank.
 
+- A **CHECKOUT** can be performed without a prior **REAUTHORIZATION**.
+- The payment reference is overwritten by the original **CHECKIN** session.
+- The payment currency is overwritten by the original **CHECKIN** session.
+- The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
+- If the **CHECKOUT** amount is `0`, the pre-authorization is canceled, and the retained amount is released.
 
 ```json {{ 'title': 'TransactionActionRequest - Reauthorization' }}
 {

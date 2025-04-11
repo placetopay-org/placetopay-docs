@@ -1,6 +1,187 @@
 import { LANGUAGES_CODES } from '@/components/LocaleProvider'
-import { Book, DocumentCode } from 'iconsax-react'
+import { Book, MonitorMobbile, Activity, SecurityCard, Link, Calendar, ShieldTick, DocumentCode } from 'iconsax-react'
 
+/**
+ * List of options to be displayed in the navigation selector
+ * 
+ * title: Title of the option
+ * description: Description of the option
+ * href: Route to redirect to
+ * icon: Icon to display
+ */
+export const NAMESPACES_SELECTOR = {
+  [LANGUAGES_CODES.ES]: [
+    {
+      title: 'Pagos',
+      description: 'Pagos en línea.',
+      href: '/payments',
+      icon: MonitorMobbile,
+    },
+    {
+      title: 'Web Checkout',
+      description: 'Página de pagos prediseñada.',
+      href: '/checkout',
+      icon: MonitorMobbile,
+    },
+    {
+      title: 'Gateway',
+      description: 'Recibe pagos por API',
+      href: '/gateway',
+      icon: DocumentCode,
+    },
+    {
+      title: '3DS Server',
+      description: 'Pagos más seguros',
+      href: '/three-d-s-server',
+      icon: Activity,
+    },
+    {
+      title: 'ACS',
+      description: 'Pagos más seguros',
+      href: '/acs',
+      icon: Activity,
+    },
+    {
+      title: 'Token Requestor',
+      description: 'Servicio de tokenización publica',
+      href: '/token-requestor',
+      icon: SecurityCard,
+    },
+    {
+      title: 'Link de Pago',
+      description: 'Crea y gestiona links de pago',
+      href: '/payment-links',
+      icon: Link,
+    },
+    {
+      title: 'Micrositios',
+      description: 'Creación y gestión de micrositios',
+      href: '/microsites',
+      icon: Calendar,
+    },
+    {
+      title: 'Account Validator',
+      description: 'Verificación de cuentas',
+      href: '/account-validator',
+      icon: SecurityCard,
+    },
+    {
+      title: 'Api Scudo',
+      description: 'Control de fraude',
+      href: '/api-scudo',
+      icon: ShieldTick,
+    },
+  ],
+  [LANGUAGES_CODES.EN]: [
+    {
+      title: 'Payments',
+      description: 'Online Payments.',
+      href: '/en/payments',
+      icon: MonitorMobbile,
+    },
+    {
+      title: 'Web Checkout',
+      description: 'Pre-designed payment page.',
+      href: '/en/checkout',
+      icon: MonitorMobbile,
+    },
+    {
+      title: 'Gateway',
+      description: 'Receive payments via API.',
+      href: '/en/gateway',
+      icon: DocumentCode,
+    },
+    {
+      title: '3DS Server',
+      description: 'Safer payments.',
+      href: '/en/three-d-s-server',
+      icon: Activity,
+    },
+    {
+      title: 'ACS',
+      description: 'Safer payments.',
+      href: '/en/acs',
+      icon: Activity,
+    },
+    {
+      title: 'Token Requestor',
+      description: 'Public tokenization service',
+      href: '/en/token-requestor',
+      icon: SecurityCard,
+    },
+    {
+      title: 'Payment Link',
+      description: 'Create and manage payment links',
+      href: '/en/payment-links',
+      icon: Link,
+    },
+
+    {
+      title: 'Microsites',
+      description: 'Create and manage microsites',
+      href: '/en/microsites',
+      icon: Calendar,
+    },
+
+    {
+      title: 'Account Validator',
+      description: 'Account verification',
+      href: '/account-validator',
+      icon: SecurityCard,
+    },
+    {
+      title: 'Api Scudo',
+      description: 'Fraud control',
+      href: '/en/api-scudo',
+      icon: ShieldTick,
+    },
+  ],
+}
+
+/** 
+ * List of options used to map the URL path to
+ * its corresponding path in the routes object
+ * 
+ * KEY : URL path
+ * VALUE : TAB_NAVIGATION key
+ */
+export const NAMESPACE_ROUTES = {
+  payments: 'payments',
+  checkout: 'checkout',
+  gateway: 'gateway',
+  'three-d-s-server': 'threeDsServer',
+  acs: 'acs',
+  sdks: 'sdks',
+  'token-requestor': 'tokenRequestor',
+  'payment-links': 'paymentLinks',
+  microsites: 'microsites',
+  ticket: 'ticket',
+  core: 'core',
+  'account-validator': 'accountValidator',
+  'api-scudo': 'apiScudo',
+}
+
+/**
+ * List of options that will be displayed in
+ * the left navigation menu within each page
+ * 
+ * KEY : TAB_NAVIGATION key
+ * VALUE : List of options
+ * 
+ * title: Title of the option
+ * identifier: Unique identifier of the option which must be included in the path to identify the object that is active on the page
+ * href: Route to redirect to
+ * icon: Icon to display
+ * links: List of sub-options
+ * 
+ * Sub-options (Sections):
+ * title: Title of the sub-option
+ * links: List of sub-options
+ * 
+ * Sub-options (Pages):
+ * title: Title of the sub-option
+ * href: Route to redirect to
+ */
 export const TAB_NAVIGATION = {
   payments: {
     [LANGUAGES_CODES.ES]: [
@@ -13,13 +194,100 @@ export const TAB_NAVIGATION = {
           {
             title: 'Pagos',
             links: [
-              { title: 'Introducción', href: '/payments' },
+              {
+                title: 'Introducción', href: '/payments'
+              },
+            ],
+          },
+          {
+            title: 'Link de pagos',
+            links: [
+              { title: 'Introducción', href: '/payments/payments-links/introduction' },
+              { title: 'Crear link de pagos', href: '/payments/payments-links/create-payment-link' },
+              { title: 'Gestionar link de pagos', href: '/payments/payments-links/link-management' }
+            ],
+          },
+          {
+            title: 'Pagos con código QR',
+            links: [
+              { title: 'Introducción', href: '/payments/qr/introduction' },
+              { title: 'Gestionar QR', href: '/payments/qr/qr-management' },
+            ],
+          },
+          {
+            title: 'Micrositios',
+            links: [
+              { title: 'Introducción', href: '/payments/introduction-to-microsites' },
+              {
+                title: 'Micrositio Abierto', links: [
+                  { title: 'Introducción', href: '/payments/microsite-open/introduction' },
+                  { title: 'Estructura de Campos', href: '/payments/microsite-open/fields' },
+                  
+                ],
+              },
+              {
+                title: 'Micrositio Cerrado', links: [
+                  { title: 'Introducción', href: '/payments/microsite-closed/introduction' },
+                  { title: 'Carga de Órdenes', href: '/payments/microsite-closed/charge-invoice' },
+                ],
+              },
+            ],
+          },
+          {
+            title: 'Micrositio Personalizado',
+            links: [
+              { title: 'Introducción', href: '/payments/microsite-customized/introduction' },
+              { title: 'Cómo Funciona', href: '/payments/microsite-customized/how-to-work' },
+              {
+                title: 'Integración',
+                links: [
+                  { title: 'Autenticación', href: '/payments/microsite-customized/authentication' },
+                  { title: 'Servicios', href: '/payments/microsite-customized/services' },
+                  { title: 'Manejo de errores', href: '/payments/microsite-customized/error-handling' },
+                  { title: 'Estructuras de datos', href: '/payments/microsite-customized/data-structures' },
+                ],
+              },
+            ],
+          },
+          {
+            title: 'Flujo de Pago en Web Checkout',
+            links: [
+              { title: 'Proceso de pago', href: '/payments/process-pay' },
             ],
           },
           {
             title: 'Medios de pago',
             links: [
-              { title: 'ACH Débito Bancario', href: '/payments/ach-bank-debit' },
+              {
+                title: 'Tarjetas',
+                links: [
+                  { title: 'EBT', href: '/payments/cards/ebt' },
+                ],
+              },
+              {
+                title: 'Débitos bancarios',
+                links: [
+                  { title: 'ACH Débito Bancario', href: '/payments/bank-redirects/ach-bank-debit' },
+                ],
+              },
+              {
+                title: 'Redireccionamientos bancarios',
+                links: [
+                  { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
+                ],
+              },
+              {
+                title: 'Efectivo',
+                links: [
+                  { title: 'Pago en efectivo', href: '/payments/cash/cash' },
+                ],
+              },
+              {
+                title: 'Billeteras',
+                links: [
+                  { title: 'Click to Pay', href: '/payments/wallets/clicktopay' },
+                ],
+              }
             ],
           },
           {
@@ -44,10 +312,97 @@ export const TAB_NAVIGATION = {
               { title: 'Introduction', href: '/payments' },
             ],
           },
+
+          {
+            title: 'Payment Links',
+            links: [
+              { title: 'Introduction', href: '/payments/payments-links/introduction' },
+              { title: 'Create Payment Link', href: '/payments/payments-links/create-payment-link' },
+              { title: 'Manage Payment Links', href: '/payments/payments-links/link-management' }
+            ],
+          },
+         {
+            title: 'QR code payments',
+            links: [
+              { title: 'Introduction', href: '/payments/qr/introduction' },
+              { title: 'Manage QR code', href: '/payments/qr/qr-management' },
+            ],
+          },
+          {
+            title: 'Microsites',
+            links: [
+              { title: 'Introduction', href: '/payments/introduction-to-microsites' },
+              {
+                title: 'Open Microsite',
+                links: [
+                  { title: 'Introduction', href: '/payments/microsite-open/introduction' },
+                  { title: 'Field Structure', href: '/payments/microsite-open/fields' },
+                ],
+              },
+              {
+                title: 'Closed Microsite',
+                links: [
+                  { title: 'Introduction', href: '/payments/microsite-closed/introduction' },
+                  { title: 'Order Upload', href: '/payments/microsite-closed/charge-invoice' },
+                ],
+              },
+            ],
+          },
+          {
+            title: 'Custom Microsite',
+            links: [
+              { title: 'Introduction', href: '/payments/microsite-customized/introduction' },
+              { title: 'How to Work', href: '/payments/microsite-customized/how-to-work' },
+              {
+                title: 'Integration',
+                links: [
+                  { title: 'Authentication', href: '/payments/microsite-customized/authentication' },
+                  { title: 'Services', href: '/payments/microsite-customized/services' },
+                  { title: 'Error handling', href: '/payments/microsite-customized/error-handling' },
+                  { title: 'Data structures', href: '/payments/microsite-customized/data-structures' },
+                ],
+              },
+            ],
+          },
+          {
+            title: 'Payment Flow in Web Checkout',
+            links: [
+              { title: 'Payment Process', href: '/payments/process-pay' },
+            ],
+          },
           {
             title: 'Payment methods',
             links: [
-              { title: 'ACH Bank Debit', href: '/payments/ach-bank-debit' },
+              {
+                title: 'Cards',
+                links: [
+                  { title: 'EBT', href: '/payments/cards/ebt' },
+                ],
+              },
+              {
+                title: 'Bank Debits',
+                links: [
+                  { title: 'ACH Bank Debit', href: '/payments/bank-redirects/ach-bank-debit' },
+                ],
+              },
+              {
+                title: 'Bank redirects',
+                links: [
+                  { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
+                ],
+              },
+              {
+                title: 'Cash',
+                links: [
+                  { title: 'Cash payment', href: '/payments/cash/cash' },
+                ],
+              },
+              {
+                title: 'Wallets',
+                links: [
+                  { title: 'Click to Pay', href: '/payments/wallets/clicktopay' },
+                ],
+              }
             ],
           },
           {
@@ -107,6 +462,14 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Fecha de expiración',
                 href: '/checkout/expiration',
+              },
+              {
+                title: 'Omitir resultado',
+                href: '/checkout/skip-result',
+              },
+              {
+                title: 'Metadata',
+                href: '/checkout/metadata',
               },
             ],
           },
@@ -190,6 +553,14 @@ export const TAB_NAVIGATION = {
                 title: 'Expiration Date',
                 href: '/checkout/expiration',
               },
+              {
+                title: 'Skip result',
+                href: '/checkout/skip-result',
+              },
+              {
+                title: 'Metadata',
+                href: '/checkout/metadata',
+              },
             ],
           },
         ],
@@ -272,6 +643,14 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Datos adicionales',
                 href: '/gateway/additional-data',
+              },
+              {
+                title: 'Forwarding',
+                href: '/gateway/forwarding',
+              },
+              {
+                title: 'Retorno de tarjeta',
+                href: '/gateway/card-return',
               },
               {
                 title: 'Webhooks',
@@ -367,6 +746,14 @@ export const TAB_NAVIGATION = {
                 href: '/gateway/additional-data',
               },
               {
+                title: 'Forwarding',
+                href: '/gateway/forwarding',
+              },
+              {
+                title: 'Card return',
+                href: '/gateway/card-return',
+              },
+              {
                 title: 'Webhooks',
                 href: '/gateway/webhooks',
               },
@@ -415,7 +802,7 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
-  'three-d-s-server': {
+  threeDsServer: {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'Documentación',
@@ -524,10 +911,6 @@ export const TAB_NAVIGATION = {
                 title: 'DAF: Digital Authentication Framework',
                 href: '/three-d-s-server/api/integration/session-d-a-f',
               },
-              {
-                title: 'Obtener información de una autenticación',
-                href: '/three-d-s-server/api/integration/authentication-info',
-              },
             ],
           },
           {
@@ -558,6 +941,10 @@ export const TAB_NAVIGATION = {
                 title: 'Valores devueltos en la respuesta',
                 href: '/three-d-s-server/api/transactions/values',
               },
+              {
+                title: 'Obtener información de una autenticación',
+                href: '/three-d-s-server/api/transactions/authentication-info',
+              },
             ],
           },
           {
@@ -570,6 +957,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'API Sucursales',
                 href: '/three-d-s-server/api/merchants/branch',
+              },
+              {
+                title: 'Suscribir Modelos',
+                href: '/three-d-s-server/api/merchants/enrolment',
               },
             ],
           },
@@ -683,10 +1074,6 @@ export const TAB_NAVIGATION = {
                 title: 'DAF: Digital Authentication Framework',
                 href: '/three-d-s-server/api/integration/session-d-a-f',
               },
-              {
-                title: 'Get authentication information',
-                href: '/three-d-s-server/api/integration/authentication-info',
-              },
             ],
           },
           {
@@ -717,6 +1104,10 @@ export const TAB_NAVIGATION = {
                 title: 'Values returned in the response',
                 href: '/three-d-s-server/api/transactions/values',
               },
+              {
+                title: 'Get authentication information',
+                href: '/three-d-s-server/api/transactions/authentication-info',
+              },
             ],
           },
           {
@@ -730,13 +1121,17 @@ export const TAB_NAVIGATION = {
                 title: 'Branches API',
                 href: '/three-d-s-server/api/merchants/branch',
               },
+              {
+                title: 'Enrolment model',
+                href: '/three-d-s-server/api/merchants/enrolment',
+              },
             ],
           },
         ],
       },
     ],
   },
-  'token-requestor': {
+  tokenRequestor: {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'Documentación',
@@ -788,9 +1183,33 @@ export const TAB_NAVIGATION = {
             links: [{ title: 'Inicio', href: '/token-requestor/api' }],
           },
           {
-            title: 'API',
+            title: 'Registro de comerciante',
             links: [
-              { title: 'Onboarding', href: '/token-requestor/api/onboarding' },
+              {
+                title: 'Onboarding',
+                href: '/token-requestor/api/onboarding'
+              },
+              {
+                title: 'Onboarding status',
+                href: '/token-requestor/api/onboarding-status',
+              },
+              {
+                title: 'Get Merchant Subscriptions',
+                href: '/token-requestor/api/get-merchant-subscriptions'
+              },
+              {
+                title: 'Generate new authentication token',
+                href: '/token-requestor/api/generate-new-authentication-token',
+              },
+              {
+                title: 'Delete authentication tokens',
+                href: '/token-requestor/api/delete-authentication-tokens',
+              },
+            ],
+          },
+          {
+            title: 'Administracion del ciclo del token',
+            links: [
               {
                 title: 'Enroll card',
                 href: '/token-requestor/api/enroll-card',
@@ -801,10 +1220,9 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/api/get-token-status',
               },
               {
-                title: 'Onboarding status',
-                href: '/token-requestor/api/onboarding-status',
+                title: 'Get Keys',
+                href: '/token-requestor/api/keys'
               },
-              { title: 'Get Keys', href: '/token-requestor/api/keys' },
             ],
           },
         ],
@@ -861,23 +1279,49 @@ export const TAB_NAVIGATION = {
             links: [{ title: 'Home', href: '/token-requestor/api' }],
           },
           {
-            title: 'API',
+            title: 'Merchant registration',
             links: [
-              { title: 'Onboarding', href: '/token-requestor/api/onboarding' },
               {
-                title: 'Enroll card',
-                href: '/token-requestor/api/enroll-card',
-              },
-              { title: 'Checkout', href: '/token-requestor/api/checkout' },
-              {
-                title: 'Get token status',
-                href: '/token-requestor/api/get-token-status',
+                title: 'Onboarding',
+                href: '/token-requestor/api/onboarding'
               },
               {
                 title: 'Onboarding status',
                 href: '/token-requestor/api/onboarding-status',
               },
-              { title: 'Get Keys', href: '/token-requestor/api/keys' },
+              {
+                title: 'Get Merchant Subscriptions',
+                href: '/token-requestor/api/get-merchant-subscriptions'
+              },
+              {
+                title: 'Generate new authentication token',
+                href: '/token-requestor/api/generate-new-authentication-token',
+              },
+              {
+                title: 'Delete authentication tokens',
+                href: '/token-requestor/api/delete-authentication-tokens',
+              },
+            ],
+          },
+          {
+            title: 'Token cycle management',
+            links: [
+              {
+                title: 'Enroll card',
+                href: '/token-requestor/api/enroll-card',
+              },
+              {
+                title: 'Checkout',
+                href: '/token-requestor/api/checkout'
+              },
+              {
+                title: 'Get token status',
+                href: '/token-requestor/api/get-token-status',
+              },
+              {
+                title: 'Get Keys',
+                href: '/token-requestor/api/keys'
+              },
             ],
           },
         ],
@@ -1109,7 +1553,7 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
-  'account-validator': {
+  accountValidator: {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'API',
@@ -1125,7 +1569,8 @@ export const TAB_NAVIGATION = {
               { title: '¿Cómo funciona?', href: '/account-validator/how-to-work' },
               { title: 'Flujo del usuario', href: '/account-validator/user-flow' },
               { title: 'Micro depósitos', href: '/account-validator/micro-deposits' },
-              { title: 'Soporte para Lightbox', href: '/account-validator/support' }
+              { title: 'Soporte para Lightbox', href: '/account-validator/support' },
+              { title: 'Webhook de Eventos', href: '/account-validator/webhooks' }
             ]
           },
           {
@@ -1154,7 +1599,8 @@ export const TAB_NAVIGATION = {
               { title: '¿How it works?', href: '/account-validator/how-to-work' },
               { title: 'User flow', href: '/account-validator/user-flow' },
               { title: 'Micro deposits', href: '/account-validator/micro-deposits' },
-              { title: 'Lightbox Support', href: '/account-validator/support' }
+              { title: 'Lightbox Support', href: '/account-validator/support' },
+              { title: 'Webhooks', href: '/account-validator/webhooks' }
             ]
           },
           {
@@ -1169,7 +1615,7 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
-  'payment-links': {
+  paymentLinks: {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'Documentación',
@@ -1471,6 +1917,10 @@ export const TAB_NAVIGATION = {
                 title: 'Procedimientos adicionales',
                 href: '/core/reference/tools'
               },
+              {
+                title: 'Acciones sobre facturas',
+                href: '/core/reference/invoice'
+              },
             ]
           },
         ],
@@ -1522,13 +1972,17 @@ export const TAB_NAVIGATION = {
                 title: 'Additional Procedures',
                 href: '/core/reference/tools'
               },
+              {
+                title: 'Actions on Invoices',
+                href: '/core/reference/invoice'
+              },
             ]
           },
         ],
       }
     ]
   },
-  'api-scudo': {
+  apiScudo: {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'Documentación',
@@ -1566,7 +2020,7 @@ export const TAB_NAVIGATION = {
           {
             title: 'Reglas',
             links: [
-              { title: 'Kount', href:'/api-scudo/kount' }
+              { title: 'Kount', href: '/api-scudo/kount' }
             ]
           }
         ],
@@ -1608,14 +2062,14 @@ export const TAB_NAVIGATION = {
               { title: 'Scudo sequence', href: '/api-scudo/sequence' },
               { title: 'Data elements', href: '/api-scudo/elements' },
               { title: 'Signature', href: '/api-scudo/signature' },
-              { title: 'Amounts format', href: '/api-scudo/amounts-format'},
-              { title: 'Types of document', href: '/api-scudo/document-types',},
+              { title: 'Amounts format', href: '/api-scudo/amounts-format' },
+              { title: 'Types of document', href: '/api-scudo/document-types', },
             ],
           },
           {
             title: 'Rules',
             links: [
-              { title: 'Kount', href:'/api-scudo/kount' }
+              { title: 'Kount', href: '/api-scudo/kount' }
             ]
           }
         ],
