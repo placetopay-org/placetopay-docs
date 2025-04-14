@@ -1,0 +1,39 @@
+<MissingTranslationBanner />
+
+# API Autodeclaraciones
+**Versión**: 1.0.0
+
+---
+
+## Servidores
+  - Endpoint: [https://antioquia-dev-declarations.placetopay.ws/api/v1](https://antioquia-dev-declarations.placetopay.ws/api/v1)
+  - Mock server: [https://antioquia-dev-declarations.placetopay.ws/api/v1](https://antioquia-dev-declarations.placetopay.ws/api/v1)
+
+
+**Contacto:**
+David Valbuena
+ - Email: [david.valbuena@evertecinc.com](mailto:david.valbuena@evertecinc.com)
+
+Sistema que permite a las entidades territoriales recaudar diferentes tipos de rentas que sean autodeclarables por los contribuyentes; para ésto los usuarios declarantes o contribuyentes podrán realizar el diligenciamiento, firma electrónica y pago del impuesto presentado a través de la plataforma de pagos webcheckout de Placetopay.
+
+A continuación se detallan las etapas que se deben tener presentes al momento de integrar los una renta nacional en el sistema de autodeclaraciones.
+
+## 1. Integración método income-request-aio:
+Método encargado de crear la solicitud de la declaración, cuando la respuesta es exitosa debe ser almacenada, ya que con enlace recibido se finalizará la creación de la declaración en la plataforma de autodeclaraciones (en caso de no ingresar por el enlace no será posible visualizar la misma en la plataforma.), y el campo requestId será utilizado para consultar información de la declaración.
+
+## 2. Integración método information-request:
+Este método permite consultar la información de la declaración (firmas, estado e información de pago, estado de la declaración), la consulta a éste método debe ser realizada con el requestId obtenido en el método income-request-aio. El sistema debe consultar la información de las declaraciones por un proceso de sonda que se debe ejecutar con una iteracción de 1 hora, y sólo debe ser consultado en caso de que las declaraciones no tengan un estado de pago "aprobado", en caso de la que declaración no requiera pago (valor de pago = 0) no se debe realizar proceso de sonda, el estado de la declaración será "Presentado".
+
+## 3. Integración método income-pdf:
+Éste método permite obtener el pdf de la declaración, la solicitud se realiza con el requestId obtenido del método income-request-aio; el pdf obtenido sera un string codificado en base64, por ende debe ser decodificado en la integración realizada por el ente municipal.
+
+<Note>
+Todo proceso de conexión a través de API debe cumplir con la integración de los 3 métodos mencionados anteriormente, ya que con ésto se realiza una étapa de certificación en donde se validan los siguientes aspectos:
+
+* Creación de declaraciones
+* Firma de las declaciones con 1 usuario (sólo representante legal), y con 2 usuarios (representante legal y otro)
+* Prueba de pago de las declaraciones
+* Visualización de resumen de pago acorde con los diferentes estados de pago
+* Sincronización de información entre autodeclaraciones y la plataforma del municipo (integración método information-request)
+* Visualización del pdf desde plataforma del municipio o enviarlo al usuario declarante
+</Note>
