@@ -2125,6 +2125,22 @@ export const TAB_NAVIGATION = {
               { title: 'Introducción', href: '/selfdeclarations' },
             ],
           },
+          {
+            title: 'Manual de usuario',
+            links: [
+              { title: 'Contenido', href: '/selfdeclarations/content' },
+              {
+                title: 'General',
+                links: [
+                  { title: 'Filtros', href: '/selfdeclarations/general/filters' },
+                  { title: 'Solución a posibles problemas', href: '/selfdeclarations/general/problem-solutions' },
+                  { title: 'Idioma', href: '/selfdeclarations/general/language' },
+                  { title: 'Medidas de seguridad y contingencia', href: '/selfdeclarations/general/security-and-contingency' },
+                  { title: 'Gestión del servicio y mesa de ayuda', href: '/selfdeclarations/general/service-management-and-help-desk' },
+                ],
+              },
+            ],
+          },
         ],
       },
     ],
@@ -2139,6 +2155,22 @@ export const TAB_NAVIGATION = {
             title: 'Selfdeclarations',
             links: [
               { title: 'Introduction', href: '/selfdeclarations' },
+            ],
+          },
+          {
+            title: 'Manual de usuario',
+            links: [
+              { title: 'Content', href: '/selfdeclarations/content' },
+              {
+                title: 'General',
+                links: [
+                  { title: 'Filters', href: '/selfdeclarations/general/filters' },
+                  { title: 'Solutions to possible problems', href: '/selfdeclarations/general/problem-solutions' },
+                  { title: 'Language', href: '/selfdeclarations/general/language' },
+                  { title: 'Security and contingency measures', href: '/selfdeclarations/general/security-and-contingency' },
+                  { title: 'Service management and help desk', href: '/selfdeclarations/general/service-management-and-help-desk' },
+                ],
+              },
             ],
           },
         ],
