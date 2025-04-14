@@ -2139,6 +2139,13 @@ export const TAB_NAVIGATION = {
                   { title: 'Gestión del servicio y mesa de ayuda', href: '/selfdeclarations/general/service-management-and-help-desk' },
                 ],
               },
+              {
+                title: 'Usuario administrador',
+                links: [
+                  { title: 'Acciones', href: '/selfdeclarations/admin-user/actions' },
+                  { title: 'Entrada y salida del software', href: '/selfdeclarations/admin-user/entry-and-exit' },
+                ],
+              },
             ],
           },
         ],
@@ -2169,6 +2176,13 @@ export const TAB_NAVIGATION = {
                   { title: 'Language', href: '/selfdeclarations/general/language' },
                   { title: 'Security and contingency measures', href: '/selfdeclarations/general/security-and-contingency' },
                   { title: 'Service management and help desk', href: '/selfdeclarations/general/service-management-and-help-desk' },
+                ],
+              },
+              {
+                title: 'Admin user',
+                links: [
+                  { title: 'Actions', href: '/selfdeclarations/admin-user/actions' },
+                  { title: 'Logging in and out of the software', href: '/selfdeclarations/admin-user/entry-and-exit' },
                 ],
               },
             ],
