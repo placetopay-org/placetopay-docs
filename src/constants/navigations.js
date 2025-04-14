@@ -2157,10 +2157,22 @@ export const TAB_NAVIGATION = {
           },
         ],
       },
+      {
+        title: 'API',
+        identifier: 'selfdeclarations/api',
+        href: '/selfdeclarations/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introducción',
+            links: [{ title: 'Inicio', href: '/selfdeclarations/api' }],
+          },
+        ],
+      },
     ],
     [LANGUAGES_CODES.EN]: [
       {
-        title: 'Selfdeclarations',
+        title: 'Documentation',
         identifier: 'selfdeclarations',
         href: '/en/selfdeclarations',
         icon: Book,
@@ -2200,6 +2212,18 @@ export const TAB_NAVIGATION = {
                 ],
               },
             ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'selfdeclarations/api',
+        href: '/selfdeclarations/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introduction',
+            links: [{ title: 'Home', href: '/selfdeclarations/api' }],
           },
         ],
       },
