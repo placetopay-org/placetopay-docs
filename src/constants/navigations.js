@@ -2146,6 +2146,13 @@ export const TAB_NAVIGATION = {
                   { title: 'Entrada y salida del software', href: '/selfdeclarations/admin-user/entry-and-exit' },
                 ],
               },
+              {
+                title: 'Usuario declarante',
+                links: [
+                  { title: 'Acciones', href: '/selfdeclarations/declaring-user/actions' },
+                  { title: 'Entrada y salida del software', href: '/selfdeclarations/declaring-user/entry-and-exit' },
+                ],
+              },
             ],
           },
         ],
@@ -2183,6 +2190,13 @@ export const TAB_NAVIGATION = {
                 links: [
                   { title: 'Actions', href: '/selfdeclarations/admin-user/actions' },
                   { title: 'Logging in and out of the software', href: '/selfdeclarations/admin-user/entry-and-exit' },
+                ],
+              },
+              {
+                title: 'Declaring user',
+                links: [
+                  { title: 'Actions', href: '/selfdeclarations/declaring-user/actions' },
+                  { title: 'Logging in and out of the software', href: '/selfdeclarations/declaring-user/entry-and-exit' },
                 ],
               },
             ],
