@@ -71,6 +71,12 @@ export const NAMESPACES_SELECTOR = {
       href: '/api-scudo',
       icon: ShieldTick,
     },
+    {
+      title: 'Selfdeclarations',
+      description: 'DESCTIPCION',
+      href: '/selfdeclarations',
+      icon: Calendar,
+    },
   ],
   [LANGUAGES_CODES.EN]: [
     {
@@ -135,6 +141,12 @@ export const NAMESPACES_SELECTOR = {
       href: '/en/api-scudo',
       icon: ShieldTick,
     },
+    {
+      title: 'Autodeclaraciones',
+      description: 'DESCRIPTION',
+      href: '/en/selfdeclarations',
+      icon: Calendar,
+    },
   ],
 }
 
@@ -159,6 +171,7 @@ export const NAMESPACE_ROUTES = {
   core: 'core',
   'account-validator': 'accountValidator',
   'api-scudo': 'apiScudo',
+  'selfdeclarations': 'selfdeclarations',
 }
 
 /**
@@ -2092,6 +2105,40 @@ export const TAB_NAVIGATION = {
                 title: '[Webhook] Notification of transaction resolved',
                 href: '/api-scudo/api/reference/notify-resolved-validation'
               },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  selfdeclarations: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'selfdeclarations',
+        href: '/selfdeclarations',
+        icon: Book,
+        links: [
+          {
+            title: 'Autodeclaraciones',
+            links: [
+              { title: 'Introducción', href: '/selfdeclarations' },
+            ],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Selfdeclarations',
+        identifier: 'selfdeclarations',
+        href: '/en/selfdeclarations',
+        icon: Book,
+        links: [
+          {
+            title: 'Selfdeclarations',
+            links: [
+              { title: 'Introduction', href: '/selfdeclarations' },
             ],
           },
         ],
