@@ -2167,6 +2167,12 @@ export const TAB_NAVIGATION = {
             title: 'Introducción',
             links: [{ title: 'Inicio', href: '/selfdeclarations/api' }],
           },
+          {
+            title: 'API',
+            links: [
+              { title: 'Information Request', href: '/selfdeclarations/api/information-request' },
+            ],
+          },
         ],
       },
     ],
@@ -2224,6 +2230,12 @@ export const TAB_NAVIGATION = {
           {
             title: 'Introduction',
             links: [{ title: 'Home', href: '/selfdeclarations/api' }],
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Information Request', href: '/selfdeclarations/api/information-request' },
+            ],
           },
         ],
       },
