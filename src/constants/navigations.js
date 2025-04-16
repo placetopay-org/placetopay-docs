@@ -2149,8 +2149,8 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Usuario declarante',
                 links: [
-                  { title: 'Acciones', href: '/selfdeclarations/declaring-user/actions' },
-                  { title: 'Entrada y salida del software', href: '/selfdeclarations/declaring-user/entry-and-exit' },
+                  { title: 'Acciones', href: '/selfdeclarations/declarant-user/actions' },
+                  { title: 'Entrada y salida del software', href: '/selfdeclarations/declarant-user/entry-and-exit' },
                 ],
               },
             ],
@@ -2217,8 +2217,8 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Declaring user',
                 links: [
-                  { title: 'Actions', href: '/selfdeclarations/declaring-user/actions' },
-                  { title: 'Logging in and out of the software', href: '/selfdeclarations/declaring-user/entry-and-exit' },
+                  { title: 'Actions', href: '/selfdeclarations/declarant-user/actions' },
+                  { title: 'Logging in and out of the software', href: '/selfdeclarations/declarant-user/entry-and-exit' },
                 ],
               },
             ],
