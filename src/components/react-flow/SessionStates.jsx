@@ -31,12 +31,13 @@ const initialEdges = [
 
 export default function SessionStates() {
     return (
-        <div style={{ width: '100%', height: '300px' }} className="overflow-hidden ring-1 ring-gray-900/7.5 dark:ring-white/10 rounded-2xl">
+        <div style={{ width: '100%', height: '300px' }} className="overflow-auto ring-1 ring-gray-900/7.5 dark:ring-white/10 rounded-2xl nowheel">
             <ReactFlow
                 nodes={initialNodes}
                 edges={initialEdges}
                 nodeTypes={nodeTypes}
                 fitView
+                zoomOnScroll={false}
                 className="bg-gray-50 dark:bg-gray-800"
             >
                 <Background variant="dots" gap={12} size={1} />
