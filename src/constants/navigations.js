@@ -1,5 +1,5 @@
 import { LANGUAGES_CODES } from '@/components/LocaleProvider'
-import { Book, MonitorMobbile, Activity, SecurityCard, Link, Calendar, ShieldTick, DocumentCode } from 'iconsax-react'
+import { Book, MonitorMobbile, Activity, SecurityCard, Link, Calendar, ShieldTick, DocumentCode, Courthouse } from 'iconsax-react'
 
 /**
  * List of options to be displayed in the navigation selector
@@ -72,10 +72,10 @@ export const NAMESPACES_SELECTOR = {
       icon: ShieldTick,
     },
     {
-      title: 'Selfdeclarations',
-      description: 'DESCTIPCION',
+      title: 'Autodeclaraciones',
+      description: 'Gestión de declaraciones',
       href: '/selfdeclarations',
-      icon: Calendar,
+      icon: Courthouse,
     },
   ],
   [LANGUAGES_CODES.EN]: [
@@ -142,10 +142,10 @@ export const NAMESPACES_SELECTOR = {
       icon: ShieldTick,
     },
     {
-      title: 'Autodeclaraciones',
-      description: 'DESCRIPTION',
+      title: 'Selfdeclarations',
+      description: 'Declaration management',
       href: '/en/selfdeclarations',
-      icon: Calendar,
+      icon: Courthouse,
     },
   ],
 }
