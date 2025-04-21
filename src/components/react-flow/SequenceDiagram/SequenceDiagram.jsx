@@ -103,6 +103,8 @@ function SequenceDiagram({ customView = null, children }) {
         type: 'default',
         markerEnd: {
           type: MarkerType.ArrowClosed,
+          width: 20,
+          height: 20,
         }
       },  {
         id: `edge_${nodeData['id']}_${child.props.to}_${Math.random().toString(36)}`,
@@ -113,6 +115,8 @@ function SequenceDiagram({ customView = null, children }) {
         type: 'default',
         markerEnd: {
           type: MarkerType.ArrowClosed,
+          width: 20,
+          height: 20,
         }
       });
     }
@@ -131,12 +135,13 @@ function SequenceDiagram({ customView = null, children }) {
   : { fitView: true };
 
   return (
-    <div style={{ width: '100%', height: customView?.height ?? '400px' }} className="overflow-hidden ring-1 ring-gray-900/7.5 dark:ring-white/10 rounded-2xl">
+    <div style={{ width: '100%', height: customView?.height ?? '400px' }} className="overflow-auto ring-1 ring-gray-900/7.5 dark:ring-white/10 rounded-2xl nowheel">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
         {...viewportProps}
+        zoomOnScroll={false}
         className="bg-gray-50 dark:bg-gray-800">
         <Background variant="dots" gap={12} size={1} />
         <Controls showInteractive={false}/>
