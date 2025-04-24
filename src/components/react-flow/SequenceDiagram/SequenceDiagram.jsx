@@ -7,6 +7,9 @@ import {
 } from 'reactflow';
 
 import { nodeTypes } from "@/components/react-flow/react-flow";
+import SequenceActor from "@/components/react-flow/SequenceDiagram/SequenceActor";
+import SequenceAction from "@/components/react-flow/SequenceDiagram/SequenceAction";
+import Line from "@/components/react-flow/SequenceDiagram/Line";
 
 function SequenceDiagram({ customView = null, children }) {
   const nodes = [];
@@ -27,20 +30,20 @@ function SequenceDiagram({ customView = null, children }) {
       }
     };
 
-    if (child.type.name === "SequenceActor") {
+    if (child.type === SequenceActor) {
 
       nodeData['id'] = 'actor_' + child.props.id;
       nodeData['type'] = 'actor';
       nodeData['data']['height'] = child.props.height;
       actorsData[child.props.id] = { position: nodeData.position, color: child.props.color };
 
-    }else if(child.type.name === "Line"){
+    }else if(child.type === Line){
       nodeData['id'] = 'line:' + child.props.id;
       nodeData['type'] = 'line';
       nodeData['data']['label'] = child.props.label;
       nodeData['data']['width'] = child.props.width;
       
-    } else if (child.type.name === "SequenceAction") {
+    } else if (child.type === SequenceAction) {
       const arrowsRerverse = actorsData[child.props.from].position.x > actorsData[child.props.to].position.x;
       const selfAction = child.props.from === child.props.to;
       
@@ -55,7 +58,7 @@ function SequenceDiagram({ customView = null, children }) {
       let regex = /<br>/;
       let yAdjustment = regex.test(child.props.message) ? 1 : -11;
       let sourceActionPointPositionYFinal = sourceActionPointPositionY + yAdjustment;
-      
+
       if (sourceActionPoint === undefined) {
         sourceActionPoint = {
           id: 'action_point_' + nodeData['id'] + '_' + child.props.from + Math.random().toString(36),
