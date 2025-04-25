@@ -1,5 +1,5 @@
 import { LANGUAGES_CODES } from '@/components/LocaleProvider'
-import { Book, MonitorMobbile, Activity, SecurityCard, Link, Calendar, ShieldTick, DocumentCode } from 'iconsax-react'
+import { Book, MonitorMobbile, Activity, SecurityCard, Link, Calendar, ShieldTick, DocumentCode, Courthouse } from 'iconsax-react'
 
 /**
  * List of options to be displayed in the navigation selector
@@ -71,6 +71,12 @@ export const NAMESPACES_SELECTOR = {
       href: '/api-scudo',
       icon: ShieldTick,
     },
+    {
+      title: 'Autodeclaraciones',
+      description: 'Gestión de declaraciones',
+      href: '/selfdeclarations',
+      icon: Courthouse,
+    },
   ],
   [LANGUAGES_CODES.EN]: [
     {
@@ -135,6 +141,12 @@ export const NAMESPACES_SELECTOR = {
       href: '/en/api-scudo',
       icon: ShieldTick,
     },
+    {
+      title: 'Selfdeclarations',
+      description: 'Declaration management',
+      href: '/en/selfdeclarations',
+      icon: Courthouse,
+    },
   ],
 }
 
@@ -159,6 +171,7 @@ export const NAMESPACE_ROUTES = {
   core: 'core',
   'account-validator': 'accountValidator',
   'api-scudo': 'apiScudo',
+  'selfdeclarations': 'selfdeclarations',
 }
 
 /**
@@ -2092,6 +2105,144 @@ export const TAB_NAVIGATION = {
                 title: '[Webhook] Notification of transaction resolved',
                 href: '/api-scudo/api/reference/notify-resolved-validation'
               },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  selfdeclarations: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'selfdeclarations',
+        href: '/selfdeclarations',
+        icon: Book,
+        links: [
+          {
+            title: 'Autodeclaraciones',
+            links: [
+              { title: 'Introducción', href: '/selfdeclarations' },
+            ],
+          },
+          {
+            title: 'Manual de usuario',
+            links: [
+              { title: 'Contenido', href: '/selfdeclarations/content' },
+              {
+                title: 'General',
+                links: [
+                  { title: 'Filtros', href: '/selfdeclarations/general/filters' },
+                  { title: 'Solución a posibles problemas', href: '/selfdeclarations/general/problem-solutions' },
+                  { title: 'Idioma', href: '/selfdeclarations/general/language' },
+                  { title: 'Medidas de seguridad y contingencia', href: '/selfdeclarations/general/security-and-contingency' },
+                  { title: 'Gestión del servicio y mesa de ayuda', href: '/selfdeclarations/general/service-management-and-help-desk' },
+                ],
+              },
+              {
+                title: 'Usuario administrador',
+                links: [
+                  { title: 'Acciones', href: '/selfdeclarations/admin-user/actions' },
+                  { title: 'Entrada y salida del software', href: '/selfdeclarations/admin-user/entry-and-exit' },
+                ],
+              },
+              {
+                title: 'Usuario declarante',
+                links: [
+                  { title: 'Acciones', href: '/selfdeclarations/declarant-user/actions' },
+                  { title: 'Entrada y salida del software', href: '/selfdeclarations/declarant-user/entry-and-exit' },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'selfdeclarations/api',
+        href: '/selfdeclarations/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introducción',
+            links: [{ title: 'Inicio', href: '/selfdeclarations/api' }],
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Botón de Pago - AIO', href: '/selfdeclarations/api/payment-button-AIO' },
+              { title: 'Information Request', href: '/selfdeclarations/api/information-request' },
+              { title: 'Income PDF', href: '/selfdeclarations/api/income-pdf' },
+              { title: 'Empresas - Creación/Actualización', href: '/selfdeclarations/api/companies' },
+              { title: 'Usuarios - Creación/Actualizacion', href: '/selfdeclarations/api/company-bidders' },
+            ],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentation',
+        identifier: 'selfdeclarations',
+        href: '/en/selfdeclarations',
+        icon: Book,
+        links: [
+          {
+            title: 'Selfdeclarations',
+            links: [
+              { title: 'Introduction', href: '/selfdeclarations' },
+            ],
+          },
+          {
+            title: 'Manual de usuario',
+            links: [
+              { title: 'Content', href: '/selfdeclarations/content' },
+              {
+                title: 'General',
+                links: [
+                  { title: 'Filters', href: '/selfdeclarations/general/filters' },
+                  { title: 'Solutions to possible problems', href: '/selfdeclarations/general/problem-solutions' },
+                  { title: 'Language', href: '/selfdeclarations/general/language' },
+                  { title: 'Security and contingency measures', href: '/selfdeclarations/general/security-and-contingency' },
+                  { title: 'Service management and help desk', href: '/selfdeclarations/general/service-management-and-help-desk' },
+                ],
+              },
+              {
+                title: 'Admin user',
+                links: [
+                  { title: 'Actions', href: '/selfdeclarations/admin-user/actions' },
+                  { title: 'Logging in and out of the software', href: '/selfdeclarations/admin-user/entry-and-exit' },
+                ],
+              },
+              {
+                title: 'Declaring user',
+                links: [
+                  { title: 'Actions', href: '/selfdeclarations/declarant-user/actions' },
+                  { title: 'Logging in and out of the software', href: '/selfdeclarations/declarant-user/entry-and-exit' },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'selfdeclarations/api',
+        href: '/selfdeclarations/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introduction',
+            links: [{ title: 'Home', href: '/selfdeclarations/api' }],
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Botón de Pago - AIO', href: '/selfdeclarations/api/payment-button-AIO' },
+              { title: 'Information Request', href: '/selfdeclarations/api/information-request' },
+              { title: 'Income PDF', href: '/selfdeclarations/api/income-pdf' },
+              { title: 'Empresas - Creación/Actualización', href: '/selfdeclarations/api/companies' },
+              { title: 'Usuarios - Creación/Actualizacion', href: '/selfdeclarations/api/company-bidders' },
             ],
           },
         ],
