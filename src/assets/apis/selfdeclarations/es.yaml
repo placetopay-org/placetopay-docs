@@ -1,0 +1,749 @@
+openapi: 3.0.0
+info:
+  title: 'Autodeclaraciones API'
+  version: 1.0.0
+paths:
+  /api/v1/information-request:
+    post:
+      summary: InformationRequest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                authorization:
+                  $ref: ./models/Authorization.yaml
+                requestId:
+                  type: string
+                  description: Identificador único de la solicitud creada
+                  example: 50ac6c8e8a858efb8ffc2046c8232f718be4aade2930c2705efb8e8be8b0a6976284d1bf5fcafdd0
+                locale:
+                  type: string
+                  example: es
+              required:
+                - authorization
+                - requestId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "SUCCESS"
+                    enum:
+                      - SUCCESS
+                      - FAILURE
+                  reason:
+                    type: number
+                    example: 200
+                  message:
+                    type: string
+                    example: "Petición procesada correctamente"
+                  requestId:
+                    type: string
+                    example: ab6671c7deea645b258ebc8ade753b7d2e9ca1938d1799582fbd7c9bb2cab917da7736fc50f6f1
+                  request:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: "PENDING"
+                        enum:
+                          - SUCCESS
+                          - PENDING
+                          - FAILURE
+                      type:
+                        type: string
+                        example: "ICA"
+                      returnUrl:
+                        type: string
+                        example: "http://url-respuesta.com/autoliquidacion/pagos_pse_respuesta_pagos.php"
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2020-10-27T13:16:05.000000Z"
+                      totalAmount:
+                        type: number
+                        example: 459000
+                  company:
+                    type: object
+                    properties:
+                      documentType:
+                        type: string
+                      document:
+                        type: string
+                      legalName:
+                        type: string
+                      commercialName:
+                        type: string
+                  income:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: "PAID"
+                        enum:
+                          - ACTIVE
+                          - INACTIVE
+                          - DRAFT
+                          - PENDING_SIGN
+                          - PDF_SENT
+                          - PDF_MAX_ATTEMPS
+                          - WITHOUT_PAY
+                          - PAID
+                          - PRESENTED
+                          - CANCEL
+                      signs:
+                        type: number
+                        description: Firmas requeridas para autorizar el documento.
+                        minimum: 0
+                        maximum: 2
+                      numberSigns:
+                        type: number
+                        description: Firmas realizadas en el documento.
+                        minimum: 0
+                        maximum: 2
+                      signers:
+                        type: object
+                        minItems: 1
+                        properties:
+                          documentType:
+                            type: string
+                          document:
+                            type: string
+                          bidderPosition:
+                            type: string
+                        required:
+                          - documentType
+                          - document
+                          - bidderPosition
+                  payment:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: "APPROVED"
+                        enum:
+                          - APPROVED
+                          - PENDING
+                          - DECLINED
+                          - FAILED
+                      description:
+                        type: string
+                      message:
+                        type: string
+                      paymentMethod:
+                        type: string
+                      paymentMethodName:
+                        type: string
+                      issuerName:
+                        type: string
+                      receipt:
+                        type: string
+                      authorizationCode:
+                        type: string
+                      currency:
+                        type: string
+                      totalPaid:
+                        type: number
+                      paidAt:
+                        type: string
+                        format: date-time
+              examples:
+                SUCCESS:
+                  value:
+                    status: SUCCESS
+                    reason: 200
+                    message: Petición procesada correctamente
+                    requestId: ab6671c7deea645b258ebc8ade753b7d2e9ca1938d1799582fbd7c9bb2cab917da7736fc50f6f1
+                    request:
+                      status: PENDING
+                      type: ICA
+                      returnUrl: http://url-respuesta.com/autoliquidacion/pagos_pse_respuesta_pagos.php
+                      createdAt: 2020-10-27T13:16:05.000000Z
+                      totalAmount: 459000
+                    company:
+                      documentType: NIT
+                      document: 6001903
+                      legalName: Empresa Comercial
+                      commercialName: PRUEBAS RECAUDO
+                    income:
+                      status: WITHOUT_PAY
+                      signs: 1
+                      numberSigns: 1
+                      signers: [
+                        {
+                          documentType: CC,
+                          document: 98237479,
+                          bidderPosition: CEO,
+                        }
+                      ]
+                    payment:
+                      status: 1
+                      description: Aprobado
+                      message: Aprobada
+                      paymentMethod: visa
+                      paymentMethodName: Visa
+                      issuerName: BANCO DE PRUEBAS
+                      receipt: 1602771834
+                      authorization: 000000
+                      currency: COP
+                      totalPaid: 1400000
+                      paidAt: 2020-10-15 09:23:54
+                FAILED:
+                  value:
+                    status: FAILED
+                    reason: 404
+                    message: La petición no es válida
+                PENDING_SIGNATURE:
+                  value:
+                    status:
+                      status: SUCCESS
+                      reason: 200,
+                      message: Petición procesada correctamente
+                      requestId: 50ac6c8e8a858efb8ffc2046c8232f718be4aade2930c2705efb8e8be8b0a6976284d1bf5fcafdd0
+                      request:
+                        status: PENDING
+                        type: CONSUMER_BEER
+                        returnUrl: https://aqui.regresa.al/terminar-proceso
+                        createdAt: 2017-07-17 10:50:27
+                        totalAmount: 790684000
+                      company:
+                        documentType: NIT
+                        document: 900299228
+                        legalName: Development
+                        commercialName: Testing
+                      income:
+                        status: PENDING_SIGN
+                        signs: 2
+                        numberSigns: 0
+                        signers: [ ]
+                      payment: [ ]
+  /api/v1/income-request-aio:
+    post:
+      summary: IncomeRequestAIO
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                authorization:
+                  $ref: ./models/Authorization.yaml
+                locale:
+                  type: string
+                  description: Especifica el lenguaje para mostrar los mensajes retornados durante el proceso. En caso de enviar una opción no soportada, se usará el valor por defecto.
+                  enum:
+                    - en
+                    - es
+                    - en-US
+                    - es-CO
+                  default: es-CO
+                incomeType:
+                  type: string
+                  description: Especifica el lenguaje para mostrar los mensajes retornados durante el proceso. En caso de enviar una opción no soportada, se usará el valor por defecto.
+                  example: ICA
+                  enum:
+                    - COMPANY_REGISTER
+                    - CONSUMER_BEER
+                    - CONSUMER_CIGARETTE
+                    - CONSUMER_WINE
+                    - ICA
+                company:
+                  type: object
+                  properties:
+                    documentType:
+                      type: string
+                      description: Tipo de documento de la empresa.
+                      example: NIT
+                      enum:
+                        - CC
+                        - CE
+                        - NIT
+                        - TI
+                        - PPN
+                        - RC
+                        - LIC
+                        - TAX
+                    document:
+                      type: string
+                      description: Número de identificación de la empresa. Cuando el tipo de documento es NIT, no se debe enviar el dígito de verificación.
+                      example: 123123123
+                    verification_digit:
+                      type: string
+                      description: Dígito de verificación
+                      example: 1
+                    legalName:
+                      type: string
+                      description: Nombre de la empresa.
+                      example: Autodeclaraciones Demo
+                    commercialName:
+                      type: string
+                      description: Nombre comercial (marca) de la empresa.
+                      example: Autodeclaraciones Demo
+                    telephone:
+                      type: string
+                      description: Teléfono de la empresa.
+                      example: 4510225
+                    address:
+                      type: string
+                      description: Dirección de la empresa.
+                    classification:
+                      type: string
+                      description: Tipo de contribuyente.
+                      enum:
+                        - GREAT_CONTRIBUTOR
+                        - COMMON_REGIME
+                        - SIMPLIFIED_REGIMEN
+                        - RETENTION_AGENT
+                        - STATE
+                        - INTERMEDIATOR
+                        - OTHER
+                      default: null
+                      example: GREAT_CONTRIBUTOR
+                    country:
+                      type: string
+                      description: Código del país basado en el ISO 3166-1 alpha-3.
+                      example: COL
+                    state:
+                      type: string
+                      description: Código DANE del estado/departamento.
+                      example: 05
+                    city:
+                      type: string
+                      description: Código DANE de la ciudad.
+                      example: 001
+                    email:
+                      type: string
+                      description: Correo electrónico de la empresa.
+                    status:
+                      type: string
+                      description: Estado de la empresa para el sistema, sólo se toma en cuenta el valor del campo cuando se realiza una actualización de la empresa recibida.
+                      enum:
+                        - ACTIVE
+                        - INACTIVE
+                      default: ACTIVE
+                  required:
+                    - documentType
+                    - document
+                    - legalName
+                    - telephone
+                    - address
+                    - country
+                    - state
+                    - city
+                    - email
+                bidders:
+                  type: object
+                  description: Información de los usuarios que pueden interactuar con esta declaración en específico, Se debe especificar por lo menos el representante legal (CEO) en cada solicitud de declaración.
+                  properties:
+                    documentType:
+                      type: string
+                      description: Tipo de documento del usuario autorizado.
+                      enum:
+                        - CC
+                        - CE
+                        - NIT
+                        - TI
+                        - PPN
+                        - RC
+                        - LIC
+                        - TAX
+                      example: CC
+                    document:
+                      type: string
+                      description: Número de identificación del usuario autorizado.
+                      example: 1035000000
+                    signer:
+                      type: boolean
+                      description: Determina si el usuario puede autorizar declaraciones, el valor por defecto será False en caso de no recibirlo.
+                    name:
+                      type: string
+                      description: Nombre del usuario autorizado.
+                    surname:
+                      type: string
+                      description: Apellido del usuario autorizado.
+                    email:
+                      type: string
+                      description: Correo electronico del usuario autorizado.
+                    bidderPosition:
+                      type: string
+                      description: Código que identifica el cargo del usuario autorizado dentro de la declaración; debe existir por lo menos un representante legal (CEO).
+                      enum:
+                        - CEO
+                        - TAX_AUDITOR
+                        - CERTIFIED_PUBLIC_ACCOUNT
+                        - GENERIC
+                      example: CEO
+                    professionalCard:
+                      type: string
+                      description: Número de tarjeta profesional del usuario autorizado.
+                  required:
+                    - documentType
+                    - document
+                    - name
+                    - surname
+                    - bidderPosition
+                additionalData:
+                  type: object
+                  description: Información de los usuarios que pueden interactuar con esta declaración en específico, Se debe especificar por lo menos el representante legal (CEO) en cada solicitud de declaración.
+                  properties:
+                    valueStrings:
+                      type: object
+                      properties:
+                        keyword:
+                          type: string
+                        value:
+                          type: string
+                    valueArrays:
+                      type: object
+                      properties:
+                        keyword:
+                          type: string
+                        value:
+                          type: object
+                payment:
+                  type: object
+                  properties:
+                    amount:
+                      type: string
+                  required:
+                    - amount
+                returnUrl:
+                  type: string
+              required:
+                - authorization
+                - incomeType
+                - company
+                - bidders
+                - additionalData
+                - payment
+                - returnUrl
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Estado de la solicitud.
+                    example: "SUCCESS"
+                    enum:
+                      - SUCCESS
+                      - FAILURE
+                  reason:
+                    description: Código HTTP de la respuesta, tomado del estándar HTTP.
+                    type: number
+                    example: 200
+                  message:
+                    type: string
+                    description: Mensaje/Descripción asociado al código de respuesta.
+                    example: "Petición procesada correctamente"
+                  requestId:
+                    type: string
+                    description: Identificador único de la solicitud.
+                    example: ab6671c7deea645b258ebc8ade753b7d2e9ca1938d1799582fbd7c9bb2cab917da7736fc50f6f1
+                  redirectTo:
+                    type: string
+                    description: Url a redireccionar para continuar con el proceso de autorización y pago de la declaración.
+                  signature:
+                    type: string
+                    description: Firma asignada a la solicitud, está compuesta por sha256(secret + date(c) + requestId).
+  /api/v1/income-pdf:
+    post:
+      summary: IncomePDF
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                authorization:
+                  $ref: ./models/Authorization.yaml
+                requestId:
+                  type: string
+                locale:
+                  type: string
+              required:
+                - authorization
+                - requestId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  reason:
+                    type: number
+                  message:
+                    type: string
+                  requestId:
+                    type: string
+                  reference:
+                    type: string
+                  pdf:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+  /api/v1/companies:
+    post:
+      summary: Companies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                authorization:
+                  $ref: ./models/Authorization.yaml
+                documentType:
+                  type: string
+                  description: Tipo de documento de la empresa.
+                  example: NIT
+                  enum:
+                    - CC
+                    - CE
+                    - NIT
+                    - TI
+                    - PPN
+                    - RC
+                    - LIC
+                    - TAX
+                document:
+                  type: string
+                  description: Número de identificación de la empresa. Cuando el tipo de documento es NIT, no se debe enviar el dígito de verificación.
+                  example: 900299228
+                verification_digit:
+                  type: string
+                  description: Dígito de verificación de la empresa.
+                  example: 1
+                legalName:
+                  type: string
+                  description: Nombre de la empresa.
+                commercialName:
+                  type: string
+                  description: Nombre comercial (marca) de la empresa.
+                telephone:
+                  type: string
+                  description: Teléfono de la empresa.
+                address:
+                  type: string
+                  description: Dirección de la empresa.
+                email:
+                  type: string
+                  description: Correo electrónico de la empresa.
+                classification:
+                  type: string
+                  description: Tipo de contribuyente.
+                  enum:
+                    - GREAT_CONTRIBUTOR
+                    - COMMON_REGIME
+                    - SIMPLIFIED_REGIMEN
+                    - RETENTION_AGENT
+                    - STATE
+                    - INTERMEDIATOR
+                    - OTHER
+                  default: null
+                  example: GREAT_CONTRIBUTOR
+                country:
+                  type: string
+                  description: Código del país basado en el ISO 3166-1 alpha-3.
+                state:
+                  type: string
+                  description: Código DANE del estado/departamento.
+                city:
+                  type: string
+                  description: Código DANE de la ciudad.
+                incomeEnable:
+                  type: object
+                  description: Impuestos/Rentas habilitadas para la empresa.
+                  properties:
+                    code:
+                      type: array[string]
+                      description: Códigos de rentas/impuestos
+                      minItems: 1
+                      maxItems: 5
+                      enum:
+                        - COMPANY_REGISTER
+                        - CONSUMER_BEER
+                        - CONSUMER_CIGARETTE
+                        - CONSUMER_WINE
+                        - ICA
+                  required:
+                    - code
+                locale:
+                  type: string
+                  description: Especifica el lenguaje para mostrar los mensajes retornados durante el proceso. En caso de enviar una opción no soportada, se usará el valor por defecto.
+                  enum:
+                    - en
+                    - es
+                    - en-US
+                    - es-CO
+                  default: es-CO
+              required:
+                - authorization
+                - documentType
+                - document
+                - legalName
+                - telephone
+                - address
+                - email
+                - country
+                - state
+                - city
+                - incomeEnable
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Estado de la solicitud.
+                    example: SUCCESS
+                    enum:
+                      - SUCCESS
+                      - FAILED
+                  reason:
+                    type: number
+                    description: Código HTTP de la respuesta, tomado del estándar HTTP.
+                    example: 201
+                  message:
+                    type: string
+                    description: Mensaje/Descripción asociado al código de respuesta.
+                  companyId:
+                    type: number
+                    description: Identificador único dentro del Sistema de Autodeclaraciones para esa empresa.
+  /api/v1/company-bidders:
+    post:
+      summary: CompanyBidders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                authorization:
+                  $ref: ./models/Authorization.yaml
+                locale:
+                  type: string
+                  description: Especifica el lenguaje para mostrar los mensajes retornados durante el proceso. En caso de enviar una opción no soportada, se usará el valor por defecto.
+                  default: es-CO
+                  enum:
+                    - en
+                    - es
+                    - en-US
+                    - es-CO
+                companyDocumentType:
+                  type: string
+                  description: Tipo de documento de la empresa.
+                  enum:
+                    - CC
+                    - CE
+                    - NIT
+                    - TI
+                    - PPN
+                    - RC
+                    - LIC
+                    - TAX
+                  example: CC
+                companyDocument:
+                  type: string
+                  description: Número de identificación de la empresa.
+                  example: 1000000
+                documentType:
+                  type: string
+                  description: Tipo de documento del usuario autorizado.
+                  enum:
+                    - CC
+                    - CE
+                    - NIT
+                    - TI
+                    - PPN
+                    - RC
+                    - LIC
+                    - TAX
+                  example: CC
+                document:
+                  type: string
+                  description: Número de identificación del usuario autorizado.
+                  example: 10000000
+                name:
+                  type: string
+                  description: Nombre del usuario autorizado.
+                surname:
+                  type: string
+                  description: Apellido del usuario autorizado.
+                email:
+                  type: string
+                  description: Correo electronico del usuario autorizado.
+                bidderPosition:
+                  type: string
+                  description: Código que identifica el cargo del usuario autorizado dentro de la declaración.
+                  enum:
+                    - CEO
+                    - TAX_AUDITOR
+                    - CERTIFIED_PUBLIC_ACCOUNT
+                    - GENERIC
+                  example: CEO
+                professionalCard:
+                  type: string
+                  description: Número de tarjeta profesional del usuario autorizado.
+                signer:
+                  type: boolean
+                  description: Determina si el usuario puede autorizar declaraciones.
+                  default: false
+                incomeEnable:
+                  type: object
+                  description: Impuestos/Rentas habilitadas para la empresa.
+                  properties:
+                    code:
+                      type: array[string]
+                      description: Códigos de rentas/impuestos
+                      maxItems: 5
+                      enum:
+                        - COMPANY_REGISTER
+                        - CONSUMER_BEER
+                        - CONSUMER_CIGARETTE
+                        - CONSUMER_WINE
+                        - ICA
+                  required:
+                    - code
+              required:
+                - authorization
+                - companyDocumentType
+                - companyDocument
+                - documentType
+                - document
+                - name
+                - surname
+                - bidderPosition
+                - incomeEnable
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  reason:
+                    type: number
+                  message:
+                    type: string
+                  companyBidderId:
+                    type: number
+                    description: Identificador único del usuario autorizado ante la empresa
