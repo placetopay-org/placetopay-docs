@@ -1934,6 +1934,14 @@ export const TAB_NAVIGATION = {
                 title: 'Acciones sobre facturas',
                 href: '/core/reference/invoice'
               },
+              {
+                title: 'Acciones sobre integraciones de comercios',
+                href: '/core/reference/merchant/integrations'
+              },
+              {
+                title: 'Acciones sobre integraciones de sitios',
+                href: '/core/reference/site/integrations'
+              },
             ]
           },
         ],
@@ -1988,6 +1996,14 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Actions on Invoices',
                 href: '/core/reference/invoice'
+              },
+              {
+                title: 'Actions on Merchant Integrations',
+                href: '/core/reference/merchant/integrations'
+              },
+              {
+                title: 'Actions on Site Integrations',
+                href: '/core/reference/site/integrations'
               },
             ]
           },
