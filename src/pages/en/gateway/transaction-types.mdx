@@ -16,67 +16,7 @@ To make use of this functionality, in the payment structure of the Recurring Pay
 
 Pre-authorization is a transaction used to reserve (**checkin**) an amount of money on a credit card. This amount can later be debited (**checkout**). During the process, the amount may change (**reauthorization**) according to the merchant’s needs or modifications in the services chosen by the cardholder. 
 
-> Note: If a **CHECKIN**, **REAUTHORIZATION**, or **CHECKOUT** transaction fails due to an abnormal status, it will be canceled and marked as rejected, but it can be retried. The failed transaction will have a **VR** status.
-
----
-
-## Check-In
-
-The **CHECKIN** transaction is used to obtain authorization from the bank (provider). It is defined as a debit to a credit or debit card that serves as a guarantee deposit for the use of a good or service.
-![Flow](/GatewayFlow.png)
-
-### Checkin Request
-
-To ensure quick integration, **CHECKIN** requests are similar to those of the `processTransaction` method, with the following differences:
-
-- The **"action"** must be `checkin`.
-- The payment reference will be reused in subsequent **REAUTHORIZATION** and **CHECKOUT** operations.
-- The payment currency will also remain the same in **REAUTHORIZATION** and **CHECKOUT**.
-- **Dispersion details** (multiple transactions to different collectors with the same cardholder information) are not considered.
-- **Recurrence details** (recurring charges from a proprietary database) are not included.
- 
-> **IMPORTANT:** The `preAuthorization` node contains the data that will be used in subsequent **REAUTHORIZATION** and **CHECKOUT** operations. Additionally, it reflects the general status of the pre-authorization process.
-
----
-
-## Re-Authorization
-
-> Not applicable to Puerto Rico
-
-> For Transerver Retail, reauthorizations are limited exclusively to incremental adjustments to the amount previously authorized during the CHECKIN process or a prior REAUTHORIZATION.  
-> This means it is not possible to reduce the authorized amount. If a reauthorization is attempted with an amount equal to or lower than the previously authorized value, the transaction will fail; in cases where a lower amount needs to be processed, the CHECKOUT process must be used instead.  
-
-The **REAUTHORIZATION** transaction modifies the previously defined security deposit amount in a **CHECKIN** transaction, requesting a new authorization from the bank (provider).
-
-### Reauthorization Request
-
-A **CHECKIN** request must be made before processing a **REAUTHORIZATION**. Considerations:
-
-- The payment reference is overwritten by the original **CHECKIN** session.
-- The payment currency is overwritten by the original **CHECKIN** session.
-- The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
-- Multiple **REAUTHORIZATION** transactions can be performed before **CHECKOUT**.
-- Each reauthorization must be for an amount greater than `0`.
- 
-After this operation, the pre-authorization remains in a **pending** state until a **CHECKOUT** is performed.
-
----
-
-## Check-out
-
-The **CHECKOUT** transaction confirms the security deposit amount previously separated with a **CHECKIN** or **REAUTHORIZATION** transaction. This formalizes the transaction (purchase/settlement) with the provider.
-
-### Checkout Request
- 
-Key considerations:
- 
-- A **CHECKOUT** can be performed without a prior **REAUTHORIZATION**.
-- The payment reference is overwritten by the original **CHECKIN** session.
-- The payment currency is overwritten by the original **CHECKIN** session.
-- The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
-- If the **CHECKOUT** amount is `0`, the pre-authorization is canceled, and the retained amount is released.
- 
-> **IMPORTANT:** The values of `status`, `authorization`, and `receipt` within the `preAuthorization` node change after a successful **CHECKOUT**. These updated values must be used in **REVERSE** requests.
+> For more information about **CHECKIN**, **REAUTHORIZATION** y **CHECKOUT** see [Payments -> preAuthorization](/en/payments/preauthorization)
 
 ---
 

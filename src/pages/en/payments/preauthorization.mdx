@@ -1,0 +1,153 @@
+import { HeroPattern } from '@/components/HeroPattern'
+import { CenteredContainer } from '@/components/CenteredContainer'
+ 
+export const sectionMode = 'nav';
+export const description = ""
+
+# Preauthorization
+
+**Preauthorization** is a process that temporarily holds a specific amount on the customer's card without charging it immediately. It is commonly used in industries like hotels, car rentals, or services where the final amount may change.
+
+This process ensures that the funds are available and can be captured or released later depending on the final amount. It can also be adjusted if needed.
+
+---
+
+## General Flow
+
+1. **Check-in (Initial authorization):** An authorization is requested to hold funds on the customer’s card.
+2. **Reauthorization (Optional adjustment):** If the value of the service changes (e.g., a longer stay), the hold amount can be increased or decreased.
+3. **Checkout (Capture or Release):** When the final amount is confirmed, the hold is either captured (charged) or released.
+
+![Flujo](/GatewayFlow.png)
+
+> If any operation fails, it can be retried. Failed operations are marked with a rejection state (with reason code **VR**) and do not affect prior steps.
+
+## Check-in
+
+**Check-in** is the first step. It creates a hold on the customer’s card for a specific amount, acting as a security deposit. Once approved, this hold is linked to a unique reference reused in later steps. The preauthorization will remain **pending** until a **checkout** is completed.
+
+<Tabs title="Checkin">
+  <Tabs.Item title="Web Checkout">
+    - The **"action"** porperty must be `checkin`.
+    - The payment reference will be reused in subsequent **REAUTHORIZATION** and **CHECKOUT** operations.
+    - The payment currency will also remain the same in **REAUTHORIZATION** and **CHECKOUT**.
+    - Pre-authorization payments are not allowed when you want to make a mixed payment.
+    - Pre-authorization payments with scatter values are not allowed.
+
+    ```json {{ 'title': 'CreateSessionRequest - Preauthorization Payment' }}
+    {
+        ...
+        "type": "checkin",
+        "payment": {
+            "reference": "PAY_ABC_1287",
+            "description": "Payment by Placetopay",
+            "amount": {
+                "currency": "USD",
+                "total": 1000
+            }
+        }
+        ...
+    }
+    ```
+  </Tabs.Item>
+  <Tabs.Item title="Gateway">
+    ### Checkin Request
+
+    To ensure quick integration, **CHECKIN** requests are similar to those of the `processTransaction` method, with the following differences:
+
+    - The **"action"** must be `checkin`.
+    - The payment reference will be reused in subsequent **REAUTHORIZATION** and **CHECKOUT** operations.
+    - The payment currency will also remain the same in **REAUTHORIZATION** and **CHECKOUT**.
+    - **Dispersion details** (multiple transactions to different collectors with the same cardholder information) are not considered.
+    - **Recurrence details** (recurring charges from a proprietary database) are not included.
+    
+    > **IMPORTANT:** The `preAuthorization` node contains the data that will be used in subsequent **REAUTHORIZATION** and **CHECKOUT** operations. Additionally, it reflects the general status of the pre-authorization process.
+  </Tabs.Item>
+</Tabs>
+
+## Reauthorization
+
+**Reauthorization** allows you to change the hold amount based on the initial check-in or a previous reauthorization.
+
+> Not available in Puerto Rico.
+
+> For Transerver Retail, reauthorizations are limited exclusively to incremental adjustments to the amount previously authorized during the CHECKIN process or a prior REAUTHORIZATION.  
+> This means it is not possible to reduce the authorized amount. If a reauthorization is attempted with an amount equal to or lower than the previously authorized value, the transaction will fail; in cases where a lower amount needs to be processed, the CHECKOUT process must be used instead.  
+
+<Tabs title="Reauthorization">
+  <Tabs.Item title="Web Checkout">
+    - The payment reference is overwritten by the original **CHECKIN** session.
+    - The payment currency is overwritten by the original **CHECKIN** session.
+    - The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
+    - Multiple **REAUTHORIZATION** transactions can be performed before **CHECKOUT**.
+    - Each reauthorization must be for an amount greater than `0`.
+
+    After this operation, the pre-authorization remains in a **pending** state until a **CHECKOUT** is performed.
+
+    ```json {{ 'title': 'TransactionActionRequest - Reauthorization' }}
+    {
+        ...
+        "internalReference": 1, //internal reference code
+        "amount": {
+            "currency": "USD",
+            "total": 100
+        },
+        "action": "reauthorization"
+        ...
+    }
+    ```
+  </Tabs.Item>
+  <Tabs.Item title="Gateway">
+   ### Checkout Request
+    A **CHECKIN** request must be made before processing a **REAUTHORIZATION**. Considerations:
+
+  - The payment reference is overwritten by the original **CHECKIN** session.
+  - The payment currency is overwritten by the original **CHECKIN** session.
+  - The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
+  - Multiple **REAUTHORIZATION** transactions can be performed before **CHECKOUT**.
+  - Each reauthorization must be for an amount greater than `0`.
+  
+   After this operation, the pre-authorization remains in a **pending** state until a **CHECKOUT** is performed.
+  </Tabs.Item>
+</Tabs>
+
+## Checkout
+
+- A check-in must be performed beforehand.
+- Reauthorization is not mandatory before a capture.
+
+<Tabs title="Checkout">
+  <Tabs.Item title="Web Checkout">
+    - A **CHECKOUT** can be performed without a prior **REAUTHORIZATION**.
+    - The payment reference is overwritten by the original **CHECKIN** session.
+    - The payment currency is overwritten by the original **CHECKIN** session.
+    - The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
+    - If the **CHECKOUT** amount is `0`, the pre-authorization is canceled, and the retained amount is released.
+
+    ```json {{ 'title': 'TransactionActionRequest - Reauthorization' }}
+    {
+        ...
+        "internalReference": 1, //internal reference code
+        "amount": {
+            "currency": "USD",
+            "total": 100
+        },
+        "action": "checkout"
+        ...
+    }
+    ```
+  </Tabs.Item>
+  <Tabs.Item title="Gateway">
+   ### Checkout Request
+ 
+    Key considerations:
+    
+    - A **CHECKOUT** can be performed without a prior **REAUTHORIZATION**.
+    - The payment reference is overwritten by the original **CHECKIN** session.
+    - The payment currency is overwritten by the original **CHECKIN** session.
+    - The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
+    - If the **CHECKOUT** amount is `0`, the pre-authorization is canceled, and the retained amount is released.
+    
+    > **IMPORTANT:** The values of `status`, `authorization`, and `receipt` within the `preAuthorization` node change after a successful **CHECKOUT**. These updated values must be used in **REVERSE** requests.
+  </Tabs.Item>
+</Tabs>

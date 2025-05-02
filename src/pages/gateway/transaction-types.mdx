@@ -16,68 +16,7 @@ Para hacer uso de esta funcionalidad, en la estructura payment del Pago recurren
 
 La pre-autorización es una transacción utilizada para reservar (**checkin**) un monto de dinero en una tarjeta de crédito. Posteriormente, este monto puede ser debitado (**checkout**). Durante el proceso, el monto puede cambiar (**reauthorization**) según las necesidades del comercio o modificaciones en los servicios elegidos por el tarjetahabiente.
 
-> Nota: Si una transacción **CHECKIN**, **REAUTHORIZATION** o **CHECKOUT** falla por un estado anómalo, se cancelará y quedará rechazada, pero podrá ser reintentada. La transacción fallida quedará con estado **VR**.
-
----
-
-## Checkin
-
-La transacción **CHECKIN** permite obtener una autorización del banco (proveedor). Se define como un débito en una tarjeta de crédito o débito que funciona como depósito de garantía por el uso de un bien o servicio.
-
-![Flujo](/GatewayFlow.png)
-
-### Solicitud Checkin (Request)
-
-Para facilitar la integración, las solicitudes de **CHECKIN** son similares a las del método `processTransaction`, con las siguientes diferencias:
-
-- La **"action"** debe ser `checkin`.
-- La referencia del pago se reutilizará en las operaciones de **REAUTHORIZATION** y **CHECKOUT**.
-- La moneda del pago también se mantendrá en **REAUTHORIZATION** y **CHECKOUT**.
-- No se considerarán detalles sobre **dispersión** (transacciones a múltiples recaudadores con la misma información del tarjetahabiente).
-- No se incluirán detalles de **recurrencia** (cobros recurrentes desde una base de datos propietaria).
-
-> **IMPORTANTE:** El nodo `preAuthorization` contiene los datos que se usarán en las operaciones posteriores de **REAUTHORIZATION** y **CHECKOUT**. Además, refleja el estado general del proceso de pre-autorización.
-
----
-
-## Reautorización
-
-> No aplica a Puerto Rico
-
-> Para Transerver Retail, las reautorizaciones están limitadas únicamente a ajustes incrementales al monto previamente autorizado durante el proceso de CHECKIN o en una REAUTHORIZATION anterior.  
-> Esto significa que no es posible reducir el valor autorizado. Si se intenta realizar una reautorización con un monto igual o menor al previamente autorizado, la transacción será fallida; en dado caso de requerir procesar un monto menor, se debe utilizar directamente un proceso de CHECKOUT.  
- 
-La transacción **REAUTHORIZATION** permite modificar el monto definido como depósito de garantía en una transacción **CHECKIN**, solicitando una nueva autorización al banco (proveedor).
-
-### Solicitud Reautorización (Request)
-
-Para procesar una **REAUTHORIZATION** es necesario haber realizado previamente un **CHECKIN**. Consideraciones:
-
-- La referencia del pago se sobrescribe con la sesión **CHECKIN** original.
-- La moneda del pago también se sobrescribe con la sesión **CHECKIN** original.
-- Los valores de `internalReference` y `authorization` deben ser los entregados en la respuesta de **CHECKIN** dentro del nodo `preAuthorization`.
-- Se pueden realizar varias **REAUTHORIZATION** antes del **CHECKOUT**.
-- Las reautorizaciones deben ser por un monto mayor a `0`.
-
-Tras esta operación, la pre-autorización sigue en estado **pendiente** hasta que se realice un **CHECKOUT**.
-
----
-
-## Check-out
-
-La transacción **CHECKOUT** confirma el monto del depósito de garantía separado previamente con un **CHECKIN** o **REAUTHORIZATION**. Formaliza la transacción (compra/asentamiento) en el proveedor.
-
-### Solicitud Check-out (Request)
-
-Consideraciones importantes:
-
-- Es posible hacer un **CHECKOUT** sin haber realizado una **REAUTHORIZATION**.
-- La referencia del pago se sobrescribe con la sesión **CHECKIN** original.
-- La moneda del pago se sobrescribe con la sesión **CHECKIN** original.
-- Los valores de `internalReference` y `authorization` deben ser los entregados en la respuesta de **CHECKIN** dentro del nodo `preAuthorization`.
-- Si el valor del **CHECKOUT** es `0`, la pre-autorización se cancela y se libera el monto retenido en las peticiones previas.
- 
-> **IMPORTANTE:**  El estado de `status`, `authorization` y `receipt` dentro del nodo `preAuthorization` cambia tras un **CHECKOUT** exitoso. En solicitudes de **REVERSE**, se deben usar los nuevos valores generados.
+> Para conocer más sobre **CHECKIN**, **REAUTHORIZATION** y **CHECKOUT** consultar [Pagos -> Preautorización](/payments/preauthorization)
 
 ---
 
