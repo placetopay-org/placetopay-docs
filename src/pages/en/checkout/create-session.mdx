@@ -277,7 +277,7 @@ A subscription session is a session in which the user enters a means of payment 
 
 The subscription allows you to securely store (tokenizing) a user's means of payment, so that you can later make payments related to it.
 
-To make use of this functionality it is necessary to send the `subscription` structure in the `RedirectRequest`.
+To make use of this functionality it is necessary to send the `subscription` structure in the `CreateSessionRequest`.
 
 ```json {{ 'title': 'CreateSessionRequest - Subscription' }}
 {
@@ -290,7 +290,7 @@ To make use of this functionality it is necessary to send the `subscription` str
 }
 ```
 
-### Charge on a tokenized means of payment
+## Charge on a tokenized means of payment {{ id: 'collect-payment' }}
 
 When a subscription is made, a token is obtained, with this token you can charge the client.
 
@@ -329,27 +329,108 @@ The token information must be stored on your site and related to the user and/or
 
 ## Payment with subscription {{ id: 'payment-with-subscription' }}
 
+You can allow users to save their payment method during a regular transaction by enabling the **subscription flow**. This flow securely stores the payment method for future use, always requiring the user's explicit consent.
 
-A payment can be converted into payment and subscription at the same time, to carry out this flow it is important to add the attribute subscribe to true in the payment object as follows
+This flow is useful for:
+- Preparing future charges (e.g., for subscriptions or recurring payments).
+- Reducing friction during checkout by reusing stored payment details.
+- Charging the user when they are not present, such as in automatic renewals.
 
-To use this session type, you must set the `payment.subscribe` property to `true`
+### 1. Create a payment session with subscription option
 
-```json {{ 'title': 'CreateSessionRequest - Payment with Subscription' }}
+To enable the option to save the payment method during the checkout process, include the property  
+`subscribe: true` within the `payment` structure in the `CreateSessionRequest`.
+
+```json {{ 'title': 'CreateSessionRequest' }}
 {
-    ...
-    "payment": {
-        "reference": "PAY_ABC_1287",
-        "description": "Payment by Placetopay",
-        "amount": {
-            "currency": "USD",
-            "total": 1000
-        },
-        "subscribe": true
-    }
-    ...
+  ...
+  "payment": {
+    "reference": "PAY_ABC_1287",
+    "description": "Pago por Placetopay",
+    "amount": {
+      "currency": "USD",
+      "total": 1000
+    },
+    "subscribe": true
+  }
+  ...
 }
 ```
+This enables the option for the user to authorize the storage of the payment method (tokenization) when completing the payment.
 
-In the payment process, the user can choose if he wants to subscribe to the means of payment.
+### 2. Payment method saved by the user
+
+During the checkout flow, the user will be shown an option to authorize the storage of their payment method.  
+This authorization is required for the method to be tokenized and made available for future payments.
+
+<Note>Si el usuario no activa la opción de *guardar el medio de pago*, este **no será almacenado** y la sessión de checkout se completará como un pago único, sin generar una suscripción.</Note>
+
+<img src="/en/checkout/checkout-wallet-enabled.svg" width="70%" style={{ width: '70%', display: 'block', margin: '' }} />
+
+### 3. Retrieve the saved payment method token
+
+If the user authorized the saving of their payment method during the checkout process, you can retrieve the generated token (the identifier of the tokenized payment method) once the session is completed.
+
+To do so, send a request to the [Query a session](/checkout/api/reference/session#query-a-session) endpoint using the corresponding `requestId`.  The token will be available in the `subscription.instrument` field of the response, if the process was successful.
+
+```json {{ 'title': 'Respuesta Query[SessionRequest' }}
+{
+  "requestId": 1,
+  "status": {...},
+  "request": {
+    ...
+    "payment": {
+      "reference": "12345",
+      "description": "Prueba de pago",
+      "amount": {
+        "currency": "COP",
+        "total": 2000,
+      },
+      "subscribe": true,
+    },
+  },
+  "payment": [
+    {
+      "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "La petición ha sido aprobada exitosamente",
+        "date": "2022-07-27T14:51:27-05:00"
+      },
+      ...
+    }
+  ],
+  "subscription": {
+    "status": {
+      "status": "OK",
+      "reason": "00",
+      "message": "La petición ha sido aprobada exitosamente",
+      "date": "2022-07-27T14:51:27-05:00"
+    },
+    "type": "token",
+    "instrument": [
+        {
+            "keyword": "token",
+            "value": "a3bfc8e2afb9ac5583922eccd6d2061c1b0592b099f04e352a894f37ae51cf1a",
+            "displayOn": "none"
+        },
+        {
+            "keyword": "subtoken",
+            "value": "8740257204881111",
+            "displayOn": "none"
+        },
+        ...
+    ]
+  }
+}
+
+```
+
+### 4. Use the token for future charges
+
+Once the payment method token is obtained, you can reuse it to perform future charges without requiring additional interaction from the user.
+
+For more details on this process, see the section:  
+➡️ [Charge a tokenized payment method](/en/checkout/create-session#collect-payment)
 
 ---
