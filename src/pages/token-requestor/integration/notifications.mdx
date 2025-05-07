@@ -1,123 +1,64 @@
 # Notificaciones
 
-***Token requestor Services*** envía notificaciones de cambio de estado de tokens y comercios. Cuando recibes una notificación, llama a la api correspondiente para tener información del cambio.
+Token Requestor Services envía notificaciones cuando hay un cambio en el estado de los
+tokens. Al recibir una notificación, se recomienda llamar a la API correspondiente para
+obtener más detalles sobre el cambio.
 
-El cliente de Token requestor Services debe configurar un PostBackURL para recibir notificaciones.
+Antes de consumir esta API debe existir en la plataforma un comercio registrado en la
+marca y un token anteriormente dado.
 
-Una notificación es una llamada REST (HTTPS POST message) desde Token requestor Services a tu post-back-url. La cual consiste de headers, query-parameters y un request-body, los cuales serán determinados por el tipo de evento.
+Cada notificación incluye una firma **signature**, que debe ser validada por el receptor para
+confirmar que la notificación proviene del emisor que es una fuente legítima y esperada.
+Esta firma permite verificar la autenticidad del mensaje, asegurando que fue enviado por
+Token Requestor Services y no por un tercero no autorizado. De esta manera, se refuerza la
+seguridad del proceso de manera sencilla y efectiva para el usuario.
 
-Los datos se entregarán frimados en un JWS para lo cual se tiene disponible la llave pública en el endpoint [GET key](https://evertectsp.stoplight.io/docs/tsp-api-doc/af51838b19685-get-public-key)
+El signature es un valor criptográfico generado a partir de la combinación de datos
+específicos del mensaje y una clave secreta. Su propósito es garantizar la autenticidad e
+integridad de la notificación, asegurando que:
 
-<Row>
-  <Col sticky>
-    <CodeGroup title="Endpoint" tag="POST" label="https://postBackURL/tsp/notifications?eventType=type">
-    ```bash {{ title: 'cURL' }}
-    curl -X "POST" https://postBackURL/tsp/notifications?eventType=type \
-    ```
-    </CodeGroup>
-  </Col>
-</Row>
+La generación del signature generalmente sigue un proceso como:
+- Se toma una combinación de datos clave, como el contenido del mensaje y la fecha.
+- Se aplica una función hash junto con una clave secreta compartida entre el emisor y
+el receptor.
+- El resultado es una firma digital única que el receptor puede verificar usando la
+misma clave secreta.
+
+Para validar la firma, el receptor debe recalcular el signature utilizando los mismos datos y
+la clave secreta. Si el resultado coincide con el signature recibido, se confirma que el
+mensaje es legítimo y no ha sido alterado.
+
+## Token updated
+Notificación relacionada con la actualización del estado de un token
+
+| Campo                | Tipo   |                                                                  | Descripción                                                                           | Ejemplo                                    |
+|----------------------|--------|------------------------------------------------------------------|---------------------------------------------------------------------------------------|--------------------------------------------|
+| **date**             | string | <span class=" text-teal-500 dark:text-teal-400">REQUERIDO</span> | Fecha de la notificación.                                                             | `2023-01-19 15:57:23`                      |
+| **type**             | string | <span class="text-teal-500 dark:text-teal-400">REQUERIDO</span>  | Tipo de evento. Valores válidos: `TOKEN_UPDATED`.                                     | `TOKEN_UPDATED`                            |
+| **signature**        | string | <span class="text-teal-500 dark:text-teal-400">REQUERIDO</span>  | Valor criptográfico generado a partir de la combinación de datos y una clave secreta. | `Base64(SHA-256(secretKey + data + date))` |
+| **merchantId**       | string | <span class="text-teal-500 dark:text-teal-400">REQUERIDO</span>  | ID del comercio.                                                                      | `2972c13d-6315-4da3-80d7-64c24eb232ad`     |
+| **data**             | object | <span class="text-teal-500 dark:text-teal-400">REQUERIDO</span>  | Datos relacionados con el evento.                                                     | `{...}`                                    |
+| **data.** id         | string | <span class="text-teal-500 dark:text-teal-400">REQUERIDO</span>  | Identificador único del token.                                                        | `cc400a23227c5294cc0c1fb21a6c5a02`         |
+| **data.** status     | string | <span class="text-teal-500 dark:text-teal-400">REQUERIDO</span>  | Estado del token. Valores válidos: `ACTIVE`, `INACTIVE`, `EXPIRED`, `DELETED`.        | `ACTIVE`                                   |
+| **data.** expiration | string | <span class="text-teal-500 dark:text-teal-400">REQUERIDO</span>  | Fecha de vencimiento del token.                                                       | `26/01`                                    |
 
 
-
-### Query parameters
-
-| Parametro  | Descripción    | Formato                                                      |
-| :--------- | :------------  |:-------------------------------------------------------------|
-| eventType  | tipo de evento |string con uno de los tipos de evento (TOKEN_UPDATED, etc...) |
-
-### Token Updates
-
-- TOKEN_UPDATED  notificación relacionada con la actualización del estado de un token
+## Ejemplo de notificación enviada al usuario suscrito
 
 
-##### Request body
-| Parametro             | Descripción                            | Formato                                 |
-| :---------------------| :--------------------------------------|:----------------------------------------|
-| date                  | fecha de creación del evento           | UNIX_UTC_Timestamp ej. 1585741817000    |
-| service               | nombre de la marca que envía el evento | string ej. mastercard                   |
-| data                  | json                                   | data relacionada con el evento          |
-| data.merchantId       | string                                 | id del comercio                         |
-| data.token            | json                                   | data relacionada con el token           |
-| data.token.token      | string                                 | Id del token entregado                  |
-| data.token.status     | string                                 | Estado del token ACTIVE INACTIVE DELETED|
-| data.token.validUntil | date                                   | fecha de expiración del token           |
-
-### Token Statuses
-
-- ACTIVE token disponible para procesar
-- INACTIVE el token fué inhabilitado por el emisor y no está disponible
-- DELETED el token ya fué eliminado, debe generar uno nuevo
-
-#### Ejemplo notificación
-
-#### JWS
 ```json
 {
-  "data": "eyJhbGciOiJSUzI1NiJ9.eyJkYXRlIjoxNjc4ODEyOTU1MjUyLCJzZXJ2aWNlIjoidmlzYSIsImRhdGEiOnsibWVyY2hhbnRJZCI6IjJlOTg4MzA1LTQwYmItNGU3Ny1hOTkyLWMwZGNlMzMwM2RiMSIsInRva2VuIjp7InRva2VuIjoiOWNkZjMwYjYzN2MzODcyMDEzYWYxNTcxMjVhMDc3MDIiLCJzdGF0dXMiOiJBQ1RJVkUiLCJleHBpcmF0aW9uIjp7InllYXIiOiIyMDIzIiwibW9udGgiOiIxMiJ9fX19.L4S-u3DB_0sMoDk3-o3weBSIRNrbo33sYmDyCg2Ibpr1Nr361NbMBR_J-3k3HfkLSGdnz7s5tveugSl5N8czXfJplRnMjKm7CM394DQcVvCXnyD6K7cM7muVOB3pB14u1vejCaaI2S6u2YwTtKDuZKRDPeOQTOJT9Ecr7W7_3daiIxQ-J8x12BZEB72MltTMgj43T4UMBz54BfNnShW4kQ04HkDut26Y-26s3OiIztq69yfvzA1VubWgrgbRoPVpU_V_JmDeHSshS49urLcbBJUCyY_qM0yjiLfn9sLwQAQDJ2HMJrhK6p6Mbk6GX_xPcwUlasvj_EBNzp7qkUZFBw",
-}
-```
-#### Payload
-```json
-{
+  "type": "TOKEN_UPDATED",
+  "merchantId": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+  "signature": "Base64(SHA-256(secretKey + data + date))",
   "date": "2023-01-19 15:57:23",
-  "service": "visa",
   "data": {
-    "token": {
-      "token": "cc400a23227c5294cc0c1fb21a6c5a02",
-      "status": "ACTIVE",
-      "validUntil": "2026-01-31"
-    }
+    "id": "cc400a23227c5294cc0c1fb21a6c5a02",
+    "status": "INACTIVE",
+    "expiration": "26/01"
   }
 }
+
 ```
-### Merchant Updates
-
-- MERCHANT_UPDATED  notificación relacionada con la creación del comercio
-
-
-##### Request body
-| Campo            | DESCRIPCIÓN                            | Formato                                    |
-| :--------------- | :--------------------------------------|:-------------------------------------------|
-| date             | fecha de creación del evento           | UNIX_UTC_Timestamp ej. 1585741817000       |
-| service          | nombre de la marca que envía el evento | string ej. mastercard                      |
-| data             | json                                   | data relacionada con el evento             |
-| data.requestId   | string                                 | identificador entregado al hacer onboarding|
-| data.merchantId  | string                                 | id del comercio                            |
-| data.name        | string                                 | nombre del comercio                        |
-
-
-#### Ejemplo notificación
-#### JWS
-```json
-{
-  "data": "eyJhbGciOiJSUzI1NiJ9.eyJkYXRlIjoxNjc4ODEyOTU1MjUyLCJzZXJ2aWNlIjoidmlzYSIsImRhdGEiOnsibWVyY2hhbnRJZCI6IjJlOTg4MzA1LTQwYmItNGU3Ny1hOTkyLWMwZGNlMzMwM2RiMSIsInRva2VuIjp7InRva2VuIjoiOWNkZjMwYjYzN2MzODcyMDEzYWYxNTcxMjVhMDc3MDIiLCJzdGF0dXMiOiJBQ1RJVkUiLCJleHBpcmF0aW9uIjp7InllYXIiOiIyMDIzIiwibW9udGgiOiIxMiJ9fX19.L4S-u3DB_0sMoDk3-o3weBSIRNrbo33sYmDyCg2Ibpr1Nr361NbMBR_J-3k3HfkLSGdnz7s5tveugSl5N8czXfJplRnMjKm7CM394DQcVvCXnyD6K7cM7muVOB3pB14u1vejCaaI2S6u2YwTtKDuZKRDPeOQTOJT9Ecr7W7_3daiIxQ-J8x12BZEB72MltTMgj43T4UMBz54BfNnShW4kQ04HkDut26Y-26s3OiIztq69yfvzA1VubWgrgbRoPVpU_V_JmDeHSshS49urLcbBJUCyY_qM0yjiLfn9sLwQAQDJ2HMJrhK6p6Mbk6GX_xPcwUlasvj_EBNzp7qkUZFBw",
-}
-```
-#### Payload
-```json
-{
-  "date": "2023-01-19 15:57:23",
-  "service": "visa",
-  "data": {
-    "requestId": "b39857ad-4ba3-4b51-b11e-e175c7b9fd2b",
-    "merchant" : {
-      "id": "12d3b300-fd9b-43b4-ac40-f3f93b73f381",
-      "name": "new Merchant"
-    }
-  }
-}
-```
-
-
-
-
-
-
-
-
-
-
-
 
 
