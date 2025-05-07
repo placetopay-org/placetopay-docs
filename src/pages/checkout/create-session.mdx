@@ -277,7 +277,7 @@ Una sesión de suscripción es una sesión en la cual el usuario ingresa un medi
 
 La suscripción permite almacenar de forma segura (tokenizando) el medio de pago de un usuario, para que luego pueda efectuar cobros relacionados a éste.
 
-Para hacer uso de esta funcionalidad es necesario enviar en el `RedirectRequest` la estructura `subscription`.
+Para hacer uso de esta funcionalidad es necesario enviar en el `CreateSessionRequest` la estructura `subscription`.
 
 ```json {{ 'title': 'CreateSessionRequest - Subscription' }}
 {
@@ -290,7 +290,7 @@ Para hacer uso de esta funcionalidad es necesario enviar en el `RedirectRequest`
 }
 ```
 
-### Cobrar sobre un medio de pago tokenizado
+## Cobrar sobre un medio de pago tokenizado  {{ id: 'collect-payment' }}
 
 Cuando se realiza una suscripción se obtiene un token, con este token puedes hacer cobros al cliente.
 
@@ -329,27 +329,108 @@ La información del token debe ser almacenada en su sitio y relacionada al usuar
 
 ## Pago con suscripción {{ id: 'payment-with-subscription' }}
 
+Puedes permitir que tus usuarios guarden su medio de pago durante un pago normal, activando el **flujo de suscripción**. Este flujo permite almacenar de forma segura el medio de pago para futuras compras, siempre con el consentimiento explícito del usuario.
 
-Un pago se puede convertir en pago y suscripción al mismo tiempo, para realizar este flujo es importante agregar en el objeto payment el atributo subscribe en true de la siguiente manera
+Este flujo es útil para:
+- Preparar cobros futuros (por ejemplo, para suscripciones o pagos recurrentes).
+- Reducir fricción en el checkout repitiendo automáticamente los datos de pago guardados.
+- Realizar cobros cuando el usuario no está presente, como en casos de renovaciones automáticas.
 
-Para usar este tipo de sesión, debes enviar la propiedad `payment.subscribe` como `true`
+### 1. Crear sesión de pago con opción de suscripción
 
-```json {{ 'title': 'CreateSessionRequest - Payment with Subscription' }}
+Para activar la opción de guardar el medio de pago durante el proceso de checkout, debes enviar la propiedad   
+`subscribe: true` dentro de la estructura `payment` en la petición `CreateSessionRequest`.
+
+```json {{ 'title': 'CreateSessionRequest' }}
 {
-    ...
-    "payment": {
-        "reference": "PAY_ABC_1287",
-        "description": "Pago por Placetopay",
-        "amount": {
-            "currency": "USD",
-            "total": 1000
-        },
-        "subscribe": true
-    }
-    ...
+  ...
+  "payment": {
+    "reference": "PAY_ABC_1287",
+    "description": "Pago por Placetopay",
+    "amount": {
+      "currency": "USD",
+      "total": 1000
+    },
+    "subscribe": true
+  }
+  ...
 }
 ```
+Esto habilita la opción para que el usuario autorice el almacenamiento del medio de pago (tokenización) al momento de completar el pago.
 
-En el proceso de pago el usuario podrá elegir si quiere suscribir el medio de pago.
+### 2. Guardado del medio de pago por parte del usuario
+
+Durante el flujo de checkout, se mostrará al usuario una opción para autorizar el almacenamiento de su medio de pago.  
+Esta autorización es necesaria para que el medio sea tokenizado y quede disponible para futuros pagos. 
+
+<Note>Si el usuario no activa la opción de *guardar el medio de pago*, este **no será almacenado** y la sessión de checkout se completará como un pago único, sin generar una suscripción.</Note>
+
+<img src="/checkout/checkout-wallet-enabled.svg" width="70%" style={{ width: '70%', display: 'block', margin: '' }} />
+
+### 3. Obtener el token del medio de pago guardado
+
+Si el usuario autorizó el guardado del medio de pago durante el proceso de checkout, al finalizar la sesión podrás consultar el token generado (identificador del medio de pago tokenizado).
+
+Para obtenerlo, realiza una solicitud al endpoint [Consultar una sesión](/checkout/api/reference/session#query-a-session) usando el `requestId` correspondiente. El token estará disponible en el campo `subscription.instrument` de la respuesta, si el proceso fue exitoso.
+
+```json {{ 'title': 'Respuesta Query[SessionRequest' }}
+{
+  "requestId": 1,
+  "status": {...},
+  "request": {
+    ...
+    "payment": {
+      "reference": "12345",
+      "description": "Prueba de pago",
+      "amount": {
+        "currency": "COP",
+        "total": 2000,
+      },
+      "subscribe": true,
+    },
+  },
+  "payment": [
+    {
+      "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "La petición ha sido aprobada exitosamente",
+        "date": "2022-07-27T14:51:27-05:00"
+      },
+      ...
+    }
+  ],
+  "subscription": {
+    "status": {
+      "status": "OK",
+      "reason": "00",
+      "message": "La petición ha sido aprobada exitosamente",
+      "date": "2022-07-27T14:51:27-05:00"
+    },
+    "type": "token",
+    "instrument": [
+        {
+            "keyword": "token",
+            "value": "a3bfc8e2afb9ac5583922eccd6d2061c1b0592b099f04e352a894f37ae51cf1a",
+            "displayOn": "none"
+        },
+        {
+            "keyword": "subtoken",
+            "value": "8740257204881111",
+            "displayOn": "none"
+        },
+        ...
+    ]
+  }
+}
+
+```
+
+### 4. Usar el token para realizar cobros futuros
+
+Una vez se obtiene el token del medio de pago, puedes reutilizarlo para realizar cobros futuros sin requerir una nueva interacción del usuario.
+
+Para más detalles sobre este proceso, consulta la sección:  
+➡️ [Cobrar sobre un medio de pago tokenizado](/checkout/create-session#collect-payment)
 
 ---
