@@ -1,3 +1,4 @@
+import { CopyContent } from '@/components/CopyContent'
 export const description =
   'Meet Lightbox, a way to integrate Checkout into your site or app without having to redirect your users to another page.'
 
@@ -26,9 +27,16 @@ Lightbox is a way to integrate Checkout that allows your users to complete the p
 
 Follow these steps to complete your integration successfully.
 
-### Add script
+1. **Add Script:** Include the Lightbox script in your web page.
+2. **Generate Process URL:** On your server (backend), [create a session](/en/checkout/api/reference/session#crear-una-sesion) and obtain the `processUrl`.
+3. **Start Lightbox:** Share the `processUrl` with your client's (frontend) JavaScript code. Use this URL to initialize the Lightbox.
+4. **Register Callback:** Capture the callback in your frontend to handle the response when the Checkout process ends.
 
-To integrate Lightbox you must add our script in your web page.
+### Add script {{ id: 'add-script' }}
+
+To integrate Lightbox, you must add our script to your web page. This script is essential as it provides the necessary functionality to open and manage the Lightbox, allowing users to complete their payments without leaving your website.
+
+The script contains the code required to create and control the Lightbox interface. It also ensures that your integration is compatible with the latest features and updates provided by Placetopay.
 
 ```html
 <head>
@@ -41,37 +49,78 @@ The url referenced in the script can change according to the country and commerc
 
 | Instance | URL Script |
 | :--- | :--- |
-| PlacetoPay International | https://checkout.placetopay.com/lightbox.min.js |
-| PlacetoPay Ecuador | https://checkout.placetopay.ec/lightbox.min.js |
-| Getnet Chile | https://checkout.getnet.cl/lightbox.min.js |
-| Getnet Uruguay | https://checkout.getnet.uy/lightbox.min.js |
-| Davivienda Costa Rica | https://checkout.davivienda.cr/lightbox.min.js |
-| Pago Link Atlántida | https://pagoenlinea.bancatlan.hn/lightbox.min.js |
-| Atlantic Bank | https://abgateway.atlabank.com/lightbox.min.js |
-| Goupagos | https://checkout.goupagos.com.co/lightbox.min.js |
+| PlacetoPay International | <CopyContent content="https://checkout.placetopay.com/lightbox.min.js"/> |
+| PlacetoPay Ecuador | <CopyContent content="https://checkout.placetopay.ec/lightbox.min.js" />|
+| Getnet Chile | <CopyContent content="https://checkout.getnet.cl/lightbox.min.js" />|
+| Getnet Uruguay | <CopyContent content="https://checkout.getnet.uy/lightbox.min.js" />|
+| Davivienda Costa Rica | <CopyContent content="https://checkout.davivienda.cr/lightbox.min.js" />|
+| Pago Link Atlántida | <CopyContent content="https://pagoenlinea.bancatlan.hn/lightbox.min.js" />|
+| Atlantic Bank | <CopyContent content="https://abgateway.atlabank.com/lightbox.min.js" />|
+| Goupagos | <CopyContent content="https://checkout.goupagos.com.co/lightbox.min.js" />|
 
+<Note>Do not download and host this script yourself. Using our hosted script ensures that you always get the latest updates and features automatically.</Note>
+
+### Content Security Policy (CSP) {{ id: 'csp' }}
+
+If you implement a [Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) in your application, it is essential to allow the domains used by Webcheckout to ensure the proper functioning of the payment gateway.
+
+If you define only a [default-src](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/default-src), this directive will act as the default value for all other missing directives. Therefore, it is important to explicitly add the domains used by Webcheckout.
+
+During session processing, the following domains must be included in your CSP configuration:
+
+| Services                 | Domains                                                             |
+|------------------------- |-------------------------------------------------------------------- |
+| Placetopay Internacional | <CopyContent content="*.placetopay.com" />                          |
+| PlacetoPay Ecuador       | <CopyContent content="*.placetopay.com *.placetopay.ec" />          |
+| Getnet Chile             | <CopyContent content="*.placetopay.com checkout.getnet.cl" />       |
+| Getnet Uruguay 		   | <CopyContent content="*.placetopay.com checkout.getnet.uy" />       |
+| Davivienda Costa Rica    | <CopyContent content="*.placetopay.com checkout.davivienda.cr" />   |
+| Pago Link Atlántida      | <CopyContent content="*.placetopay.com pagoenlinea.bancatlan.hn" /> |
+| Atlantic Bank            | <CopyContent content="*.placetopay.com abgateway.atlabank.com" />   |
+| Goupagos                 | <CopyContent content="*.placetopay.com checkout.goupagos.com.co" /> |
+
+<Note>The list of domains may be updated at any time. It is important to review and update your CSP regularly to ensure compatibility with the latest Webcheckout requirements. </Note>
+
+This is an example of a CSP configuration that allows the use of Webcheckout on the International instance:
+
+```json
+
+Content-Security-Policy: default-src 'self'; script-src 'self' *.placetopay.com; connect-src 'self' your-domain.com *.placetopay.com; img-src 'self' your-domain.com *.placetopay.com; frame-src *.placetopay.com;
+
+```
+
+### Generate Process URL {{ id: 'generate-process-url' }}
+
+To generate the `processUrl`, you need to [Create a session](/en/checkout/api/reference/session#crear-una-sesion) on your server. The response will contain the `processUrl` field, which you need to send back to the browser.
 
 ### Start Lightbox
 
-On your server (backend) you must [Create a session](/checkout/api/reference/session#crear-una-sesion) and get the process url `processUrl`.
-
 Share the process url `processUrl` with your client's (frontend) javascript code. Once it is available you can start the Lightbox.
+
 ```javascript
+// Example URL
 var processUrl = "https://checkout.placetopay.com/spa/session/76300/90443d4926a2...";
 
+// When available, call
 P.init(processUrl);
 ```
 
+A lightbox containing the checkout page will be open on the user's browser, the user will be prompted to enter the payment details and complete the process.
+
 <Note>
-Note that if the lightbox does not find an environment conducive to its operation, a redirect to the processing URL will be executed.
+Note that if the lightbox does not find a suitable environment to operate, a redirect to the processing URL will be executed. Therefore, it is important to ensure you can handle the response in your application backend vía de `returnUrl` process as usual.
 </Note>
 
-### Register Callback
+### Register Callback {{ id: 'register-callback' }}
 
-When the Checkout process ends, a "callback" will be issued to your web page, make sure to capture it to complete the flow successfully.
+To make integration seameless, when the checkout process ends whithin the browsers lightbox session, a "callback" function will be issued to your web page vía javascript, make sure to capture it to aknowledge that the session has finished.
+
+This will help you detect that the user has finished the process, then you must use your business logic and your backend services to fetch the actual data and continue with your application flow.
 
 ```javascript
+// Register your callback
 P.on('response', function (response) {
+	// your business logic
 	console.log(data);
 });
 ```

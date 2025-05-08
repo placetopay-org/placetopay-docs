@@ -1,61 +1,64 @@
-<MissingTranslationBanner />
+import { HeroPattern } from '@/components/HeroPattern'
 
-# Introducción
+<HeroPattern />
 
-3DS Placetopay es el servicio de [Evertec, Inc](https://www.evertecinc.com) que facilita al adquirente la posibilidad de enrolar a los comercios y enrutar las transacciones a través del protocolo EMV® 3DS. Este servicio permite realizar el proceso de autenticación del usuario, reduciendo así la exposición de los comercios a los contracargos. Utilizar 3DS Placetopay puede aumentar la seguridad y la eficiencia en las transacciones en línea.
+# Introduction
 
+3DS Placetopay is a service by [Evertec, Inc](https://www.evertecinc.com) that enables acquirers to enroll merchants and route transactions through the EMV® 3DS protocol. This service allows for user authentication, thereby reducing merchants' exposure to chargebacks. Using 3DS Placetopay can increase the security and efficiency of online transactions.
 
-Esta documentación está diseñada para ofrecer una comprensión completa del protocolo **3DS Server** (3DSS) y cómo puede integrarse eficazmente en su plataforma. Consta de dos secciones principales:
+This documentation is designed to provide a comprehensive understanding of the **3DS Server** (3DSS) protocol and how it can be effectively integrated into your platform. It consists of two main sections:
 
-1. **[Descripción General:](/en/three-d-s-server)** En esta sección, encontrará un resumen detallado del protocolo **3DS Server**, incluyendo su propósito, cómo funciona, y los beneficios que aporta a la seguridad de las transacciones en línea.
+1. **[Overview:](/three-d-s-server)** This section provides a detailed summary of the **3DS Server** protocol, including its purpose, how it works, and the benefits it offers to online transaction security.
 
-2. **[API:](/en/three-d-s-server/api)** Aquí es donde podrá acceder a toda la información técnica necesaria para la integración del protocolo **3DS Server** en sus sistemas. Esta sección está dirigida a desarrolladores y equipos técnicos que desean implementar rápidamente y de manera segura las funcionalidades.
+2. **[API:](/three-d-s-server/api)** Here, you will find all the technical information needed to integrate the **3DS Server** protocol into your systems. This section is aimed at developers and technical teams who want to implement the features quickly and securely.
 
-## Redes Soportadas
+## Supported Networks
 
-3DSS Placetopay se encuentra certificado en los siguientes programas:
+3DSS Placetopay is certified under **EMV® 3DS 2.2.0** with the following programs:
 
 |                           | EMV® 3DS 2.2.0 |
 |---------------------------|----------------|
-| Visa Secure               | **Soportado**  |
-| Mastercard Identity Check | **Soportado**  |
-| American Express SafeKey® | **Soportado**  |
-| Discover ProtectBuy       | **Soportado**  |
-| Diners ProtectBuy         | **Soportado**  |
-| ELO (Brasil)              | **Soportado**  |
+| Visa Secure               | **Supported**  |
+| Mastercard Identity Check | **Supported**  |
+| American Express SafeKey® | **Supported**  |
+| Discover ProtectBuy       | **Supported**  |
+| Diners ProtectBuy         | **Supported**  |
+| ELO (Brazil)              | **Supported**  |
 
-**Nota:** "Soportado" significa que la red ya está completamente integrada y funcional. "En progreso" indica que estamos trabajando en la integración y se espera que esté disponible próximamente.
+**Note:** "Supported" means the network is fully integrated and functional. "In progress" indicates that integration is underway and expected to be available soon.
 
-Actualmente, estamos en el proceso de obtener la certificación para **EMV® 3DS 2.3.1**, la cual esperamos completar en 2024.
+We are currently in the process of obtaining certification for **EMV® 3DS 2.3.1**, expected to be completed in early 2025.
 
-## Acerca de este Documento
-Este documento inicialmente describe qué es el protocolo 3DS y ofrece información básica necesaria para entender el proceso de autenticación en el 3DS Server.
+## About this Document
 
-Detalla cómo configurar la aplicación desde la consola administrativa, las funcionalidades disponibles y cómo se manejan la seguridad y los permisos. Además, presenta el esquema del flujo del 3DS Server en el proceso de autenticación del tarjetahabiente.
+This document initially explains what the 3DS protocol is and provides the basic information needed to understand the authentication process in the 3DS Server.
 
-En la sección de la API, se definen los endpoints del servicio, los campos a recibir y sus especificaciones, así como ejemplos de peticiones y respuestas. También se incluyen datos de tarjetas de prueba y sus respectivos comportamientos.
+It details how to configure the application from the admin console, the available features, and how security and permissions are managed. It also presents the 3DS Server flow in the cardholder authentication process.
 
-El documento también abarca términos y definiciones, códigos de error, códigos HTTP y los estados posibles para una autenticación. Incluye una sección de Preguntas Frecuentes (FAQ) para resolver dudas y conflictos.
+The API section defines the service endpoints, required fields and their specifications, along with examples of requests and responses. It also includes test card data and their expected behaviors.
 
-3. **Proceso de Autenticación:** El ACS evalúa el nivel de riesgo de la transacción. Esto puede incluir la verificación de la dirección IP del titular de la tarjeta, el historial de transacciones, la ubicación geográfica, etc. Si la transacción se considera de bajo riesgo, se puede autenticar sin necesidad de intervención del titular de la tarjeta (autenticación sin fricción). Si la transacción se considera de alto riesgo, el ACS solicitará información adicional al titular de la tarjeta para confirmar su identidad. Esto puede incluir un código de un solo uso enviado por SMS, respuestas a preguntas de seguridad, reconocimiento biométrico, etc.
+This document also covers terms and definitions, error codes, HTTP status codes, and the possible outcomes of an authentication. A Frequently Asked Questions (FAQ) section is included to resolve common issues and questions.
 
-4. **Resultado de la Autenticación:** Una vez que se completa el proceso de autenticación, el ACS envía un mensaje con el resultado de la autenticación de vuelta al servidor 3DS del adquirente. El resultado puede ser una autenticación exitosa, un intento de autenticación o un fallo de autenticación.
+The information contained in this document is intended to be useful and understandable for both Evertec Placetopay collaborators and merchants interested in integrating with this service.
 
-5. **Finalización de la Transacción:** El comerciante recibe el resultado de la autenticación y procede a completar la transacción. Si la autenticación fue exitosa, el comerciante solicitará la autorización del pago al banco emisor. Si la autorización es exitosa, la transacción se completa y se realiza el pago.
+4. **Authentication Result:** Once the authentication process is completed, the ACS sends a message with the result back to the acquirer's 3DS server. The result may indicate a successful authentication, an attempted authentication, or a failed authentication.
 
-6. **Confirmación:** Finalmente, el titular de la tarjeta recibe una confirmación de la transacción, ya sea a través del sitio web o aplicación del comerciante, o mediante una notificación o correo electrónico.
+5. **Transaction Completion:** The merchant receives the authentication result and proceeds to complete the transaction. If authentication was successful, the merchant requests payment authorization from the issuing bank. If authorization is approved, the transaction is completed and payment is made.
 
-Este proceso ayuda a proteger contra el uso no autorizado de tarjetas de crédito en línea, al proporcionar una capa adicional de seguridad y autenticación.
+6. **Confirmation:** Finally, the cardholder receives confirmation of the transaction, either through the merchant's website or app, or via notification or email.
 
-## Flujos de autenticación
+This process helps protect against unauthorized use of credit cards online by providing an additional layer of security and authentication.
 
-**Flujo sin Fricción**
+## Authentication Flows
+
+**Frictionless Flow**  
 ![3ds_frictionless.png](/3DS_server/3ds_frictionless.png)
 
-**Flujo con Fricción**
+**Challenge Flow**  
 ![3ds_challenge.png](/3DS_server/3ds_challenge.png)
 
-Le invitamos a explorar nuestra detallada [Sección de API](/en/three-d-s-server/api), donde encontrará toda la información técnica necesaria para integrar de manera rápida y segura el servicio **3DS Server Placetopay** en su entorno.
-Esta sección está especialmente diseñada para desarrolladores y equipos técnicos que buscan aprovechar al máximo las capacidades de Evertec Placetopay.
+We invite you to explore our detailed [API Section](/three-d-s-server/api), where you’ll find all the technical information needed to quickly and securely integrate the **3DS Server Placetopay** service into your environment.
 
-La información contenida en este documento está diseñada para ser útil y comprensible tanto para los colaboradores de Evertec Placetopay como para los comercios interesados en integrarse con este servicio.
+This section is especially designed for developers and technical teams looking to make the most of Evertec Placetopay’s capabilities.
+
+The information in this document is designed to be useful and understandable for both Evertec Placetopay collaborators and merchants interested in integrating with the service.

@@ -1,0 +1,94 @@
+## Event Webhook {{id: "webhooks"}}
+
+The **Event Webhook** allows merchants to be notified about the final status of the account, providing faster access to this information and improving the user experience.
+
+<Note>
+    To receive these notifications, the notification endpoint must be configured in the Placetopay administrative panel under Integrations -> account-validator.
+</Note>
+
+## Webhook Structure
+
+The sent webhook has the following structure with the data:
+
+- **Status (`status`)**: Contains information about the account status.
+- **Session Identifier (`requestId`)**: Allows identifying which session the webhook corresponds to. The `requestId` provided when creating the session is sent.
+- **Signature (`signature`)**: Allows the merchant to validate that the webhook comes from the **Account Validator** application and ensures the flow. It will be sent using the following formula:
+
+  ```plaintext
+  sha1(requestId + status.status + tranKey)
+  ```
+
+Where `tranKey` corresponds to the key used to authenticate the merchant.
+
+## Checking the Session Status
+
+It is **necessary** that upon receiving the webhook, the merchant queries the endpoint for [checking the verification status](/account-validator/api/session#check-session-status) when the response is approved. This is because, for security reasons, the bank account cannot be included in the webhook. With this endpoint, the merchant can retrieve it to continue the flow.
+
+---
+
+## Response Examples
+
+### 1. Approved Session
+
+```json
+{
+  "status": {
+    "status": "APPROVED",
+    "reason": "00",
+    "message": "The request has been successfully approved"
+  },
+  "requestId": "53eccc5c-bbb8-36ae-a4f0-dfc8a791e736",
+  "signature": "0cd51ffd7cb58c0a36fb7b926838b1feb6336512"
+}
+```
+
+### 2. Failure Due to Maximum Failed Attempts
+
+```json
+{
+  "status": {
+    "status": "REJECTED",
+    "reason": "38",
+    "message": "The maximum number of failed attempts has been reached"
+  },
+  "requestId": "53eccc5c-bbb8-36ae-a4f0-dfc8a791e736",
+  "signature": "0cd51ffd7cb58c0a36fb7b926838b1feb6336512"
+}
+```
+
+### 3. Expired Session
+
+```json
+{
+  "status": {
+    "status": "REJECTED",
+    "reason": "XD",
+    "message": "The request has expired"
+  },
+  "requestId": "53eccc5c-bbb8-36ae-a4f0-dfc8a791e736",
+  "signature": "0cd51ffd7cb58c0a36fb7b926838b1feb6336512"
+}
+```
+
+### 4. Session Canceled by the User
+
+```json
+{
+  "status": {
+    "status": "REJECTED",
+    "reason": "?C",
+    "message": "Verification canceled by the user"
+  },
+  "requestId": "53eccc5c-bbb8-36ae-a4f0-dfc8a791e736",
+  "signature": "0cd51ffd7cb58c0a36fb7b926838b1feb6336512"
+}
+```
+
+---
+<Note>
+## Considerations
+- The merchant **must validate** the signature (`signature`) to ensure that the webhook comes from the **Account Validator**.
+- The status information **does not include banking data** for security reasons, so it is mandatory to query the **session status endpoint**.
+</Note>
+---
+

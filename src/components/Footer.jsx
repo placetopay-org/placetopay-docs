@@ -25,12 +25,17 @@ function CheckIcon(props) {
 }
 
 function FeedbackButton(props) {
-  const router = useRouter();
-  const [href, setHref] = useState(process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL);
+  const router = useRouter()
+  const [href, setHref] = useState(process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL)
 
   useEffect(() => {
     if (router.pathname) {
-      setHref(process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL + '?RefererUrl=' + window.location.origin + router.pathname)
+      setHref(
+        process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL +
+          '?RefererUrl=' +
+          window.location.origin +
+          router.pathname
+      )
     }
   }, [router.pathname])
 
@@ -39,7 +44,7 @@ function FeedbackButton(props) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="px-3 text-sm font-medium text-gray-600 transition rounded-full border border-gray-900/10 dark:border-white/10 hover:bg-gray-900/2.5 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
+      className="rounded-full border border-gray-900/10 px-3 text-sm font-medium text-gray-600 transition hover:bg-gray-900/2.5 hover:text-gray-900 dark:border-white/10 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
       {...props}
     />
   )
@@ -49,18 +54,21 @@ const FeedbackByLocale = {
   es: {
     title: 'Nos importa tu experiencia,',
     description: '¡Déjanos un comentario!',
-    thanks: '¡Gracias por tus comentarios!'
+    thanks: '¡Gracias por tus comentarios!',
   },
   en: {
     title: 'We care about your experience,',
     description: 'Leave us a comment!',
-    thanks: 'Thanks for your feedback!'
-  }
+    thanks: 'Thanks for your feedback!',
+  },
 }
 
-const FeedbackForm = forwardRef(function FeedbackForm({onSubmit, locale}, ref) {
+const FeedbackForm = forwardRef(function FeedbackForm(
+  { onSubmit, locale },
+  ref
+) {
   return (
-    <div ref={ref} className="flex gap-3 items-center">
+    <div ref={ref} className="flex items-center gap-3">
       <p className="text-sm text-gray-600 dark:text-gray-400">
         {FeedbackByLocale[locale].title}
       </p>
@@ -71,7 +79,7 @@ const FeedbackForm = forwardRef(function FeedbackForm({onSubmit, locale}, ref) {
   )
 })
 
-const FeedbackThanks = forwardRef(function FeedbackThanks({locale}, ref) {
+const FeedbackThanks = forwardRef(function FeedbackThanks({ locale }, ref) {
   return (
     <div
       ref={ref}
@@ -114,11 +122,17 @@ function Feedback() {
   )
 }
 
-function PageLink({ label, page, previous = false }) {
+function PageLink({ label, page, previous = false, locale, hasPrefix }) {
+  const href = hasPrefix ? `/${locale}${page.href}` : page.href
+
+  if (!href) {
+    return null
+  }
+
   return (
     <>
       <Button
-        href={page.href}
+        href={href}
         aria-label={`${label}: ${page.title}`}
         variant="secondary"
         arrow={previous ? 'left' : 'right'}
@@ -126,7 +140,7 @@ function PageLink({ label, page, previous = false }) {
         {label}
       </Button>
       <Link
-        href={page.href}
+        href={href}
         tabIndex={-1}
         aria-hidden="true"
         className="text-base font-semibold text-gray-900 transition hover:text-gray-600 dark:text-white dark:hover:text-gray-300"
@@ -137,13 +151,26 @@ function PageLink({ label, page, previous = false }) {
   )
 }
 
+const PAGE_NAVIGATION_LABELS = {
+  es: {
+    previous: 'Anterior',
+    next: 'Siguiente',
+  },
+  en: {
+    previous: 'Previous',
+    next: 'Next',
+  },
+}
+
 function PageNavigation() {
-  let navigation = useNavigation();
+  let { hasPrefix, locale } = useLocale()
+  let navigation = useNavigation()
   let router = useRouter()
   let allPages = navigation.flatMap((group) => group.links)
-  let currentPageIndex = allPages.findIndex(
-    (page) => page.href === router.pathname
-  )
+  let currentPageIndex = allPages.findIndex((page) => {
+    const pathname = hasPrefix ? router.pathname.slice(3) : router.pathname
+    return page.href === pathname
+  })
 
   if (currentPageIndex === -1) {
     return null
@@ -160,12 +187,23 @@ function PageNavigation() {
     <div className="flex">
       {previousPage && (
         <div className="flex flex-col items-start gap-3">
-          <PageLink label="Previous" page={previousPage} previous />
+          <PageLink
+            label={PAGE_NAVIGATION_LABELS[locale].previous}
+            page={previousPage}
+            previous
+            locale={locale}
+            hasPrefix={hasPrefix}
+          />
         </div>
       )}
       {nextPage && (
         <div className="ml-auto flex flex-col items-end gap-3">
-          <PageLink label="Siguiente" page={nextPage} />
+          <PageLink
+            label={PAGE_NAVIGATION_LABELS[locale].next}
+            page={nextPage}
+            locale={locale}
+            hasPrefix={hasPrefix}
+          />
         </div>
       )}
     </div>
@@ -215,7 +253,7 @@ function SmallPrint() {
       <Link href="/" aria-label="Home">
         <Logo className="h-6" />
       </Link>
-      
+
       <div className="flex gap-4">
         {/* <SocialLink href="#" icon={TwitterIcon}>
           Follow us on Twitter
@@ -227,11 +265,23 @@ function SmallPrint() {
           Join our Discord server
         </SocialLink> */}
         <p className="text-xs">
-          <span className='text-gray-300'>© {new Date().getFullYear()} </span>
-          <Link href="https://placetopay.dev/" target='_blank' aria-label="Home" className='font-semibold text-gray-200 hover:text-primary-500' >Evertec PlacetoPay</Link>
+          <span className="text-gray-300">© {new Date().getFullYear()} </span>
+          <Link
+            href="https://placetopay.dev/"
+            target="_blank"
+            aria-label="Home"
+            className="font-semibold text-gray-200 hover:text-primary-500"
+          >
+            Evertec PlacetoPay
+          </Link>
         </p>
-        
-        <Link  className="text-gray-300 hover:text-primary-500 text-xs" href="https://www.placetopay.com/web/politicas-de-privacidad/" target="_blank" aria-label="Política de Privacidad Placetopay">
+
+        <Link
+          className="text-xs text-gray-300 hover:text-primary-500"
+          href="https://www.placetopay.com/web/politicas-de-privacidad/"
+          target="_blank"
+          aria-label="Política de Privacidad Placetopay"
+        >
           Política de Privacidad
         </Link>
       </div>
@@ -241,12 +291,12 @@ function SmallPrint() {
 
 const EditThisPageText = {
   es: 'Edita esta página',
-  en: 'Edit this page'
+  en: 'Edit this page',
 }
 
 function EditThisPage() {
   const { locale } = useLocale()
-  const router = useRouter();
+  const router = useRouter()
 
   const getHref = (pathname) => {
     if (pathname === '/') {
@@ -254,10 +304,17 @@ function EditThisPage() {
     }
 
     if (ROUTES_WITH_INDEX.includes(pathname.slice(1))) {
-      return process.env.NEXT_PUBLIC_GITHUB_REPO_URL + '/src/pages' + pathname + '/index.mdx'
+      return (
+        process.env.NEXT_PUBLIC_GITHUB_REPO_URL +
+        '/src/pages' +
+        pathname +
+        '/index.mdx'
+      )
     }
 
-    return process.env.NEXT_PUBLIC_GITHUB_REPO_URL + '/src/pages' + pathname + '.mdx'
+    return (
+      process.env.NEXT_PUBLIC_GITHUB_REPO_URL + '/src/pages' + pathname + '.mdx'
+    )
   }
 
   return (
@@ -265,10 +322,10 @@ function EditThisPage() {
       href={getHref(router.pathname)}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex gap-3 cursor-pointer text-slate-600 font-normal text-xs underline underline-offset-4 dark:text-slate-400"
+      className="flex cursor-pointer gap-3 text-xs font-normal text-slate-600 underline underline-offset-4 dark:text-slate-400"
     >
       {EditThisPageText[locale]}
-      <GitHubIcon className="fill-slate-950 dark:fill-slate-200 w-6 h-6" />
+      <GitHubIcon className="h-6 w-6 fill-slate-950 dark:fill-slate-200" />
     </a>
   )
 }
@@ -277,7 +334,7 @@ export function Footer({ withouLinks }) {
   return (
     <footer className="mx-auto max-w-2xl space-y-10 pb-16 lg:max-w-5xl">
       {!withouLinks && <PageNavigation />}
-      <div className="w-full flex justify-between">
+      <div className="flex w-full justify-between">
         <Feedback />
         <EditThisPage />
       </div>

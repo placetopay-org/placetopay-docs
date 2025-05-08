@@ -12,6 +12,7 @@ import logoAlkosto from '@/images/cards/alkosto.svg'
 import logoExito from '@/images/cards/exito_card.svg'
 import logoAthCard from '@/images/cards/ath_card.svg'
 import logoDilo from '@/images/cards/dilo.svg'
+import logoEBT from '@/images/cards/ebt.svg'
 import { Heading } from './Heading'
 import { useLocale } from './LocaleProvider'
 import { CopyContent } from '@/components/CopyContent'
@@ -295,11 +296,68 @@ const groupsByFranchise = [
     franchise: 'American Express',
     items: [
       {
-        number : '376651001281274',
-        behavior: { 
-          es: 'Aprueba si se proporciona la expiración 06/36 y el cvv 4637 de lo contrario rechaza',
-          en: 'Approves if expiration 06/36 is given and cvv 4637 otherwise rejects' },
+        number : '377222581193005',
+        behavior: { es: 'Aprueba', en: 'Approve' }
       },
+      {
+        number : '376651792202224',
+        behavior: { es: 'Rechaza', en: 'Denies' }
+      },
+      {
+        number : '376651552907400',
+        behavior: {
+          es: 'Deja la transacción en estado pendiente y se resuelve a aprobado' ,
+          en: 'Leave the transaction in pending status and it is resolved to approved',
+        }
+      },
+      {
+        number : '376651743308161',
+        behavior: {
+          es: 'Deja la transacción en estado pendiente y se resuelve a rechazado' ,
+          en: 'Leaves the transaction in pending status and resolves to rejected',
+        }
+      },
+      {
+        number : '376651736695301',
+        behavior: {
+          es: 'Deja la transacción en estado pendiente y se resuelve a rechazado' ,
+          en: 'Leaves the transaction in pending status and resolves to rejected',
+        }
+      },
+      {
+        number : '376651841246735',
+        behavior: {
+          es: 'Arroja una excepción en el proceso',
+          en: 'Throws an exception in the process'
+        }
+      },
+      {
+        number : '376651911424709',
+        behavior: {
+          es: 'Aprueba si el monto es inferior a 200USD, de lo contrario rechaza',
+          en: 'Approves if the amount is less than 200 USD, otherwise rejects'
+        }
+      },
+      {
+        number : '376651001281274',
+        behavior: {
+          es: 'Aprueba si se proporciona la expiración 06/34 y el cvv 4637 de lo contrario rechaza',
+          en: 'Approves if expiration 06/34 is given and cvv 4637 otherwise rejects' },
+      },
+      {
+        number : '376651707554974',
+        behavior: {
+          es: 'Deja la transacción en procesamiento manual y si se procesa queda en estado aprobado',
+          en: 'Leave the transaction in manual processing and if it is processed it remains in approved status'
+        }
+      },
+      {
+        number : '376651242830343',
+        behavior: {
+          es: 'Se tarda 180 segundos en responder y queda en estado aprobado',
+          en: 'It takes 180 seconds to respond and is in approved status'
+        }
+      }
     ],
   },
   {
@@ -309,11 +367,19 @@ const groupsByFranchise = [
     items: [
       {
         number : '6550590000000001',
-        behavior: { es: 'Apreuba', en: 'Approve' }
+        behavior: { es: 'Aprueba', en: 'Approve' }
       },
       {
         number : '6557351234543156',
         behavior: { es: 'Aprueba', en: 'Approve' }
+      },
+      {
+        number : '6508410000000001',
+        behavior: { es: 'Aprueba 3DS-Y', en: 'Approve 3DS-Y' }
+      },
+      {
+        number : '6508410000000047',
+        behavior: { es: 'Aprueba 3DS-C', en: 'Approve 3DS-C' }
       },
       {
         number : '6550590000000019',
@@ -322,6 +388,14 @@ const groupsByFranchise = [
       {
         number : '6557351234543164',
         behavior: { es: 'Rechaza', en: 'Denies'}
+      },
+      {
+        number : '6508410000000021',
+        behavior: { es: 'Rechaza 3DS-N', en: 'Denies 3DS-N'}
+      },
+      {
+        number : '6508410000000039',
+        behavior: { es: 'Rechaza 3DS-R', en: 'Denies 3DS-R'}
       },
       {
         number : '6550590000000027',
@@ -335,6 +409,13 @@ const groupsByFranchise = [
         behavior: { 
           es: 'Deja la transacción en estado pendiente y se resuelve a rechazado', 
           en: 'Leaves the transaction in pending status and resolves to rejected' 
+        }
+      },
+      {
+        number : '6508410000000054',
+        behavior: {
+          es: 'Deja la transacción en estado pendiente y se resuelve a aprobado 3DS-D',
+          en: 'Leaves the transaction in pending status and resolves to approved 3DS-D'
         }
       }
     ],
@@ -528,6 +609,35 @@ const groupsByFranchise = [
       },
     ],
   },
+  {
+    id: 'ebt',
+    logo: logoEBT,
+    franchise: 'EBT',
+    items: [
+      {
+        number : '5077120000008725945',
+        behavior: { es: 'Aprueba', en: 'Approve' },
+      },
+      {
+        number : '5077122000019136403',
+        behavior: {es: 'Rechaza', en: 'Denies'},
+      },
+      {
+        number : '5077122291247660955',
+        behavior: {
+          es: 'Arroja una excepción en el proceso',
+          en: 'Throws an exception in the process',
+        },
+      },
+      {
+        number : '5077122223995193780',
+        behavior: {
+          es: 'Aprueba si el monto es inferior a 200USD, de lo contrario rechaza',
+          en: 'Approves if the amount is less than 200 USD, otherwise rejects'
+        },
+      },
+    ],
+  }
 ]
 
 export function TestCardNumbers() {

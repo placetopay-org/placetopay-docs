@@ -27,6 +27,9 @@ module.exports = {
       colors: {
         primary: colors.teal,
         gray: colors.slate,
+        blueFlow: '#3874eb',
+        greenFlow: '#13aa9a',
+        orangeFlow: '#ff6c14',
       },
       boxShadow: {
         glow: '0 0 4px rgb(0 0 0 / 0.1)',
