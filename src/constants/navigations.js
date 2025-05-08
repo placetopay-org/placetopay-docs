@@ -1160,10 +1160,6 @@ export const TAB_NAVIGATION = {
                 title: 'Tipos de identificación',
                 href: '/token-requestor/business-identification-types',
               },
-              {
-                title: 'Codigos de respuesta',
-                href: '/token-requestor/response-codes',
-              },
             ],
           },
           {
@@ -1181,6 +1177,14 @@ export const TAB_NAVIGATION = {
                 title: 'Prueba tu integración',
                 href: '/token-requestor/integration/testing',
               },
+              {
+                title: 'Definiciones clave',
+                href: '/token-requestor/integration/definitions',
+              },
+              {
+                title: 'Uso del requestId',
+                href: '/token-requestor/integration/request-id',
+              },
             ],
           },
         ],
@@ -1196,31 +1200,6 @@ export const TAB_NAVIGATION = {
             links: [{ title: 'Inicio', href: '/token-requestor/api' }],
           },
           {
-            title: 'Registro de comerciante',
-            links: [
-              {
-                title: 'Onboarding',
-                href: '/token-requestor/api/onboarding'
-              },
-              {
-                title: 'Onboarding status',
-                href: '/token-requestor/api/onboarding-status',
-              },
-              {
-                title: 'Get Merchant Subscriptions',
-                href: '/token-requestor/api/get-merchant-subscriptions'
-              },
-              {
-                title: 'Generate new authentication token',
-                href: '/token-requestor/api/generate-new-authentication-token',
-              },
-              {
-                title: 'Delete authentication tokens',
-                href: '/token-requestor/api/delete-authentication-tokens',
-              },
-            ],
-          },
-          {
             title: 'Administracion del ciclo del token',
             links: [
               {
@@ -1233,8 +1212,8 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/api/get-token-status',
               },
               {
-                title: 'Get Keys',
-                href: '/token-requestor/api/keys'
+                title: 'Delete Token',
+                href: '/token-requestor/api/delete-token'
               },
             ],
           },
@@ -1251,14 +1230,13 @@ export const TAB_NAVIGATION = {
           {
             title: 'Token requestor',
             links: [
-              { title: 'Introduction', href: '/token-requestor' },
+              {
+                title: 'Introduction',
+                href: '/token-requestor'
+              },
               {
                 title: 'Merchant Identification Types',
                 href: '/token-requestor/business-identification-types',
-              },
-              {
-                title: 'Response Codes',
-                href: '/token-requestor/response-codes',
               },
             ],
           },
@@ -1277,6 +1255,14 @@ export const TAB_NAVIGATION = {
                 title: 'Test Your Integration',
                 href: '/token-requestor/integration/testing',
               },
+              {
+                title: 'Key definitions',
+                href: '/token-requestor/integration/definitions',
+              },
+              {
+                title: 'Use of identifier request',
+                href: '/token-requestor/integration/request-id',
+              },
             ],
           },
         ],
@@ -1290,31 +1276,6 @@ export const TAB_NAVIGATION = {
           {
             title: 'Introduction',
             links: [{ title: 'Home', href: '/token-requestor/api' }],
-          },
-          {
-            title: 'Merchant registration',
-            links: [
-              {
-                title: 'Onboarding',
-                href: '/token-requestor/api/onboarding'
-              },
-              {
-                title: 'Onboarding status',
-                href: '/token-requestor/api/onboarding-status',
-              },
-              {
-                title: 'Get Merchant Subscriptions',
-                href: '/token-requestor/api/get-merchant-subscriptions'
-              },
-              {
-                title: 'Generate new authentication token',
-                href: '/token-requestor/api/generate-new-authentication-token',
-              },
-              {
-                title: 'Delete authentication tokens',
-                href: '/token-requestor/api/delete-authentication-tokens',
-              },
-            ],
           },
           {
             title: 'Token cycle management',
@@ -1332,8 +1293,8 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/api/get-token-status',
               },
               {
-                title: 'Get Keys',
-                href: '/token-requestor/api/keys'
+                title: 'Delete Token',
+                href: '/token-requestor/api/delete-token'
               },
             ],
           },
