@@ -213,6 +213,13 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
+            title: 'Panel Administrativo',
+            links: [
+              { title: 'Módulo Transacciones', href: '/payments/panel/transactions' },
+              { title: 'Exportes Transaccional', href: '/payments/panel/export' }
+            ],
+          },
+          {
             title: 'Link de pagos',
             links: [
               { title: 'Introducción', href: '/payments/payments-links/introduction' },
@@ -323,6 +330,13 @@ export const TAB_NAVIGATION = {
             title: 'Payments',
             links: [
               { title: 'Introduction', href: '/payments' },
+            ],
+          },
+          {
+            title: 'Administrative panel',
+            links: [
+              { title: 'Transactions Module', href: '/payments/panel/transactions' },
+              { title: 'Transactional Exports', href: '/payments/panel/export' }
             ],
           },
 
