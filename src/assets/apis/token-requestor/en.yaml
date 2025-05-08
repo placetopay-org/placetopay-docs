@@ -2,226 +2,8 @@ openapi: 3.0.0
 info:
   title: 'Token management and administration'
   version: 1.0.0
-  description: |
-    This API provides a set of methods that enable PAN tokenization. Given a PAN, you can return a token and use it for e-commerce and mobile commerce payments.
-
-    These apis are known as token management and also provides a set of notifications that you can subscribe to for any token status changes.
-
-    Typically, a TSP customer enrolls a merchant, enrolls a PAN and provisions a token given a PAN data. The client can then obtain payment data, and manage tokens (e.g., suspend, resume, or delete them).
-
-    TSP clients must handle event notifications related to token status (created, updated, key changed),
-    PAN metadata and payment transactions. Specifically, the client must call the token status API when it receives a token status notification.
-  contact:
-    name: Diego Calle
-  license:
-    name: Privative
-servers:
-  - url: 'https://tsp-dev.placetopay.ws'
-    description: 'Tests'
-components:
-  securitySchemes:
-    Mc1eQlMX2Zg9NIsyqxuDVT7y2Ubns7hTkdsTzLZF:
-      type: http
-      scheme: Bearer
-  responses:
-    OK:
-      description: Response OK
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              status:
-                type: object
-                description: 'Structure containing the response information'
-                required:
-                  - status
-                  - reason
-                  - message
-                  - date
-                properties:
-                  status:
-                    $ref: ./models/Status.yaml
-              data:
-                type: object
-            required:
-              - status
-              - data
-          examples:
-            Onboarding:
-              value:
-                status:
-                  status: OK
-                  reason: '00'
-                  message: operation Successfull!
-                  date: '2022-07-27T14:51:27-05:00'
-                data:
-                  requestId: 907932b1-f5bd-4fe2-b05b-cc28a16de9f5
-    Invalid-request:
-      description: Response invalid argument
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              status:
-                $ref: ./models/Status.yaml
-              data:
-                type: object
-                required:
-                  - requestId
-                  - message
-                properties:
-                  requestId:
-                    type: string
-                    example: ATBB7XX7TgzAGmzATDR5JuvHAjkt5A2DC7C8
-                    description: 'Transaction ID'
-                  message:
-                    type: string
-                  detail:
-                    type: string
-                    description: 'Error detail'
-            required:
-              - status
-              - data
-          examples:
-            ERROR_INVALID_ARGUMENT:
-              value:
-                status:
-                  status: FAILED
-                  reason: X3
-                  message: Invalid argument!
-                  date: '2022-07-27T14:51:27-05:00'
-                data:
-                  message: Invalid Request
-                  detail: merchantInfo.document
-    Unauthenticated:
-      description: 'Response authentication error'
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              status:
-                $ref: ./models/Status.yaml
-              data:
-                type: object
-                properties:
-                  requestId:
-                    type: string
-                    example: ATBB7XX7TgzAGmzATDR5JuvHAjkt5A2DC7C8
-                    description: 'Transaction ID'
-                  message:
-                    type: string
-                  detail:
-                    type: string
-                required:
-                  - message
-            required:
-              - status
-              - data
-          examples:
-            ERROR_AUTH:
-              value:
-                status:
-                  status: FAILED
-                  message: Credentials not match
-                  reason: X3
-                  date: '2022-07-27T14:51:27-05:00'
-                data: []
-        application/xml:
-          schema:
-            type: object
-            properties:
-              status:
-                $ref: ./models/Status.yaml
-    Resource-not-found:
-      description: Example response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              status:
-                type: object
-                required:
-                  - status
-                  - reason
-                  - message
-                  - date
-                properties:
-                  status:
-                    $ref: ./models/Status.yaml
-              data:
-                type: object
-                required:
-                  - message
-                  - detail
-                properties:
-                  requestId:
-                    type: string
-                    example: ATBB7XX7TgzAGmzATDR5JuvHAjkt5A2DC7C8
-                  message:
-                    type: string
-                  detail:
-                    type: string
-            required:
-              - message
-              - code
-              - data
-          examples:
-            Resource not found:
-              value:
-                status:
-                  status: FAILED
-                  message: Resource not found!
-                  reason: X3
-                  date: '2022-07-27T14:51:27-05:00'
-                data: []
-            Route not found:
-              value:
-                status:
-                  status: FAILED
-                  message: Route not found!
-                  reason: X3
-                  date: '2022-07-27T14:51:27-05:00'
-                data: []
-  schemas:
-    Key:
-      title: Key
-      x-stoplight:
-        id: lq71o9tgsyam1
-      type: object
-      properties:
-        key:
-          type: string
-          description: 'Public key pem format'
-          example: '-----BEGIN PUBLIC KEY----- MIIEvQIBADNBgqjWzKYEvVOluMDOZKHwgtvN8FBEgEurnvEIicWFLGR11 DTZIlYoQAvaq220jkcF/30LutbIm5n0zv2p5FBu8PikCgYEA7TJL1vK4yIMwPzhx KuyoTYQHobGXZqs0WP/Sx8KDOFRFTXrx7hXMYF7zgetDIfDIGRe2/NBoPAQ6cugm UzSLdYbVk7/RVfBqXjP1nxofPLXJrRB/6tOesVq1CWpFC/AaKOgiCyqrIWEl= -----END PUBLIC KEY----'
-        algo:
-          type: string
-          enum:
-            - RSA
-          example: RSA
-          description: Algoritmo de la llave RSA
-        format:
-          type: string
-          enum:
-            - pem
-          example: pem
-          description: formato en el que se exporta .PEM
-        expiration:
-          type: string
-          format: date-time
-          description: fecha de expiración de la llave
-      required:
-        - key
-        - algo
-        - format
-        - expiration
-    status:
-      $ref: ./models/Status.yaml
 paths:
-  /api/enroll-card:
+  /api/token/enroll:
     post:
       summary: EnrollCard
       requestBody:
@@ -230,174 +12,84 @@ paths:
             schema:
               type: object
               example:
-                service: visa
+                auth:
+                  login: 1441d14df19ec88431e513bb990326e1
+                  tranKey: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
+                  nonce: enQ4dXh3YWhkMWM=
+                  seed: 2023-06-21T09:56:06-05:00
+                requestId: asdf214hs728d
                 merchantId: d5502955e13a4e63aa6e12e6f1d0ab01
-                clientWalletAccountID: 1b7b8d26
-                card:
-                  number: '4123700070000045'
-                  expiration: 12/23
-                  cvv: '758'
-                locale: es_CO
-                ipAddress: 89.24.143.232
-                payer:
-                  name: Bill
-                  surname: Evans
-                  email: vtstests@visa.com
-                  address:
-                    street: 801MetroCenterBlvd
-                    street2: 801MetroCenterBlvd222
-                    city: FosterCity
-                    state: CA
-                    country: US
-                    postalCode: '94404'
-              properties:
-                service:
-                  type: string
-                  description: 'Service name'
-                  enum:
-                    - visa
-                    - mastercard
-                cardSource:
-                  type: string
-                  x-stoplight:
-                    id: zwmm82n8sxrcs
-                  enum:
-                    - ONFILE
-                    - CARDHOLDER
-                  example: ONFILE
-                  description: 'ONFILE if the card was stored in BD and CARDHOLDER if it is the cardholder who enters the card.'
-                merchantId:
-                  type: string
-                  maxLength: 96
-                  format: uuid
-                  description: 'Merchant ID'
-                clientWalletAccountID:
-                  type: string
-                  maxLength: 255
-                  description: 'Consumer ID provided by the customer that identifies the wallet account Required if it is for VISA'
-                locale:
-                  type: string
-                  description: |-
-                    Language in which the application communicates with the consumer.
-                    consumer. Based on the ISO format for the language (ISO 639-1) and a country code
-                    alpha-2 code (ISO 3166-2 alpha-2)
-                  minLength: 2
-                  maxLength: 5
-                ipAddress:
-                  type: string
-                  format: ipv4
-                payer:
-                  type: object
-                  required:
-                    - email
-                  description: 'Required if visa'
-                  properties:
-                    name:
-                      type: string
-                      minLength: 2
-                      maxLength: 120
-                      description: 'Cardholder name'
-                    surname:
-                      type: string
-                      minLength: 2
-                      maxLength: 120
-                      description: 'Cardholder lastname'
-                    email:
-                      type: string
-                      format: email
-                      description: 'Cardholder email. Required if visa'
-                    address:
-                      type: object
-                      properties:
-                        street:
-                          type: string
-                          minLength: 2
-                          description: 'Address. Ex: "AV 5 5-34"'
-                        street2:
-                          type: string
-                          x-stoplight:
-                            id: 1senjy2o9vnz5
-                          description: 'Address. Ex: "AV 5 5-34"'
-                        country:
-                          type: string
-                          minLength: 2
-                          maxLength: 2
-                          description: 'ISO 3166 alphabetic country code 2 digits. Ex: "CO".'
-                        city:
-                          type: string
-                          maxLength: 30
-                          description: 'City name'
-                        state:
-                          type: string
-                          minLength: 2
-                          maxLength: 5
-                          description: 'The suffix of an ISO-3166-2 country code, corresponding to country'
-                        postalCode:
-                          type: string
-                          description: 'Postal code'
-                          maxLength: 10
-                card:
-                  type: object
-                  required:
-                    - number
-                    - expiration
-                  properties:
-                    number:
-                      type: string
-                      description: 'Card number'
-                    expiration:
-                      type: string
-                      description: 'Card expiration date'
-                      example: 12/23
-                      pattern: '^[01]\d\/\d{2}$'
-                      minLength: 5
-                      maxLength: 5
-                    cvv:
-                      type: string
-                      description: 'Security code, required if cardSource is CARDHOLDER'
-                      minLength: 3
-                      maxLength: 12
-              required:
-                - service
-                - cardSource
-                - merchantId
-                - clientWalletAccountID
-                - locale
-                - ipAddress
-                - payer
-                - card
-            examples:
-              example-visa:
-                value:
-                  service: visa
-                  cardSource: CARDHOLDER
-                  merchantId: 85489f6f-3617-46a8-91bd-49c318e02d38
-                  clientWalletAccountID: 1b7b8d26
+                instrument:
                   card:
                     number: '4123700070000045'
                     expiration: 12/23
                     cvv: '758'
-                  payer:
-                    name: Bill
-                    surname: Evans
-                    email: vtstests@visa.com
-                    address:
-                      street: 801MetroCenterBlvd
-                      street2: 801MetroCenterBlvd222
-                      city: FosterCity
-                      state: CA
-                      country: US
-                      postalCode: '94404'
-                  locale: es_CO
-                  ipAddress: 89.24.143.232
-        description: ''
-      parameters:
-        - name: Accept
-          description: 'allowEmptyValue:false'
-          in: header
-          schema:
-            type: string
-          example: application/json
+                payer:
+                  name: Bill
+                  surname: Evans
+                  email: test@visa.com
+              properties:
+                auth:
+                  type: object
+                  description: Authentication object. See more in **[Authentication](/en/token-requestor/integration/authentication)**
+                  properties:
+                    login:
+                      type: string
+                      description: 'Login for authentication'
+                    tranKey:
+                      type: string
+                      description: 'Transaction key'
+                    nonce:
+                      type: string
+                      description: 'Random value to avoid repetition'
+                    seed:
+                      type: string
+                      description: 'Timestamp seed for the transaction'
+                requestId:
+                  type: string
+                  description: Request identifier sent by the client for error tracking. See more in **[Request ID Usage](/en/token-requestor/integration/request-id)**
+                merchantId:
+                  type: string
+                  description: 'Unique merchant ID'
+                instrument:
+                  type: object
+                  description: 'Payment instrument information'
+                  properties:
+                    card:
+                      type: object
+                      required:
+                        - number
+                        - expiration
+                      description: 'Card information'
+                      properties:
+                        number:
+                          type: string
+                          description: 'Card number'
+                        expiration:
+                          type: string
+                          description: 'Card expiration date'
+                          example: 12/23
+                        cvv:
+                          type: string
+                          description: 'Security code'
+                payer:
+                  type: object
+                  description: 'Payer information'
+                  properties:
+                    name:
+                      type: string
+                      description: 'Cardholder’s first name'
+                    surname:
+                      type: string
+                      description: 'Cardholder’s last name'
+                    email:
+                      type: string
+                      description: 'Cardholder’s email'
+              required:
+                - auth
+                - requestId
+                - merchantId
+                - instrument
       responses:
         '200':
           description: Successful response
@@ -407,120 +99,83 @@ paths:
                 type: object
                 properties:
                   status:
-                    $ref: ./models/Status.yaml
-                  data:
                     type: object
                     required:
-                      - card
-                      - token
-                      - requestId
+                      - status
+                      - reason
+                      - date
                     properties:
-                      card:
-                        type: object
-                        required:
-                          - lastFour
-                        properties:
-                          lastFour:
-                            type: string
-                            description: 'Last four digits of the enrolled card'
-                      token:
-                        type: object
-                        description: 'Token info'
-                        required:
-                          - token
-                          - status
-                          - lastDigits
-                          - validUntil
-                        properties:
-                          token:
-                            type: string
-                            description: 'Token ID'
-                          subtoken:
-                            type: string
-                            description: 'PAN numeric token required for 3DS.'
-                            maxLength: 19
-                            x-stoplight:
-                              id: uh55h543owekb
-                            example: '5186151969984786'
-                            minLength: 13
-                          status:
-                            type: string
-                            description: |-
-                              Token status. If a token has been deleted, no token information will be returned.
-                          lastDigits:
-                            type: string
-                            maxLength: 4
-                            minLength: 4
-                            description: 'Token last 4'
-                          validUntil:
-                            description: 'Token expiration date'
-                            type: string
-                            format: date
-                            default: Y-m-d
+                      status:
+                        type: string
+                        description: Operation status
+                        example: OK
+                      reason:
+                        type: string
+                        description: Reason for the operation status
+                        example: '00'
+                      description:
+                        type: string
+                        description: Status description
+                        example: Token created
+                      date:
+                        type: string
+                        format: date-time
+                        description: Date when the operation was executed
+                        example: '2025-03-17T22:45:27+00:00'
+                  data:
+                    type: object
+                    description: Result data
+                    properties:
                       requestId:
                         type: string
-                        x-stoplight:
-                          id: 1oac9isif1jah
-                        example: ATBB7XX7TgzAGmzATDR5JuvHAjkt5A2DC7C8
+                        description: Request identifier sent by the client for error tracking. See more in **[Request ID Usage](/en/token-requestor/integration/request-id)**
+                        example: 62a89e6b-6ea9-463a-b720-4d34f76436d9
+                      brandToken:
+                        type: object
+                        description: Token data
+                        required:
+                          - id
+                          - token
+                          - expiration
+                          - additional
+                        properties:
+                          id:
+                            type: string
+                            description: Token identifier for TR
+                            example: rdftvuXQTZyYHaCErEcn0Q0000000000US
+                          token:
+                            type: string
+                            description: Token used to process a payment
+                            example: 2222030198635406
+                          expiration:
+                            type: string
+                            description: Token expiration date
+                            example: 04/28
+                          additional:
+                            type: object
+                            description: Additional token information
+                            properties:
+                              tokenRequestorId:
+                                type: string
+                                description: TR identifier with the brands
+                                example: 2028-04-30
+                              artUrl:
+                                type: string
+                                description: URL with the card image
+                                example: https://s3Propio.aws.com/tr/brand/1/logo.png
+                              issuerName:
+                                type: string
+                                description: Name of the token issuer bank
+                                example: Issuer Test
+                              lastDigits:
+                                type: string
+                                description: Last 4 digits of the tokenized card
+                                example: '1234'
                 required:
                   - status
-                  - data
-              examples:
-                SUCCESS:
-                  value:
-                    status:
-                      "status": "OK"
-                      "reason": "00"
-                      "message": "Operation successfully!"
-                      "date": "2024-01-02T16:31:20+00:00"
-                    data:
-                      requestId: 907932b1-f5bd-4fe2-b05b-cc28a16de9f5
-                      card:
-                        lastFour: '1234'
-                      token:
-                        token: '907932b1-f5bd-4fe2-b05b-cc28a16d23456'
-                        tokenReference: '907932b1-f5bd-4fe2'
-                        status: 'ACTIVE'
-                        lastDigits: '4321'
-                        validUntil: 2023/12/31
-                ERROR_INVALID_ARGUMENT:
-                  value:
-                    status:
-                      status: FAILED
-                      message: Invalid Argument!
-                      reason: X3
-                      date: '2022-07-27T14:51:27-05:00'
-                    data:
-                      message: Invalid Request
-                      detail: merchantInfo.argument
-                ERROR_AUTH:
-                  value:
-                    status:
-                      status: FAILED
-                      message: Credentials not match
-                      reason: X3
-                      date: '2022-07-27T14:51:27-05:00'
-                    data: [ ]
-                ROUTE_NOT_FOUND:
-                  value:
-                    status:
-                      status: FAILED
-                      message: Route not found!
-                      reason: X3
-                      date: '2022-07-27T14:51:27-05:00'
-                    data: [ ]
-            application/xml:
-              schema:
-                type: object
-                properties: { }
-            multipart/form-data:
-              schema:
-                type: object
-                properties: { }
-      description: |
-        'This API enrolls a card, tokenizing the card so that the consumer can use the token for subsequent payments.'
+
       security:
-        - Mc1eQlMX2Zg9NIsyqxuDVT7y2Ubns7hTkdsTzLZF: [ ]
+        - Mc1eQlMX2Zg9NIsyqxuDVT7y2Ubns7hTkdsTzLZF: []
   /api/checkout:
     post:
       summary: Checkout
@@ -529,108 +184,70 @@ paths:
           application/json:
             schema:
               type: object
-              example:
-                service: visa
-                merchantId: b2ce751a-2abc-44d4-b29a-27169df7bdf2
-                token:
-                  token: d5502955e13a4e63aa6e12e6f1d0ab01
-                checkoutSessionId: d5502955e13a4e63aa6e12e6f1d0ab00
-                payment:
-                  amount:
-                    total: 5000
-                    currency: '758'
-                transactionType: ECOM
-                merchant:
-                  name: merchant name
-                  url: 'https://www.placetopay.com'
+              required:
+                - auth
+                - merchantId
+                - instrument
+                - isRecurring
               properties:
-                service:
-                  type: string
-                  description: 'Service name'
-                  enum:
-                    - visa
-                    - mastercard
+                auth:
+                  type: object
+                  description: Authentication object. See more in **[Authentication](/en/token-requestor/integration/authentication)**
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      example: 1441d…
+                    tranKey:
+                      type: string
+                      example: DGYym…
+                    nonce:
+                      type: string
+                      example: enQ4dXh…
+                    seed:
+                      type: string
+                      example: 2023-06…
                 merchantId:
                   type: string
-                  description: 'Merchant ID'
-                  maxLength: 96
-                token:
+                  description: Unique merchant identifier
+                  example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
+                instrument:
                   type: object
-                  description: 'Token information'
-                  properties:
-                    token:
-                      type: string
-                      description: 'Token ID'
-                checkoutSessionId:
-                  type: string
-                  description: Session identifier that can be used by the issuer to identify the cardholder. Required if for VISA
-                  maxLength: 36
-                  default: 5cc5410e-ba7c-475a-a0af-64d1ad9a2808
-                payment:
-                  type: object
-                  description: 'Data about the payment'
+                  description: Object containing payment instrument information
                   required:
-                    - amount
+                    - brandToken
                   properties:
-                    amount:
+                    brandToken:
                       type: object
                       required:
-                        - total
-                        - currency
-                      description: 'Required if payment is sent'
+                        - token
                       properties:
-                        total:
-                          type: integer
-                          minimum: 0
-                          description: 'Transaction amount'
-                        currency:
+                        token:
                           type: string
-                          description: 'Currency code ISO 4217'
-                          maxLength: 3
-                          minLength: 3
-                merchant:
-                  description: 'Data about the merchant'
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                      maxLength: 120
-                      description: 'Required with merchant'
-                    url:
-                      type: string
-                      format: uri
-                      description: 'Required with merchant'
-                  required:
-                    - name
-                    - url
-                transactionType:
-                  type: string
-                  enum:
-                    - ECOM
-                    - RECURRING
-                  description: 'Required if visa'
-              required:
-                - service
-                - merchantId
-                - checkoutSessionId
-                - transactionType
-            examples:
-              SUCCESS:
-                value:
-                  service: visa
-                  merchantId: 2e988305-40bb-4e77-a992-c0dce3303db1
-                  token:
-                    token: 9cdf30b637c3872013af157125a07702
-                  checkoutSessionId: d5502955e13a4e63aa6e12e6f1d0ab01
-                  payment:
-                    amount:
-                      total: 5000
-                      currency: '758'
-                  merchant:
-                    name: merchant name
-                    url: 'https://www.placetopay.com'
-                  transactionType: ECOM
-        description: ''
+                          description: Token provided in the enrollment request
+                          example: 1b7b9879
+                isRecurring:
+                  type: boolean
+                  description: Identifies whether the cryptogram will be used for recurrence or not
+                  example: false
+            example:
+              auth:
+                login: 1441d…
+                tranKey: DGYym…
+                nonce: enQ4dXh…
+                seed: 2023-06…
+              merchantId: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
+              instrument:
+                brandToken:
+                  token: 1b7b9879
+              isRecurring: false
+      description: |
+        This API allows obtaining an encrypted cryptogram from a token to be used in authorization processes.
+        The request includes authentication, the merchant identifier, the payment instrument, and whether the operation will be recurring.
       parameters:
         - name: Accept
           description: 'allowEmptyValue:false'
@@ -638,8 +255,6 @@ paths:
           schema:
             type: string
           example: application/json
-      description: |
-        This API allows you to obtain the encrypted transaction credentials for an enrolled Secure Card card on file so that it can be sent for authorization processing and the consumer can complete the purchase. Requesting the cryptogram for a given token, enables OTP validation. Given a token or tokenID, this API returns the data token and cryptogram.
       security:
         - Mc1eQlMX2Zg9NIsyqxuDVT7y2Ubns7hTkdsTzLZF: [ ]
       responses:
@@ -649,820 +264,290 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  status:
-                    $ref: ./models/Status.yaml
-                  data:
-                    type: object
-                    properties:
-                      payment:
-                        type: object
-                        properties:
-                          id:
-                            type: string
-                            description: |-
-                              'Unique transaction identifier set by the brand for the cryptogram that is generated'
-                          cryptogram:
-                            type: string
-                            description: Base64-encoded cryptogram
-                          eci:
-                            type: string
-                            description: 'EC indicator of change of responsibility'
-                          reference:
-                            type: string
-                      requestId:
-                        type: string
-                        example: ATBB7XX7TgzAGmzATDR5JuvHAjkt5A2DC7C8
-                        description: 'Transaction ID'
-                    required:
-                      - requestId
-                      - id
-                      - cryptogram
-                      - eci
-                      - reference
                 required:
                   - status
-                  - data
-              examples:
-                SUCCES:
-                  value:
-                    status:
-                      status: OK
-                      message: "Operation successfully!"
-                      reason: '00'
-                      date: '2022-07-27T14:51:27-05:00'
-                    data:
-                      requestId: 907932b1-f5bd-4fe2-b05b-cc28a16de9f5
-                      payment:
-                        id: 7b80c7742d933daf94401122c0088702
-                        cryptogram: AgAAE4gAUrJgwv0AmcdJgw0QYAA=
-                        eci: '07'
-                        reference: V0010013022255641724301075092
-                ERROR_INVALID_ARGUMENT:
-                  value:
-                    status:
-                      status: FAILED
-                      message: Invalid Argument!
-                      reason: X3
-                      date: '2022-07-27T14:51:27-05:00'
-                    data:
-                      message: Invalid Request
-                      detail: merchantInfo.argument
-                ERROR_AUTH:
-                  value:
-                    status:
-                      status: FAILED
-                      message: Credentials not match
-                      reason: X3
-                      date: '2022-07-27T14:51:27-05:00'
-                    data: [ ]
-                ROUTE_NOT_FOUND:
-                  value:
-                    status:
-                      status: FAILED
-                      message: Route not found!
-                      reason: X3
-                      date: '2022-07-27T14:51:27-05:00'
-                    data: [ ]
-  /api/get-token-status:
-    post:
-      summary: GetTokenStatus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example:
-                service: visa
-                merchantId: b2ce751a-2abc-44d4-b29a-27169df7bdf2
-                token:
-                  token: d5502955e13a4e63aa6e12e6f1d0ab01
-              properties:
-                service:
-                  type: string
-                  description: 'Service name'
-                  enum:
-                    - visa
-                    - mastercard
-                merchantId:
-                  type: string
-                  description: 'Merchant ID'
-                  format: uuid
-                token:
-                  type: object
-                  description: 'Token information'
-                  required:
-                    - token
-                  properties:
-                    token:
-                      type: string
-                      description: 'Token ID'
-                      maxLength: 36
-              required:
-                - service
-                - merchantId
-                - token
-            examples:
-              SUCCESS:
-                value:
-                  service: visa
-                  merchantId: b2ce751a-2abc-44d4-b29a-27169df7bdf2
-                  token:
-                    token: d5502955e13a4e63aa6e12e6f1d0ab01
-      parameters:
-        - name: Accept
-          description: 'allowEmptyValue:false'
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              examples:
-                SUCCESS:
-                  value:
-                    status:
-                      status: OK
-                      message: Operation successfully!
-                      reason: '00'
-                      date: '2022-07-27T14:51:27-05:00'
-                    data:
-                      requestId: 907932b1-f5bd-4fe2-b05b-cc28a16de9f5
-                      token:
-                        status: ACTIVE
-                        validUntil: '2026-01-31'
-                ROUTE_NOT_FOUND:
-                  value:
-                    status:
-                      status: FAILED
-                      message: Route not found!
-                      reason: X3
-                      date: '2022-07-27T14:51:27-05:00'
-                    data: [ ]
-                ERROR_NOT_FOUND:
-                  value:
-                    status:
-                      status: FAILED
-                      message: Resource not found!
-                      reason: X3
-                      date: '2022-07-27T14:51:27-05:00'
-                    data:
-                      message: Input for vProvisionedTokenID is invalid.
-                      detail: invalidParameter
-                ERROR_AUTH:
-                  value:
-                    status:
-                      status: FAILED
-                      message: Credentials not match
-                      reason: X3
-                      date: '2022-07-27T14:51:27-05:00'
-                    data: [ ]
-                ERROR_INVALID_ARGUMENT:
-                  value:
-                    status:
-                      status: FAILED
-                      message: Invalid argument!
-                      reason: X3
-                      date: '2022-07-27T14:51:27-05:00'
-                    data:
-                      message: Invalid Request
-                      detail: merchantInfo.argument
-              schema:
-                type: object
                 properties:
                   status:
-                    $ref: ./models/Status.yaml
-                  data:
                     type: object
                     required:
-                      - token
-                      - requestId
-                    properties:
-                      token:
-                        type: object
-                        description: 'Token information'
-                        required:
-                          - status
-                          - validUntil
-                        properties:
-                          status:
-                            type: string
-                            description: 'Token status'
-                          validUntil:
-                            type: string
-                            x-stoplight:
-                              id: lllx2gjty6jda
-                            format: date
-                            description: 'Token expiration date'
-                            example: '2026-01-31'
-                      requestId:
-                        type: string
-                        x-stoplight:
-                          id: amfsysdyhwe2z
-                        example: 'requestId:907932b1-f5bd-4fe2-b05b-cc28a16de9f5'
-                        description: Id transaction
-                required:
-                  - data
-            application/xml:
-              schema:
-                type: object
-                properties: { }
-      description: 'Retrieves status information for a token.'
-      security:
-        - Mc1eQlMX2Zg9NIsyqxuDVT7y2Ubns7hTkdsTzLZF: [ ]
-    parameters: [ ]
-  /api/keys:
-    get:
-      summary: Get public key
-      tags: [ ]
-      responses:
-        '200':
-          description: Get public key base64URL
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    $ref: ./models/Status.yaml
-                    x-stoplight:
-                      id: qleekqsorsqhs
-                  data:
-                    type: object
-                    x-stoplight:
-                      id: wf0tiihwiuwqi
-                    required:
-                      - key
-                    properties:
-                      key:
-                        $ref: '#/components/schemas/Key'
-                        x-stoplight:
-                          id: 14xi90jqwwkp7
-                required:
-                  - status
-                  - data
-              examples:
-                Example 1:
-                  value:
-                    status:
-                      status: OK
-                      reason: '00'
-                      message: Resource created succesfully!
-                      date: '2019-08-24T14:15:22Z'
-                    data:
-                      key:
-                        key: '-----BEGIN PUBLIC KEY----- MIIEvQIBADNBgqjWzKYEvVOluMDOZKHwgtvN8FBEgEurnvEIicWFLGR11 DTZIlYoQAvaq220jkcF/30LutbIm5n0zv2p5FBu8PikCgYEA7TJL1vK4yIMwPzhx KuyoTYQHobGXZqs0WP/Sx8KDOFRFTXrx7hXMYF7zgetDIfDIGRe2/NBoPAQ6cugm UzSLdYbVk7/RVfBqXjP1nxofPLXJrRB/6tOesVq1CWpFC/AaKOgiCyqrIWEl= -----END PUBLIC KEY----'
-                        algo: RSA
-                        format: pem
-                        expiration: '2019-08-24T14:15:22Z'
-      operationId: get-keys
-      description: |-
-        This API allows to obtain the current public key to validate the JWS delivered in the notifications,
-        the data will be encoded in base64URL and inside it will have all the necessary fields of the key.
-      security:
-        - Mc1eQlMX2Zg9NIsyqxuDVT7y2Ubns7hTkdsTzLZF: [ ]
-    parameters: [ ]
-
-  /api/onboarding:
-    post:
-      summary: Onboarding
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example:
-                merchant:
-                  id: 2e988305-40bb-4e77-a992-c0dce3303db9
-                  name: name Merchant
-                  brand: brand Merchant
-                  url: https://placetopay.com
-                  document:
-                    type: RUT
-                    number: 1097391384
-                  address:
-                    street: Cl 16 3ce-39
-                    country: CO
-                    city: Medellin
-                    state: CA
-                    postalCode: 19003
-                  contact:
-                    name: Jhon
-                    surname: Doe
-                    email: jhon@doe.com
-              properties:
-                merchant:
-                  type: object
-                  description: 'Merchant information'
-                  required:
-                    - id
-                    - name
-                    - url
-                    - document
-                    - address
-                    - contact
-                  properties:
-                    id:
-                      type: string
-                      description: 'Merchant ID'
-                      format: uuid
-                      example: 2e988305-40bb-4e77-a992-c0dce3303db9
-                    name:
-                      type: string
-                      description: 'Merchant name'
-                      example: name Merchant
-                      maxLength: 100
-                    brand:
-                      type: string
-                      description: 'Merchant brand name'
-                      example: brand Merchant
-                      maxLength: 100
-                    url:
-                      type: string
-                      description: 'Merchant URL'
-                      format: uri
-                      example: https://placetopay.com
-                    document:
-                      type: object
-                      description: 'Merchant document information'
-                      required:
-                        - type
-                        - number
-                      properties:
-                        type:
-                          type: string
-                          description: 'Document type'
-                          example: RUT
-                        number:
-                          type: string
-                          description: 'Document number'
-                          example: 1097391384
-                          maxLength: 96
-                address:
-                  type: object
-                  description: 'Address'
-                  required:
-                    - street
-                    - country
-                    - city
-                    - state
-                    - postalCode
-                  properties:
-                    street:
-                      type: string
-                      description: 'Street address'
-                      example: Cl 16 3ce-39
-                      maxLength: 50
-                    country:
-                      type: string
-                      description: 'Country'
-                      maxLength: 3
-                      minLength: 2
-                      example: CO
-                    city:
-                      type: string
-                      description: 'City'
-                      example: Medellin
-                      maxLength: 30
-                    state:
-                      type: string
-                      description: 'State'
-                      example: CA
-                      maxLength: 3
-                      minLength: 2
-                    postalCode:
-                      type: string
-                      description: 'Postal code'
-                      example: 19003
-                      maxLength: 10
-                contact:
-                  type: object
-                  description: 'Contact information'
-                  required:
-                    - name
-                    - surname
-                    - email
-                  properties:
-                    name:
-                      type: string
-                      description: 'Contact first name'
-                      maxLength: 100
-                      minimum: 3
-                      example: Jhon
-                    surname:
-                      type: string
-                      description: 'Contact surname'
-                      maxLength: 90
-                      minimum: 3
-                      example: Doe
-                    email:
-                      type: string
-                      description: 'Contact email'
-                      maxLength: 90
-                      minimum: 3
-                      example: jhon@doe.com
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              examples:
-                SUCCESS:
-                  value:
-                    status:
-                      status: OK
-                      message: Operation successfully!
-                      reason: '00'
-                      date: '2024-07-18 21:29:33'
-                    data:
-                      visa:
-                        reason: '00'
-                        data:
-                          requestId: 2963e491-156c-428b-ba59-5547f691b123
-                      mastercard:
-                        reason: '00'
-                        data:
-                          requestId: 2963e491-156c-428b-ba59-5547f691b124
-                SUCCESS_WITH_ERROR:
-                  value:
-                    status:
-                      status: OK
-                      message: Operation successfully!
-                      reason: '00'
-                      date: '2024-07-18 21:32:14'
-                    data:
-                      visa:
-                        reason: '00'
-                        data:
-                          requestId: 03547949-a31e-49e9-90bb-dca879c17359
-                      mastercard:
-                        reason: BR
-                        data:
-                          message: Input is invalid or inconsistent with the profile.
-                          detail: encryptedCard.primaryAccountNumber
-                          requestId: ccc5ac5c-4361-4bed-8dda-5b436485d380
-              schema:
-                type: object
-                properties:
-                  status:
-                    $ref: ./models/Status.yaml
-                  data:
-                    type: object
-                    properties:
-                      visa:
-                        type: object
-                        properties:
-                          reason:
-                            type: string
-                            description: Reason code
-                          data:
-                            type: object
-                            properties:
-                              requestId:
-                                type: string
-                                description: Request ID
-                        required:
-                          - reason
-                          - data
-                      mastercard:
-                        type: object
-                        properties:
-                          reason:
-                            type: string
-                            description: Reason code
-                          data:
-                            type: object
-                            properties:
-                              requestId:
-                                type: string
-                                description: Request ID
-                              message:
-                                type: string
-                                description: Error message
-                              detail:
-                                type: string
-                                description: Error detail
-                        required:
-                          - reason
-                          - data
-                required:
-                  - status
-                  - data
-          application/xml:
-            schema:
-              type: object
-              properties: { }
-      description: 'Handles merchant onboarding data.'
-      security:
-        - Mc1eQlMX2Zg9NIsyqxuDVT7y2Ubns7hTkdsTzLZF: [ ]
-    parameters: [ ]
-  /api/onboarding-status:
-    post:
-      summary: Onboarding Status
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                requestId:
-                  type: string
-                  description: 'Request ID'
-                  example: b1e10092-52bc-4245-855f-2be88ee708ce
-                  # Regla: `bail`, `required`, `string`, `uuid`
-              required:
-                - requestId
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              examples:
-                SUCCESS:
-                  value:
-                    status:
-                      status: OK
-                      message: Operation successfully!
-                      reason: '00'
-                      date: '2024-07-18 22:15:35'
-                    data:
-                      requestId: 147504ca-0a75-434a-ab64-7f959af3d78c
-                      status: APPROVED
-                      merchant:
-                        id: de502aab-cd96-4fa5-8c8a-7d77b6c5023b
-                        name: name
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: object
-                    description: 'Status of the request'
+                      - status
+                      - reason
+                      - date
                     properties:
                       status:
                         type: string
-                        description: 'Operation status'
+                        description: Operation status
                         example: OK
-                      message:
-                        type: string
-                        description: 'Operation message'
-                        example: Operation successfully!
                       reason:
                         type: string
-                        description: 'Reason code'
-                        example: '00'
+                        description: Reason for the operation status
+                        example: "00"
+                      description:
+                        type: string
+                        description: Status description
+                        example: Operation successful
                       date:
                         type: string
                         format: date-time
-                        description: 'Date and time of the response'
-                        example: '2024-07-18T22:15:35'
+                        description: Operation date
+                        example: "2025-03-17T22:45:27+00:00"
                   data:
                     type: object
-                    description: 'Data related to the request'
+                    description: Result data
                     properties:
-                      requestId:
+                      cryptogram:
                         type: string
-                        description: 'Request ID'
-                        example: 147504ca-0a75-434a-ab64-7f959af3d78c
+                        description: >
+                          Cryptogram used for processing or payment, encoded in Base64.
+                        example: "AIiD8382PpTdAAF3OkVCAAADFA=="
+                      eci:
+                        type: string
+                        description: >
+                          Code to indicate the level of security and authentication.
+                        example: "05"
+              examples:
+                SUCCESS:
+                  value:
+                    status:
+                      status: OK
+                      reason: "00"
+                      description: Operation successful
+                      date: "2025-03-17T22:45:27+00:00"
+                    data:
+                      cryptogram: "AIiD8382PpTdAAF3OkVCAAADFA=="
+                      eci: "05"
+
+  /api/token/status:
+    post:
+      summary: Obtener el estado del token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - merchantId
+                - instrument
+              properties:
+                auth:
+                  type: object
+                  description: Authentication object. See more in **[Authentication](/en/token-requestor/integration/authentication)**
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                    tranKey:
+                      type: string
+                    nonce:
+                      type: string
+                    seed:
+                      type: string
+                merchantId:
+                  type: string
+                  description: Unique merchant identifier
+                  format: uuid
+                instrument:
+                  type: object
+                  description: Object containing payment instrument information
+                  required:
+                    - brandToken
+                  properties:
+                    brandToken:
+                      type: object
+                      description: Token information
+                      required:
+                        - id
+                      properties:
+                        id:
+                          type: string
+                          description: Identifier of the token in the application
+              example:
+                auth:
+                  login: 1441d…
+                  tranKey: DGYym…
+                  nonce: enQ4dXh…
+                  seed: 2023-06…
+                merchantId: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
+                instrument:
+                  brandToken:
+                    id: 1b7b9879
+      parameters:
+        - name: Accept
+          description: 'allowEmptyValue:false'
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Respuesta exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    required:
+                      - status
+                      - reason
+                      - date
+                    properties:
                       status:
                         type: string
-                        description: 'Onboarding status'
-                        example: APPROVED
-                      merchant:
-                        type: object
-                        description: 'Merchant information'
-                        properties:
-                          id:
-                            type: string
-                            description: 'Merchant ID'
-                            example: de502aab-cd96-4fa5-8c8a-7d77b6c5023b
-                          name:
-                            type: string
-                            description: 'Merchant name'
-                            example: name
-                    required:
-                      - requestId
-                      - status
-                      - merchant
-                required:
-                  - status
-                  - data
-      description: 'Retrieves the status of an onboarding request.'
-      security:
-        - Mc1eQlMX2Zg9NIsyqxuDVT7y2Ubns7hTkdsTzLZF: [ ]
-    parameters: [ ]
-  /api/merchant-subscriptions:
-    get:
-      summary: Get Merchant Subscriptions
-      tags: [ ]
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    $ref: ./models/Status.yaml
+                        description: Operation status
+                        example: OK
+                      reason:
+                        type: string
+                        description: Reason for the operation status
+                        example: '00'
+                      description:
+                        type: string
+                        description: Status description
+                        example: Operation successfully!
+                      date:
+                        type: string
+                        format: date-time
+                        description: Date when the operation was executed
+                        example: '2025-03-17T22:45:27+00:00'
                   data:
                     type: object
-                    x-stoplight:
-                      id: zmhshiuu3ir1h
-                    required:
-                      - requestId
-                      - merchant
                     properties:
-                      requestId:
+                      status:
                         type: string
-                        x-stoplight:
-                          id: dp5bgju3mha1x
-                        format: uuid
-                      merchant:
-                        type: object
-                        x-stoplight:
-                          id: c2byc5ubjapve
-                        required:
-                          - id
-                        properties:
-                          id:
-                            type: string
-                            x-stoplight:
-                              id: emjgskhvwam8q
-                            format: uuid
-                required:
-                  - status
-                  - data
+                        description: Token status
+                        enum: [ ACTIVE, INACTIVE, EXPIRED, DELETED ]
+                        example: ACTIVE
+                      expiration:
+                        type: string
+                        description: Token expiration date
+                        example: 28/04
+                      artUrl:
+                        type: string
+                        description: Card image URL
+                        example: https://s3Propio.aws.com/tr/brand/1/logo.png
+                      createdAt:
+                        type: string
+                        format: date
+                        description: Token generation date
+                        example: 2025-01-10
+                      updatedAt:
+                        type: string
+                        format: date
+                        description: Token update date
+                        example: 2025-01-20
               examples:
-                Success:
+                SUCCESS:
                   value:
                     status:
                       status: OK
-                      message: Operation successfully!
                       reason: '00'
-                      date: '2023-05-26 21:52:30'
+                      description: Operation successfully!
+                      date: '2025-03-17T22:45:27+00:00'
                     data:
-                      requestId: d1b1ca91-1d7d-4d87-890b-22ae0c2953ab
-                      merchant:
-                        id: 9ab9b8f3-a336-4eff-a6fe-618a76be32a5
-                      services:
-                        - mastercard
-                        - visa
-      operationId: get-api-merchant-subscriptions
-      description: 'This API provides information about the  brands enrolled of the merchant'
+                      status: ACTIVE
+                      expiration: 28/04
+                      artUrl: https://s3Propio.aws.com/tr/brand/1/logo.png
+                      createdAt: 2025-01-10
+                      updatedAt: 2025-01-20
+      description: 'Obtiene el estado de un token a partir del identificador proporcionado.'
       security:
         - Mc1eQlMX2Zg9NIsyqxuDVT7y2Ubns7hTkdsTzLZF: [ ]
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                document:
-                  type: object
-                  required:
-                    - type
-                    - number
-                  properties:
-                    type:
-                      type: string
-                      enum:
-                        - NIT
-                        - RUT
-                        - ABN
-                        - BID
-                        - BN
-                        - BRNO
-                        - CLN
-                        - CL
-                        - CNPJ
-                        - CR
-                        - CUIT
-                        - EDRPOU
-                        - EIN
-                        - HKBR
-                        - NATIONAL_ID
-                        - NZBN
-                        - PAN
-                        - RFC
-                        - RNC
-                        - RUC
-                        - SIN
-                        - SSN
-                        - UEN
-                      description: 'Business Identification Types](docs/Business-Identification-Types.md) section for more information.'
-                    number:
-                      type: string
-                      maxLength: 96
-                      description: 'Unique document number for each merchant'
-              required:
-                - document
-        description: 'This API provides information about the  brands enrolled of the merchant'
-  /api/login:
+  /api/token/delete:
     post:
-      summary: Generate new authentication token
-      operationId: login
+      summary: Eliminar un token
+      description: This endpoint allows you to delete a previously registered token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  type: object
+                  description: Authentication object. See more in **[Authentication](/en/token-requestor/integration/authentication)**
+                  properties:
+                    login:
+                      type: string
+                      example: "1441d…"
+                    tranKey:
+                      type: string
+                      example: "DGYym…"
+                    nonce:
+                      type: string
+                      example: "enQ4dXh…"
+                    seed:
+                      type: string
+                      example: "2023-06-21T09:56:06-05:00"
+                merchantId:
+                  type: string
+                  description: Unique merchant identifier
+                  example: "1b7b8d26"
+                instrument:
+                  type: object
+                  description: Payment instrument information
+                  properties:
+                    brandToken:
+                      type: object
+                      description: Token information
+                      properties:
+                        id:
+                          type: string
+                          description: Unique token identifier
+                          example: "1b7b9879"
+                reason:
+                  type: string
+                  description:
+                    "Reason for deleting the token. Valid values: `DELETED`, `FRAUD`, `INACTIVITY`."
+                  example: "FRAUD"
+                description:
+                  type: string
+                  description: Optional description for the reason
+                  example: "The token has been compromised due to fraudulent activity."
+
+              required:
+                - description
+                - reason
+                - merchantId
+                - instrument
+                - auth
       responses:
         '200':
-          description: OK
+          description: Successful response to token deletion
           content:
             application/json:
               schema:
                 type: object
                 properties:
                   status:
-                    $ref: ./models/Status.yaml
-                  data:
                     type: object
-                    x-stoplight:
-                      id: ftxq9nzvt28tw
-                    required:
-                      - token
+                    description: Status information
                     properties:
-                      token:
+                      status:
                         type: string
-                        x-stoplight:
-                          id: 5dn51uvrmvqqv
-                        example: 6|StO2OMHO3by5Qn3FWuk9zIxXlmRNaakxZRQnSwMv
-                required:
-                  - status
-                  - data
-              examples:
-                Success:
-                  value:
-                    status:
-                      status: ÒK
-                      message: Token created successfully
-                      reason: '00'
-                      date: '2023-06-05 16:55:03'
-                    data:
-                      token: 6|StO2OMHO3by5Qn3FWuk9zIxXlmRNaakxZRQnSwMv
-      description: 'This API allows a TSP customer to generate a new authentication token for its next service consumption.'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  x-stoplight:
-                    id: s7kkh8bgfc9xq
-                  format: email
-                  default: client1@client.com
-                password:
-                  type: string
-                  x-stoplight:
-                    id: jsdoye5k5uwp5
-                  format: password
-                  example: client123
-              required:
-                - email
-                - password
-            examples:
-              Login:
-                value:
-                  email: admin2@admin.com
-                  password: admin123
-        description: 'Credentials '
-  /api/logout:
-    delete:
-      summary: Delete authentication tokens
-      operationId: Logout
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  '':
-                    $ref: ./models/Status.yaml
-                  data:
-                    type: object
-                    x-stoplight:
-                      id: vl1gbhgeosy72
-              examples:
-                Success:
-                  value:
-                    status:
-                      status: OK
-                      message: 'Logged out, Tokens deleted successfully'
-                      reason: '00'
-                      date: '2023-06-05 22:28:26'
-                    data: [ ]
-      description: 'This API allows a TSP client to delete all generated authentication tokens.'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties: { }
-        description: ''
-      security:
-        - Mc1eQlMX2Zg9NIsyqxuDVT7y2Ubns7hTkdsTzLZF: [ ]
-
-
+                        description: Operation status
+                        example: "OK"
+                      reason:
+                        type: string
+                        description: Reason for the status
+                        example: "00"
+                      description:
+                        type: string
+                        description: Status description
+                        example: "successfully removed!"
+                      date:
+                        type: string
+                        format: date-time
+                        description: Date when the operation was executed
+                        example: "2025-03-17T22:45:27+00:00"
+                    required:
+                      - description
+                      - reason
+                      - status
+                      - date
