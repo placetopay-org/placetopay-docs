@@ -47,7 +47,7 @@ return (
             label="Start"
             positionX="-50"
             positionY="35"
-            width="1150px"
+            width="900px"
         />
 
         <SequenceAction
@@ -64,7 +64,7 @@ return (
             label="opt"
             positionX="-20"
             positionY="150"
-            width="1100px"
+            width="900px"
         />
 
         <Line
@@ -164,14 +164,14 @@ return (
             id="loopEnd"
             positionX="0"
             positionY="1100"
-            width="1080px"
+            width="900px"
         />
 
         <Line
             id="optEnd"
             positionX="-20"
             positionY="1150"
-            width="1100px"
+            width="900px"
         />
 
     </SequenceDiagram>

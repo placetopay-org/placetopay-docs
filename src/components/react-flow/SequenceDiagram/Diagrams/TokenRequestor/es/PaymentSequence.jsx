@@ -11,13 +11,13 @@ export default function PaymentSequenceEs() {
                 label="Consumidor"
                 positionX="0"
                 positionY="0"
-                height="1100px"
+                height="900px"
             />
 
             <SequenceActor
                 id="checkout"
                 label=":Checkout Placetopay"
-                positionX="200"
+                positionX="180"
                 positionY="0"
                 height="1100px"
                 color="bg-blueFlow"
@@ -26,7 +26,7 @@ export default function PaymentSequenceEs() {
             <SequenceActor
                 id="core"
                 label=":Servicios CORE Placetopay"
-                positionX="400"
+                positionX="380"
                 positionY="0"
                 height="1100px"
                 color="bg-blueFlow"
@@ -35,7 +35,7 @@ export default function PaymentSequenceEs() {
             <SequenceActor
                 id="vts"
                 label=":VTS"
-                positionX="600"
+                positionX="580"
                 positionY="0"
                 height="1100px"
                 color="bg-blueFlow"
@@ -44,7 +44,7 @@ export default function PaymentSequenceEs() {
             <SequenceActor
                 id="acquirer"
                 label=":Adquirente"
-                positionX="800"
+                positionX="780"
                 positionY="0"
                 height="1100px"
                 color="bg-orangeFlow"
@@ -53,9 +53,9 @@ export default function PaymentSequenceEs() {
             <SequenceActor
                 id="issuer"
                 label=":Emisor"
-                positionX="1100"
+                positionX="950"
                 positionY="0"
-                height="1100px"
+                height="1000px"
                 color="bg-orangeFlow"
             />
 
@@ -64,7 +64,7 @@ export default function PaymentSequenceEs() {
                 label="Inicio"
                 positionX="-50"
                 positionY="35"
-                width="1600px"
+                width="1100px"
             />
 
             <SequenceAction
@@ -81,7 +81,7 @@ export default function PaymentSequenceEs() {
                 from="checkout"
                 to="core"
                 message="2. Solicita cobro"
-                positionX="250"
+                positionX="230"
                 positionY="180"
             />
 
@@ -90,7 +90,7 @@ export default function PaymentSequenceEs() {
                 from="core"
                 to="vts"
                 message="3. Solicita criptograma"
-                positionX="610"
+                positionX="600"
                 positionY="260"
             />
 
@@ -98,8 +98,8 @@ export default function PaymentSequenceEs() {
                 id="createCryptogram"
                 from="vts"
                 to="acquirer"
-                message="4. Crea criptograma"
-                positionX="810"
+                message="4. Crea <br> criptograma"
+                positionX="830"
                 positionY="340"
             />
 
@@ -107,7 +107,7 @@ export default function PaymentSequenceEs() {
                 id="returnCryptogramInfo"
                 from="acquirer"
                 to="vts"
-                message="5. Retorna criptograma"
+                message="5. Retorna <br> criptograma"
                 positionX="620"
                 positionY="420"
             />
@@ -116,8 +116,8 @@ export default function PaymentSequenceEs() {
                 id="cryptogramResponse"
                 from="vts"
                 to="core"
-                message="6. Respuesta de generación <br> del criptograma"
-                positionX="400"
+                message="5. Retorna <br> criptograma"
+                positionX="420"
                 positionY="500"
             />
 
@@ -126,7 +126,7 @@ export default function PaymentSequenceEs() {
                 from="core"
                 to="checkout"
                 message="7. Detalla proceso de <br> pago y autorización"
-                positionX="230"
+                positionX="210"
                 positionY="580"
             />
 
@@ -143,8 +143,8 @@ export default function PaymentSequenceEs() {
                 id="sendToBrandProcessor"
                 from="acquirer"
                 to="issuer"
-                message="9. Envía transacción a la <br> red de marca y procesador"
-                positionX="850"
+                message="9. Envía transacción <br>a la red"
+                positionX="800"
                 positionY="740"
             />
 
@@ -152,8 +152,8 @@ export default function PaymentSequenceEs() {
                 id="returnAuthResponseIssuer"
                 from="issuer"
                 to="acquirer"
-                message="10. Retorna transacción <br> aprobada/rechazada"
-                positionX="850"
+                message="10. Retorna  estado"
+                positionX="800"
                 positionY="850"
             />
 
@@ -162,7 +162,7 @@ export default function PaymentSequenceEs() {
                 from="acquirer"
                 to="vts"
                 message="11. Retorna estado <br> de la transacción"
-                positionX="650"
+                positionX="610"
                 positionY="950"
             />
 
@@ -171,7 +171,7 @@ export default function PaymentSequenceEs() {
                 from="vts"
                 to="core"
                 message="12. Retorna estado <br> de la transacción"
-                positionX="450"
+                positionX="410"
                 positionY="1000"
             />
 
@@ -187,7 +187,7 @@ export default function PaymentSequenceEs() {
                 from="core"
                 to="consumer"
                 message="13. Notifica estado de la transacción"
-                positionX="120"
+                positionX="100"
                 positionY="1160"
             />
         </SequenceDiagram>
