@@ -1155,7 +1155,14 @@ export const TAB_NAVIGATION = {
           {
             title: 'Token requestor',
             links: [
-              { title: 'Introducción', href: '/token-requestor' },
+              {
+                title: 'Introducción',
+                href: '/token-requestor'
+              },
+              {
+                title: 'Definiciones clave',
+                href: '/token-requestor/definitions',
+              },
             ],
           },
           {
@@ -1172,14 +1179,6 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Prueba tu integración',
                 href: '/token-requestor/integration/testing',
-              },
-              {
-                title: 'Definiciones clave',
-                href: '/token-requestor/integration/definitions',
-              },
-              {
-                title: 'Uso del requestId',
-                href: '/token-requestor/integration/request-id',
               },
             ],
           },
@@ -1230,6 +1229,10 @@ export const TAB_NAVIGATION = {
                 title: 'Introduction',
                 href: '/token-requestor'
               },
+              {
+                title: 'Key definitions',
+                href: '/token-requestor/definitions',
+              },
             ],
           },
           {
@@ -1246,14 +1249,6 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Test Your Integration',
                 href: '/token-requestor/integration/testing',
-              },
-              {
-                title: 'Key definitions',
-                href: '/token-requestor/integration/definitions',
-              },
-              {
-                title: 'Use of identifier request',
-                href: '/token-requestor/integration/request-id',
               },
             ],
           },
