@@ -3,26 +3,15 @@ export const description = ""
 
 # Preauthorization
 
-Hold a specific amount on the customer's card without charging it upfront. This amount can be adjusted or captured later, making it ideal for industries like hotels, car rentals, or services with variable final costs. {{ className: 'lead' }}
-
-Preauthorization is a payment process that allows merchants to hold a specific amount on a customer's card without charging it immediately. By reserving funds upfront, merchants can ensure that the customer has sufficient funds available while maintaining the flexibility to adjust the amount later.
+Hold a specific amount on the customer's card without charging it immediately. This guarantees available funds and allows the amount to be adjusted or captured later—ideal for scenarios like hotels, rentals, or variable-cost services. {{ className: 'lead' }}
 
 ## How Preauthorization works
 
 The preauthorization process consists of three key stages: _Check-in_, _Reauthorization_, and _Checkout_. Each stage plays a specific role in managing the reserved funds on the customer's card, ensuring flexibility and security throughout the transaction.
 
-1. **Check-in (Initial authorization)**
-   - The process begins with a check-in, where an authorization request is made to hold a specific amount on the customer's card. This amount acts as a security deposit and is not charged at this stage.
-   - Once approved, the hold is linked to a unique reference that will be reused in subsequent steps, such as reauthorization or checkout.
-   - The preauthorization remains in a pending state until the final step, checkout, is completed.
-2. **Reauthorization (Optional adjustment):** 
-   - If the value of the service changes (e.g., a longer hotel stay or additional services), the merchant can perform a reauthorization to adjust the hold amount.
-   - Reauthorization allows for incremental increases to the held amount. However, in some cases, reducing the hold amount is not permitted, and the checkout process must be used instead to finalize the transaction with a lower amount.
-   - Multiple reauthorizations can be performed before the final checkout, ensuring the held amount reflects the updated service cost.
-3. **Checkout (Capture or Release):**
-   - When the final amount is confirmed, the merchant proceeds with a checkout to either capture the held amount (charge the customer) or release it (cancel the hold).
-   - If the final amount is zero, the preauthorization is canceled, and the funds are released back to the customer.
-   - The checkout process updates the status of the preauthorization, and the captured amount is finalized.
+1. **Check-in (Initial authorization)**: A hold is placed on the customer’s card for a specific amount. No charge is made at this stage.
+2. **Reauthorization (Optional adjustment):**: The held amount can be increased if the service value changes. Reductions aren't allowed.
+3. **Checkout (Capture or Release):**: The hold is either captured (charged) or released. Finalizes the transaction.
 
 ![Image of the preauthorization flow](/GatewayFlow.png)
 
@@ -40,147 +29,61 @@ The preauthorization process consists of three key stages: _Check-in_, _Reauthor
 - The currency and payment reference established during the initial check-in must remain consistent throughout the process.
 - Failed operations marked with a rejection state (with reason code `VR`), do not affect prior steps and can be retried.
 
+## Transaction structure
+
+Although not directly relevant for integration purposes, it's useful for merchants to understand how the system represents preauthorization transactions internally:
+
+- **Check-in**, **Reauthorization**, and **Checkout** are transaction types.
+- All three are associated with a parent transaction of type **Preauthorization**, which acts as a container summarizing the entire flow.
+- This parent transaction is automatically created when a **Check-in** is performed.
+- It starts in a pending state and reflects the hold amount.
+- Each Reauthorization updates the held amount on the parent.
+- A successful Checkout concludes the parent transaction by marking it as approved and assigning the final amount.
+
+This layered structure allows merchants to track the full lifecycle of a preauthorized payment in a single consolidated reference.
+
 ## Integrate preauthorization flow in your application
 
-Preauthorizations can be seamlessly integrated into your application using two methods: Web Checkout or Gateway.
+Preauthorizations can be seamlessly integrated into your application using two methods:
 
-**Web Checkout** provides a fully built-in user interface, making it easy to implement without extensive development effort. It is ideal for merchants who prefer a ready-to-use solution.
+- **Web Checkout** provides a fully built-in user interface, making it easy to implement without extensive development effort. It is ideal for merchants who prefer a ready-to-use solution.
+- **Gateway** offers a robust API for greater flexibility and customization, allowing merchants to tailor the integration to their specific use cases.
 
-**Gateway** offers a robust API for greater flexibility and customization, allowing merchants to tailor the integration to their specific use cases.
-
-Both options ensure secure and efficient handling of preauthorizations, enabling you to choose the approach that best fits your business needs.
-
-To continue, please select the integration method that suits your needs:
+Both options ensure secure and efficient handling of preauthorizations, enabling you to choose the approach that best fits your business needs. To continue, please select the integration method that suits your needs:
 
 - [Integrate preauthorization payments with Web Checkout](/en/checkout/create-session#preauthorization-payment)
 - [Integrate preauthorization payments with Gateway API](/en/gateway/transaction-types#preauthorization)
 
 ## Check-in
 
-**Check-in** is the first step. It creates a hold on the customer’s card for a specific amount, acting as a security deposit. Once approved, this hold is linked to a unique reference reused in later steps. The preauthorization will remain **pending** until a **checkout** is completed.
+**Check-in** is the initial step where a hold is placed on the customer’s card for a specific amount. This does not immediately charge the card but ensures the funds are available.
 
-<Tabs title="Checkin">
-  <Tabs.Item title="Web Checkout">
-    - The **"action"** porperty must be `checkin`.
-    - The payment reference will be reused in subsequent **REAUTHORIZATION** and **CHECKOUT** operations.
-    - The payment currency will also remain the same in **REAUTHORIZATION** and **CHECKOUT**.
-    - Pre-authorization payments are not allowed when you want to make a mixed payment.
-    - Pre-authorization payments with scatter values are not allowed.
-
-    ```json {{ 'title': 'CreateSessionRequest - Preauthorization Payment' }}
-    {
-        ...
-        "type": "checkin",
-        "payment": {
-            "reference": "PAY_ABC_1287",
-            "description": "Payment by Placetopay",
-            "amount": {
-                "currency": "USD",
-                "total": 1000
-            }
-        }
-        ...
-    }
-    ```
-  </Tabs.Item>
-  <Tabs.Item title="Gateway">
-    ### Checkin Request
-
-    To ensure quick integration, **CHECKIN** requests are similar to those of the `processTransaction` method, with the following differences:
-
-    - The **"action"** must be `checkin`.
-    - The payment reference will be reused in subsequent **REAUTHORIZATION** and **CHECKOUT** operations.
-    - The payment currency will also remain the same in **REAUTHORIZATION** and **CHECKOUT**.
-    - **Dispersion details** (multiple transactions to different collectors with the same cardholder information) are not considered.
-    - **Recurrence details** (recurring charges from a proprietary database) are not included.
-    
-    > **IMPORTANT:** The `preAuthorization` node contains the data that will be used in subsequent **REAUTHORIZATION** and **CHECKOUT** operations. Additionally, it reflects the general status of the pre-authorization process.
-  </Tabs.Item>
-</Tabs>
+- The `action` must be `checkin`.
+- The payment reference and currency are established during this step and reused in later operations (**Reauthorization**, **Checkout**).
+- Mixed payments and dispersion (scatter) payments are not supported.
+- The transaction remains in state **pending** until a **Checkout** is performed.
+- The `preAuthorization` node in the response stores critical data for later operations.
 
 ## Reauthorization
 
-**Reauthorization** allows you to change the hold amount based on the initial check-in or a previous reauthorization.
+**Reauthorization** allows the merchant to adjust (increase) the amount of the original hold before the final capture.
 
 > Not available in Puerto Rico.
 
 > For Transerver Retail, reauthorizations are limited exclusively to incremental adjustments to the amount previously authorized during the CHECKIN process or a prior REAUTHORIZATION.  
 > This means it is not possible to reduce the authorized amount. If a reauthorization is attempted with an amount equal to or lower than the previously authorized value, the transaction will fail; in cases where a lower amount needs to be processed, the CHECKOUT process must be used instead.  
 
-<Tabs title="Reauthorization">
-  <Tabs.Item title="Web Checkout">
-    - The payment reference is overwritten by the original **CHECKIN** session.
-    - The payment currency is overwritten by the original **CHECKIN** session.
-    - The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
-    - Multiple **REAUTHORIZATION** transactions can be performed before **CHECKOUT**.
-    - Each reauthorization must be for an amount greater than `0`.
-
-    After this operation, the pre-authorization remains in a **pending** state until a **CHECKOUT** is performed.
-
-    ```json {{ 'title': 'TransactionActionRequest - Reauthorization' }}
-    {
-        ...
-        "internalReference": 1, //internal reference code
-        "amount": {
-            "currency": "USD",
-            "total": 100
-        },
-        "action": "reauthorization"
-        ...
-    }
-    ```
-  </Tabs.Item>
-  <Tabs.Item title="Gateway">
-   ### Checkout Request
-    A **CHECKIN** request must be made before processing a **REAUTHORIZATION**. Considerations:
-
-  - The payment reference is overwritten by the original **CHECKIN** session.
-  - The payment currency is overwritten by the original **CHECKIN** session.
-  - The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
-  - Multiple **REAUTHORIZATION** transactions can be performed before **CHECKOUT**.
-  - Each reauthorization must be for an amount greater than `0`.
-  
-   After this operation, the pre-authorization remains in a **pending** state until a **CHECKOUT** is performed.
-  </Tabs.Item>
-</Tabs>
+- Multiple reauthorizations are allowed before checkout.
+- The payment reference and currency are reused from the original **Check-in**.
+- You must provide `internalReference` and `authorization` matching those in the `preAuthorization` node from **Check-in**.
 
 ## Checkout
 
-- A check-in must be performed beforehand.
-- Reauthorization is not mandatory before a capture.
+**Checkout** is the final step where the merchant decides to either capture the held amount or release it.
 
-<Tabs title="Checkout">
-  <Tabs.Item title="Web Checkout">
-    - A **CHECKOUT** can be performed without a prior **REAUTHORIZATION**.
-    - The payment reference is overwritten by the original **CHECKIN** session.
-    - The payment currency is overwritten by the original **CHECKIN** session.
-    - The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
-    - If the **CHECKOUT** amount is `0`, the pre-authorization is canceled, and the retained amount is released.
-
-    ```json {{ 'title': 'TransactionActionRequest - Reauthorization' }}
-    {
-        ...
-        "internalReference": 1, //internal reference code
-        "amount": {
-            "currency": "USD",
-            "total": 100
-        },
-        "action": "checkout"
-        ...
-    }
-    ```
-  </Tabs.Item>
-  <Tabs.Item title="Gateway">
-   ### Checkout Request
- 
-    Key considerations:
-    
-    - A **CHECKOUT** can be performed without a prior **REAUTHORIZATION**.
-    - The payment reference is overwritten by the original **CHECKIN** session.
-    - The payment currency is overwritten by the original **CHECKIN** session.
-    - The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
-    - If the **CHECKOUT** amount is `0`, the pre-authorization is canceled, and the retained amount is released.
-    
-    > **IMPORTANT:** The values of `status`, `authorization`, and `receipt` within the `preAuthorization` node change after a successful **CHECKOUT**. These updated values must be used in **REVERSE** requests.
-  </Tabs.Item>
-</Tabs>
+- A **Check-in** must be completed first.
+- A **Reauthorization** is not mandatory; you may proceed directly from **Check-in**.
+- If the amount is `0`, the hold is canceled and funds are released.
+- The payment reference and currency must match the original **Check-in**.
+- Provide `internalReference` and `authorization` from the `preAuthorization` node.
+- On success, the `preAuthorization` node is updated with new values for `status`, `authorization`, and `receipt`, which are required for **Reverse** operations.

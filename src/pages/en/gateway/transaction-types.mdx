@@ -18,6 +18,174 @@ Pre-authorization is a transaction used to reserve (**checkin**) an amount of mo
 
 > For more information about **CHECKIN**, **REAUTHORIZATION** y **CHECKOUT** see [Payments -> preAuthorization](/en/payments/preauthorization)
 
+Below, we will explore each step in detail to help you integrate preauthorization payments effectively.
+
+## Step 1: Initiate a Preauthorization Session (Check-in)
+
+This step reserves a specific amount on the customer’s card. [API Gateway -> Transaction processing](/en/gateway/api/reference/transaction#process-request)
+
+* `action` must be `checkin`.
+* `payment.reference` and `payment.amount` are required.
+* The response will include a `preAuthorization` object with values needed for subsequent steps.
+
+```json {{ 'title': 'REQUEST - checkin - /gateway/process' }}
+{
+    ...
+    "action": "checkin",
+    "payment": {
+        "reference": "1234567890",
+        "description": "Testing about checkin",
+        "amount": {
+            "currency": "USD",
+            "total": 10
+        }
+    }
+    ...
+}
+```
+
+```json {{ 'title': 'RESPONSE - checkin' }}
+{
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "The request has been successfully approved",
+        "date": "2025-05-02T14:43:57-05:00"
+    },
+    "type": "CHECKIN"
+    "preAuthorization": {
+        "condition": "ACTIVE",
+        "internalReference": 29,
+        "authorization": "736399",
+        "receipt": "110000613613",
+        "amount": {
+            "taxes": [
+                {
+                    "kind": "valueAddedTax",
+                    "amount": 0,
+                    "base": 0
+                }
+            ],
+            "currency": "USD",
+            "total": 10
+        }
+    },
+    ...
+}
+```
+
+## Step 2: Adjust the Held Amount (Reauthorization)
+
+This optional step increases the held amount before capture. [API Gateway -> Operations on a transaction](/en/gateway/api/reference/transaction#transaction-request)
+
+* You must reuse `internalReference` and `authorization` from the `preAuthorization` object returned in the **Check-in** step.
+
+```json {{ 'title': 'REQUEST - reauthorization - /gateway/transaction' }}
+{
+    ...
+    "action": "reauthorization",
+    "internalReference": 30,
+    "authorization": "235263",
+    "payment": {
+        "reference": "1234567890",
+        "description": "Testing about reauthorization",
+        "amount": {
+            "currency": "USD",
+            "total": 15
+        }
+    }
+    ...
+}
+```
+
+```json {{ 'title': 'RESPONSE - reauthorization' }}
+{
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "The request has been successfully approved",
+        "date": "2025-05-02T14:43:57-05:00"
+    },
+    "type": "REAUTHORIZATION"
+    "preAuthorization": {
+        "condition": "ACTIVE",
+        "internalReference": 30,
+        "authorization": "235263",
+        "receipt": "110000613613",
+        "amount": {
+            "taxes": [
+                {
+                    "kind": "valueAddedTax",
+                    "amount": 0,
+                    "base": 0
+                }
+            ],
+            "currency": "USD",
+            "total": 15
+        }
+    },
+    ...
+}
+```
+
+## Step 3: Finalize the Transaction (Checkout)
+
+This step captures or releases the held amount. [API Gateway -> Operations on a transaction](/en/gateway/api/reference/transaction#transaction-request)
+
+* `action` must be `checkout`.
+* If `amount.total` is `0`, the hold is released.
+* Must include `internalReference` and `authorization` from the last step.
+
+```json {{ 'title': 'REQUEST - checkout - /gateway/transaction' }}
+{
+    ...
+    "action": "checkout",
+    "internalReference": 30,
+    "authorization": "235263",
+    "payment": {
+        "reference": "1234567890",
+        "description": "Testing about checkout",
+        "amount": {
+            "currency": "USD",
+            "total": 20
+        }
+    }
+    ...
+}
+```
+
+```json {{ 'title': 'RESPONSE - checkout' }}
+{
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "The request has been successfully approved",
+        "date": "2025-05-02T14:43:57-05:00"
+    },
+    "type": "CHECKOUT"
+    "preAuthorization": {
+        "condition": "COMPLETED",
+        "internalReference": 31,
+        "authorization": "235263",
+        "receipt": "110000142265",
+        "amount": {
+            "taxes": [
+                {
+                    "kind": "valueAddedTax",
+                    "amount": 0,
+                    "base": 0
+                }
+            ],
+            "currency": "USD",
+            "total": 20
+        }
+    },
+    ...
+}
+```
+
+With this three-step process, you can safely and effectively handle preauthorized payments using the Gateway API. Always ensure the `internalReference`, `authorization`, and `reference` values are consistent across all steps to avoid transaction errors.
+
 ---
 
 ## Dispersion
