@@ -22,15 +22,17 @@ Below, we will explore each step in detail to help you integrate preauthorizatio
 
 ## Step 1: Initiate a Preauthorization Session (Check-in)
 
-This step reserves a specific amount on the customer’s card. [API Gateway -> Transaction processing](/en/gateway/api/reference/transaction#process-request)
+This step reserves a specific amount on the customer’s card.
+
+This is done by sending the `RequestBody` to the [API Gateway -> Transaction processing](/en/gateway/api/reference/transaction#process-request).
 
 * `action` must be `checkin`.
 * `payment.reference` and `payment.amount` are required.
 * The response will include a `preAuthorization` object with values needed for subsequent steps.
 
-```json {{ 'title': 'REQUEST - checkin - /gateway/process' }}
+```json {{ 'title': 'REQUEST - RequestBody -> checkin' }}
 {
-    ...
+    "auth": {{auth}},
     "action": "checkin",
     "payment": {
         "reference": "1234567890",
@@ -39,7 +41,7 @@ This step reserves a specific amount on the customer’s card. [API Gateway -> T
             "currency": "USD",
             "total": 10
         }
-    }
+    },
     ...
 }
 ```
@@ -52,7 +54,8 @@ This step reserves a specific amount on the customer’s card. [API Gateway -> T
         "message": "The request has been successfully approved",
         "date": "2025-05-02T14:43:57-05:00"
     },
-    "type": "CHECKIN"
+    "type": "CHECKIN",
+    ...,
     "preAuthorization": {
         "condition": "ACTIVE",
         "internalReference": 29,
@@ -69,23 +72,25 @@ This step reserves a specific amount on the customer’s card. [API Gateway -> T
             "currency": "USD",
             "total": 10
         }
-    },
-    ...
+    }
 }
 ```
 
 ## Step 2: Adjust the Held Amount (Reauthorization)
 
-This optional step increases the held amount before capture. [API Gateway -> Operations on a transaction](/en/gateway/api/reference/transaction#transaction-request)
+This optional step updates the held amount before capture. 
 
+This is done by sending the `RequestBody` to the [API Gateway -> Operations on a transaction](/en/gateway/api/reference/transaction#transaction-request).
+
+* `action` must be `reauthorization`.
 * You must reuse `internalReference` and `authorization` from the `preAuthorization` object returned in the **Check-in** step.
 
-```json {{ 'title': 'REQUEST - reauthorization - /gateway/transaction' }}
+```json {{ 'title': 'REQUEST - RequestBody -> reauthorization' }}
 {
-    ...
-    "action": "reauthorization",
+    "auth": {{auth}},
     "internalReference": 30,
     "authorization": "235263",
+    "action": "reauthorization",
     "payment": {
         "reference": "1234567890",
         "description": "Testing about reauthorization",
@@ -93,7 +98,7 @@ This optional step increases the held amount before capture. [API Gateway -> Ope
             "currency": "USD",
             "total": 15
         }
-    }
+    },
     ...
 }
 ```
@@ -106,7 +111,8 @@ This optional step increases the held amount before capture. [API Gateway -> Ope
         "message": "The request has been successfully approved",
         "date": "2025-05-02T14:43:57-05:00"
     },
-    "type": "REAUTHORIZATION"
+    "type": "REAUTHORIZATION",
+    ...,
     "preAuthorization": {
         "condition": "ACTIVE",
         "internalReference": 30,
@@ -123,25 +129,26 @@ This optional step increases the held amount before capture. [API Gateway -> Ope
             "currency": "USD",
             "total": 15
         }
-    },
-    ...
+    }
 }
 ```
 
 ## Step 3: Finalize the Transaction (Checkout)
 
-This step captures or releases the held amount. [API Gateway -> Operations on a transaction](/en/gateway/api/reference/transaction#transaction-request)
+This step captures or releases the held amount.
+
+This is done by sending the `RequestBody` to the [API Gateway -> Operations on a transaction](/en/gateway/api/reference/transaction#transaction-request).
 
 * `action` must be `checkout`.
 * If `amount.total` is `0`, the hold is released.
 * Must include `internalReference` and `authorization` from the last step.
 
-```json {{ 'title': 'REQUEST - checkout - /gateway/transaction' }}
+```json {{ 'title': 'REQUEST - RequestBody -> checkout' }}
 {
-    ...
-    "action": "checkout",
+    "auth": {{auth}},
     "internalReference": 30,
     "authorization": "235263",
+    "action": "checkout",
     "payment": {
         "reference": "1234567890",
         "description": "Testing about checkout",
@@ -149,8 +156,8 @@ This step captures or releases the held amount. [API Gateway -> Operations on a 
             "currency": "USD",
             "total": 20
         }
-    }
-    ...
+    },
+  ...
 }
 ```
 
@@ -162,7 +169,8 @@ This step captures or releases the held amount. [API Gateway -> Operations on a 
         "message": "The request has been successfully approved",
         "date": "2025-05-02T14:43:57-05:00"
     },
-    "type": "CHECKOUT"
+    "type": "CHECKOUT",
+    ...,
     "preAuthorization": {
         "condition": "COMPLETED",
         "internalReference": 31,
@@ -179,8 +187,7 @@ This step captures or releases the held amount. [API Gateway -> Operations on a 
             "currency": "USD",
             "total": 20
         }
-    },
-    ...
+    }
 }
 ```
 

@@ -22,158 +22,172 @@ A continuación, exploraremos cada paso en detalle para ayudarte a integrar pago
 
 ## Paso 1: Iniciar una sesión de preautorización (Check-in)
 
-Este paso reserva un monto específico en la tarjeta del cliente. [API Gateway -> Procesamiento de transacción](/gateway/api/reference/transaction#process-request)
+Este paso reserva un monto específico en la tarjeta del cliente. 
+
+Esto se hace enviando el `RequestBody` a [API Gateway -> Procesamiento de transacción](/gateway/api/reference/transaction#process-request).
 
 * `action` debe ser `checkin`.
 * `payment.reference` y `payment.amount` son obligatorios.
 * La respuesta incluirá un objeto `preAuthorization` con los valores necesarios para los pasos siguientes.
 
-```json {{ 'title': 'REQUEST - checkin - /gateway/process' }}
+```json {{ 'title': 'REQUEST - RequestBody -> checkin' }}
 {
-  "auth": {{auth}},
-  "action": "checkin",
-  "payment": {
-    "reference": "1234567890",
-    "description": "Testing about checkin",
-    "amount": {
-      "currency": "USD",
-      "total": 10
-    }
-  }
+    "auth": {{auth}},
+    "action": "checkin",
+    "payment": {
+        "reference": "1234567890",
+        "description": "Testing about checkin",
+        "amount": {
+            "currency": "USD",
+            "total": 10
+        }
+    },
+    ...
 }
 ```
 
 ```json {{ 'title': 'RESPONSE - checkin' }}
 {
-  "status": {
-    "status": "APPROVED",
-    "reason": "00",
-    "message": "The request has been successfully approved",
-    "date": "2025-05-02T14:43:57-05:00"
-  },
-  "type": "CHECKIN",
-  "preAuthorization": {
-    "condition": "ACTIVE",
-    "internalReference": 29,
-    "authorization": "736399",
-    "receipt": "110000613613",
-    "amount": {
-      "taxes": [
-        {
-          "kind": "valueAddedTax",
-          "amount": 0,
-          "base": 0
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "The request has been successfully approved",
+        "date": "2025-05-02T14:43:57-05:00"
+    },
+    "type": "CHECKIN",
+    ...,
+    "preAuthorization": {
+        "condition": "ACTIVE",
+        "internalReference": 29,
+        "authorization": "736399",
+        "receipt": "110000613613",
+        "amount": {
+            "taxes": [
+                {
+                    "kind": "valueAddedTax",
+                    "amount": 0,
+                    "base": 0
+                }
+            ],
+            "currency": "USD",
+            "total": 10
         }
-      ],
-      "currency": "USD",
-      "total": 10
     }
-  }
 }
 ```
 
 ## Paso 2: Ajustar el monto retenido (Reauthorization)
 
-Este paso opcional permite aumentar el monto retenido antes de capturarlo. [API Gateway -> Operaciones sobre una transacción ](/gateway/api/reference/transaction#transaction-request)
+Este paso opcional permite actualizar el monto retenido antes de capturarlo. 
 
-* Solo se permiten **aumentos**; las reducciones serán rechazadas.
-* Debes reutilizar `internalReference` y `authorization` del objeto `preAuthorization` retornado en el paso de **Check-in**.
+Esto se hace enviando el `RequestBody` a [API Gateway -> Operaciones sobre una transacción ](/gateway/api/reference/transaction#transaction-request).
 
-```json {{ 'title': 'REQUEST - reauthorization - /gateway/transaction' }}
+* `action` debe ser `reauthorization`.
+* Se debe reutilizar `internalReference` y `authorization` del objeto `preAuthorization` retornado en el paso de **Check-in**.
+
+```json {{ 'title': 'REQUEST - RequestBody -> reauthorization' }}
 {
-  "internalReference": 30,
-  "authorization": "235263",
-  "action": "reauthorization",
-  "payment": {
-    "reference": "1234567890",
-    "description": "Testing about reauthorization",
-    "amount": {
-      "currency": "USD",
-      "total": 15
-    }
-  }
+    "auth": {{auth}},
+    "internalReference": 30,
+    "authorization": "235263",
+    "action": "reauthorization",
+    "payment": {
+        "reference": "1234567890",
+        "description": "Testing about reauthorization",
+        "amount": {
+            "currency": "USD",
+            "total": 15
+        }
+    },
+    ...
 }
 ```
 
 ```json {{ 'title': 'RESPONSE - reauthorization' }}
 {
-  "status": {
-    "status": "APPROVED",
-    "reason": "00",
-    "message": "The request has been successfully approved",
-    "date": "2025-05-02T14:43:57-05:00"
-  },
-  "type": "REAUTHORIZATION",
-  "preAuthorization": {
-    "condition": "ACTIVE",
-    "internalReference": 30,
-    "authorization": "235263",
-    "receipt": "110000613613",
-    "amount": {
-      "taxes": [
-        {
-          "kind": "valueAddedTax",
-          "amount": 0,
-          "base": 0
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "The request has been successfully approved",
+        "date": "2025-05-02T14:43:57-05:00"
+    },
+    "type": "REAUTHORIZATION",
+    ...,
+    "preAuthorization": {
+        "condition": "ACTIVE",
+        "internalReference": 30,
+        "authorization": "235263",
+        "receipt": "110000613613",
+        "amount": {
+            "taxes": [
+                {
+                    "kind": "valueAddedTax",
+                    "amount": 0,
+                    "base": 0
+                }
+            ],
+            "currency": "USD",
+            "total": 15
         }
-      ],
-      "currency": "USD",
-      "total": 15
     }
-  }
 }
 ```
 
 ## Paso 3: Finalizar la transacción (Checkout)
 
-Este paso captura o libera el monto retenido. [API Gateway -> Operaciones sobre una transacción ](/gateway/api/reference/transaction#transaction-request)
+Este paso captura o libera el monto retenido. 
+
+Esto se hace enviando el `RequestBody` a [API Gateway -> Operaciones sobre una transacción ](/gateway/api/reference/transaction#transaction-request).
 
 * `action` debe ser `checkout`.
-* Si `amount.total` es `0`, el monto retenido se libera.
+* Si `payment.amount.total` es `0`, el monto retenido se libera.
 * Debes incluir `internalReference` y `authorization` del último paso.
 
-```json {{ 'title': 'REQUEST - checkout - /gateway/transaction' }}
+```json {{ 'title': 'REQUEST - RequestBody -> checkout' }}
 {
-  "internalReference": 30,
-  "authorization": "235263",
-  "action": "checkout",
-  "payment": {
-    "reference": "1234567890",
-    "description": "Testing about checkout",
-    "amount": {
-      "currency": "USD",
-      "total": 20
-    }
-  }
+    "auth": {{auth}},
+    "internalReference": 30,
+    "authorization": "235263",
+    "action": "checkout",
+    "payment": {
+        "reference": "1234567890",
+        "description": "Testing about checkout",
+        "amount": {
+            "currency": "USD",
+            "total": 20
+        }
+    },
+  ...
 }
 ```
 
 ```json {{ 'title': 'RESPONSE - checkout' }}
 {
-  "status": {
-    "status": "APPROVED",
-    "reason": "00",
-    "message": "The request has been successfully approved",
-    "date": "2025-05-02T14:43:57-05:00"
-  },
-  "type": "CHECKOUT",
-  "preAuthorization": {
-    "condition": "COMPLETED",
-    "internalReference": 31,
-    "authorization": "235263",
-    "receipt": "110000142265",
-    "amount": {
-      "taxes": [
-        {
-          "kind": "valueAddedTax",
-          "amount": 0,
-          "base": 0
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "The request has been successfully approved",
+        "date": "2025-05-02T14:43:57-05:00"
+    },
+    "type": "CHECKOUT",
+    ...,
+    "preAuthorization": {
+        "condition": "COMPLETED",
+        "internalReference": 31,
+        "authorization": "235263",
+        "receipt": "110000142265",
+        "amount": {
+            "taxes": [
+                {
+                    "kind": "valueAddedTax",
+                    "amount": 0,
+                    "base": 0
+                }
+            ],
+            "currency": "USD",
+            "total": 20
         }
-      ],
-      "currency": "USD",
-      "total": 20
     }
-  }
 }
 ```
 

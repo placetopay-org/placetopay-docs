@@ -199,7 +199,6 @@ The preauthorization payment workflow consists of three main steps: Check-in, Re
 
 For more information about the Preauthorization payment flow, see [Payments/Preauthorization](/en/payments/preauthorization)
 
-
 Below, we will explore each step in detail to help you integrate preauthorization payments effectively.
 
 ### Step 1: Initiate a preauthorization session (Check-in)
@@ -208,9 +207,9 @@ The Check-in step is the first stage of the preauthorization workflow. It create
 
 To integrate this step, you must create a Checkout Session. A Checkout Session is a unique URL where the user is redirected to complete the payment process. During this session, the system will generate the "reservation" on the user's card, holding the specified amount without charging it immediately.
 
-This is done by sending the `RedirectRequest` message to the [Create a session endpoint](en/checkout/api/reference/session#create-a-session). 
+This is done by sending the `RedirectRequest` message to the [Create a session endpoint](/en/checkout/api/reference/session#create-a-session). 
 
-```json {{ 'title': 'RedirectRequest - Preauthorization Payment' }}
+```json {{ 'title': 'REQUEST RedirectRequest - Preauthorization Payment' }}
 {
     ...
     "type": "checkin",
@@ -279,10 +278,6 @@ To fetch the session information, send the `getRequestInformation` to the [Query
 
 Step 2: Modify the Reserved Amount (Reauthorization)
 
-CONTINUE HERE
-
-> Not applicable to Puerto Rico
-
 It is applied on pre-authorization transactions and is used to modify the previously reserved amount.
 
 The REAUTHORIZATION type transaction is used to modify the amount defined as previously separated guarantee deposit, with a CHECKIN type transaction. This performs a new authorization by the bank.
@@ -295,15 +290,17 @@ The REAUTHORIZATION type transaction is used to modify the amount defined as pre
 
 After this operation, the pre-authorization remains in a **pending** state until a **CHECKOUT** is performed.
 
-```json {{ 'title': 'TransactionActionRequest - Reauthorization' }}
+This is done by sending the `TransactionActionRequest` message to the [Transaction actions](/en/checkout/api/reference/payment#transaction-actions). 
+
+```json {{ 'title': 'REQUEST TransactionActionRequest - Reauthorization' }}
 {
     ...
+    "action": "reauthorization"
     "internalReference": 1, //internal reference code
     "amount": {
         "currency": "USD",
         "total": 100
     },
-    "action": "reauthorization"
     ...
 }
 ```
@@ -320,21 +317,22 @@ The CHECKOUT type transaction is used to confirm the security deposit amount pre
 - The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
 - If the **CHECKOUT** amount is `0`, the pre-authorization is canceled, and the retained amount is released.
 
-```json {{ 'title': 'TransactionActionRequest - Reauthorization' }}
+This is done by sending the `TransactionActionRequest` message to the [Transaction actions](/en/checkout/api/reference/payment#transaction-actions). 
+
+```json {{ 'title': 'REQUEST TransactionActionRequest - Reauthorization' }}
 {
     ...
+    "action": "checkout"
     "internalReference": 1, //internal reference code
     "amount": {
         "currency": "USD",
         "total": 100
     },
-    "action": "checkout"
     ...
 }
 ```
 
-
-
+With this three-step process, you can safely and effectively handle preauthorized payments using the Gateway API. Always ensure the `internalReference`, `authorization`, and `reference` values are consistent across all steps to avoid transaction errors.
 
 ---
 
