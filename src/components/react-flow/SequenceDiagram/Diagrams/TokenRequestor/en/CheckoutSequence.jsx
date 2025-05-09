@@ -4,130 +4,135 @@ import SequenceAction from "@/components/react-flow/SequenceDiagram/SequenceActi
 import Line from "@/components/react-flow/SequenceDiagram/Line";
 
 export default function ActionWithTokenSequenceEn() {
-      return (
-          <SequenceDiagram customView={{ height: 450, x: 50, y: 27.2727 }}>
-                <SequenceActor
-                    id="actor"
-                    label="Actor"
-                    positionX="0"
-                    positionY="0"
-                    height="450px"
-                />
-                <Line id="lineStart" label="Start" positionX="-50" positionY="35" width="600px" />
+    return (
+        <SequenceDiagram customView={{ height: 1200, x: 70, y: 27.2727 }}>
+            <SequenceActor
+                id="actor"
+                label="Actor"
+                positionX="80"
+                positionY="0"
+                height="1500px"
+            />
 
-                <SequenceActor
-                    id="integrator"
-                    color="bg-orangeFlow"
-                    label="Integrator"
-                    positionX="150"
-                    positionY="0"
-                    height="450px"
-                />
+            <Line
+               id="lineStart"
+               label="Start"
+               positionX="-50"
+               positionY="35"
+               width="1000px"
+            />
 
-                <SequenceActor
-                    id="tokenRequestor"
-                    color="bg-orangeFlow"
-                    label="Token Requestor"
-                    positionX="350"
-                    positionY="0"
-                    height="450px"
-                />
+            <SequenceActor
+                id="integrador"
+                color="bg-orangeFlow"
+                label="Integrator"
+                positionX="300"
+                positionY="0"
+                height="1000px"
+            />
 
-                <SequenceActor
-                    id="brand"
-                    color="bg-orangeFlow"
-                    label="Brand"
-                    positionX="550"
-                    positionY="0"
-                    height="450px"
-                />
+            <SequenceActor
+                id="tokenRequestor"
+                color="bg-orangeFlow"
+                label="Token Requestor"
+                positionX="500"
+                positionY="0"
+                height="1500px"
+            />
 
-                <SequenceAction
-                    id="selectEnrolledCard"
-                    from="actor"
-                    to="integrator"
-                    message="Select enrolled card (Token)"
-                    positionX="75"
-                    positionY="70"
-                />
+            <SequenceActor
+                id="brand"
+                label="Brand"
+                positionX="850"
+                positionY="0"
+                height="1500px"
+            />
 
-                <SequenceAction
-                    id="sendToken"
-                    from="integrator"
-                    to="tokenRequestor"
-                    message="Send Token"
-                    positionX="250"
-                    positionY="110"
-                />
+            <SequenceAction
+                id="selectEnrolledCard"
+                from="actor"
+                to="integrador"
+                message="Select <br> enrolled card (Token)"
+                positionX={100}
+                positionY={170}
+            />
 
-                <SequenceAction
-                    id="validateMerchantActive"
-                    from="tokenRequestor"
-                    to="tokenRequestor"
-                    message="Validate merchant is active"
-                    positionX="350"
-                    positionY="150"
-                    sourcePositionY="110"
-                    targetPositionY="190"
-                />
+            <SequenceAction
+                id="sendToken"
+                from="integrador"
+                to="tokenRequestor"
+                message="Send Token"
+                positionX={350}
+                positionY={350}
+            />
 
-                <SequenceAction
-                    id="validateTokenActive"
-                    from="tokenRequestor"
-                    to="tokenRequestor"
-                    message="Validate token belongs and is active with the brand"
-                    positionX="350"
-                    positionY="190"
-                    sourcePositionY="150"
-                    targetPositionY="230"
-                />
+            <SequenceAction
+                id="validateMerchantActive"
+                from="tokenRequestor"
+                to="tokenRequestor"
+                message="Validate that the merchant is active"
+                positionX={550}
+                positionY={500}
+                sourcePositionY={350}
+                targetPositionY={650}
+            />
+            <SequenceAction
+                id="validateTokenActive"
+                from="tokenRequestor"
+                to="tokenRequestor"
+                message="Validate that the token belongs to it <br> and is active with the brand"
+                positionX={550}
+                positionY={650}
+                sourcePositionY={500}
+                targetPositionY={790}
+            />
 
-                <SequenceAction
-                    id="generateCryptogramRequest"
-                    from="tokenRequestor"
-                    to="brand"
-                    message="Generate cryptogram"
-                    positionX="450"
-                    positionY="230"
-                />
+            <SequenceAction
+                id="generateCryptogramRequest"
+                from="tokenRequestor"
+                to="brand"
+                message="Generate cryptogram"
+                positionX={550}
+                positionY={800}
+            />
 
-                <SequenceAction
-                    id="deliverCryptogramBrand"
-                    from="brand"
-                    to="tokenRequestor"
-                    message="Deliver cryptogram"
-                    positionX="438"
-                    positionY="270"
-                />
+            <SequenceAction
+                id="deliverCryptogramBrand"
+                from="brand"
+                to="tokenRequestor"
+                message="Deliver cryptogram"
+                positionX={550}
+                positionY={950}
+            />
 
-                <SequenceAction
-                    id="deliverCryptogramRequestor"
-                    from="tokenRequestor"
-                    to="integrator"
-                    message="Deliver cryptogram"
-                    positionX="250"
-                    positionY="310"
-                />
+            <SequenceAction
+                id="deliverCryptogramRequestor"
+                from="tokenRequestor"
+                to="integrador"
+                message="Deliver cryptogram"
+                positionX={320}
+                positionY={1100}
+            />
 
-                <SequenceAction
-                    id="performAction"
-                    from="integrator"
-                    to="integrator"
-                    message="Perform action with the generated cryptogram"
-                    positionX="150"
-                    positionY="350"
-                    sourcePositionY="310"
-                    targetPositionY="390"
-                />
+            <SequenceAction
+                id="performAction"
+                from="integrador"
+                to="integrador"
+                message="Perform action with <br> the generated cryptogram"
+                positionX={310}
+                positionY={1250}
+                sourcePositionY={1100}
+                targetPositionY={1390}
+            />
 
-                <SequenceAction
-                    id="actionSuccess"
-                    from="integrator"
-                    to="actor"
-                    message="Action performed successfully"
-                    positionX="75"
-                    positionY="390"
-                />
-          </SequenceDiagram>
-      );
+            <SequenceAction
+                id="actionSuccess"
+                from="integrador"
+                to="actor"
+                message="Action performed <br> successfully"
+                positionX={400 - 300}
+                positionY={1400}
+            />
+        </SequenceDiagram>
+    );
 }

@@ -5,22 +5,74 @@ import Line from "@/components/react-flow/SequenceDiagram/Line";
 
 export default function PaymentSequenceEs() {
     return (
-        <SequenceDiagram customView={{ height: 700, x: 50, y: 27.2727 }}>
-            <SequenceActor id="consumidor" label="Consumidor" positionX="0" positionY="0" height="700px" />
-            <SequenceActor id="checkout" label=":Checkout Placetopay" positionX="150" positionY="0" height="700px" color="bg-blueFlow" />
-            <SequenceActor id="core" label=":CORE Services Placetopay" positionX="350" positionY="0" height="700px" color="bg-blueFlow" />
-            <SequenceActor id="vts" label=":VTS" positionX="550" positionY="0" height="700px" color="bg-blueFlow" />
-            <SequenceActor id="adquirente" label=":Adquirente" positionX="750" positionY="0" height="700px" color="bg-orangeFlow" />
-            <SequenceActor id="issuer" label=":Issuer" positionX="950" positionY="0" height="700px" color="bg-orangeFlow" />
+        <SequenceDiagram customView={{ height: 1100, x: 70, y: 27.2727 }}>
+            <SequenceActor
+                id="consumer"
+                label="Consumidor"
+                positionX="0"
+                positionY="0"
+                height="1100px"
+            />
 
-            <Line id="lineStart" label="Start" positionX="-50" positionY="35" width="1050px" />
+            <SequenceActor
+                id="checkout"
+                label=":Checkout Placetopay"
+                positionX="200"
+                positionY="0"
+                height="1100px"
+                color="bg-blueFlow"
+            />
+
+            <SequenceActor
+                id="core"
+                label=":Servicios CORE Placetopay"
+                positionX="400"
+                positionY="0"
+                height="1100px"
+                color="bg-blueFlow"
+            />
+
+            <SequenceActor
+                id="vts"
+                label=":VTS"
+                positionX="600"
+                positionY="0"
+                height="1100px"
+                color="bg-blueFlow"
+            />
+
+            <SequenceActor
+                id="acquirer"
+                label=":Adquirente"
+                positionX="800"
+                positionY="0"
+                height="1100px"
+                color="bg-orangeFlow"
+            />
+
+            <SequenceActor
+                id="issuer"
+                label=":Emisor"
+                positionX="1100"
+                positionY="0"
+                height="1100px"
+                color="bg-orangeFlow"
+            />
+
+            <Line
+                id="lineStart"
+                label="Inicio"
+                positionX="-50"
+                positionY="35"
+                width="1600px"
+            />
 
             <SequenceAction
                 id="selectCardAndSendOrder"
-                from="consumidor"
+                from="consumer"
                 to="checkout"
-                message="1. Seleccionar PAN/Tarjeta tokenizada y enviar orden"
-                positionX="75"
+                message="1. Selecciona <br> PAN/Tokenizada"
+                positionX="20"
                 positionY="70"
             />
 
@@ -28,108 +80,108 @@ export default function PaymentSequenceEs() {
                 id="requestCollect"
                 from="checkout"
                 to="core"
-                message="2. Solicitar collect"
+                message="2. Solicita cobro"
                 positionX="250"
-                positionY="110"
+                positionY="180"
             />
 
             <SequenceAction
                 id="requestCryptogram"
                 from="core"
                 to="vts"
-                message="3. Solicitar criptograma (token ID, información del pago)"
-                positionX="450"
-                positionY="150"
+                message="3. Solicita criptograma"
+                positionX="610"
+                positionY="260"
             />
 
             <SequenceAction
                 id="createCryptogram"
                 from="vts"
-                to="adquirente"
-                message="4. Crear Criptograma"
-                positionX="650"
-                positionY="190"
+                to="acquirer"
+                message="4. Crea criptograma"
+                positionX="810"
+                positionY="340"
             />
 
             <SequenceAction
                 id="returnCryptogramInfo"
-                from="adquirente"
+                from="acquirer"
                 to="vts"
-                message="5. Retornar información del criptograma"
-                positionX="638"
-                positionY="230"
+                message="5. Retorna criptograma"
+                positionX="620"
+                positionY="420"
             />
 
             <SequenceAction
                 id="cryptogramResponse"
                 from="vts"
                 to="core"
-                message="6. Respuesta de la generación del criptograma"
-                positionX="438"
-                positionY="270"
+                message="6. Respuesta de generación <br> del criptograma"
+                positionX="400"
+                positionY="500"
             />
 
             <SequenceAction
                 id="detailPaymentAuth"
                 from="core"
                 to="checkout"
-                message="7. Detallar proceso de pago y autorización"
-                positionX="238"
-                positionY="310"
+                message="7. Detalla proceso de <br> pago y autorización"
+                positionX="230"
+                positionY="580"
             />
 
             <SequenceAction
                 id="sendAuthTransaction"
                 from="checkout"
-                to="adquirente"
-                message="8. Enviar transacción a autorización"
-                positionX="650"
-                positionY="350"
+                to="acquirer"
+                message="8. Envía transacción <br> para autorización"
+                positionX="610"
+                positionY="660"
             />
 
             <SequenceAction
                 id="sendToBrandProcessor"
-                from="adquirente"
+                from="acquirer"
                 to="issuer"
-                message="9. Enviar transacción al brand network y al procesador"
+                message="9. Envía transacción a la <br> red de marca y procesador"
                 positionX="850"
-                positionY="390"
+                positionY="740"
             />
 
             <SequenceAction
                 id="returnAuthResponseIssuer"
                 from="issuer"
-                to="adquirente"
-                message="10. Retornar transacción aprobada/rechazada"
-                positionX="838"
-                positionY="430"
+                to="acquirer"
+                message="10. Retorna transacción <br> aprobada/rechazada"
+                positionX="850"
+                positionY="850"
             />
 
             <SequenceAction
                 id="returnAuthResponseAdq"
-                from="adquirente"
+                from="acquirer"
                 to="vts"
-                message="11. Retornar transacción aprobada/rechazada"
-                positionX="638"
-                positionY="470"
+                message="11. Retorna estado <br> de la transacción"
+                positionX="650"
+                positionY="950"
             />
 
             <SequenceAction
                 id="returnAuthResponseVts"
                 from="vts"
                 to="core"
-                message="12. Retornar transacción aprobada/rechazada"
-                positionX="438"
-                positionY="510"
+                message="12. Retorna estado <br> de la transacción"
+                positionX="450"
+                positionY="1000"
             />
 
             <SequenceAction
                 id="notifyTransactionStatus"
                 from="core"
-                to="consumidor"
-                message="13. Notificar estado transacción"
-                positionX="75"
-                positionY="550"
+                to="consumer"
+                message="13. Notifica estado de la transacción"
+                positionX="120"
+                positionY="1060"
             />
         </SequenceDiagram>
     );

@@ -4,116 +4,176 @@ import SequenceAction from "@/components/react-flow/SequenceDiagram/SequenceActi
 import Line from "@/components/react-flow/SequenceDiagram/Line";
 
 export default function TokenizationByMerchantSequenceEs() {
-        return (
-            <SequenceDiagram customView={{ height: 600, x: 50, y: 27.2727 }}>
-                    <SequenceActor id="comercio" label=":Comercio" positionX="0" positionY="0" height="600px" color="bg-blueFlow" />
-                    <SequenceActor id="core" label=":CORE Services Placetopay" positionX="250" positionY="0" height="600px" color="bg-blueFlow" />
-                    <SequenceActor id="vts" label=":VTS" positionX="500" positionY="0" height="600px" color="bg-blueFlow" />
-                    <SequenceActor id="issuer" label=":Issuer" positionX="750" positionY="0" height="600px" color="bg-orangeFlow" />
+    return (
+        <SequenceDiagram customView={{ height: 1000, x: 70, y: 27.2727 }}>
+            <SequenceActor
+                id="comercio"
+                label=":Comercio"
+                positionX="0"
+                positionY="0"
+                height="1000px"
+                color="bg-blueFlow"
+            />
 
-                    <Line id="lineStart" label="Inicio" positionX="-50" positionY="35" width="850px" />
+            <SequenceActor
+                id="core"
+                label=":CORE Services Placetopay"
+                positionX="350"
+                positionY="0"
+                height="1000px"
+                color="bg-blueFlow"
+            />
 
-                    <SequenceAction
-                        id="consultPan"
-                        from="comercio"
-                        to="core"
-                        message="1. Consultar token PAN/Tarjeta BD"
-                        positionX="125"
-                        positionY="70"
-                    />
+            <SequenceActor
+                id="vts"
+                label=":VTS"
+                positionX="600"
+                positionY="0"
+                height="1000px"
+                color="bg-blueFlow"
+            />
 
-                    <Line id="optStart" label="opt" positionX="-20" positionY="100" width="800px" />
+            <SequenceActor
+                id="issuer"
+                label=":Issuer"
+                positionX="800"
+                positionY="0"
+                height="1000px"
+                color="bg-orangeFlow"
+            />
 
-                    <Line id="loopStart" label="loop" positionX="0" positionY="130" width="780px" />
+            <Line
+                id="lineStart"
+                label="Inicio"
+                positionX="-50"
+                positionY="35"
+                width="1150px"
+            />
 
-                    <SequenceAction
-                        id="createProvisioningProcess"
-                        from="comercio"
-                        to="core"
-                        message="2. Crear proceso aprovisionamiento del token"
-                        positionX="125"
-                        positionY="170"
-                    />
+            <SequenceAction
+                id="consultPan"
+                from="comercio"
+                to="core"
+                message="1. Consultar token PAN/Tarjeta BD"
+                positionX="80"
+                positionY="100"
+            />
 
-                    <SequenceAction
-                        id="useEnrollPan"
-                        from="core"
-                        to="vts"
-                        message="3. Usar Enroll PAN Microservicio de Placetopay tokenization request"
-                        positionX="375"
-                        positionY="210"
-                    />
+            <Line
+                id="optStart"
+                label="opt"
+                positionX="-20"
+                positionY="150"
+                width="1100px"
+            />
 
-                    <SequenceAction
-                        id="validatePan"
-                        from="vts"
-                        to="issuer"
-                        message="4. Validar PAN/tarjeta para aprovisionamiento"
-                        positionX="625"
-                        positionY="250"
-                    />
+            <Line
+                id="loopStart"
+                label="loop"
+                positionX="0"
+                positionY="200"
+                width="1080px"
+            />
 
-                    <SequenceAction
-                        id="returnValidatedPan"
-                        from="issuer"
-                        to="vts"
-                        message="5. Retornar PAN validada"
-                        positionX="613"
-                        positionY="290"
-                    />
+            <SequenceAction
+                id="createProvisioningProcess"
+                from="comercio"
+                to="core"
+                message="2. Crear proceso <br> aprovisionamiento del token"
+                positionX="100"
+                positionY="250"
+            />
 
-                    <SequenceAction
-                        id="provisionTokenVts"
-                        from="vts"
-                        to="vts"
-                        message="6. Provision Token[]"
-                        positionX="500"
-                        positionY="330"
-                        sourcePositionY="290"
-                        targetPositionY="370"
-                    />
+            <SequenceAction
+                id="useEnrollPan"
+                from="core"
+                to="vts"
+                message="3. Usar Enroll"
+                positionX="400"
+                positionY="350"
+            />
 
-                    <SequenceAction
-                        id="returnTokenInfo"
-                        from="vts"
-                        to="core"
-                        message="7. Retornar información del token"
-                        positionX="363"
-                        positionY="370"
-                    />
+            <SequenceAction
+                id="validatePan"
+                from="vts"
+                to="issuer"
+                message="4. Validar PAN para <br> aprovisionamiento"
+                positionX="620"
+                positionY="450"
+            />
 
-                    <SequenceAction
-                        id="relateTokenWithPlacetopay"
-                        from="core"
-                        to="comercio"
-                        message="8. Relacionar token marca con Placetopay"
-                        positionX="125"
-                        positionY="410"
-                    />
+            <SequenceAction
+                id="returnValidatedPan"
+                from="issuer"
+                to="vts"
+                message="5. Retornar PAN validada"
+                positionX="620"
+                positionY="550"
+            />
 
-                    <SequenceAction
-                        id="provisionTokenCommerce"
-                        from="core"
-                        to="comercio"
-                        message="9. Provisionar el token (respuesta Placetopay)"
-                        positionX="125"
-                        positionY="450"
-                    />
+            <SequenceAction
+                id="provisionTokenVts"
+                from="vts"
+                to="vts"
+                message="6. Provision Token[]"
+                positionX="620"
+                positionY="650"
+                sourcePositionY="550"
+                targetPositionY="750"
+            />
 
-                    <SequenceAction
-                        id="eliminatePanAndStoreToken"
-                        from="comercio"
-                        to="comercio"
-                        message="10. Eliminar PAN/tarjeta y almacenar token"
-                        positionX="125"
-                        positionY="490"
-                        sourcePositionY="450"
-                        targetPositionY="530"
-                    />
+            <SequenceAction
+                id="returnTokenInfo"
+                from="vts"
+                to="core"
+                message="7. Retornar información <br> del token"
+                positionX="400"
+                positionY="750"
+            />
 
-                    <Line id="loopEnd" positionX="0" positionY="520" width="780px" />
-                    <Line id="optEnd" positionX="-20" positionY="550" width="800px" />
+            <SequenceAction
+                id="relateTokenWithPlacetopay"
+                from="core"
+                to="comercio"
+                message="8. Relacionar token <br> marca con Placetopay"
+                positionX="150"
+                positionY="850"
+            />
 
-            </SequenceDiagram>
-        );
+            <SequenceAction
+                id="provisionTokenCommerce"
+                from="core"
+                to="comercio"
+                message="9. Provisionar el token <br> (respuesta Placetopay)"
+                positionX="150"
+                positionY="950"
+            />
+
+            <SequenceAction
+                id="eliminatePanAndStoreToken"
+                from="comercio"
+                to="comercio"
+                message="10. Eliminar PAN/tarjeta <br> y almacenar token"
+                positionX="150"
+                positionY="1050"
+                sourcePositionY="950"
+                targetPositionY="1150"
+            />
+
+            <Line
+                id="loopEnd"
+                positionX="0"
+                positionY="1100"
+                width="1080px"
+            />
+
+            <Line
+                id="optEnd"
+                positionX="-20"
+                positionY="1150"
+                width="1100px"
+            />
+
+        </SequenceDiagram>
+    );
 }
