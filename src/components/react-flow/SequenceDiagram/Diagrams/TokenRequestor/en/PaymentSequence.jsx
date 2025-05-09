@@ -175,13 +175,20 @@ export default function PaymentSequenceEn() {
                 positionY="1000"
             />
 
+            <Line
+                id="loopEnd"
+                positionX="0"
+                positionY="1100"
+                width="1080px"
+            />
+
             <SequenceAction
                 id="notifyTransactionStatus"
                 from="core"
                 to="consumer"
                 message="13. Notify transaction status"
-                positionX="150"
-                positionY="1060"
+                positionX="120"
+                positionY="1160"
             />
         </SequenceDiagram>
     );

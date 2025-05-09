@@ -54,7 +54,7 @@ export default function TokenizationByMerchantSequenceEs() {
                 id="consultPan"
                 from="comercio"
                 to="core"
-                message="1. Consultar token PAN/Tarjeta BD"
+                message={`<span> 1. Consultar token <b> PAN BD </b> </span>`}
                 positionX="80"
                 positionY="100"
             />
@@ -144,7 +144,7 @@ export default function TokenizationByMerchantSequenceEs() {
                 id="provisionTokenCommerce"
                 from="core"
                 to="comercio"
-                message="9. Provisionar el token <br> (respuesta Placetopay)"
+                message={`<span> 9. Provisionar el token <br> <b> respuesta Placetopay </b> </span>`}
                 positionX="150"
                 positionY="950"
             />
@@ -153,7 +153,7 @@ export default function TokenizationByMerchantSequenceEs() {
                 id="eliminatePanAndStoreToken"
                 from="comercio"
                 to="comercio"
-                message="10. Eliminar PAN/tarjeta <br> y almacenar token"
+                message="10. Eliminar PAN <br> y almacenar token"
                 positionX="150"
                 positionY="1050"
                 sourcePositionY="950"

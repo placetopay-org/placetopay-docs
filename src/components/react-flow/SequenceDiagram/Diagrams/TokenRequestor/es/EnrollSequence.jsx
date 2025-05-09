@@ -52,7 +52,7 @@ export default function EnrollSequenceEs() {
                 id="selectCard"
                 from="actor"
                 to="integrador"
-                message="Selecciona tarjeta <br> a enrolar"
+                message="1. Selecciona tarjeta <br> a enrolar"
                 positionX="40"
                 positionY="150"
             />
@@ -61,7 +61,7 @@ export default function EnrollSequenceEs() {
                 id="sendCard"
                 from="integrador"
                 to="tokenRequestor"
-                message="Enviar tarjeta a enrolar"
+                message="2. Enviar tarjeta a enrolar"
                 positionX="300"
                 positionY="250"
             />
@@ -70,7 +70,7 @@ export default function EnrollSequenceEs() {
                 id="validateMerchantCard"
                 from="tokenRequestor"
                 to="tokenRequestor"
-                message="Valida que el comercio esté activo y <br> la tarjeta lista para realizar enrolamiento"
+                message={`<span> 3. Valida que el comercio esté activo y la<br> <b> tarjeta lista para realizar enrolamiento </b> </span>`}
                 positionX="550"
                 positionY="350"
                 sourcePositionY="250"
@@ -81,7 +81,7 @@ export default function EnrollSequenceEs() {
                 id="identifyBrand"
                 from="tokenRequestor"
                 to="tokenRequestor"
-                message="Identifica la marca de la tarjeta"
+                message="4. Identifica la marca de la tarjeta"
                 positionX="550"
                 positionY="450"
                 sourcePositionY="350"
@@ -92,7 +92,7 @@ export default function EnrollSequenceEs() {
                 id="enrollCardRequest"
                 from="tokenRequestor"
                 to="marca"
-                message="Enrolar tarjeta"
+                message="5. Enrolar tarjeta"
                 positionX="550"
                 positionY="550"
             />
@@ -101,7 +101,7 @@ export default function EnrollSequenceEs() {
                 id="deliverTokenBrand"
                 from="marca"
                 to="tokenRequestor"
-                message="Entrega token"
+                message="6. Entrega token"
                 positionX="550"
                 positionY="650"
             />
@@ -110,7 +110,7 @@ export default function EnrollSequenceEs() {
                 id="deliverTokenRequestor"
                 from="tokenRequestor"
                 to="integrador"
-                message="Entrega token"
+                message="7. Entrega token"
                 positionX="310"
                 positionY="750"
             />
@@ -119,7 +119,7 @@ export default function EnrollSequenceEs() {
                 id="storeToken"
                 from="integrador"
                 to="integrador"
-                message="Almacena información del <br> token para futuros pagos"
+                message={`<span> 8. <b> Almacena información </b> <br> del token para futuros pagos</span>`}
                 positionX="290"
                 positionY="850"
                 sourcePositionY="750"
@@ -130,7 +130,7 @@ export default function EnrollSequenceEs() {
                 id="tokenGenerated"
                 from="integrador"
                 to="actor"
-                message="Token generado <br> exitosamente"
+                message="9. Token generado <br> exitosamente"
                 positionX="60"
                 positionY="960"
             />
