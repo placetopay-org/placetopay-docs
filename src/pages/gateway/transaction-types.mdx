@@ -16,68 +16,182 @@ Para hacer uso de esta funcionalidad, en la estructura payment del Pago recurren
 
 La pre-autorización es una transacción utilizada para reservar (**checkin**) un monto de dinero en una tarjeta de crédito. Posteriormente, este monto puede ser debitado (**checkout**). Durante el proceso, el monto puede cambiar (**reauthorization**) según las necesidades del comercio o modificaciones en los servicios elegidos por el tarjetahabiente.
 
-> Nota: Si una transacción **CHECKIN**, **REAUTHORIZATION** o **CHECKOUT** falla por un estado anómalo, se cancelará y quedará rechazada, pero podrá ser reintentada. La transacción fallida quedará con estado **VR**.
+> Para conocer más sobre **CHECKIN**, **REAUTHORIZATION** y **CHECKOUT** consultar [Pagos -> Preautorización](/payments/preauthorization)
 
----
+A continuación, exploraremos cada paso en detalle para ayudarte a integrar pagos con preautorización de forma efectiva usando la API Gateway.
 
-## Checkin
+## Paso 1: Iniciar una sesión de preautorización (Check-in)
 
-La transacción **CHECKIN** permite obtener una autorización del banco (proveedor). Se define como un débito en una tarjeta de crédito o débito que funciona como depósito de garantía por el uso de un bien o servicio.
+Este paso reserva un monto específico en la tarjeta del cliente. 
 
-![Flujo](/GatewayFlow.png)
+Esto se hace enviando el `RequestBody` a [API Gateway -> Procesamiento de transacción](/gateway/api/reference/transaction#process-request).
 
-### Solicitud Checkin (Request)
+* `action` debe ser `checkin`.
+* `payment.reference` y `payment.amount` son obligatorios.
+* La respuesta incluirá un objeto `preAuthorization` con los valores necesarios para los pasos siguientes.
 
-Para facilitar la integración, las solicitudes de **CHECKIN** son similares a las del método `processTransaction`, con las siguientes diferencias:
+```json {{ 'title': 'REQUEST - RequestBody -> checkin' }}
+{
+    "auth": {{auth}},
+    "action": "checkin",
+    "payment": {
+        "reference": "1234567890",
+        "description": "Testing about checkin",
+        "amount": {
+            "currency": "USD",
+            "total": 10
+        }
+    },
+    ...
+}
+```
 
-- La **"action"** debe ser `checkin`.
-- La referencia del pago se reutilizará en las operaciones de **REAUTHORIZATION** y **CHECKOUT**.
-- La moneda del pago también se mantendrá en **REAUTHORIZATION** y **CHECKOUT**.
-- No se considerarán detalles sobre **dispersión** (transacciones a múltiples recaudadores con la misma información del tarjetahabiente).
-- No se incluirán detalles de **recurrencia** (cobros recurrentes desde una base de datos propietaria).
+```json {{ 'title': 'RESPONSE - checkin' }}
+{
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "The request has been successfully approved",
+        "date": "2025-05-02T14:43:57-05:00"
+    },
+    "type": "CHECKIN",
+    ...,
+    "preAuthorization": {
+        "condition": "ACTIVE",
+        "internalReference": 29,
+        "authorization": "736399",
+        "receipt": "110000613613",
+        "amount": {
+            "taxes": [
+                {
+                    "kind": "valueAddedTax",
+                    "amount": 0,
+                    "base": 0
+                }
+            ],
+            "currency": "USD",
+            "total": 10
+        }
+    }
+}
+```
 
-> **IMPORTANTE:** El nodo `preAuthorization` contiene los datos que se usarán en las operaciones posteriores de **REAUTHORIZATION** y **CHECKOUT**. Además, refleja el estado general del proceso de pre-autorización.
+## Paso 2: Ajustar el monto retenido (Reauthorization)
 
----
+Este paso opcional permite actualizar el monto retenido antes de capturarlo. 
 
-## Reautorización
+Esto se hace enviando el `RequestBody` a [API Gateway -> Operaciones sobre una transacción ](/gateway/api/reference/transaction#transaction-request).
 
-> No aplica a Puerto Rico
+* `action` debe ser `reauthorization`.
+* Se debe reutilizar `internalReference` y `authorization` del objeto `preAuthorization` retornado en el paso de **Check-in**.
 
-> Para Transerver Retail, las reautorizaciones están limitadas únicamente a ajustes incrementales al monto previamente autorizado durante el proceso de CHECKIN o en una REAUTHORIZATION anterior.  
-> Esto significa que no es posible reducir el valor autorizado. Si se intenta realizar una reautorización con un monto igual o menor al previamente autorizado, la transacción será fallida; en dado caso de requerir procesar un monto menor, se debe utilizar directamente un proceso de CHECKOUT.  
- 
-La transacción **REAUTHORIZATION** permite modificar el monto definido como depósito de garantía en una transacción **CHECKIN**, solicitando una nueva autorización al banco (proveedor).
+```json {{ 'title': 'REQUEST - RequestBody -> reauthorization' }}
+{
+    "auth": {{auth}},
+    "internalReference": 30,
+    "authorization": "235263",
+    "action": "reauthorization",
+    "payment": {
+        "reference": "1234567890",
+        "description": "Testing about reauthorization",
+        "amount": {
+            "currency": "USD",
+            "total": 15
+        }
+    },
+    ...
+}
+```
 
-### Solicitud Reautorización (Request)
+```json {{ 'title': 'RESPONSE - reauthorization' }}
+{
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "The request has been successfully approved",
+        "date": "2025-05-02T14:43:57-05:00"
+    },
+    "type": "REAUTHORIZATION",
+    ...,
+    "preAuthorization": {
+        "condition": "ACTIVE",
+        "internalReference": 30,
+        "authorization": "235263",
+        "receipt": "110000613613",
+        "amount": {
+            "taxes": [
+                {
+                    "kind": "valueAddedTax",
+                    "amount": 0,
+                    "base": 0
+                }
+            ],
+            "currency": "USD",
+            "total": 15
+        }
+    }
+}
+```
 
-Para procesar una **REAUTHORIZATION** es necesario haber realizado previamente un **CHECKIN**. Consideraciones:
+## Paso 3: Finalizar la transacción (Checkout)
 
-- La referencia del pago se sobrescribe con la sesión **CHECKIN** original.
-- La moneda del pago también se sobrescribe con la sesión **CHECKIN** original.
-- Los valores de `internalReference` y `authorization` deben ser los entregados en la respuesta de **CHECKIN** dentro del nodo `preAuthorization`.
-- Se pueden realizar varias **REAUTHORIZATION** antes del **CHECKOUT**.
-- Las reautorizaciones deben ser por un monto mayor a `0`.
+Este paso captura o libera el monto retenido. 
 
-Tras esta operación, la pre-autorización sigue en estado **pendiente** hasta que se realice un **CHECKOUT**.
+Esto se hace enviando el `RequestBody` a [API Gateway -> Operaciones sobre una transacción ](/gateway/api/reference/transaction#transaction-request).
 
----
+* `action` debe ser `checkout`.
+* Si `payment.amount.total` es `0`, el monto retenido se libera.
+* Debes incluir `internalReference` y `authorization` del último paso.
 
-## Check-out
+```json {{ 'title': 'REQUEST - RequestBody -> checkout' }}
+{
+    "auth": {{auth}},
+    "internalReference": 30,
+    "authorization": "235263",
+    "action": "checkout",
+    "payment": {
+        "reference": "1234567890",
+        "description": "Testing about checkout",
+        "amount": {
+            "currency": "USD",
+            "total": 20
+        }
+    },
+  ...
+}
+```
 
-La transacción **CHECKOUT** confirma el monto del depósito de garantía separado previamente con un **CHECKIN** o **REAUTHORIZATION**. Formaliza la transacción (compra/asentamiento) en el proveedor.
+```json {{ 'title': 'RESPONSE - checkout' }}
+{
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "The request has been successfully approved",
+        "date": "2025-05-02T14:43:57-05:00"
+    },
+    "type": "CHECKOUT",
+    ...,
+    "preAuthorization": {
+        "condition": "COMPLETED",
+        "internalReference": 31,
+        "authorization": "235263",
+        "receipt": "110000142265",
+        "amount": {
+            "taxes": [
+                {
+                    "kind": "valueAddedTax",
+                    "amount": 0,
+                    "base": 0
+                }
+            ],
+            "currency": "USD",
+            "total": 20
+        }
+    }
+}
+```
 
-### Solicitud Check-out (Request)
-
-Consideraciones importantes:
-
-- Es posible hacer un **CHECKOUT** sin haber realizado una **REAUTHORIZATION**.
-- La referencia del pago se sobrescribe con la sesión **CHECKIN** original.
-- La moneda del pago se sobrescribe con la sesión **CHECKIN** original.
-- Los valores de `internalReference` y `authorization` deben ser los entregados en la respuesta de **CHECKIN** dentro del nodo `preAuthorization`.
-- Si el valor del **CHECKOUT** es `0`, la pre-autorización se cancela y se libera el monto retenido en las peticiones previas.
- 
-> **IMPORTANTE:**  El estado de `status`, `authorization` y `receipt` dentro del nodo `preAuthorization` cambia tras un **CHECKOUT** exitoso. En solicitudes de **REVERSE**, se deben usar los nuevos valores generados.
+Con este proceso de tres pasos, puedes gestionar de forma segura y eficaz los pagos preautorizados utilizando la API Gateway. Asegúrate siempre de que los valores `internalReference`, `authorization` y `reference` sean consistentes en todos los pasos para evitar errores en la transacción.
 
 ---
 
