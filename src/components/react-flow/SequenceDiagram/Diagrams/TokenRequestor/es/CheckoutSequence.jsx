@@ -72,9 +72,9 @@ export default function ActionWithTokenSequenceEs() {
           to="tokenRequestor"
           message="3. Validar que el comercio esté activo"
           positionX="550"
-          positionY="500"
+          positionY="450"
           sourcePositionY="350"
-          targetPositionY="650"
+          targetPositionY="550"
         />
         <SequenceAction
           id="validateTokenActive"
@@ -83,8 +83,8 @@ export default function ActionWithTokenSequenceEs() {
           message="4. Validar que el token le pertenece <br> y está activo con la marca"
           positionX="550"
           positionY="650"
-          sourcePositionY="500"
-          targetPositionY="790"
+          sourcePositionY="550"
+          targetPositionY="740"
         />
 
         <SequenceAction
@@ -93,7 +93,7 @@ export default function ActionWithTokenSequenceEs() {
           to="brand"
           message="5. Generar criptograma"
           positionX="550"
-          positionY="800"
+          positionY="850"
         />
 
         <SequenceAction
@@ -102,7 +102,7 @@ export default function ActionWithTokenSequenceEs() {
           to="tokenRequestor"
           message="6. Entregar criptograma"
           positionX="550"
-          positionY="950"
+          positionY="970"
         />
 
         <SequenceAction
@@ -111,7 +111,7 @@ export default function ActionWithTokenSequenceEs() {
           to="integrador"
           message="7. Entregar criptograma"
           positionX="320"
-          positionY="1100"
+          positionY="1090"
         />
 
         <SequenceAction
@@ -119,10 +119,10 @@ export default function ActionWithTokenSequenceEs() {
           from="integrador"
           to="integrador"
           message={`8. <span> Realizar acción con el<br> <b> criptograma generado </b> </span>`}
-          positionX="310"
-          positionY="1250"
-          sourcePositionY="1100"
-          targetPositionY="1390"
+          positionX="320"
+          positionY="1230"
+          sourcePositionY="1160"
+          targetPositionY="1300"
         />
 
         <SequenceAction

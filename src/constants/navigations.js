@@ -1156,10 +1156,6 @@ export const TAB_NAVIGATION = {
             title: 'Token requestor',
             links: [
               { title: 'Introducción', href: '/token-requestor' },
-              {
-                title: 'Tipos de identificación',
-                href: '/token-requestor/business-identification-types',
-              },
             ],
           },
           {
@@ -1233,10 +1229,6 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Introduction',
                 href: '/token-requestor'
-              },
-              {
-                title: 'Merchant Identification Types',
-                href: '/token-requestor/business-identification-types',
               },
             ],
           },

@@ -5,7 +5,7 @@ import Line from "@/components/react-flow/SequenceDiagram/Line";
 
 export default function EnrollSequenceEs() {
     return (
-        <SequenceDiagram customView={{ height: 900, x: 70, y: 27.2727 }}>
+        <SequenceDiagram customView={{ height: 1200, x: 70, y: 27.2727 }}>
             <SequenceActor
                 id="actor"
                 label="Actor"
@@ -70,11 +70,11 @@ export default function EnrollSequenceEs() {
                 id="validateMerchantCard"
                 from="tokenRequestor"
                 to="tokenRequestor"
-                message={`<span> 3. Valida que el comercio esté activo y la<br> <b> tarjeta lista para realizar enrolamiento </b> </span>`}
-                positionX="550"
-                positionY="350"
+                message={`<span> 3. Valida que el comercio <br> esté activo y la<br> <b> tarjeta lista para realizar <br> enrolamiento </b> </span>`}
+                positionX="580"
+                positionY="300"
                 sourcePositionY="250"
-                targetPositionY="450"
+                targetPositionY="400"
             />
 
             <SequenceAction
@@ -83,9 +83,9 @@ export default function EnrollSequenceEs() {
                 to="tokenRequestor"
                 message="4. Identifica la marca de la tarjeta"
                 positionX="550"
-                positionY="450"
-                sourcePositionY="350"
-                targetPositionY="550"
+                positionY="550"
+                sourcePositionY="500"
+                targetPositionY="600"
             />
 
             <SequenceAction
@@ -94,7 +94,7 @@ export default function EnrollSequenceEs() {
                 to="marca"
                 message="5. Enrolar tarjeta"
                 positionX="550"
-                positionY="550"
+                positionY="700"
             />
 
             <SequenceAction
@@ -103,7 +103,7 @@ export default function EnrollSequenceEs() {
                 to="tokenRequestor"
                 message="6. Entrega token"
                 positionX="550"
-                positionY="650"
+                positionY="800"
             />
 
             <SequenceAction
@@ -112,7 +112,7 @@ export default function EnrollSequenceEs() {
                 to="integrador"
                 message="7. Entrega token"
                 positionX="310"
-                positionY="750"
+                positionY="900"
             />
 
             <SequenceAction
@@ -121,9 +121,9 @@ export default function EnrollSequenceEs() {
                 to="integrador"
                 message={`<span> 8. <b> Almacena información </b> <br> del token para futuros pagos</span>`}
                 positionX="290"
-                positionY="850"
-                sourcePositionY="750"
-                targetPositionY="950"
+                positionY="1060"
+                sourcePositionY="1000"
+                targetPositionY="1110"
             />
 
             <SequenceAction
@@ -132,7 +132,7 @@ export default function EnrollSequenceEs() {
                 to="actor"
                 message="9. Token generado <br> exitosamente"
                 positionX="60"
-                positionY="960"
+                positionY="1200"
             />
         </SequenceDiagram>
     );

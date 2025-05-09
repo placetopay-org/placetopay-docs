@@ -20,56 +20,111 @@ a new `tranKey`, which will be included in the requests.
     locations easily accessible to third parties.
 </Note>
 
-## Objeto Authentication
-The auth parameter must be sent in all API requests and contains the set of properties necessary to verify authentication.
+## Authentication object {{ id: 'authentication-object' }}
 
-### Solicitud
+The `auth` parameter must be sent in all API requests and contains the set of properties needed to verify authentication..
 
-| Field             |                                                                | Type   | Description                                                                                                                                                                                                    | Example                                      |
-|-------------------|----------------------------------------------------------------|--------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------|
-| **auth.** login   | <span class="text-teal-500 dark:text-teal-400">REQUIRED</span> | string | Site identifier                                                                                                                                                                                                | 1441d14df19ec88431e513bb990326e1             |
-| **auth.** tranKey | <span class="text-teal-500 dark:text-teal-400">REQUIRED</span> | string | Programmatically generated for each request.<br/>It is built using the formula:<br/>`Base64(SHA-256(nonce + seed + secretKey))`<br/>This formula must be adapted according to the programming language in use. | DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY= |
-| **auth.** nonce   | <span class="text-teal-500 dark:text-teal-400">REQUIRED</span> | string | Random value for each request, encoded in Base64.                                                                                                                                                              | enQ4dXh3YWhkMWM=                             |
-| **auth.** seed    | <span class="text-teal-500 dark:text-teal-400">REQUIRED</span> | string | Date when the authentication was generated, in ISO 8601 format.                                                                                                                                                | 2023-06-21T09:56:06-05:00                    |
+<Row>
+    <Col>
+        <Properties>
+            <Property name="auth.login" type="string">
+                Site identifier
+            </Property>
+            <Property name="auth.tranKey" type="string">
+                Generated tranKey credential. It is explained in detail below.
+            </Property>
+            <Property name="auth.nonce" type="string">
+                Random value for each Base64 encoded request.
+            </Property>
+            <Property name="auth.seed" type="string">
+                Current date, which is generated in ISO 8601 format.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```json {{ 'title': 'Sample Authentication' }}
+        {
+            "auth": {
+            "login":"1441d14df19ec88431e513bb990326e1",
+            "tranKey":"DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=",
+            "nonce":"enQ4dXh3YWhkMWM=",
+            "seed":"2023-06-21T09:56:06-05:00"
+        },
+            ...
+        }
+
+        ```
+
+    </Col>
+</Row>
 
 
-```json
-    {
-      "auth": {
-        "login": "1441d14df19ec88431e513bb990326e1",
-        "tranKey": "DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=",
-        "nonce": "enQ4dXh3YWhkMWM=",
-        "seed": "2023-06-21T09:56:06-05:00"
-      }
-    }
+## How to generate your authentication {{ id: 'how-to-generate-your-authentication' }}
 
-```
+You must know and prepare the following information:
 
-## How to Generate Your Authentication
+**login:** `login` credential provided when starting your integration. site identifier.
 
-The `auth` parameter must be included in all API requests and contains the group of properties required to verify authentication.
+**secretKey**: `secretKey` credential provided when starting your integration. site secret key.
+
+**seed:** This is the date the authentication was generated. Date must be in ISO 8601 format.
+Example: `2023-06-21T09:56:06-05:00`
+
+**nonce:** Arbitrary value that identifies a request as unique.
+It is generated and used for other operations.
+When sending it, it must be base64 encoded.
+Example: `base64('927342197')`
+
+**tranKey:** Generated on every request programmatically.
+It is generated with the following formulas `Base64(SHA-256(nonce + seed + secretKey))` this formula must be translated according to the programming language used.
 
 
-```php
+<CodeGroup title="Generate authentication">
 
-    $login = "customerLogin";
-    $secretKey = "customerSecretKey";
+    ```php
+    $login = "siteLogin";
+    $secretKey = "siteSecretKey";
     $seed = date('c');
     $rawNonce = rand();
+
     $tranKey = base64_encode(hash('sha256', $rawNonce.$seed.$secretKey, true));
     $nonce = base64_encode($rawNonce);
 
     $body = [
-        "auth" => [
-        "login" => $login,
-        "tranKey" => $tranKey,
-        "nonce" => $nonce,
-         "seed" => $seed,
-     ],
-     // ... other params
+    "auth" => [
+    "login" => $login,
+    "tranKey" => $tranKey,
+    "nonce" => $nonce,
+    "seed" => $seed,
+    ],
+    // ... other params
     ];
+    ```
 
-```
+    ```js
+    const crypto = require('crypto');
+
+    const login = "siteLogin";
+    const secretKey = "siteSecretKey";
+    const seed = new Date().toISOString();
+    const rawNonce = Math.floor(Math.random() * 1000000);
+
+    const tranKey = Buffer.from(crypto.createHash('sha256').update(rawNonce + seed + secretKey).digest(), 'binary').toString('base64');
+    const nonce = Buffer.from(rawNonce.toString()).toString('base64');
+
+    const body = {
+    auth: {
+    login: login,
+    tranKey: tranKey,
+    nonce: nonce,
+    seed: seed,
+},
+    // ... other params
+};
+    ```
+
+</CodeGroup>
 
 ## Possible Authentication Errors
 
