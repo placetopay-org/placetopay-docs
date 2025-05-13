@@ -187,13 +187,208 @@ Para el envió de impuestos, es importante que se agreguen en la estructura [amo
 
 ---
 
-## Preautorización de Pago {{ id: 'preauthorization-payment' }}
+## Pago con Preautorización {{ id: 'preauthorization-payment' }}
 
-Una sesión de preautorización es una sesión en la cual el usuario completa el proceso y el monto solicitado es reservado en su tarjeta de crédito, luego de la reserva el monto puede ser modificado, confirmado o cancelado.
+La preautorización te permite reservar un monto en la tarjeta del cliente a través de una sesión de Web Checkout. Esto es útil cuando el monto final a cobrar no se conoce con certeza desde el inicio, como sucede en sectores como hospitalidad, movilidad o alquiler de equipos.
 
-Este flujo de trabajo es usado con el fin de reservar (CHECKIN) un monto de dinero en el tarjetahabiente para posteriormente hacer el débito del mismo, en este caso (CHECKOUT). Este monto en el transcurso del tiempo puede cambiar (REAUTHORIZATION) según las necesidades del comercio o cambios en los servicios elegidos por el tarjetahabiente. Por último, el reembolso (REVERSE) es un tipo de transacción, el cual permite reembolsar un pago aprobado o debitado con el código de referencia interna.
+El flujo de preautorización incluye tres pasos clave:
 
-> Para conocer más sobre **CHECKIN**, **REAUTHORIZATION** y **CHECKOUT** consultar [Pagos -> Preautorización](/payments/preauthorization)
+* **Check-in**: Reserva un monto específico en la tarjeta del cliente sin capturarlo de inmediato.
+* **Reautorización**: Ajusta el monto reservado si el valor estimado cambia.
+* **Checkout**: Captura el monto final o libera la reserva.
+
+Para una explicación conceptual, consulta [Pagos/Preautorización](/payments/preauthorization).
+
+### Paso 1: Crear una sesión de Checkout (Check-in)
+
+Inicia la preautorización creando una sesión con `type` establecido como `checkin`. Esto reserva los fondos en la tarjeta del cliente sin cobrarlos.
+
+Envía una `RedirectRequest` al [endpoint de creación de sesión](/checkout/api/reference/session#create-a-session):
+
+* `type` debe ser `"checkin"`
+* No se permiten pagos mixtos ni dispersos
+* La moneda se mantiene fija durante todo el flujo
+
+```json {{ 'title': 'REQUEST RedirectRequest - Checkin' }}
+{
+  ...,
+  "type": "checkin",
+  "payment": {
+    "reference": "PAY_ABC_1287",
+    "description": "Payment Preauthorization",
+    "amount": {
+      "currency": "USD",
+      "total": 1000
+    }
+  }
+  ...
+}
+```
+
+```json {{ 'title': 'RESPONSE RedirectRequest - Checkin' }}
+{
+  "status": {
+    "status": "OK",
+    "reason": "PC",
+    "message": "La petición se ha procesado correctamente",
+    "date": "2025-05-13T01:17:02-05:00"
+  },
+  "requestId": 30,
+  "processUrl": "https://spa.redirection.test/spa/session/30/e807b2849e4c8bcb334331964927b048"
+}
+```
+
+Redirige al usuario al `processUrl` para completar este paso. Una vez finalizado, usa [Consultar sessión](/checkout/api/reference/session#query-a-session) (getRequestInformation) para confirmar el estado:
+
+```json {{ 'title': 'REQUEST - getRequestInformation - /api/session/:requestId' }}
+{
+  "auth": { ... }
+}
+```
+
+```json {{ 'title': 'RESPONSE - RedirectInformation - /api/session/:requestId' }}
+{
+  "requestId": 30,
+  "status": {
+    "status": "APPROVED",
+    "reason": "00",
+    "message": "The request has been successfully approved",
+    "date": "2025-05-02T14:43:57-05:00"
+  },
+  "request": {
+    ...,
+    "payer": { ... },
+    "payment": { ... }
+  },
+  "payment": [
+    {
+      ...,
+      "status": {
+        "date": "2025-05-02T14:43:51-05:00",
+        "reason": "00",
+        "status": "APPROVED",
+        "message": "Approved"
+      },
+      "internalReference": 35,
+      ...
+    }
+  ]
+}
+```
+
+> `RedirectInformation.payment` es un arreglo de intentos de pago. Si `RedirectInformation.status` es `APPROVED`, identifica el intento exitoso.
+>
+> Guarda `RedirectInformation.payment[n].internalReference` para usar en las operaciones de **Reautorización** y **Checkout**.
+
+### Paso 2: Ajustar el Monto Reservado (Reautorización)
+
+Para actualizar el monto reservado, envía una `TransactionActionRequest` al endpoint de [Acciones sobre transacciones](/checkout/api/reference/payment#transaction-actions):
+
+* `action` debe ser `"reauthorization"`
+* Puedes realizar múltiples reautorizaciones
+* La moneda y la referencia se heredan del Check-in
+
+```json {{ 'title': 'REQUEST TransactionActionRequest - Reautorización' }}
+{
+  "auth": { ... },
+  "action": "reauthorization",
+  "internalReference": 35,
+  "amount": {
+    "currency": "USD",
+    "total": 1500
+  },
+  ...
+}
+```
+
+```json {{ 'title': 'RESPONSE TransactionActionRequest - Reautorización' }}
+{
+  "status": {
+    "status": "APPROVED",
+    "reason": "00",
+    "message": "Aprobada",
+    "date": "2025-05-13T01:47:42-05:00"
+  },
+  "payment": {
+    "status": {
+      "status": "APPROVED",
+      "reason": "00",
+      "message": "Aprobada",
+      "date": "2025-05-13T01:47:42-05:00"
+    },
+    "internalReference": 35,
+    "amount": {
+      "from": {
+        "currency": "USD",
+        "total": 1500
+      },
+      "to": {
+        "currency": "USD",
+        "total": 1500
+      },
+      "factor": 1
+    },
+    ...
+  }
+}
+```
+
+### Paso 3: Finalizar la Transacción (Checkout)
+
+Para capturar o liberar los fondos, envía otra `TransactionActionRequest` al [Acciones sobre transacciones](/checkout/api/reference/payment#transaction-actions):
+
+* `action` debe ser `"checkout"`
+* Establece `total` en `0` para liberar los fondos
+* La moneda y la referencia deben coincidir con el Check-in
+
+```json {{ 'title': 'REQUEST TransactionActionRequest - Checkout' }}
+{
+  "auth": { ... },
+  "action": "checkout",
+  "internalReference": 35,
+  "amount": {
+    "currency": "USD",
+    "total": 2000
+  },
+  ...
+}
+```
+
+```json {{ 'title': 'RESPONSE TransactionActionRequest - Checkout' }}
+{
+  "status": {
+    "status": "APPROVED",
+    "reason": "00",
+    "message": "Aprobada",
+    "date": "2025-05-13T01:47:42-05:00"
+  },
+  "payment": {
+    "status": {
+      "status": "APPROVED",
+      "reason": "00",
+      "message": "Aprobada",
+      "date": "2025-05-13T01:47:42-05:00"
+    },
+    "internalReference": 35,
+    "amount": {
+      "from": {
+        "currency": "USD",
+        "total": 2000
+      },
+      "to": {
+        "currency": "USD",
+        "total": 2000
+      },
+      "factor": 1
+    },
+    ...
+  }
+}
+```
+
+> Este flujo aplica exclusivamente para **Web Checkout**, donde el paso inicial se realiza mediante una sesión en el navegador y las acciones posteriores se ejecutan vía API.
+
+> Asegúrate de almacenar de forma segura el valor de `internalReference` para completar correctamente el flujo.
 
 ---
 
