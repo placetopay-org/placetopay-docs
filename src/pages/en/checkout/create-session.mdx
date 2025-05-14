@@ -187,25 +187,39 @@ For the sending of taxes, it is important that it is in the [amount](/payments/m
 
 ---
 
-## Payment Preauthorization {{ id: 'preauthorization-payment' }}
+## Preauthorization payment {{ id: 'preauthorization-payment' }}
 
-A pre-authorization session is a session in which the user completes the process and the requested amount is reserved on their credit card, after the reservation the amount can be modified, confirmed or canceled.
+Preauthorization allows you to reserve an amount on a customer’s card via a Web Checkout session. This is useful when the final charge amount is not known upfront—common in scenarios like hospitality, mobility, or equipment rentals.
 
-This workflow is used in order to reserve (CHECKIN) an amount of money in the cardholder to later debit it, in this case (CHECKOUT). This amount may change over time (REAUTHORIZATION) according to the needs of the business or changes in the services chosen by the cardholder. Finally, the reverse (REVERSE) is a type of transaction, which allows you to reverse an approved or debited payment with the internal reference code.
+The preauthorization flow includes three key steps:
 
-- The **"action"** porperty must be `checkin`.
-- The payment reference will be reused in subsequent **REAUTHORIZATION** and **CHECKOUT** operations.
-- The payment currency will also remain the same in **REAUTHORIZATION** and **CHECKOUT**.
-- Pre-authorization payments are not allowed when you want to make a mixed payment.
-- Pre-authorization payments with scatter values are not allowed.
+- **Check-in**: Reserve a specific amount on the customer's card without immediate capture.
+- **Reauthorization**: Adjust the reserved amount if the expected charge changes.
+- **Checkout**: Capture the final amount or release the reservation.
 
-```json {{ 'title': 'CreateSessionRequest - Preauthorization Payment' }}
+For more information about the Preauthorization payment flow, see [Payments/Preauthorization](/en/payments/preauthorization)
+
+Below, we will explore each step in detail to help you integrate preauthorization payments effectively.
+
+### Step 1: Create a session for the preauthorization flow (Check-in)
+
+Initiate the preauthorization by creating a session with type `checkin`. This reserves the funds on the customer’s card without charging them.
+
+Send a `RedirectRequest` to [API Web Checkout -> Session create](/checkout/api/reference/session#create-a-session):
+
+* `type` must be `checkin`
+* Mixed or dispersion payments are not allowed
+* The currency remains fixed throughout the entire flow
+
+<CodeGroup title="RedirectRequest - Checkin">
+
+```json {{ 'title': 'Request ' }}
 {
     ...
     "type": "checkin",
     "payment": {
         "reference": "PAY_ABC_1287",
-        "description": "Payment by Placetopay",
+        "description": "Payment Preauthorization",
         "amount": {
             "currency": "USD",
             "total": 1000
@@ -215,59 +229,188 @@ This workflow is used in order to reserve (CHECKIN) an amount of money in the ca
 }
 ```
 
-### Reauthorization
-
-> Not applicable to Puerto Rico
-
-It is applied on pre-authorization transactions and is used to modify the previously reserved amount.
-
-The REAUTHORIZATION type transaction is used to modify the amount defined as previously separated guarantee deposit, with a CHECKIN type transaction. This performs a new authorization by the bank.
-
-- The payment reference is overwritten by the original **CHECKIN** session.
-- The payment currency is overwritten by the original **CHECKIN** session.
-- The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
-- Multiple **REAUTHORIZATION** transactions can be performed before **CHECKOUT**.
-- Each reauthorization must be for an amount greater than `0`.
-
-After this operation, the pre-authorization remains in a **pending** state until a **CHECKOUT** is performed.
-
-```json {{ 'title': 'TransactionActionRequest - Reauthorization' }}
+```json {{ 'title': 'Response' }}
 {
-    ...
-    "internalReference": 1, //internal reference code
-    "amount": {
-        "currency": "USD",
-        "total": 100
+    "status": {
+        "status": "OK",
+        "reason": "PC",
+        "message": "La petición se ha procesado correctamente",
+        "date": "2025-05-13T01:17:02-05:00"
     },
+    "requestId": 30,
+    "processUrl": "https://spa.redirection.test/spa/session/30/e807b2849e4c8bcb334331964927b048"
+}
+```
+
+</CodeGroup>
+
+Once the session is created, redirect the user to `RedirectResponse.processUrl`. Once completed, [API Web Checkout -> Query the session](/en/checkout/api/reference/session#query-a-session) (getRequestInformation) in order confirm the status:
+
+<CodeGroup title="GetRequestInformation - /api/session/:requestId">
+
+```json {{ 'title': 'Request ' }}
+{
+    "auth": ...
+}
+```
+
+```json {{ 'title': 'Response' }}
+{
+    "requestId": 30,
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "The request has been successfully approved",
+        "date": "2025-05-02T14:43:57-05:00"
+    },
+    "request": {
+        ...
+        "payer": {...},
+        "payment": {...}
+    },
+    "payment": [
+        {
+            ...
+            "status": {
+                "date": "2025-05-02T14:43:51-05:00",
+                "reason": "00",
+                "status": "APPROVED",
+                "message": "Approved"
+            },
+            "internalReference": 35,
+            ...
+        }
+    ],
+}
+```
+
+</CodeGroup>
+
+> The `RedirectInformation.payment` is an array of attemps about payment, if the `RedirectInformation.status` is `APPROVED`, identify the successful attempt.
+
+> Store `RedirectInformation.payment.[n].internalReference` to use in subsequent **REAUTHORIZATION** and **CHECKOUT** operations.
+
+### Step 2: Adjust the reserved amount (reauthorization)
+
+This optional step allows you to update the held amount before capturing it.
+
+This is done by sending a `TransactionActionRequest` to [API Web Checkout -> Transaction Actions](/en/checkout/api/reference/payment#transaction-actions):
+
+* `action` must be `reauthorization`
+* You can perform multiple reauthorizations
+* You must include the `internalReference` from the previous step.
+* The currency must match the Check-in
+
+<CodeGroup title="TransactionActionRequest - Reauthorization">
+
+```json {{ 'title': 'Request ' }}
+{
+    "auth": ...,
     "action": "reauthorization"
-    ...
-}
-```
-
-### Checkout
-
-It is applied to pre-authorization transactions and is used to confirm and close the transaction with the indicated amount.
-
-The CHECKOUT type transaction is used to confirm the security deposit amount previously separated, with a CHECKIN/REAUTHORIZATION type transaction. This formalizes the purchase transaction with the bank.
-
-- A **CHECKOUT** can be performed without a prior **REAUTHORIZATION**.
-- The payment reference is overwritten by the original **CHECKIN** session.
-- The payment currency is overwritten by the original **CHECKIN** session.
-- The values for `internalReference` and `authorization` must match those provided in the **CHECKIN** response within the `preAuthorization` node.
-- If the **CHECKOUT** amount is `0`, the pre-authorization is canceled, and the retained amount is released.
-
-```json {{ 'title': 'TransactionActionRequest - Reauthorization' }}
-{
-    ...
-    "internalReference": 1, //internal reference code
+    "internalReference": 35,
     "amount": {
         "currency": "USD",
-        "total": 100
+        "total": 1500
     },
-    "action": "checkout"
     ...
 }
 ```
+
+```json {{ 'title': 'Response ' }}
+{
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "Aprobada",
+        "date": "2025-05-13T01:47:42-05:00"
+    },
+    "payment": {
+        "status": {
+            "status": "APPROVED",
+            "reason": "00",
+            "message": "Aprobada",
+            "date": "2025-05-13T01:47:42-05:00"
+        },
+        "internalReference": 35,
+        "amount": {
+            "from": {
+                "currency": "USD",
+                "total": 1500
+            },
+            "to": {
+                "currency": "USD",
+                "total": 1500
+            },
+            "factor": 1
+        },
+        ...
+    }
+}
+```
+
+</CodeGroup>
+
+### Step 3: Finalize the transaction (Checkout)
+
+This step captures or releases the held amount.
+
+This is done by sending a `TransactionActionRequest` to [API Web Checkout -> Transaction actions](/en/checkout/api/reference/payment#transaction-actions):
+
+* `action` must be `checkout`
+* If `payment.amount.total` is `0`, the held amount is released.
+* You must include the `internalReference` from the previous step.
+* The currency must match the Check-in
+
+<CodeGroup title="TransactionActionRequest - Checkout">
+
+```json {{ 'title': 'Request' }}
+{
+    "auth": ...,
+    "action": "checkout",
+    "internalReference": 35,
+    "amount": {
+        "currency": "USD",
+        "total": 2000
+    },
+    ...
+}
+```
+
+```json {{ 'title': 'Response' }}
+{
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "Aprobada",
+        "date": "2025-05-13T01:47:42-05:00"
+    },
+    "payment": {
+        "status": {
+            "status": "APPROVED",
+            "reason": "00",
+            "message": "Aprobada",
+            "date": "2025-05-13T01:47:42-05:00"
+        },
+        "internalReference": 35,
+        "amount": {
+            "from": {
+                "currency": "USD",
+                "total": 2000
+            },
+            "to": {
+                "currency": "USD",
+                "total": 2000
+            },
+            "factor": 1
+        },
+        ...
+    }
+}
+```
+
+</CodeGroup>
+
+> This flow applies exclusively to **Web Checkout**, where the initial step involves a browser session, and follow-up actions are performed via API. Ensure your system securely stores the `internalReference` value to properly complete the flow.
 
 ---
 
