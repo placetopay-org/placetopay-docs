@@ -263,9 +263,10 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Flujo de Pago en Web Checkout',
+            title: 'Flujos de Pago',
             links: [
-              { title: 'Proceso de pago', href: '/payments/process-pay' },
+              { title: 'Proceso de pago en WebCheckout', href: '/payments/process-pay' },
+              { title: 'Preautorización', href: '/payments/preauthorization' },
             ],
           },
           {
@@ -378,9 +379,10 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Payment Flow in Web Checkout',
+            title: 'Payment Flows',
             links: [
-              { title: 'Payment Process', href: '/payments/process-pay' },
+              { title: 'Payment Process in Web Checkout', href: '/payments/process-pay' },
+              { title: 'Preauthorization', href: '/payments/preauthorization' },
             ],
           },
           {

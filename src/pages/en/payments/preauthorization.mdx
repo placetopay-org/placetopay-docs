@@ -1,0 +1,88 @@
+export const sectionMode = 'nav';
+export const description = ""
+
+# Preauthorization
+
+Hold a specific amount on the customer's card without charging it immediately. This guarantees available funds and allows the amount to be adjusted or captured later—ideal for scenarios like hotels, rentals, or variable-cost services. {{ className: 'lead' }}
+
+## How Preauthorization works
+
+The preauthorization process consists of three key stages: _Check-in_, _Reauthorization_, and _Checkout_. Each stage plays a specific role in managing the reserved funds on the customer's card, ensuring flexibility and security throughout the transaction.
+
+1. **Check-in (Initial authorization)**: A hold is placed on the customer’s card for a specific amount. No charge is made at this stage.
+2. **Reauthorization (Optional adjustment):**: The held amount can be increased if the service value changes.
+3. **Checkout (Capture or Release):**: The hold is either captured (charged) or released, it finalizes the transaction.
+
+![Image of the preauthorization flow](/GatewayFlow.png)
+
+### Benefits of Preauthorization
+
+**Flexibility**: Merchants can adjust the held amount as needed, accommodating changes in the service or transaction value.
+
+**Security**: By holding funds upfront, merchants reduce the risk of payment failures or insufficient funds at the time of final payment.
+
+**Customer Experience**: Customers are not charged immediately, allowing for a smoother transaction process, especially in cases where the final cost is uncertain.
+
+### Key Considerations
+
+- Preauthorization is not suitable for all payment scenarios. For example, mixed payments or dispersion payments are not allowed.
+- The currency and payment reference established during the initial check-in must remain consistent throughout the process.
+- Failed operations due to external factors with a rejection status (such as system outages) do not affect the flow, and these steps can be retried.
+
+## Transaction structure
+
+Although the structure is not directly relevant for integration, it is useful for understanding how the system internally represents pre-authorization transactions:
+
+- **Check-in**, **Reauthorization**, and **Checkout** are transaction types.
+- All three are linked to a main transaction of type **Pre-authorization**, which acts as a summary of the flow. This main transaction is automatically created when a **Check-in** is performed.
+- It starts in a pending state and reflects the held amount.
+- Each **Reauthorization** updates the held amount in the main transaction.
+- A **Checkout** concludes the flow by marking the **Pre-authorization** transaction as approved and assigning the final amount.
+
+This hierarchical structure allows merchants to fully track the flow of a pre-authorized payment.
+
+## Integrate preauthorization flow in your application
+
+Preauthorizations can be seamlessly integrated into your application using two methods:
+
+- **Web Checkout** provides a fully built-in user interface, making it easy to implement without extensive development effort. It is ideal for merchants who prefer a ready-to-use solution.
+- **Gateway** offers a robust API for greater flexibility and customization, allowing merchants to tailor the integration to their specific use cases.
+
+Both options ensure secure and efficient handling of preauthorizations, enabling you to choose the approach that best fits your business needs. To continue, please select the integration method that suits your needs:
+
+- [Integrate preauthorization payments with Web Checkout](/en/checkout/create-session#preauthorization-payment)
+- [Integrate preauthorization payments with Gateway API](/en/gateway/transaction-types#preauthorization)
+
+## Check-in
+
+**Check-in** is the initial step where a hold is placed on the customer’s card for a specific amount. This does not immediately charge the card but ensures the funds are available.
+
+- The `action` must be `checkin`.
+- The payment reference and currency are established during this step and reused in later operations (**Reauthorization**, **Checkout**).
+- Mixed payments and dispersion (scatter) payments are not supported.
+- The parent transaction remains in state **pending** until a **Checkout** is performed.
+- The `preAuthorization` node in the response stores critical data for later operations.
+
+## Reauthorization
+
+**Reauthorization** allows the merchant to update the amount of the original hold before the final capture.
+
+> Not available in Puerto Rico.
+
+> For Transerver Retail, reauthorizations are limited exclusively to incremental adjustments to the amount previously authorized during the CHECKIN process or a prior REAUTHORIZATION.  
+> This means it is not possible to reduce the authorized amount. If a reauthorization is attempted with an amount equal to or lower than the previously authorized value, the transaction will fail; in cases where a lower amount needs to be processed, the CHECKOUT process must be used instead.  
+
+- Multiple reauthorizations are allowed before checkout.
+- The payment reference and currency are reused from the original **Check-in**.
+- You must provide `internalReference` and `authorization` matching those in the `preAuthorization` node from **Check-in**.
+
+## Checkout
+
+**Checkout** is the final step where the merchant decides to either capture the held amount or release it.
+
+- A **Check-in** must be completed first.
+- A **Reauthorization** is not mandatory; you may proceed directly from **Check-in**.
+- If the amount is `0`, the hold is canceled and funds are released.
+- The payment reference and currency must match the original **Check-in**.
+- Provide `internalReference` and `authorization` from the `preAuthorization` node.
+- On success, the `preAuthorization` node is updated with new values for `status`, `authorization`, and `receipt`, which are required for **Reverse** operations.
