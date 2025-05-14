@@ -199,17 +199,19 @@ El flujo de preautorización incluye tres pasos clave:
 
 Para una explicación conceptual, consulta [Pagos/Preautorización](/payments/preauthorization).
 
-### Paso 1: Crear una sesión de Checkout (Check-in)
+### Paso 1: Crear una sesión para el flujo de preautorización (Check-in)
 
 Inicia la preautorización creando una sesión con `type` establecido como `checkin`. Esto reserva los fondos en la tarjeta del cliente sin cobrarlos.
 
-Envía una `RedirectRequest` al [endpoint de creación de sesión](/checkout/api/reference/session#create-a-session):
+Envía una `RedirectRequest` al [API Web Checkout -> Crear sesión](/checkout/api/reference/session#create-a-session):
 
-* `type` debe ser `"checkin"`
+* `type` debe ser `checkin`
 * No se permiten pagos mixtos ni dispersos
 * La moneda se mantiene fija durante todo el flujo
 
-```json {{ 'title': 'REQUEST RedirectRequest - Checkin' }}
+<CodeGroup title="RedirectRequest - Checkin">
+
+```json {{ 'title': 'Request ' }}
 {
   ...,
   "type": "checkin",
@@ -225,7 +227,7 @@ Envía una `RedirectRequest` al [endpoint de creación de sesión](/checkout/api
 }
 ```
 
-```json {{ 'title': 'RESPONSE RedirectRequest - Checkin' }}
+```json {{ 'title': 'Response' }}
 {
   "status": {
     "status": "OK",
@@ -238,15 +240,19 @@ Envía una `RedirectRequest` al [endpoint de creación de sesión](/checkout/api
 }
 ```
 
-Redirige al usuario al `processUrl` para completar este paso. Una vez finalizado, usa [Consultar sessión](/checkout/api/reference/session#query-a-session) (getRequestInformation) para confirmar el estado:
+</CodeGroup>
 
-```json {{ 'title': 'REQUEST - getRequestInformation - /api/session/:requestId' }}
+Redirige al usuario al `processUrl` para completar este paso. Una vez finalizado, usa [API Web Checkout -> Consultar sessión](/checkout/api/reference/session#query-a-session) (getRequestInformation) para confirmar el estado:
+
+<CodeGroup title="GetRequestInformation - /api/session/:requestId">
+
+```json {{ 'title': 'Request ' }}
 {
-  "auth": { ... }
+  "auth": ...
 }
 ```
 
-```json {{ 'title': 'RESPONSE - RedirectInformation - /api/session/:requestId' }}
+```json {{ 'title': 'Response' }}
 {
   "requestId": 30,
   "status": {
@@ -276,21 +282,28 @@ Redirige al usuario al `processUrl` para completar este paso. Una vez finalizado
 }
 ```
 
+</CodeGroup>
+
 > `RedirectInformation.payment` es un arreglo de intentos de pago. Si `RedirectInformation.status` es `APPROVED`, identifica el intento exitoso.
 >
 > Guarda `RedirectInformation.payment[n].internalReference` para usar en las operaciones de **Reautorización** y **Checkout**.
 
-### Paso 2: Ajustar el Monto Reservado (Reautorización)
+### Paso 2: Ajustar el monto reservado (Reautorización)
 
-Para actualizar el monto reservado, envía una `TransactionActionRequest` al endpoint de [Acciones sobre transacciones](/checkout/api/reference/payment#transaction-actions):
+Este paso opcional permite actualizar el monto retenido antes de capturarlo. 
 
-* `action` debe ser `"reauthorization"`
+Esto se hace enviando el `TransactionActionRequest` a [API Web Checkout -> Acciones sobre transacciones](/checkout/api/reference/payment#transaction-actions):
+
+* `action` debe ser `reauthorization`
 * Puedes realizar múltiples reautorizaciones
-* La moneda y la referencia se heredan del Check-in
+* Debes incluir `internalReference` del último paso.
+* La moneda deben coincidir con el Check-in
 
-```json {{ 'title': 'REQUEST TransactionActionRequest - Reautorización' }}
+<CodeGroup title="TransactionActionRequest - Reautorización">
+
+```json {{ 'title': 'Request ' }}
 {
-  "auth": { ... },
+  "auth": ...,
   "action": "reauthorization",
   "internalReference": 35,
   "amount": {
@@ -301,7 +314,7 @@ Para actualizar el monto reservado, envía una `TransactionActionRequest` al end
 }
 ```
 
-```json {{ 'title': 'RESPONSE TransactionActionRequest - Reautorización' }}
+```json {{ 'title': 'Response ' }}
 {
   "status": {
     "status": "APPROVED",
@@ -333,17 +346,24 @@ Para actualizar el monto reservado, envía una `TransactionActionRequest` al end
 }
 ```
 
-### Paso 3: Finalizar la Transacción (Checkout)
+</CodeGroup>
 
-Para capturar o liberar los fondos, envía otra `TransactionActionRequest` al [Acciones sobre transacciones](/checkout/api/reference/payment#transaction-actions):
+### Paso 3: Finalizar la transacción (Checkout)
 
-* `action` debe ser `"checkout"`
-* Establece `total` en `0` para liberar los fondos
-* La moneda y la referencia deben coincidir con el Check-in
+Este paso captura o libera el monto retenido. 
 
-```json {{ 'title': 'REQUEST TransactionActionRequest - Checkout' }}
+Esto se hace enviando el `TransactionActionRequest` a [API Web Checkout -> Acciones sobre transacciones](/checkout/api/reference/payment#transaction-actions):
+
+* `action` debe ser `checkout`
+* Si `payment.amount.total` es `0`, el monto retenido se libera.
+* Debes incluir `internalReference` del último paso.
+* La moneda deben coincidir con el Check-in
+
+<CodeGroup title="TransactionActionRequest - Checkout">
+
+```json {{ 'title': 'Request' }}
 {
-  "auth": { ... },
+  "auth": ...,
   "action": "checkout",
   "internalReference": 35,
   "amount": {
@@ -354,7 +374,7 @@ Para capturar o liberar los fondos, envía otra `TransactionActionRequest` al [A
 }
 ```
 
-```json {{ 'title': 'RESPONSE TransactionActionRequest - Checkout' }}
+```json {{ 'title': 'Response' }}
 {
   "status": {
     "status": "APPROVED",
@@ -385,6 +405,8 @@ Para capturar o liberar los fondos, envía otra `TransactionActionRequest` al [A
   }
 }
 ```
+
+</CodeGroup>
 
 > Este flujo aplica exclusivamente para **Web Checkout**, donde el paso inicial se realiza mediante una sesión en el navegador y las acciones posteriores se ejecutan vía API.
 

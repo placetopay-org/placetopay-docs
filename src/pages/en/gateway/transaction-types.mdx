@@ -20,19 +20,22 @@ Pre-authorization is a transaction used to reserve (**checkin**) an amount of mo
 
 Below, we will explore each step in detail to help you integrate preauthorization payments effectively.
 
-## Step 1: Initiate a Preauthorization Session (Check-in)
+## Step 1: Initiate the preauthorization flow (Check-in)
 
-This step reserves a specific amount on the customer’s card.
+Initiate the pre-authorization by creating a transaction of type `checkin`. This reserves the funds on the customer’s card without charging them.
 
-This is done by sending the `RequestBody` to the [API Gateway -> Transaction processing](/en/gateway/api/reference/transaction#process-request).
+Send a `RequestBody` to [API Gateway -> Transaction Processing](/en/gateway/api/reference/transaction#process-request).
 
 * `action` must be `checkin`.
-* `payment.reference` and `payment.amount` are required.
-* The response will include a `preAuthorization` object with values needed for subsequent steps.
+* Mixed or split payments are not allowed.
+* The currency remains fixed throughout the entire flow.
+* The response will include a `preAuthorization` object with the necessary values for the following steps.
 
-```json {{ 'title': 'REQUEST - RequestBody -> checkin' }}
+<CodeGroup title="RequestBody -> Checkin">
+
+```json {{ 'title': 'Request ' }}
 {
-    "auth": {{auth}},
+    "auth": ...,
     "action": "checkin",
     "payment": {
         "reference": "1234567890",
@@ -46,7 +49,7 @@ This is done by sending the `RequestBody` to the [API Gateway -> Transaction pro
 }
 ```
 
-```json {{ 'title': 'RESPONSE - checkin' }}
+```json {{ 'title': 'Response' }}
 {
     "status": {
         "status": "APPROVED",
@@ -76,18 +79,24 @@ This is done by sending the `RequestBody` to the [API Gateway -> Transaction pro
 }
 ```
 
-## Step 2: Adjust the Held Amount (Reauthorization)
+</CodeGroup>
 
-This optional step updates the held amount before capture. 
+## Step 2: Adjust the held amount (Reauthorization)
 
-This is done by sending the `RequestBody` to the [API Gateway -> Operations on a transaction](/en/gateway/api/reference/transaction#transaction-request).
+This optional step allows you to update the held amount before capturing it.
+
+This is done by sending a `RequestBody` to [API Gateway -> Transaction Operations](/en/gateway/api/reference/transaction#transaction-request).
 
 * `action` must be `reauthorization`.
-* You must reuse `internalReference` and `authorization` from the `preAuthorization` object returned in the **Check-in** step.
+* You must include `internalReference` and `authorization` from the previous step.
+* The currency must match the Check-in.
+* You can perform multiple reauthorizations.
 
-```json {{ 'title': 'REQUEST - RequestBody -> reauthorization' }}
+<CodeGroup title="RequestBody -> Reauthorization">
+
+```json {{ 'title': 'Request' }}
 {
-    "auth": {{auth}},
+    "auth": ...,
     "internalReference": 30,
     "authorization": "235263",
     "action": "reauthorization",
@@ -103,7 +112,7 @@ This is done by sending the `RequestBody` to the [API Gateway -> Operations on a
 }
 ```
 
-```json {{ 'title': 'RESPONSE - reauthorization' }}
+```json {{ 'title': 'Response' }}
 {
     "status": {
         "status": "APPROVED",
@@ -133,19 +142,23 @@ This is done by sending the `RequestBody` to the [API Gateway -> Operations on a
 }
 ```
 
-## Step 3: Finalize the Transaction (Checkout)
+</CodeGroup>
+
+## Step 3: Finalize the transaction (Checkout)
 
 This step captures or releases the held amount.
 
-This is done by sending the `RequestBody` to the [API Gateway -> Operations on a transaction](/en/gateway/api/reference/transaction#transaction-request).
+This is done by sending the `RequestBody` to the [API Gateway -> Transaction Operations](/en/gateway/api/reference/transaction#transaction-request).
 
 * `action` must be `checkout`.
 * If `amount.total` is `0`, the hold is released.
-* Must include `internalReference` and `authorization` from the last step.
+* You must include `internalReference` and `authorization` from the last step.
 
-```json {{ 'title': 'REQUEST - RequestBody -> checkout' }}
+<CodeGroup title="RequestBody -> Checkout">
+
+```json {{ 'title': 'Request' }}
 {
-    "auth": {{auth}},
+    "auth": ...,
     "internalReference": 30,
     "authorization": "235263",
     "action": "checkout",
@@ -161,7 +174,7 @@ This is done by sending the `RequestBody` to the [API Gateway -> Operations on a
 }
 ```
 
-```json {{ 'title': 'RESPONSE - checkout' }}
+```json {{ 'title': 'Response' }}
 {
     "status": {
         "status": "APPROVED",
@@ -190,6 +203,8 @@ This is done by sending the `RequestBody` to the [API Gateway -> Operations on a
     }
 }
 ```
+
+</CodeGroup>
 
 With this three-step process, you can safely and effectively handle preauthorized payments using the Gateway API. Always ensure the `internalReference`, `authorization`, and `reference` values are consistent across all steps to avoid transaction errors.
 

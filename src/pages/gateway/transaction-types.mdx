@@ -20,19 +20,22 @@ La pre-autorización es una transacción utilizada para reservar (**checkin**) u
 
 A continuación, exploraremos cada paso en detalle para ayudarte a integrar pagos con preautorización de forma efectiva usando la API Gateway.
 
-## Paso 1: Iniciar una sesión de preautorización (Check-in)
+## Paso 1: Iniciar el flujo de preautorización (Check-in)
 
-Este paso reserva un monto específico en la tarjeta del cliente. 
+Inicia la preautorización creando la transacción de tipo `checkin`. Esto reserva los fondos en la tarjeta del cliente sin cobrarlos.
 
-Esto se hace enviando el `RequestBody` a [API Gateway -> Procesamiento de transacción](/gateway/api/reference/transaction#process-request).
+Envía una `RequestBody` a [API Gateway -> Procesamiento de transacción](/gateway/api/reference/transaction#process-request).
 
 * `action` debe ser `checkin`.
-* `payment.reference` y `payment.amount` son obligatorios.
+* No se permiten pagos mixtos ni dispersos
+* La moneda se mantiene fija durante todo el flujo
 * La respuesta incluirá un objeto `preAuthorization` con los valores necesarios para los pasos siguientes.
 
-```json {{ 'title': 'REQUEST - RequestBody -> checkin' }}
+<CodeGroup title="RequestBody -> Checkin">
+
+```json {{ 'title': 'Request ' }}
 {
-    "auth": {{auth}},
+    "auth": ...,
     "action": "checkin",
     "payment": {
         "reference": "1234567890",
@@ -46,7 +49,7 @@ Esto se hace enviando el `RequestBody` a [API Gateway -> Procesamiento de transa
 }
 ```
 
-```json {{ 'title': 'RESPONSE - checkin' }}
+```json {{ 'title': 'Response' }}
 {
     "status": {
         "status": "APPROVED",
@@ -76,6 +79,8 @@ Esto se hace enviando el `RequestBody` a [API Gateway -> Procesamiento de transa
 }
 ```
 
+</CodeGroup>
+
 ## Paso 2: Ajustar el monto retenido (Reauthorization)
 
 Este paso opcional permite actualizar el monto retenido antes de capturarlo. 
@@ -83,11 +88,15 @@ Este paso opcional permite actualizar el monto retenido antes de capturarlo.
 Esto se hace enviando el `RequestBody` a [API Gateway -> Operaciones sobre una transacción ](/gateway/api/reference/transaction#transaction-request).
 
 * `action` debe ser `reauthorization`.
-* Se debe reutilizar `internalReference` y `authorization` del objeto `preAuthorization` retornado en el paso de **Check-in**.
+* Debes incluir `internalReference` y `authorization`  del último paso.
+* La moneda deben coincidir con el Check-in
+* Puedes realizar múltiples reautorizaciones
 
-```json {{ 'title': 'REQUEST - RequestBody -> reauthorization' }}
+<CodeGroup title="RequestBody -> Reauthorization">
+
+```json {{ 'title': 'Request' }}
 {
-    "auth": {{auth}},
+    "auth": ...,
     "internalReference": 30,
     "authorization": "235263",
     "action": "reauthorization",
@@ -103,7 +112,7 @@ Esto se hace enviando el `RequestBody` a [API Gateway -> Operaciones sobre una t
 }
 ```
 
-```json {{ 'title': 'RESPONSE - reauthorization' }}
+```json {{ 'title': 'Response' }}
 {
     "status": {
         "status": "APPROVED",
@@ -133,6 +142,8 @@ Esto se hace enviando el `RequestBody` a [API Gateway -> Operaciones sobre una t
 }
 ```
 
+</CodeGroup>
+
 ## Paso 3: Finalizar la transacción (Checkout)
 
 Este paso captura o libera el monto retenido. 
@@ -142,10 +153,13 @@ Esto se hace enviando el `RequestBody` a [API Gateway -> Operaciones sobre una t
 * `action` debe ser `checkout`.
 * Si `payment.amount.total` es `0`, el monto retenido se libera.
 * Debes incluir `internalReference` y `authorization` del último paso.
+* La moneda deben coincidir con el Check-in
 
-```json {{ 'title': 'REQUEST - RequestBody -> checkout' }}
+<CodeGroup title="RequestBody -> Checkout">
+
+```json {{ 'title': 'Request' }}
 {
-    "auth": {{auth}},
+    "auth": ...,
     "internalReference": 30,
     "authorization": "235263",
     "action": "checkout",
@@ -161,7 +175,7 @@ Esto se hace enviando el `RequestBody` a [API Gateway -> Operaciones sobre una t
 }
 ```
 
-```json {{ 'title': 'RESPONSE - checkout' }}
+```json {{ 'title': 'Response' }}
 {
     "status": {
         "status": "APPROVED",
@@ -190,6 +204,8 @@ Esto se hace enviando el `RequestBody` a [API Gateway -> Operaciones sobre una t
     }
 }
 ```
+
+</CodeGroup>
 
 Con este proceso de tres pasos, puedes gestionar de forma segura y eficaz los pagos preautorizados utilizando la API Gateway. Asegúrate siempre de que los valores `internalReference`, `authorization` y `reference` sean consistentes en todos los pasos para evitar errores en la transacción.
 

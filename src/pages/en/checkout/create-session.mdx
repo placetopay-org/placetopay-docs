@@ -201,17 +201,19 @@ For more information about the Preauthorization payment flow, see [Payments/Prea
 
 Below, we will explore each step in detail to help you integrate preauthorization payments effectively.
 
-### Step 1: Create a Checkout Session (Check-in)
+### Step 1: Create a session for the preauthorization flow (Check-in)
 
-To initiate a preauthorization, create a session with type `checkin`. This reserves an amount on the customer’s card without charging it.
+Initiate the preauthorization by creating a session with type `checkin`. This reserves the funds on the customer’s card without charging them.
 
-Send a `RedirectRequest` to the [Create a session endpoint](/en/checkout/api/reference/session#create-a-session):
+Send a `RedirectRequest` to [API Web Checkout -> Session create](/checkout/api/reference/session#create-a-session):
 
-- `type` must be `"checkin"`.
-- Mixed or dispersion payments are not allowed.
-- Currency will remain fixed throughout the flow.
+* `type` must be `checkin`
+* Mixed or dispersion payments are not allowed
+* The currency remains fixed throughout the entire flow
 
-```json {{ 'title': 'REQUEST RedirectRequest - Preauthorization Payment' }}
+<CodeGroup title="RedirectRequest - Checkin">
+
+```json {{ 'title': 'Request ' }}
 {
     ...
     "type": "checkin",
@@ -227,7 +229,7 @@ Send a `RedirectRequest` to the [Create a session endpoint](/en/checkout/api/ref
 }
 ```
 
-```json {{ 'title': 'RESPONSE RedirectRequest - Preauthorization Payment' }}
+```json {{ 'title': 'Response' }}
 {
     "status": {
         "status": "OK",
@@ -240,15 +242,19 @@ Send a `RedirectRequest` to the [Create a session endpoint](/en/checkout/api/ref
 }
 ```
 
-Once the session is created, redirect the user to `RedirectResponse.processUrl`. Once completed, [Query the session](/en/checkout/api/reference/session#query-a-session) (getRequestInformation) in order confirm the status:
+</CodeGroup>
 
-```json {{ 'title': 'REQUEST - getRequestInformation - /api/session/:requestId' }}
+Once the session is created, redirect the user to `RedirectResponse.processUrl`. Once completed, [API Web Checkout -> Query the session](/en/checkout/api/reference/session#query-a-session) (getRequestInformation) in order confirm the status:
+
+<CodeGroup title="GetRequestInformation - /api/session/:requestId">
+
+```json {{ 'title': 'Request ' }}
 {
-    "auth": {...}
+    "auth": ...
 }
 ```
 
-```json {{ 'title': 'RESPONSE - RedirectInformation - /api/session/:requestId' }}
+```json {{ 'title': 'Response' }}
 {
     "requestId": 30,
     "status": {
@@ -278,21 +284,28 @@ Once the session is created, redirect the user to `RedirectResponse.processUrl`.
 }
 ```
 
+</CodeGroup>
+
 > The `RedirectInformation.payment` is an array of attemps about payment, if the `RedirectInformation.status` is `APPROVED`, identify the successful attempt.
 
 > Store `RedirectInformation.payment.[n].internalReference` to use in subsequent **REAUTHORIZATION** and **CHECKOUT** operations.
 
-## Step 2: Adjust the Held Amount (Reauthorization)
+### Step 2: Adjust the reserved amount (reauthorization)
 
-If the amount needs to be updated before confirming the payment, send a `TransactionActionRequest` to the [Transaction actions](/en/checkout/api/reference/payment#transaction-actions):
+This optional step allows you to update the held amount before capturing it.
 
-- `type` must be `reauthorization`.
-- Multiple reauthorizations are allowed before Checkout.
-- Currency and reference are inherited from Check-in.
+This is done by sending a `TransactionActionRequest` to [API Web Checkout -> Transaction Actions](/en/checkout/api/reference/payment#transaction-actions):
 
-```json {{ 'title': 'REQUEST TransactionActionRequest - Reauthorization' }}
+* `action` must be `reauthorization`
+* You can perform multiple reauthorizations
+* You must include the `internalReference` from the previous step.
+* The currency must match the Check-in
+
+<CodeGroup title="TransactionActionRequest - Reauthorization">
+
+```json {{ 'title': 'Request ' }}
 {
-    "auth": {{auth}},
+    "auth": ...,
     "action": "reauthorization"
     "internalReference": 35,
     "amount": {
@@ -303,7 +316,7 @@ If the amount needs to be updated before confirming the payment, send a `Transac
 }
 ```
 
-```json {{ 'title': 'RESPONSE TransactionActionRequest - Reauthorization' }}
+```json {{ 'title': 'Response ' }}
 {
     "status": {
         "status": "APPROVED",
@@ -335,17 +348,24 @@ If the amount needs to be updated before confirming the payment, send a `Transac
 }
 ```
 
-## Step 3: Finalize the Transaction (Checkout)
+</CodeGroup>
 
-To confirm or cancel the hold, send a `TransactionActionRequest` to the [Transaction actions](/en/checkout/api/reference/payment#transaction-actions):
+### Step 3: Finalize the transaction (Checkout)
 
-- `type` must be `checkout`.
-- Set `total` to `0` to cancel and release the funds.
-- Currency and reference must match the Check-in.
+This step captures or releases the held amount.
 
-```json {{ 'title': 'REQUEST TransactionActionRequest - Checkout' }}
+This is done by sending a `TransactionActionRequest` to [API Web Checkout -> Transaction actions](/en/checkout/api/reference/payment#transaction-actions):
+
+* `action` must be `checkout`
+* If `payment.amount.total` is `0`, the held amount is released.
+* You must include the `internalReference` from the previous step.
+* The currency must match the Check-in
+
+<CodeGroup title="TransactionActionRequest - Checkout">
+
+```json {{ 'title': 'Request' }}
 {
-    "auth": {{auth}},
+    "auth": ...,
     "action": "checkout",
     "internalReference": 35,
     "amount": {
@@ -356,7 +376,7 @@ To confirm or cancel the hold, send a `TransactionActionRequest` to the [Transac
 }
 ```
 
-```json {{ 'title': 'RESPONSE TransactionActionRequest - Checkout' }}
+```json {{ 'title': 'Response' }}
 {
     "status": {
         "status": "APPROVED",
@@ -387,6 +407,8 @@ To confirm or cancel the hold, send a `TransactionActionRequest` to the [Transac
     }
 }
 ```
+
+</CodeGroup>
 
 > This flow applies exclusively to **Web Checkout**, where the initial step involves a browser session, and follow-up actions are performed via API. Ensure your system securely stores the `internalReference` value to properly complete the flow.
 
