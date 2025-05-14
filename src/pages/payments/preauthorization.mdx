@@ -1,0 +1,88 @@
+export const sectionMode = 'nav';
+export const description = ""
+
+# Preautorización
+
+Realiza una retención de una cantidad específica en la tarjeta del cliente sin cobrarla de inmediato. Esto garantiza fondos disponibles y permite ajustar o capturar el monto más tarde, ideal para situaciones como hoteles, alquileres o servicios con costos variables. {{ className: 'lead' }}
+
+## Cómo funciona la Preautorización
+
+El proceso de preautorización consta de tres etapas clave: _Check-in_, _Reautorización_ y _Checkout_. Cada etapa juega un papel específico en la gestión de los fondos reservados en la tarjeta del cliente, asegurando flexibilidad y seguridad durante toda la transacción.
+
+1. **Check-in (Autorización inicial)**: Se realiza una retención en la tarjeta del cliente por una cantidad específica. No se cobra en esta etapa.
+2. **Reautorización (Ajuste opcional):** Se puede aumentar el monto retenido si cambia el valor del servicio.
+3. **Checkout (Captura o Liberación):** La retención se captura (se cobra) o se libera, finalizando la transacción.
+
+![Imagen del flujo de preautorización](/GatewayFlow.png)
+
+### Beneficios de la Preautorización
+
+**Flexibilidad**: Los comerciantes pueden ajustar el monto retenido según sea necesario, acomodando cambios en el valor del servicio o la transacción.
+
+**Seguridad**: Al retener los fondos por adelantado, los comerciantes reducen el riesgo de fallos en el pago o fondos insuficientes en el momento del pago final.
+
+**Experiencia del cliente**: Los clientes no son cobrados de inmediato, lo que permite un proceso de transacción más fluido, especialmente en casos donde el costo final es incierto.
+
+### Consideraciones clave
+
+- La preautorización no es adecuada para todos los escenarios de pago. Por ejemplo, no se permiten pagos mixtos o pagos dispersos.
+- La moneda y la referencia de pago establecida durante el Check-in inicial deben permanecer consistentes durante todo el proceso.
+- Las operaciones fallidas por factores externos con un estado de rechazo (como caidas del sistema) no afectan el flujo, y estos pasos puede ser reintentados.
+
+## Estructura de transacciones
+
+Aunque la estructura no es directamente relevante para la integración, es útil para comprender cómo el sistema representa las transacciones de preautorización internamente:
+
+- **Check-in**, **Reautorización** y **Checkout** son tipos de transacciones.
+- Las tres están asociadas a una transacción principal de tipo **Preautorización**, que actúa como un resumen de el flujo. Esta transacción principal se crea automáticamente cuando se realiza un **Check-in**.
+- Comienza en un estado pendiente y refleja el monto retenido.
+- Cada **Reautorización** actualiza el monto retenido en la transacción principal.
+- Un **Checkout** concluye el flujo, marcándo la transacción de **Preautorización** como aprobada y asignando el monto final.
+
+Esta estructura jerárquica permite a los comerciantes realizar un seguimiento completo del flujo de un pago preautorizado.
+
+## Integrar el flujo de preautorización en tu aplicación
+
+Las preautorizaciones se pueden integrar sin problemas en tu aplicación utilizando dos métodos:
+
+- **Web Checkout** proporciona una interfaz de usuario completamente integrada, lo que facilita su implementación sin necesidad de un esfuerzo de desarrollo extenso. Es ideal para los comerciantes que prefieren una solución lista para usar.
+- **Gateway** ofrece una API robusta para mayor flexibilidad y personalización, lo que permite a los comerciantes adaptar la integración a sus casos de uso específicos.
+
+Ambas opciones aseguran un manejo seguro y eficiente de las preautorizaciones, permitiéndote elegir el enfoque que mejor se adapte a las necesidades de tu negocio. Para continuar, selecciona el método de integración que mejor se ajuste a tus necesidades:
+
+- [Integrar pagos de preautorización con Web Checkout](/checkout/create-session#preauthorization-payment)
+- [Integrar pagos de preautorización con Gateway API](/gateway/transaction-types#preauthorization)
+
+## Check-in
+
+**Check-in** es el primer paso en el que se realiza una retención en la tarjeta del cliente por una cantidad específica. Esto no cobra de inmediato la tarjeta, pero asegura que los fondos estén disponibles.
+
+- La `acción` debe ser `checkin`.
+- La referencia de pago y la moneda se establecen en este paso y se reutilizan en operaciones posteriores (**Reautorización**, **Checkout**).
+- No se admiten pagos mixtos ni pagos dispersos (scatter).
+- La transacción padre permanece en estado **pendiente** hasta que se realice un **Checkout**.
+- El nodo `preAuthorization` en la respuesta almacena datos críticos para las operaciones posteriores.
+
+## Reautorización
+
+**Reautorización** permite al comerciante actualizar el monto de la retención original antes de la captura final.
+
+> No disponible en Puerto Rico.
+
+> Para Transerver Retail, las reautorizaciones están limitadas exclusivamente a ajustes incrementales del monto previamente autorizado durante el proceso de **Check-in** o una **Reautorización** previa.  
+> Esto significa que no es posible reducir el monto autorizado. Si se intenta una reautorización con un monto igual o inferior al valor previamente autorizado, la transacción fallará; en casos donde se necesite procesar un monto menor, se debe usar el proceso de **Checkout**.
+
+- Se permiten múltiples reautorizaciones antes de **Checkout**.
+- La referencia de pago y la moneda se reutilizan del **Check-in** original.
+- Se debe proporcionar `internalReference` y `authorization` que coincidan con los de `preAuthorization` del **Check-in**.
+
+## Checkout
+
+**Checkout** es el paso final en el que el comerciante decide capturar o liberar el monto retenido.
+
+- Se debe realizar primero un **Check-in**.
+- No es obligatorio realizar una **Reautorización**, se puede proceder directamente desde el **Check-in**.
+- Si el monto es `0`, la retención se cancela y los fondos se liberan.
+- La referencia de pago y la moneda deben coincidir con el **Check-in** original.
+- Se deben proporcionar `internalReference` y `authorization` del nodo `preAuthorization`.
+- Si la operación es exitosa, el nodo `preAuthorization` se actualiza con nuevos valores de `status`, `authorization` y `receipt`, los cuales son necesarios para operaciones de **Reverse**.
