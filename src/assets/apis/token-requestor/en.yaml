@@ -17,12 +17,12 @@ paths:
                   tranKey: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
                   nonce: enQ4dXh3YWhkMWM=
                   seed: 2023-06-21T09:56:06-05:00
-                requestId: asdf214hs728d
-                merchantId: d5502955e13a4e63aa6e12e6f1d0ab01
+                requestId: 8a83df8b-f704-4761-a6a1-14a7fd3635b1
+                merchantId: d9efb07c-43ff-45e6-adcc-1b41bf3b9eb5
                 instrument:
                   card:
                     number: '4123700070000045'
-                    expiration: 12/23
+                    expiration: "12/23"
                     cvv: '758'
                 payer:
                   name: Bill
@@ -31,60 +31,75 @@ paths:
               properties:
                 auth:
                   type: object
-                  description: Authentication object. See more in **[Authentication](/en/token-requestor/integration/authentication)**
+                  description: Authentication object. See more at **[Authentication](/en/token-requestor/integration/authentication)**. Structure containing the site's authentication information generated according to the WSSE UsernameToken Profile 1.1.
                   properties:
                     login:
                       type: string
                       description: 'Login for authentication'
+                      example: 1441d14df19ec88431e513bb990326e1
                     tranKey:
                       type: string
                       description: 'Transaction key'
+                      example: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
                     nonce:
                       type: string
-                      description: 'Random value to avoid repetition'
+                      description: 'Random value to prevent repetitions'
+                      example: enQ4dXh3YWhkMWM=
                     seed:
                       type: string
-                      description: 'Timestamp seed for the transaction'
+                      description: 'Date-time seed for the transaction'
+                      example: 2023-06-21T09:56:06-05:00
                 requestId:
                   type: string
-                  description: Request identifier sent by the client for error tracking. See more in **[Request ID Usage](/en/token-requestor/integration/request-id)**
+                  format: uuid V4
+                  example: 8a83df8b-f704-4761-a6a1-14a7fd3635b1
+                  description: Request identifier sent by the client for error traceability. See more at **[Use of the request identifier](/en/token-requestor/api/enroll-card#use-of-the-request-identifier-request-id)**
                 merchantId:
                   type: string
-                  description: 'Unique merchant ID'
+                  format: uuid V4
+                  description: Unique identifier of the merchant
+                  example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
                 instrument:
                   type: object
-                  description: 'Payment instrument information'
+                  description: Structure containing information about the payment method to be used in a transaction; this structure varies according to the request generated; each service requires the use of certain data.
                   properties:
                     card:
                       type: object
                       required:
                         - number
                         - expiration
-                      description: 'Card information'
+                      description: Structure containing card information.
                       properties:
                         number:
                           type: string
                           description: 'Card number'
+                          maxLength: 20
                         expiration:
                           type: string
                           description: 'Card expiration date'
-                          example: 12/23
+                          example: "12/23"
                         cvv:
                           type: string
                           description: 'Security code'
                 payer:
                   type: object
-                  description: 'Payer information'
+                  description: Structure reflecting the information of a person involved in a transaction.
                   properties:
                     name:
                       type: string
-                      description: 'Cardholder’s first name'
+                      example: Jhon
+                      minLength: 1
+                      description: "Cardholder's first name"
                     surname:
                       type: string
-                      description: 'Cardholder’s last name'
+                      description: "Cardholder's last name"
+                      example: Doe
+                      minLength: 1
                     email:
                       type: string
-                      description: 'Cardholder’s email'
+                      example: jhon@doe.com
+                      minLength: 1
+                      description: "Cardholder's email address"
               required:
                 - auth
                 - requestId
@@ -100,6 +115,7 @@ paths:
                 properties:
                   status:
                     type: object
+                    description: Structure containing information about a request.
                     required:
                       - status
                       - reason
@@ -109,13 +125,20 @@ paths:
                         type: string
                         description: Operation status
                         example: OK
+                        enum:
+                          - OK
+                          - REJECTED
+                          - FAILED
+                          - PENDING
                       reason:
                         type: string
                         description: Reason for the operation status
                         example: '00'
+                        maxLength: 2
+                        minLength: 2
                       description:
                         type: string
-                        description: Status description
+                        description: Description of the status
                         example: Token created
                       date:
                         type: string
@@ -128,11 +151,14 @@ paths:
                     properties:
                       requestId:
                         type: string
-                        description: Request identifier sent by the client for error tracking. See more in **[Request ID Usage](/en/token-requestor/integration/request-id)**
+                        format: uuid V4
+                        description: Request identifier sent by the client for error traceability.
+                          See more at **[Use of the request identifier](/en/token-requestor/api/enroll-card#use-of-the-request-identifier-request-id)**
                         example: 62a89e6b-6ea9-463a-b720-4d34f76436d9
                       brandToken:
                         type: object
-                        description: Token data
+                        description: Structure containing token information associated with the card.
+                          For output, all token data is returned upon tokenization.
                         required:
                           - id
                           - token
@@ -141,31 +167,37 @@ paths:
                         properties:
                           id:
                             type: string
-                            description: Token identifier for TR
-                            example: rdftvuXQTZyYHaCErEcn0Q0000000000US
+                            description: Token identifier for TR Placetopay by Evertec, code generated to identify the card in the system
+                            maxLength: 36
+                            format: uuid V4
+                            example: ac660e46-6549-4dfc-b636-586b12a38b40
                           token:
                             type: string
                             description: Token used to process a payment
-                            example: 2222030198635406
+                            maxLength: 19
+                            minLength: 12
+                            example: 4761739001010010
                           expiration:
                             type: string
                             description: Token expiration date
-                            example: 04/28
+                            example: "04/28"
+                            format: "mm/YY"
                           additional:
                             type: object
                             description: Additional token information
                             properties:
                               tokenRequestorId:
                                 type: string
-                                description: TR identifier with the brands
-                                example: 2028-04-30
-                              artUrl:
+                                description: TR identifier before the brands
+                                maxLength: 11
+                                example: '50160269427'
+                              artURL:
                                 type: string
-                                description: URL with the card image
+                                description: URL with card image
                                 example: https://s3Propio.aws.com/tr/brand/1/logo.png
                               issuerName:
                                 type: string
-                                description: Name of the token issuer bank
+                                description: Name of the token's issuing bank
                                 example: Issuer Test
                               lastDigits:
                                 type: string
@@ -173,9 +205,6 @@ paths:
                                 example: '1234'
                 required:
                   - status
-
-      security:
-        - Mc1eQlMX2Zg9NIsyqxuDVT7y2Ubns7hTkdsTzLZF: []
   /api/checkout:
     post:
       summary: Checkout
@@ -192,7 +221,8 @@ paths:
               properties:
                 auth:
                   type: object
-                  description: Authentication object. See more in **[Authentication](/en/token-requestor/integration/authentication)**
+                  description: Authentication object. See more at **[Authentication](/en/token-requestor/integration/authentication)**. Structure
+                    containing the site's authentication information generated according to the WSSE UsernameToken Profile 1.1.
                   required:
                     - login
                     - tranKey
@@ -201,27 +231,33 @@ paths:
                   properties:
                     login:
                       type: string
-                      example: 1441d…
+                      description: 'Login for authentication'
+                      example: 1441d14df19ec88431e513bb990326e1
                     tranKey:
                       type: string
-                      example: DGYym…
+                      description: 'Transaction key'
+                      example: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
                     nonce:
                       type: string
-                      example: enQ4dXh…
+                      description: 'Random value to prevent repetitions'
+                      example: enQ4dXh3YWhkMWM=
                     seed:
                       type: string
-                      example: 2023-06…
+                      description: 'Date-time seed for the transaction'
+                      example: 2023-06-21T09:56:06-05:00
                 merchantId:
                   type: string
-                  description: Unique merchant identifier
+                  format: uuid V4
+                  description: Unique identifier of the merchant
                   example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
                 instrument:
                   type: object
-                  description: Object containing payment instrument information
+                  description: Structure containing information about the payment method to be used in a transaction.
                   required:
                     - brandToken
                   properties:
                     brandToken:
+                      description: Structure containing token information associated with the card.
                       type: object
                       required:
                         - token
@@ -229,37 +265,16 @@ paths:
                         token:
                           type: string
                           description: Token provided in the enrollment request
-                          example: 1b7b9879
+                          minLength: 12
+                          maxLength: 19
+                          example: 4761739001010010
                 isRecurring:
                   type: boolean
-                  description: Identifies whether the cryptogram will be used for recurrence or not
+                  description: Indicates whether the cryptogram will be used for recurring payments
                   example: false
-            example:
-              auth:
-                login: 1441d…
-                tranKey: DGYym…
-                nonce: enQ4dXh…
-                seed: 2023-06…
-              merchantId: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
-              instrument:
-                brandToken:
-                  token: 1b7b9879
-              isRecurring: false
-      description: |
-        This API allows obtaining an encrypted cryptogram from a token to be used in authorization processes.
-        The request includes authentication, the merchant identifier, the payment instrument, and whether the operation will be recurring.
-      parameters:
-        - name: Accept
-          description: 'allowEmptyValue:false'
-          in: header
-          schema:
-            type: string
-          example: application/json
-      security:
-        - Mc1eQlMX2Zg9NIsyqxuDVT7y2Ubns7hTkdsTzLZF: [ ]
       responses:
         '200':
-          description: OK
+          description: Successful response.
           content:
             application/json:
               schema:
@@ -269,6 +284,7 @@ paths:
                 properties:
                   status:
                     type: object
+                    description: Structure containing information about a request.
                     required:
                       - status
                       - reason
@@ -278,19 +294,26 @@ paths:
                         type: string
                         description: Operation status
                         example: OK
+                        enum:
+                          - OK
+                          - REJECTED
+                          - FAILED
+                          - PENDING
                       reason:
                         type: string
                         description: Reason for the operation status
-                        example: "00"
+                        example: '00'
+                        maxLength: 2
+                        minLength: 2
                       description:
                         type: string
-                        description: Status description
-                        example: Operation successful
+                        description: Description of the status
+                        example: Token created
                       date:
                         type: string
                         format: date-time
-                        description: Operation date
-                        example: "2025-03-17T22:45:27+00:00"
+                        description: Date when the operation was executed
+                        example: '2025-03-17T22:45:27+00:00'
                   data:
                     type: object
                     description: Result data
@@ -300,26 +323,16 @@ paths:
                         description: >
                           Cryptogram used for processing or payment, encoded in Base64.
                         example: "AIiD8382PpTdAAF3OkVCAAADFA=="
+                        format: base64
                       eci:
                         type: string
-                        description: >
-                          Code to indicate the level of security and authentication.
+                        description: Code indicating the level of security and authentication.
+                        maxLength: 2
                         example: "05"
-              examples:
-                SUCCESS:
-                  value:
-                    status:
-                      status: OK
-                      reason: "00"
-                      description: Operation successful
-                      date: "2025-03-17T22:45:27+00:00"
-                    data:
-                      cryptogram: "AIiD8382PpTdAAF3OkVCAAADFA=="
-                      eci: "05"
 
   /api/token/status:
     post:
-      summary: Obtener el estado del token
+      summary: GetTokenStatus
       requestBody:
         content:
           application/json:
@@ -332,7 +345,7 @@ paths:
               properties:
                 auth:
                   type: object
-                  description: Authentication object. See more in **[Authentication](/en/token-requestor/integration/authentication)**
+                  description: Authentication object. See more at **[Authentication](/en/token-requestor/integration/authentication)**. Structure containing site authentication information generated according to WSSE UsernameToken Profile 1.1.
                   required:
                     - login
                     - tranKey
@@ -341,51 +354,46 @@ paths:
                   properties:
                     login:
                       type: string
+                      description: 'Login for authentication'
+                      example: 1441d14df19ec88431e513bb990326e1
                     tranKey:
                       type: string
+                      description: 'Transaction key'
+                      example: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
                     nonce:
                       type: string
+                      description: 'Random value to prevent repetitions'
+                      example: enQ4dXh3YWhkMWM=
                     seed:
                       type: string
+                      description: 'Date-time seed for the transaction'
+                      example: 2023-06-21T09:56:06-05:00
                 merchantId:
                   type: string
-                  description: Unique merchant identifier
-                  format: uuid
+                  format: uuid V4
+                  description: Unique identifier of the merchant
+                  example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
                 instrument:
                   type: object
-                  description: Object containing payment instrument information
+                  description: Structure containing information about the payment instrument used in a transaction.
                   required:
                     - brandToken
                   properties:
                     brandToken:
                       type: object
-                      description: Token information
+                      description: Structure containing token information that associates to the card.
                       required:
                         - id
                       properties:
                         id:
                           type: string
-                          description: Identifier of the token in the application
-              example:
-                auth:
-                  login: 1441d…
-                  tranKey: DGYym…
-                  nonce: enQ4dXh…
-                  seed: 2023-06…
-                merchantId: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
-                instrument:
-                  brandToken:
-                    id: 1b7b9879
-      parameters:
-        - name: Accept
-          description: 'allowEmptyValue:false'
-          in: header
-          schema:
-            type: string
-          example: application/json
+                          maxLength: 36
+                          description: Token identifier in the application
+                          format: uuid V4
+                          example: ac660e46-6549-4dfc-b636-586b12a38b40
       responses:
         '200':
-          description: Respuesta exitosa
+          description: Successful response.
           content:
             application/json:
               schema:
@@ -393,6 +401,7 @@ paths:
                 properties:
                   status:
                     type: object
+                    description: Structure containing request information.
                     required:
                       - status
                       - reason
@@ -402,14 +411,21 @@ paths:
                         type: string
                         description: Operation status
                         example: OK
+                        enum:
+                          - OK
+                          - REJECTED
+                          - FAILED
+                          - PENDING
                       reason:
                         type: string
                         description: Reason for the operation status
                         example: '00'
+                        maxLength: 2
+                        minLength: 2
                       description:
                         type: string
                         description: Status description
-                        example: Operation successfully!
+                        example: Token created
                       date:
                         type: string
                         format: date-time
@@ -421,47 +437,36 @@ paths:
                       status:
                         type: string
                         description: Token status
-                        enum: [ ACTIVE, INACTIVE, EXPIRED, DELETED ]
+                        enum:
+                          - ACTIVE
+                          - INACTIVE
+                          - EXPIRED
+                          - DELETED
                         example: ACTIVE
                       expiration:
                         type: string
                         description: Token expiration date
-                        example: 28/04
-                      artUrl:
+                        example: "12/29"
+                        format: "mm/YY"
+                      artURL:
                         type: string
-                        description: Card image URL
+                        description: URL with the card image
                         example: https://s3Propio.aws.com/tr/brand/1/logo.png
                       createdAt:
                         type: string
                         format: date
-                        description: Token generation date
+                        description: Token creation date
                         example: 2025-01-10
                       updatedAt:
                         type: string
                         format: date
                         description: Token update date
                         example: 2025-01-20
-              examples:
-                SUCCESS:
-                  value:
-                    status:
-                      status: OK
-                      reason: '00'
-                      description: Operation successfully!
-                      date: '2025-03-17T22:45:27+00:00'
-                    data:
-                      status: ACTIVE
-                      expiration: 28/04
-                      artUrl: https://s3Propio.aws.com/tr/brand/1/logo.png
-                      createdAt: 2025-01-10
-                      updatedAt: 2025-01-20
-      description: 'Obtiene el estado de un token a partir del identificador proporcionado.'
-      security:
-        - Mc1eQlMX2Zg9NIsyqxuDVT7y2Ubns7hTkdsTzLZF: [ ]
+                required:
+                  - status
   /api/token/delete:
     post:
-      summary: Eliminar un token
-      description: This endpoint allows you to delete a previously registered token.
+      summary: Delete a token
       requestBody:
         required: true
         content:
@@ -471,55 +476,73 @@ paths:
               properties:
                 auth:
                   type: object
-                  description: Authentication object. See more in **[Authentication](/en/token-requestor/integration/authentication)**
+                  description: Authentication object. See more at **[Authentication](/en/token-requestor/integration/authentication)**. Structure containing site authentication information generated according to WSSE UsernameToken Profile 1.1.
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
                   properties:
                     login:
                       type: string
-                      example: "1441d…"
+                      description: 'Login for authentication'
+                      example: 1441d14df19ec88431e513bb990326e1
                     tranKey:
                       type: string
-                      example: "DGYym…"
+                      description: 'Transaction key'
+                      example: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
                     nonce:
                       type: string
-                      example: "enQ4dXh…"
+                      description: 'Random value to prevent repetitions'
+                      example: enQ4dXh3YWhkMWM=
                     seed:
                       type: string
-                      example: "2023-06-21T09:56:06-05:00"
+                      description: 'Date-time seed for the transaction'
+                      example: 2023-06-21T09:56:06-05:00
                 merchantId:
                   type: string
-                  description: Unique merchant identifier
-                  example: "1b7b8d26"
+                  format: uuid V4
+                  description: Unique identifier of the merchant
+                  example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
                 instrument:
                   type: object
-                  description: Payment instrument information
+                  description: Structure containing information about the payment instrument used in a transaction.
+                  required:
+                    - brandToken
                   properties:
                     brandToken:
                       type: object
-                      description: Token information
+                      description: Structure containing token information that associates to the card.
+                      required:
+                        - id
                       properties:
                         id:
                           type: string
-                          description: Unique token identifier
-                          example: "1b7b9879"
+                          maxLength: 36
+                          description: Token identifier in the application
+                          format: uuid V4
+                          example: ac660e46-6549-4dfc-b636-586b12a38b40
                 reason:
                   type: string
-                  description:
-                    "Reason for deleting the token. Valid values: `DELETED`, `FRAUD`, `INACTIVITY`."
+                  description: Reason for deleting the token. Valid values.
+                  enum:
+                    - DELETED
+                    - FRAUD
+                    - INACTIVITY
                   example: "FRAUD"
                 description:
                   type: string
-                  description: Optional description for the reason
+                  description: Optional description of the reason
                   example: "The token has been compromised due to fraudulent activity."
-
+                  maxLength: 225
               required:
-                - description
                 - reason
                 - merchantId
                 - instrument
                 - auth
       responses:
         '200':
-          description: Successful response to token deletion
+          description: Successful response.
           content:
             application/json:
               schema:
@@ -535,7 +558,7 @@ paths:
                         example: "OK"
                       reason:
                         type: string
-                        description: Reason for the status
+                        description: Status reason
                         example: "00"
                       description:
                         type: string
@@ -547,7 +570,69 @@ paths:
                         description: Date when the operation was executed
                         example: "2025-03-17T22:45:27+00:00"
                     required:
-                      - description
                       - reason
                       - status
                       - date
+                required:
+                  - status
+  /notifications:
+    post:
+      summary: Notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  description: "Notification date."
+                  example: "2023-01-19 15:57:23"
+                  format: 'Y-m-d h:m:s'
+                type:
+                  type: string
+                  description: "Type of event."
+                  enum: "TOKEN_UPDATED"
+                  example: "TOKEN_UPDATED"
+                signature:
+                  type: string
+                  description: "Cryptographic value generated from the combination of data and a secret key."
+                  example: "Base64(SHA-256(secretKey + data + date))"
+                merchantId:
+                  type: string
+                  description: "Merchant ID."
+                  example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                data:
+                  type: object
+                  description: "Data related to the event."
+                  properties:
+                    id:
+                      type: string
+                      format: uuid V4
+                      description: "Unique identifier of the token."
+                      example: "d8677265-03d2-4ffd-bf1e-9831073c1b11"
+                    status:
+                      type: string
+                      description: "Status of the token."
+                      enum:
+                        - ACTIVE
+                        - INACTIVE
+                        - EXPIRED
+                        - DELETED
+                      example: "ACTIVE"
+                    expiration:
+                      type: string
+                      description: "Token expiration date."
+                      format: "mm/YY"
+                      example: "01/26"
+                  required:
+                    - id
+                    - status
+                    - expiration
+              required:
+                - date
+                - type
+                - signature
+                - merchantId
+                - data
+      responses:
