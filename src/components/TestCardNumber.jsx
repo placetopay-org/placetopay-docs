@@ -11,7 +11,6 @@ import logoMefia from '@/images/cards/mefia.svg'
 import logoAlkosto from '@/images/cards/alkosto.svg'
 import logoExito from '@/images/cards/exito_card.svg'
 import logoAthCard from '@/images/cards/ath_card.svg'
-import logoDilo from '@/images/cards/dilo.svg'
 import logoEBT from '@/images/cards/ebt.svg'
 import { Heading } from './Heading'
 import { useLocale } from './LocaleProvider'
@@ -559,45 +558,6 @@ const groupsByFranchise = [
         behavior: { 
           es: 'Arroja una excepción en el proceso', 
           en: 'Throws an exception in the process' 
-        },
-      },
-    ],
-  },
-  {
-    id: 'dilo',
-    logo: logoDilo,
-    franchise: 'Billetera Digital Dilo',
-    items: [
-      {
-        number : '+50488888888',
-        behavior: { es: 'Rechaza', en: 'Denies' },
-      },
-      {
-        number : '+50499999999',
-        behavior: { 
-          es: 'Deja la transacción en estado pendiente y se resuelve a aprobado', 
-          en: 'Leave the transaction in pending status and it is resolved to approved' 
-        },
-      },
-      {
-        number : '+50491111111',
-        behavior: { 
-          es: 'Deja la transacción en estado pendiente y se resuelve a aprobado', 
-          en: 'Leave the transaction in pending status and it is resolved to approved' 
-        },
-      },
-      {
-        number : '+50492222222',
-        behavior: { 
-          es: 'Deja la transacción en estado pendiente y se resuelve a rechazado', 
-          en: 'Leaves the transaction in pending status and resolves to rejected' 
-        },
-      },
-      {
-        number : '+50494444444',
-        behavior: { 
-          es: 'Deja la transacción en estado pendiente', 
-          en: 'Leaves the transaction in pending status' 
         },
       },
     ],
