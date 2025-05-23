@@ -1,4 +1,4 @@
-export function HN(props) {
+export function PA(props) {
     return (
         <svg
             {...props}
@@ -8,7 +8,7 @@ export function HN(props) {
             fill="none"
             viewBox="0 0 20 15"
         >
-            <g clipPath="url(#clip0_270_61016)">
+            <g clipPath="url(#clip0_270_61003)">
                 <rect width="20" height="15" fill="#fff" rx="2"></rect>
                 <path
                     fill="#F7FCFF"
@@ -17,7 +17,7 @@ export function HN(props) {
                     clipRule="evenodd"
                 ></path>
                 <mask
-                    id="mask0_270_61016"
+                    id="mask0_270_61003"
                     width="20"
                     height="15"
                     x="0"
@@ -32,17 +32,19 @@ export function HN(props) {
                         clipRule="evenodd"
                     ></path>
                 </mask>
-                <g
-                    fill="#4564F9"
-                    fillRule="evenodd"
-                    clipRule="evenodd"
-                    mask="url(#mask0_270_61016)"
-                >
-                    <path d="M0 0v5h20V0zM0 10v5h20v-5zM10.511 8.207l-.734.387.14-.818-.595-.64h.822l.367-.804.368.804h.821l-.594.64.14.818zM6.761 6.957l-.734.387.14-.818-.595-.64h.822l.367-.804.368.804h.821l-.594.64.14.818zM6.761 9.457l-.734.387.14-.818-.595-.64h.822l.367-.804.368.804h.821l-.594.64.14.818zM14.261 6.957l-.734.387.14-.818-.594-.64h.82l.368-.804.368.804h.821l-.594.64.14.818zM14.261 9.457l-.734.387.14-.818-.594-.64h.82l.368-.804.368.804h.821l-.594.64.14.818z"></path>
+                <g fillRule="evenodd" clipRule="evenodd" mask="url(#mask0_270_61003)">
+                    <path
+                        fill="#E31D1C"
+                        d="M10 0v7.5h10V0zM14.388 11.969l-1.439.89.559-1.495-1.223-1.132h1.483l.62-1.616.473 1.617h1.486l-1.07 1.131.524 1.495z"
+                    ></path>
+                    <path
+                        fill="#2E42A5"
+                        d="m5.638 5.228-1.439.89.559-1.494-1.223-1.132h1.483l.62-1.617.473 1.617h1.486l-1.07 1.132.523 1.494zM0 7.5V15h10V7.5z"
+                    ></path>
                 </g>
             </g>
             <defs>
-                <clipPath id="clip0_270_61016">
+                <clipPath id="clip0_270_61003">
                     <rect width="20" height="15" fill="#fff" rx="2"></rect>
                 </clipPath>
             </defs>

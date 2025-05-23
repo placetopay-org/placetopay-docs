@@ -1,11 +1,15 @@
 export function PR(props) {
     return (
-        <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 27 21">
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" 
+            width="28"
+            height="22"
+            fill="none"
+            viewBox="0 0 27 21">
             <g clipPath="url(#a)">
                 <mask
-                    id="b"
                     width="27"
                     height="21"
+                    id="b"
                     x="0"
                     y="0"
                     maskUnits="userSpaceOnUse"
