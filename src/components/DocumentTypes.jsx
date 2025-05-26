@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocale } from './LocaleProvider';
+import { CopyContent } from '@/components/CopyContent'
 import { CO  } from '@/components/icons/flagpack/CO';
 import { PR  } from '@/components/icons/flagpack/PR';
 import { EC  } from '@/components/icons/flagpack/EC';
@@ -161,7 +162,7 @@ const documentData = {
 };
 
 export function DocumentsRules() {
-    const { locale, isEn } = useLocale();
+    const { locale, isEn } = useLocale()
 
     const getLocalizedData = (countryData) => {
         return countryData?.[locale] || countryData?.es;
@@ -192,25 +193,26 @@ export function DocumentsRules() {
                             <thead>
                                 <tr>
                                     <th className="px-4 py-3 text-left text-md font-medium">
-                                        {isEn ? 'Code' : 'Código'}
+                                        {isEn() ? 'Code' : 'Código'}
                                     </th>
                                     <th className="px-4 py-3 text-left text-md font-medium">
-                                        {isEn ? 'Document type' : 'Tipo de documento'}
+                                        {isEn() ? 'Document type' : 'Tipo de documento'}
                                     </th>
                                     <th className="px-4 py-3 text-left text-md font-medium">
-                                        {isEn ? 'Validation rule' : 'Regla de validación'}
+                                        {isEn() ? 'Validation rule' : 'Regla de validación'}
                                     </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
                                 {country.documents?.map((doc) => (
                                     <tr key={doc.code} className="">
-                                        <td className="px-4 py-3 font-mono text-sm">{doc.code}</td>
-                                        <td className="px-4 py-3 text-sm">{doc.name}</td>
+                                        <td className="px-4 py-3 font-mono text-sm"><code className="px-2 py-1 rounded">
+                                            {doc.code}
+                                        </code></td>
+                                        <td className="text-pretty px-4 py-3">{doc.name}</td>
                                         <td className="px-4 py-3">
-                                            <code className="px-2 py-1 rounded text-sm">
-                                                {doc.pattern}
-                                            </code>
+                                            <CopyContent className="px-2 py-1 rounded bg-gray-400" content={doc.pattern}>
+                                            </CopyContent>
                                         </td>
                                     </tr>
                                 ))}
