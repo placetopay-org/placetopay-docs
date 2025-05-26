@@ -3,10 +3,10 @@ export function CO(props) {
         <svg
             {...props}
             xmlns="http://www.w3.org/2000/svg"
-            width="27"
-            height="21"
+            width="28"
+            height="22"
             fill="none"
-            viewBox="0 0 27 21"
+            viewBox="0 0 28 22"
         >
             <g clipPath="url(#clip0_2748_6934)">
                 <mask
