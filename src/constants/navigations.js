@@ -213,6 +213,25 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
+            title: 'Nuevo Panel Administrativo',
+            links: [
+              { title: 'Introducción', href: '/payments/introduction-to-microsites' },
+              {
+                title: 'Transacciones', links: [
+                  { title: 'Introducción', href: '/payments/microsite-open/introduction' },
+                  { title: 'Estructura de Campos', href: '/payments/microsite-open/fields' },
+                  
+                ],
+              },
+              {
+                title: 'Exportes y estadisticas', links: [
+                  { title: 'Exportes', href: '/payments/microsite-closed/introduction' },
+                  { title: 'Estadisticas', href: '/payments/microsite-closed/charge-invoice' },
+                ],
+              },
+            ],
+          },
+          {
             title: 'Link de pagos',
             links: [
               { title: 'Introducción', href: '/payments/payments-links/introduction' },
