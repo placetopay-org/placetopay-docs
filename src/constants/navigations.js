@@ -235,7 +235,7 @@ export const TAB_NAVIGATION = {
                 title: 'Micrositio Abierto', links: [
                   { title: 'Introducción', href: '/payments/microsite-open/introduction' },
                   { title: 'Estructura de Campos', href: '/payments/microsite-open/fields' },
-                  
+
                 ],
               },
               {
@@ -335,7 +335,7 @@ export const TAB_NAVIGATION = {
               { title: 'Manage Payment Links', href: '/payments/payments-links/link-management' }
             ],
           },
-         {
+          {
             title: 'QR code payments',
             links: [
               { title: 'Introduction', href: '/payments/qr/introduction' },
@@ -486,6 +486,10 @@ export const TAB_NAVIGATION = {
                 title: 'Metadata',
                 href: '/checkout/metadata',
               },
+              {
+                title: 'Límite de intentos por sesión',
+                href: '/checkout/attempts-limit',
+              },
             ],
           },
         ],
@@ -575,6 +579,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Metadata',
                 href: '/checkout/metadata',
+              },
+              {
+                title: 'Session Attempts Limit',
+                href: '/checkout/attempts-limit',
               },
             ],
           },
