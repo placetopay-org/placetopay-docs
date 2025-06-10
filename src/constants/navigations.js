@@ -487,7 +487,7 @@ export const TAB_NAVIGATION = {
                 href: '/checkout/metadata',
               },
               {
-                title: 'Límite de intentos por sesión',
+                title: 'Reintentos del proceso',
                 href: '/checkout/attempts-limit',
               },
             ],
@@ -542,19 +542,19 @@ export const TAB_NAVIGATION = {
             title: 'Integration',
             links: [
               { title: 'Authentication', href: '/checkout/authentication' },
-              { title: 'Create Session', href: '/checkout/create-session' },
+              { title: 'Create session', href: '/checkout/create-session' },
               { title: 'Notification', href: '/checkout/notification' },
               { title: 'Localization', href: '/checkout/localization' },
-              { title: 'Document Types', href: '/checkout/document-types' },
+              { title: 'Document types', href: '/checkout/document-types' },
               {
-                title: 'Additional Fields',
+                title: 'Additional fields',
                 href: '/checkout/additional-fields',
               },
               {
-                title: 'Amounts and Currencies',
+                title: 'Amounts and currencies',
                 href: '/checkout/tax-details',
               },
-              { title: 'Payment Methods', href: '/checkout/payment-methods' },
+              { title: 'Payment methods', href: '/checkout/payment-methods' },
               {
                 title: 'How to integrate with mobile',
                 href: '/checkout/integration/mobile',
@@ -565,11 +565,11 @@ export const TAB_NAVIGATION = {
               },
               { title: 'Refund', href: '/checkout/refund' },
               {
-                title: 'Processor Fields',
+                title: 'Processor fields',
                 href: '/checkout/processor-fields',
               },
               {
-                title: 'Expiration Date',
+                title: 'Expiration date',
                 href: '/checkout/expiration',
               },
               {
@@ -581,7 +581,7 @@ export const TAB_NAVIGATION = {
                 href: '/checkout/metadata',
               },
               {
-                title: 'Session Attempts Limit',
+                title: 'Process retries',
                 href: '/checkout/attempts-limit',
               },
             ],
