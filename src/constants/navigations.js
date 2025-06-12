@@ -861,6 +861,10 @@ export const TAB_NAVIGATION = {
                 title: 'Flujo del servicio de 3DS Server',
                 href: '/three-d-s-server/service-flow',
               },
+              {
+                title: '¿Qué es 3RI?',
+                href: '/three-d-s-server/information-3ri',
+              },
             ],
           },
         ],
@@ -1023,6 +1027,10 @@ export const TAB_NAVIGATION = {
               {
                 title: '3DS Server Service Flow',
                 href: '/three-d-s-server/service-flow',
+              },
+              {
+                title: 'What is 3RI?',
+                href: '/three-d-s-server/information-3ri',
               },
             ],
           },
