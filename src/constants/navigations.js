@@ -235,7 +235,7 @@ export const TAB_NAVIGATION = {
                 title: 'Micrositio Abierto', links: [
                   { title: 'Introducción', href: '/payments/microsite-open/introduction' },
                   { title: 'Estructura de Campos', href: '/payments/microsite-open/fields' },
-                  
+
                 ],
               },
               {
@@ -335,7 +335,7 @@ export const TAB_NAVIGATION = {
               { title: 'Manage Payment Links', href: '/payments/payments-links/link-management' }
             ],
           },
-         {
+          {
             title: 'QR code payments',
             links: [
               { title: 'Introduction', href: '/payments/qr/introduction' },
@@ -486,6 +486,10 @@ export const TAB_NAVIGATION = {
                 title: 'Metadata',
                 href: '/checkout/metadata',
               },
+              {
+                title: 'Reintentos del proceso',
+                href: '/checkout/attempts-limit',
+              },
             ],
           },
         ],
@@ -538,19 +542,19 @@ export const TAB_NAVIGATION = {
             title: 'Integration',
             links: [
               { title: 'Authentication', href: '/checkout/authentication' },
-              { title: 'Create Session', href: '/checkout/create-session' },
+              { title: 'Create session', href: '/checkout/create-session' },
               { title: 'Notification', href: '/checkout/notification' },
               { title: 'Localization', href: '/checkout/localization' },
-              { title: 'Document Types', href: '/checkout/document-types' },
+              { title: 'Document types', href: '/checkout/document-types' },
               {
-                title: 'Additional Fields',
+                title: 'Additional fields',
                 href: '/checkout/additional-fields',
               },
               {
-                title: 'Amounts and Currencies',
+                title: 'Amounts and currencies',
                 href: '/checkout/tax-details',
               },
-              { title: 'Payment Methods', href: '/checkout/payment-methods' },
+              { title: 'Payment methods', href: '/checkout/payment-methods' },
               {
                 title: 'How to integrate with mobile',
                 href: '/checkout/integration/mobile',
@@ -561,11 +565,11 @@ export const TAB_NAVIGATION = {
               },
               { title: 'Refund', href: '/checkout/refund' },
               {
-                title: 'Processor Fields',
+                title: 'Processor fields',
                 href: '/checkout/processor-fields',
               },
               {
-                title: 'Expiration Date',
+                title: 'Expiration date',
                 href: '/checkout/expiration',
               },
               {
@@ -575,6 +579,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Metadata',
                 href: '/checkout/metadata',
+              },
+              {
+                title: 'Process retries',
+                href: '/checkout/attempts-limit',
               },
             ],
           },
