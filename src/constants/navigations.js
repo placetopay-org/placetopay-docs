@@ -1028,6 +1028,10 @@ export const TAB_NAVIGATION = {
                 title: '3DS Server Service Flow',
                 href: '/three-d-s-server/service-flow',
               },
+              {
+                title: 'What is 3RI?',
+                href: '/three-d-s-server/information-3ri',
+              },
             ],
           },
         ],
