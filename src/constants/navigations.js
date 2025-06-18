@@ -2129,6 +2129,7 @@ export const TAB_NAVIGATION = {
             title: 'API',
             links: [
               { title: 'Botón de Pago - AIO', href: '/selfdeclarations/api/payment-button-AIO' },
+              { title: 'Solicitud Income', href: '/selfdeclarations/api/income-request' },
               { title: 'Information Request', href: '/selfdeclarations/api/information-request' },
               { title: 'Income PDF', href: '/selfdeclarations/api/income-pdf' },
               { title: 'Empresas - Creación/Actualización', href: '/selfdeclarations/api/companies' },
