@@ -679,6 +679,10 @@ export const TAB_NAVIGATION = {
                 title: 'Webhooks',
                 href: '/gateway/webhooks',
               },
+              {
+                title: 'Indicador de iniciador de transacción',
+                href: '/gateway/initiator-indicator',
+              },
             ],
           },
         ],
@@ -779,6 +783,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Webhooks',
                 href: '/gateway/webhooks',
+              },
+              {
+                title: 'Transaction Initiator Indicator',
+                href: '/gateway/initiator-indicator',
               },
             ],
           },
