@@ -215,18 +215,18 @@ export const TAB_NAVIGATION = {
           {
             title: 'Nuevo Panel Administrativo',
             links: [
-              { title: 'Introducción', href: '/payments/introduction-to-microsites' },
+              { title: 'Introducción', href: '/payments/newpanel/introduction'},
               {
                 title: 'Transacciones', links: [
-                  { title: 'Introducción', href: '/payments/microsite-open/introduction' },
-                  { title: 'Estructura de Campos', href: '/payments/microsite-open/fields' },
+                  { title: 'Introducción', href: '/payments/newpanel/search' },
+                  { title: 'Estructura de Campos', href: '/payments/newpanel/fields' },
                   
                 ],
               },
               {
-                title: 'Exportes y estadisticas', links: [
-                  { title: 'Exportes', href: '/payments/microsite-closed/introduction' },
-                  { title: 'Estadisticas', href: '/payments/microsite-closed/charge-invoice' },
+                title: 'Exportes y estadísticas', links: [
+                  { title: 'Exportes', href: '/payments/newpanel/export' },
+                  { title: 'Estadísticas', href: '/payments/newpanel/statistics' },
                 ],
               },
             ],
