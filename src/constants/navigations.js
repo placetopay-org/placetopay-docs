@@ -213,13 +213,20 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Nuevo Panel Administrativo',
+            title: 'Nuevo panel administrativo',
             links: [
               { title: 'Introducción', href: '/payments/newpanel/introduction'},
+                { title: 'Ingreso a nuevo panel',
+                links: [
+                  { title: 'Migración de usuario', href: '/payments/newpanel/users/migration' },
+                  { title: 'Creación de usuario', href: '/payments/newpanel/users/createuser' },
+                  
+                ], 
+              },
               {
                 title: 'Transacciones', links: [
-                  { title: 'Introducción', href: '/payments/newpanel/search' },
-                  { title: 'Estructura de Campos', href: '/payments/newpanel/fields' },
+                  { title: 'Consulta de transacciones', href: '/payments/newpanel/transaction/search' },
+                  { title: 'Filtros de transacciones', href: '/payments/newpanel/fields' },
                   
                 ],
               },
