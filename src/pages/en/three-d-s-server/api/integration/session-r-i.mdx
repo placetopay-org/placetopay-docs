@@ -1,39 +1,34 @@
 export const sectionMode = 'nav';
 
-<MissingTranslationBanner />
+In this section, various use cases will be presented to illustrate the applicability of 3RI in different scenarios, ranging from online payments to card authentication and management.
 
-En este apartado, se presentarán diversos casos de uso que ilustran la aplicabilidad de 3RI en distintos escenarios,
-abarcando desde pagos en línea hasta la autenticación y gestión de la tarjeta.
+Each use case will highlight how 3RI can address specific security and efficiency challenges. Through concrete examples, you will gain a deeper understanding of how to implement this service and how it can contribute to greater fraud protection and the creation of a trustworthy digital environment.
 
-Cada caso de uso destacará cómo 3RI puede abordar desafíos específicos de seguridad y eficiencia.
-A través de ejemplos concretos, dando asi una comprensión más profunda de cómo implementar este servicio y de como puede contribuir a una mayor protección contra fraudes y a la construcción de un entorno de confianza en el ámbito digital.
-
-Ver más detalle en [Tipos de mensajes 3RI admitidos](/en/three-d-s-server/api/terms-and-definitions#tipos-de-mensajes-3-ri-admitidos)
+See more details in [Supported 3RI Message Types](/en/three-d-s-server/api/terms-and-definitions#tipos-de-mensajes-3-ri-admitidos)
 
 <Note>
-    El DAF no es un requisito obligatorio para el procesamiento con 3RI; sin embargo, su uso es opcional y recomendado para mejorar la tasa de autenticación.
+    The DAF is not a mandatory requirement for processing with 3RI; however, its use is optional and recommended to improve the authentication rate.
 </Note>
 
-## Pagos recurrentes
+## Recurring Payments
 
-Una transacción recurrente es aquella en la que se realiza un cargo periódico al titular de la tarjeta de forma programada.
-Estas transacciones son comunes en servicios de suscripción, como membresías, suscripciones a servicios de streaming, pagos de facturas recurrentes, etc.
+A recurring transaction is one in which a periodic charge is made to the cardholder on a scheduled basis. These transactions are common in subscription services, such as memberships, streaming service subscriptions, recurring bill payments, etc.
 
 `POST` https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
 
-***Casos de uso:***
+***Use Cases:***
 
-* **Suscripciones a servicios digitales:** Por ejemplo, una suscripción mensual a una plataforma de streaming de video.
-* **Pagos de facturas recurrentes:** Como el pago mensual de servicios públicos, pagos de seguros, o pagos de préstamos.
-* **Renovaciones de membresía:** Por ejemplo, renovación automática de membresía en gimnasios o clubs.
+* **Digital service subscriptions:** For example, a monthly subscription to a video streaming platform.
+* **Recurring bill payments:** Such as monthly payments for utilities, insurance payments, or loan payments.
+* **Membership renewals:** For example, automatic renewal of gym or club memberships.
 
 <Note>
-    Para VISA está disponible el flujo de pago recurrente a través del [DAF](/en/three-d-s-server/api/integration/session-d-a-f), el cual es opcional
+    For VISA, the recurring payment flow is available through the [DAF](/en/three-d-s-server/api/integration/session-d-a-f), which is optional.
 </Note>
 
-**Primera Autenticación**
+**First Authentication**
 
-Antes de realizar una solicitud 3RI, debe haberse realizado una autenticación EMV 3DS donde el titular de la tarjeta esté disponible para autenticarse.
+Before making a 3RI request, an EMV 3DS authentication must have been performed where the cardholder is available to authenticate.
 
 ### MASTERCARD
 
@@ -59,17 +54,17 @@ Antes de realizar una solicitud 3RI, debe haberse realizado una autenticación E
 
 **deviceChannel:** BRW (02)
 
-**threeDSAuthenticationInd:** RECURRING_TRANSACTION (02), indica que la transacción es una recurrencia
+**threeDSAuthenticationInd:** RECURRING_TRANSACTION (02), indicates that the transaction is a recurrence
 
-**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04), el desafío es obligatorio
+**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04), the challenge is mandatory
 
-**recurringExpiry:** fecha final de la suscripción
+**recurringExpiry:** end date of the subscription
 
-**recurringFrequency:** indica el número de días entre autorizaciones
+**recurringFrequency:** indicates the number of days between authorizations
 
-**purchaseInstalData:** Indica el número máximo de autorizaciones permitidas para pagos fraccionados.
+**purchaseInstalData:** Indicates the maximum number of authorizations allowed for installment payments.
 
-***Response  Lookup***
+***Response Lookup***
 
 ```json
 {
@@ -80,23 +75,23 @@ Antes de realizar una solicitud 3RI, debe haberse realizado una autenticación E
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+**Action:** `redirect` indicates that the API will return a `redirectURL`, which must be used to continue the flow.
 
 
 ### VISA
 
 <Note>
-    Para Visa está disponible el flujo de pago dividido a través del [DAF](/en/three-d-s-server/api/integration/session-d-a-f) a partir de Abríl de 2024. Consultar para más detalle sobre VISA [DAF](/en/three-d-s-server/api/integration/session-d-a-f), el cual es opcional para los flujos de 3RI
+    For Visa, the split payment flow is available through the [DAF](/en/three-d-s-server/api/integration/session-d-a-f) starting from April 2024. For more details about VISA [DAF](/en/three-d-s-server/api/integration/session-d-a-f), which is optional for 3RI flows, please consult the documentation.
 </Note>
 
-**Prerrequisitos:**
+**Prerequisites:**
 
-1. El identificador de comercio de **Visa Merchant ID VMID** deberá estar disponible en la subscripción.
-2. El rango de tarjetas debe soportar el procesamiento con [DAF](/en/three-d-s-server/api/integration/session-d-a-f)
+1. The **Visa Merchant ID (VMID)** must be available in the subscription.
+2. The card range must support processing with [DAF](/en/three-d-s-server/api/integration/session-d-a-f)
 
-Datos requeridos en la petición API
+Required data in the API request
 
-**Datos [DAF](/en/three-d-s-server/api/integration/session-d-a-f):** las llaves adicionales que se deberán enviar para que se aplique el [DAF](/en/three-d-s-server/api/integration/session-d-a-f) con VISA son los siguientes
+**[DAF](/en/three-d-s-server/api/integration/session-d-a-f) Data:** The additional keys that must be sent for DAF to be applied with VISA are the following:
 
 * billAddrCity
 * billAddrCountry
@@ -137,15 +132,15 @@ Datos requeridos en la petición API
 
 **deviceChannel:** BRW (02)
 
-**threeDSAuthenticationInd:** RECURRING_TRANSACTION (02), indica que la transacción es recurrente
+**threeDSAuthenticationInd:** RECURRING_TRANSACTION (02), indicates that the transaction is recurring
 
-**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04), el desafío es obligatorio
+**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04), the challenge is mandatory
 
-**recurringExpiry:** fecha final de la suscripción
+**recurringExpiry:** end date of the subscription
 
-**recurringFrequency:** indica el número de días entre autorizaciones
+**recurringFrequency:** indicates the number of days between authorizations
 
-**Datos [DAF](/en/three-d-s-server/api/integration/session-d-a-f):** las llaves adicionales que se deberán enviar para que se aplique el [DAF](/en/three-d-s-server/api/integration/session-d-a-f) con VISA son los siguientes
+**[DAF](/en/three-d-s-server/api/integration/session-d-a-f) Data:** The additional keys that must be sent for DAF to be applied with VISA are the following:
 
 * billAddrCity
 * billAddrCountry
@@ -167,11 +162,11 @@ Datos requeridos en la petición API
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+**Action:** `redirect` indicates that the API will return a `redirectURL`, which must be used to continue the flow.
 
-**Autenticaciones posteriores**
+**Subsequent Authentications**
 
-Envíe una solicitud 3RI por el valor de la recurrencia
+Send a 3RI request using the recurrence value.
 
 ### MASTERCARD
 
@@ -191,28 +186,25 @@ Envíe una solicitud 3RI por el valor de la recurrencia
   "purchaseAmount": "5",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Febrero 2024",
+  "reference": "February 2024",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03), indica que el canal es RI
+**deviceChannel:** RI (03), indicates that the channel is RI
 
-**threeRIInd:** RECURRING_TRANSACTION (01) indica que la transacción es recurrente
+**threeRIInd:** RECURRING_TRANSACTION (01) indicates that the transaction is recurring
 
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
+**threeDSReqPriorAuthMethod:** Method used by the cardholder for authentication.
 
-- FRICTIONLESS_AUTHENTICATION (01), sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED(02), con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
+- FRICTIONLESS_AUTHENTICATION (01), frictionless
+- CARDHOLDER_CHALLENGE_OCCURRED (02), with challenge, see the session Get the data from threeDSRequestorPriorAuthenticationInfo
 
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C,
-consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
+**threeDSReqPriorAuthTimestamp:** Date and time in UTC format of the previous authentication. The format is C, see the session Get the data from threeDSRequestorPriorAuthenticationInfo
 
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa ***primera autenticación***,
-consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
+**threeDSReqPriorRef:** The ID granted by the ACS in the previous transaction ***first authentication***, see the session Get the data from threeDSRequestorPriorAuthenticationInfo
 
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa ***primera autenticación***,
-si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
+**threeDSReqPriorAuthData:** The ID granted by the DS in the previous transaction ***first authentication***, if this data is not sent, 3DSS assigns it, see the session Get the data from threeDSRequestorPriorAuthenticationInfo
 
 ***Response  Lookup***
 
@@ -240,7 +232,7 @@ si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los dato
 }
 ```
 
-**Actión:** continue indica que la API retornara la información de la autenticación,y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
+**Action:** `continue` indicates that the API will return the authentication information, and therefore it is not necessary to consume additional endpoints to continue the flow.
 
 
 ### VISA
