@@ -2183,3 +2183,803 @@ The booking agent performs the 3RI transaction to obtain the CAVV and provide it
 **Action:** continue indicates that the API will return the authentication information, so it is not necessary to consume additional endpoints to continue the flow
 
 ---
+
+## Unscheduled Card-on-File Transactions
+
+UCOF (Unscheduled Card-on-File) transactions occur when a merchant uses card information stored in their system to make a one-time, unscheduled charge to the customer's card. These transactions are not associated with recurring or installment payments; instead, they are unique transactions that leverage previously stored card information to facilitate payment.
+
+* Online purchases without cardholder intervention: For example, a customer makes a purchase on a website using the option to ***save card for future purchases***. Later, the merchant uses the stored card information to process a payment for an additional purchase without further interaction from the customer.
+* Automatic renewals for non-periodic services: Some services do not follow a regular billing cycle but may still use stored card information to facilitate automatic renewal payments. For example, the annual renewal of a software subscription that is not billed monthly but uses stored card information to automatically process payment when the renewal date arrives.
+* One-time or unscheduled fee payments: Situations where a customer needs to make a one-time, unscheduled payment to a merchant, such as paying an outstanding invoice, a fee for an additional service, or a last-minute purchase.
+
+
+`POST` https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
+
+
+**Visa No Payment (NPA)**
+
+***First Authentication - Add Card***
+
+**NPA Option:** This option does not require account funds verification.
+
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "BRW",
+  "messageCategory": "02",
+  "threeDSAuthenticationInd": "ADD_CARD",
+  "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "January 2024",
+  "messageVersion": "2.2.0",
+  "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
+  }
+}
+```
+
+**deviceChannel:** BRW (02) - Browser
+
+**messageCategory:** NPA (02) - No payment
+
+**threeDSAuthenticationInd** indicates the type of authentication. Value 04 corresponds to add card.
+
+***Response Lookup***
+
+
+```json
+{
+    "action": "redirect",
+    "sessionToken": "b8ba7e2e3cb4b7cf8045c8e098bf84e5f77b6b643a1ce19cef9ebe4be8b05473",
+    "redirectURL": "https://3dss-dev.placetopay.ws/threeds/v2x/sessions/1268/b8ba7e2e3cb4b7cf8045c8e098bf84e5f77b6b643a1ce19cef9ebe4be8b05473",
+    "transactionID": 1312
+}
+```
+
+**Action:** redirect indicates that the API will return a redirectURL that must be consumed to continue the flow.
+
+
+**Subsequent Authentications**
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "RI",
+  "threeRIInd": "81",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "2024-05-03T22:48:06+00:00",
+    "threeDSReqPriorRef": "5d822226-d2ad-4a43-8270-87c95003dad4",
+    "threeDSReqPriorAuthData": "valid_data"
+  },
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "1.00",
+  "purchaseCurrency": "USD",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "February 2024",
+  "messageVersion": "2.2.0"
+}
+```
+
+**deviceChannel:** RI (03) indicates the channel is 3RI
+
+**threeRIInd:** 81 indicates an unscheduled card-on-file transaction
+
+**threeDSReqPriorAuthMethod:** Method used by the cardholder for authentication.
+- FRICTIONLESS_AUTHENTICATION(01) frictionless,
+- CARDHOLDER_CHALLENGE_OCCURRED(02) with challenge, see the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorAuthTimestamp:** Date and time in UTC format of the prior authentication. The format is C, see the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorRef:** The ID provided by the ACS in the previous transaction ***first authentication***, see the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorAuthData:** The ID provided by the DS in the previous **first authentication** transaction, if this data is not sent, 3DSS assigns it, see the session for threeDSRequestorPriorAuthenticationInfo data
+
+***Response Lookup***
+
+
+```json
+{
+    "action": "continue",
+    "messageType": "ARes",
+    "threeDSServerTransID": "aec4b66f-f4ce-4bbf-9904-0759efa6ea8e",
+    "acsReferenceNumber": "PTOPID",
+    "acsTransID": "f7a98ab1-37d1-4e20-a7db-8f0491fbdd6d",
+    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+    "dsTransID": "655fabd4-ee08-4bab-963f-68c79063438f",
+    "messageVersion": "2.2.0",
+    "acsOperatorID": "CAS_OPERD_DR",
+    "authenticationValue": "BpkCBBYBJAAAAABkhAEkdYR0cUU=",
+    "eci": "05",
+    "transStatus": "Y",
+    "whiteListStatusSource": "03",
+    "whiteListStatus": "Y",
+    "deviceChannel": "RI",
+    "messageCategory": "PA",
+    "authMethod": "FRICTIONLESS_AUTHENTICATION",
+    "authTimestamp": "2024-05-03T22:49:38+00:00"
+}
+```
+
+**Action:** continue indicates that the API will return the authentication information, so no additional endpoints need to be consumed to continue the flow.
+
+
+***Visa No Payment (NPA) and DAF***
+
+The implementation with DAF is optional.
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "02",
+  "messageCategory": "02",
+  "threeDSAuthenticationInd": "04",
+  "threeDSChallengeInd": "04",
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "January 2024",
+  "messageVersion": "2.2.0",
+  "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
+  }
+}
+```
+
+**deviceChannel:** 02 - Browser
+
+**messageCategory:** The value 02 corresponds to transaction of No payment (NPA)
+
+**threeDSAuthenticationInd**, indicates the type of authentication. Value 04 corresponds to add card.
+
+**DAF Data:** the additional keys that need to be sent to apply DAF with VISA are the following
+
+* billAddrCity
+* billAddrCountry
+* billAddrLine1
+* billAddrPostCode
+* billAddrState
+* email
+* mobilePhone
+
+<Note>
+    Also consider the configurations described in the documentation of [DAF](/en/three-d-s-server/api/integration/session-d-a-f)
+</Note>
+
+***Response Lookup***
+
+
+```json
+{
+    "action": "redirect",
+    "sessionToken": "ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86201/ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+    "transactionID": 248167
+}
+```
+
+**Action:** redirect indicates that the API will return a redirectURL that must be consumed to continue the flow.
+
+
+**Subsequent Authentications**
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "03",
+  "threeRIInd": "81",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "2024-09-10T22:53:21+00:00",
+    "threeDSReqPriorRef": "e59f9e12-aaa5-4f29-a5ce-0acbb90fc2cb"
+  },
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "1.00",
+  "purchaseCurrency": "USD",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "February 2024",
+  "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
+  },
+  "messageVersion": "2.2.0"
+}
+```
+
+**deviceChannel:** RI (03) indicates the channel is 3RI
+
+**threeRIInd:** 81 indicates an unscheduled card-on-file transaction
+
+**threeDSReqPriorAuthMethod:** Method used by the cardholder for authentication.
+- FRICTIONLESS_AUTHENTICATION(01) frictionless,
+- CARDHOLDER_CHALLENGE_OCCURRED(02) with challenge, see the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorAuthTimestamp:** Date and time in UTC format of the prior authentication. The format is C, see the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorRef:** The ID provided by the ACS in the previous transaction ***first authentication***, see the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorAuthData:** The ID provided by the DS in the previous **first authentication** transaction, if this data is not sent, 3DSS assigns it, see the session for threeDSRequestorPriorAuthenticationInfo data
+
+**DAF Data:** the additional keys that need to be sent to apply the [DAF](/en/three-d-s-server/api/integration/session-d-a-f) with VISA are the following
+
+* billAddrCity
+* billAddrCountry
+* billAddrLine1
+* billAddrPostCode
+* billAddrState
+* email
+* mobilePhone
+
+<Note>
+    Also consider the configurations described in the documentation of [DAF](/en/three-d-s-server/api/integration/session-d-a-f)
+</Note>
+
+***Response Lookup***
+
+
+```json
+{
+    "action": "continue",
+    "messageType": "ARes",
+    "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
+    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+    "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
+    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+    "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
+    "messageVersion": "2.2.0",
+    "acsOperatorID": "10078025",
+    "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
+    "eci": "05",
+    "messageExtension": [
+        {
+            "name": "DAF Extension",
+            "id": "A000000003-003",
+            "criticalityIndicator": false,
+            "data": {
+                "chAccReqID": "MUHZx0nojuVVAZJwPD4CWps0RuxUPxepI8sk57Yd/s4=",
+                "authPayProcessReqInd": "01",
+                "version": "1.0",
+                "authPayCredStatus": "Y",
+                "dafAdvice": "01"
+            }
+        }
+    ],
+    "transStatus": "Y",
+    "whiteListStatusSource": "03",
+    "whiteListStatus": "Y",
+    "deviceChannel": "03",
+    "messageCategory": "PA",
+    "authMethod": "01",
+    "authTimestamp": "2024-09-10T22:56:48+00:00",
+    "transactionID": 248168
+}
+```
+
+**Action:** continue indicates that the API will return the authentication information, so no additional endpoints need to be consumed to continue the flow.
+
+
+***Visa Payment (PA)***
+
+PA Option: This option requires account funds verification. Assign a minimum example value, consider this value in the implementation.
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "02",
+  "messageCategory": "01",
+  "threeDSAuthenticationInd": "04",
+  "threeDSChallengeInd": "04",
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "1.00",
+  "purchaseCurrency": "USD",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "January 2024",
+  "messageVersion": "2.2.0"
+}
+```
+
+**deviceChannel:** 02 - Browser
+
+**messageCategory:** The value 01 corresponds to transaction of payment (PA)
+
+**threeDSAuthenticationInd**, indicates the type of authentication. Value 04 corresponds to add card.
+
+***Response Lookup***
+
+
+```json
+{
+    "action": "redirect",
+    "sessionToken": "ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86202/ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+    "transactionID": 248168
+}
+```
+
+**Action:** redirect indicates that the API will return a redirectURL that must be consumed to continue the flow.
+
+
+**Subsequent Authentications**
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "03",
+  "threeRIInd": "81",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "2024-09-10T22:53:21+00:00",
+    "threeDSReqPriorRef": "e59f9e12-aaa5-4f29-a5ce-0acbb90fc2cb"
+  },
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "1.00",
+  "purchaseCurrency": "USD",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "February 2024",
+  "messageVersion": "2.2.0"
+}
+```
+
+**deviceChannel:** RI (03) indicates the channel is 3RI
+
+**threeRIInd:** 81 indicates an unscheduled card-on-file transaction
+
+**threeDSReqPriorAuthMethod:** Method used by the cardholder for authentication. 01 frictionless, 02 with challenge,  consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorAuthTimestamp:** Date and time in UTC format of the prior authentication. The format is C, consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorRef:** The ID provided by the ACS in the previous transaction ***first authentication***, consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorAuthData:** The ID provided by the DS in the previous **first authentication** transaction, if this data is not sent, MPI assigns it, consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+***Response Lookup***
+
+
+```json
+{
+    "action": "continue",
+    "messageType": "ARes",
+    "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
+    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+    "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
+    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+    "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
+    "messageVersion": "2.2.0",
+    "acsOperatorID": "10078025",
+    "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
+    "eci": "05",
+    "transStatus": "Y",
+    "whiteListStatusSource": "03",
+    "whiteListStatus": "Y",
+    "deviceChannel": "03",
+    "messageCategory": "PA",
+    "authMethod": "01",
+    "authTimestamp": "2024-09-10T22:56:48+00:00",
+    "transactionID": 248168
+}
+```
+
+**Action:** continue indicates that the API will return the authentication information, so no additional endpoints need to be consumed to continue the flow.
+
+
+***Visa Payment (PA) and DAF***
+
+The implementation with [DAF](/en/three-d-s-server/api/integration/session-d-a-f) is optional.
+
+PA Option: This option requires account funds verification. Assign a minimum example value, consider this value in the implementation.
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "02",
+  "messageCategory": "01",
+  "threeDSAuthenticationInd": "04",
+  "threeDSChallengeInd": "04",
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "1.00",
+  "purchaseCurrency": "USD",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "January 2024",
+  "messageVersion": "2.2.0",
+  "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
+  }
+}
+```
+
+**deviceChannel:** 02 - Browser
+
+**messageCategory:** The value 01 corresponds to transaction of payment (PA)
+
+**threeDSAuthenticationInd**, indicates the type of authentication. Value 04 corresponds to add card.
+
+**DAF Data:** the additional keys that need to be sent to apply the [DAF](/en/three-d-s-server/api/integration/session-d-a-f) with VISA are the following
+
+* billAddrCity
+* billAddrCountry
+* billAddrLine1
+* billAddrPostCode
+* billAddrState
+* email
+* mobilePhone
+
+<Note>
+    Also consider the configurations described in the documentation of [DAF](/en/three-d-s-server/api/integration/session-d-a-f)
+</Note>
+
+***Response Lookup***
+
+
+```json
+{
+    "action": "redirect",
+    "sessionToken": "ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86202/ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+    "transactionID": 248168
+}
+```
+
+**Action:** redirect indicates that the API will return a redirectURL that must be consumed to continue the flow.
+
+
+**Subsequent Authentications**
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "03",
+  "threeRIInd": "81",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "2024-09-10T22:53:21+00:00",
+    "threeDSReqPriorRef": "e59f9e12-aaa5-4f29-a5ce-0acbb90fc2cb"
+  },
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "1.00",
+  "purchaseCurrency": "USD",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "February 2024",
+  "billAddrCity": "Medellín",
+  "billAddrCountry": "COL",
+  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrPostCode": "050004",
+  "billAddrState": "ANT",
+  "email": "john.doe@evertecinc.com",
+  "mobilePhone": {
+      "cc": "57",
+      "subscriber": "30011122333"
+  },
+  "messageVersion": "2.2.0"
+}
+```
+
+**deviceChannel:** RI (03) indicates the channel is 3RI
+
+**threeRIInd:** 81 indicates an unscheduled card-on-file transaction
+
+**threeDSReqPriorAuthMethod:** Method used by the cardholder for authentication. 01 frictionless, 02 with challenge,  consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorAuthTimestamp:** Date and time in UTC format of the prior authentication. The format is C, consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorRef:** The ID provided by the ACS in the previous transaction ***first authentication***, consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorAuthData:** The ID provided by the DS in the previous **first authentication** transaction, if this data is not sent, MPI assigns it, consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+**DAF Data:** the additional keys that need to be sent to apply the [DAF](/en/three-d-s-server/api/integration/session-d-a-f) with VISA are the following
+
+* billAddrCity
+* billAddrCountry
+* billAddrLine1
+* billAddrPostCode
+* billAddrState
+* email
+* mobilePhone
+
+<Note>
+    Also consider the configurations described in the documentation of [DAF](/en/three-d-s-server/api/integration/session-d-a-f)
+</Note>
+
+***Response Lookup***
+
+
+```json
+{
+    "action": "continue",
+    "messageType": "ARes",
+    "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
+    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+    "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
+    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+    "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
+    "messageVersion": "2.2.0",
+    "acsOperatorID": "10078025",
+    "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
+    "eci": "05",
+    "messageExtension": [
+        {
+            "name": "DAF Extension",
+            "id": "A000000003-003",
+            "criticalityIndicator": false,
+            "data": {
+                "chAccReqID": "MUHZx0nojuVVAZJwPD4CWps0RuxUPxepI8sk57Yd/s4=",
+                "authPayProcessReqInd": "01",
+                "version": "1.0",
+                "authPayCredStatus": "Y",
+                "dafAdvice": "01"
+            }
+        }
+    ],
+    "transStatus": "Y",
+    "whiteListStatusSource": "03",
+    "whiteListStatus": "Y",
+    "deviceChannel": "03",
+    "messageCategory": "PA",
+    "authMethod": "01",
+    "authTimestamp": "2024-09-10T22:56:48+00:00",
+    "transactionID": 248168
+}
+```
+
+**Action:** continue indicates that the API will return the authentication information, so no additional endpoints need to be consumed to continue the flow.
+
+---
+
+***Mastercard No Payment (NPA)***
+
+NPA Option: This option does not require account funds verification.
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "02",
+  "messageCategory": "02",
+  "threeDSAuthenticationInd": "04",
+  "threeDSChallengeInd": "04",
+  "acctNumber": "5180300000000005",
+  "cardExpiryDate": "2902",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "MC_3DS_2024",
+  "messageVersion": "2.2.0"
+}
+```
+
+**deviceChannel:** 02 - Browser
+
+**messageCategory:** The value 02 corresponds to transaction of No payment (NPA)
+
+**threeDSAuthenticationInd**, indicates the type of authentication. Value 04 corresponds to add card.
+
+***Response Lookup***
+
+
+```json
+{
+    "action": "redirect",
+    "sessionToken": "ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86203/ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+    "transactionID": 248168
+}
+```
+
+**Action:** redirect indicates that the API will return a redirectURL that must be consumed to continue the flow.
+
+
+**Subsequent Authentications**
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "03",
+  "threeRIInd": "11",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "2024-09-10T22:53:21+00:00",
+    "threeDSReqPriorRef": "e59f9e12-aaa5-4f29-a5ce-0acbb90fc2cb"
+  },
+  "acctNumber": "5180300000000005",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "1.00",
+  "purchaseCurrency": "USD",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "February 2024",
+  "messageVersion": "2.2.0"
+}
+```
+
+**deviceChannel:** RI (03) indicates the channel is 3RI
+
+**threeRIInd:** 11 indicates other payments.
+
+**threeDSReqPriorAuthMethod:** Method used by the cardholder for authentication. 01 frictionless, 02 with challenge,  consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorAuthTimestamp:** Date and time in UTC format of the prior authentication. The format is C, consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorRef:** The ID provided by the ACS in the previous transaction ***first authentication***, consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorAuthData:** The ID provided by the DS in the previous **first authentication** transaction, if this data is not sent, MPI assigns it, consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+***Response Lookup***
+
+
+```json
+{
+    "action": "continue",
+    "messageType": "ARes",
+    "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
+    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+    "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
+    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+    "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
+    "messageVersion": "2.2.0",
+    "acsOperatorID": "10078025",
+    "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
+    "eci": "02",
+    "transStatus": "Y",
+    "whiteListStatusSource": "03",
+    "whiteListStatus": "Y",
+    "deviceChannel": "03",
+    "messageCategory": "PA",
+    "authMethod": "01",
+    "authTimestamp": "2024-09-10T22:56:48+00:00",
+    "transactionID": 248168
+}
+```
+
+**Action:** continue indicates that the API will return the authentication information, so no additional endpoints need to be consumed to continue the flow.
+
+
+***Mastercard Payment (PA)***
+
+PA Option: This option requires account funds verification. Assign a minimum example value, consider this value in the implementation.
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "02",
+  "messageCategory": "01",
+  "threeDSAuthenticationInd": "04",
+  "threeDSChallengeInd": "04",
+  "acctNumber": "5180300000000005",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "1.00",
+  "purchaseCurrency": "USD",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "MC_3DS_2024",
+  "messageVersion": "2.2.0"
+}
+```
+
+**deviceChannel:** 02 - Browser
+
+**messageCategory:** The value 01 corresponds to transaction of payment (PA)
+
+**threeDSAuthenticationInd**, indicates the type of authentication. Value 04 corresponds to add card.
+
+***Response Lookup***
+
+
+```json
+{
+    "action": "redirect",
+    "sessionToken": "ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86203/ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+    "transactionID": 248168
+}
+```
+
+**Action:** redirect indicates that the API will return a redirectURL that must be consumed to continue the flow.
+
+
+**Subsequent Authentications**
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "03",
+  "threeRIInd": "11",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "2024-09-10T22:53:21+00:00",
+    "threeDSReqPriorRef": "e59f9e12-aaa5-4f29-a5ce-0acbb90fc2cb"
+  },
+  "acctNumber": "5180300000000005",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "1.00",
+  "purchaseCurrency": "USD",
+  "redirectURI": "https://www.placetopay.com/web",
+  "reference": "February 2024",
+  "messageVersion": "2.2.0"
+}
+```
+
+**deviceChannel:** RI (03) indicates the channel is 3RI
+
+**threeRIInd:** 11 indicates other payments.
+
+**threeDSReqPriorAuthMethod:** Method used by the cardholder for authentication. 01 frictionless, 02 with challenge,  consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorAuthTimestamp:** Date and time in UTC format of the prior authentication. The format is C, consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorRef:** The ID provided by the ACS in the previous transaction ***first authentication***, consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+**threeDSReqPriorAuthData:** The ID provided by the DS in the previous **first authentication** transaction, if this data is not sent, MPI assigns it, consult the session for threeDSRequestorPriorAuthenticationInfo data
+
+***Response Lookup***
+
+
+```json
+{
+    "action": "continue",
+    "messageType": "ARes",
+    "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
+    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+    "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
+    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+    "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
+    "messageVersion": "2.2.0",
+    "acsOperatorID": "10078025",
+    "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
+    "eci": "02",
+    "transStatus": "Y",
+    "whiteListStatusSource": "03",
+    "whiteListStatus": "Y",
+    "deviceChannel": "03",
+    "messageCategory": "PA",
+    "authMethod": "01",
+    "authTimestamp": "2024-09-10T22:56:48+00:00",
+    "transactionID": 248168
+}
+```
+
+**Action:** continue indicates that the API will return the authentication information, so no additional endpoints need to be consumed to continue the flow.
+
+
+---
