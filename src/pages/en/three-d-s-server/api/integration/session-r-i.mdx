@@ -1317,3 +1317,261 @@ The booking agent performs the 3RI transaction to obtain the CAVV and provide it
 **Action:** `continue` indicates that the API will return the authentication information, and therefore it is not necessary to consume additional endpoints to continue the flow.
 
 ---
+
+## Delayed Shipment
+
+Allows merchants to maintain liability protection beyond 90 days after an initial authentication.
+Merchants can use this feature when, for example, a shipment/service is delayed for more than 90 days.
+If the 3RI request is successful, a new CAVV will be generated for the merchant, granting another 90 days of liability protection.
+
+When merchants request a new CAVV through a 3RI authentication, they must do so within 90
+days from the date of the initial authentication. Merchants should only send this type of request if they need liability
+protection beyond 90 days from the initial authentication. They should delay the request for a new CAVV as much as possible
+within the 90-day period. If the initial CAVV has expired, although it no longer provides liability protection, issuers must consider
+that it can still be used by the merchant as proof that authentication was performed.
+
+***Data to consider when processing split shipments:***
+
+* The 3DS requestor name **threeDSRequestorName** and the merchant name **merchantName** must be the same in the initial authentication request and in each associated 3RI request
+* The total value of all 3RI requests must not exceed the amount of the initial authentication request and the total of already authorized amounts
+
+`POST` https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
+
+
+***Use Cases:***
+
+* **Pre-sale products:** a customer buys a product on pre-sale, such as a book or an electronic device that is not yet available. The card is charged when the purchase is made, but the product will be shipped weeks or months later when it becomes available.
+* **Out-of-stock products:** a customer buys a product that is not in stock at the moment, but will be shipped once available. The card is charged at the time of order, and the product is shipped when inventory is replenished.
+* **Orders with scheduled shipments:** a customer buys several products but requests that the shipment be made on a specific future date. Payment is processed immediately, but the shipment is delayed until the requested date.
+
+| Event                                                      | Value | Description                                                                                                                                               |
+|------------------------------------------------------------|-------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Initial authentication                                     | $112  | Initial authentication for the total order amount.                                                                                                        |
+| Initial authorization of the first good/service.           | $0    | Perform $0 authorization to set up the future MIT using the CAVV from the previous initial authentication.                                                |
+| 3RI request for a delayed good or service.                 | $112  | Send a 3RI request for the value of the delayed good or service. (e.g., day 85 after initial authentication)                                              |
+| Authorization as MIT reauthorization for the good/service. | $112  | Perform authorization for the good or service using the CAVV from the previous 3RI request. (e.g., day 120 after initial authentication)                  |
+
+<Note>
+    For Visa, the split shipment flow is available through [DAF](/en/three-d-s-server/api/integration/session-d-a-f), which is optional for the 3RI flow.
+</Note>
+
+**First Authentication**
+
+Initial authentication for the total order amount.
+
+Before making a 3RI request, an EMV 3DS authentication must have been performed where the cardholder is available to authenticate for the total order value. This initial authentication can be used for the authorization associated with the first delivery of goods/services.
+
+
+### MASTERCARD
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "BRW",
+  "threeDSAuthenticationInd": "PAYMENT_TRANSACTION",
+  "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
+  "acctNumber": "5107000000010018",
+  "cardExpiryDate": "2902",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseAmount": "112",
+  "purchaseCurrency": "USD",
+  "reference": "January 2024",
+  "messageVersion": "2.2.0"
+}
+```
+
+**DeviceChannel:** BRW (02)
+
+**ThreeDSAuthenticationInd:** PAYMENT_TRANSACTION (01) indicates that the transaction is a payment
+
+**ThreeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04) the challenge is mandatory
+
+***Response Lookup***
+
+```json
+{
+    "action": "redirect",
+    "sessionToken": "c793365493edc34b17a7097ea8a33fdb5853d8e0da62d39ca9e49e6c021a641f",
+    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86167/c793365493edc34b17a7097ea8a33fdb5853d8e0da62d39ca9e49e6c021a641f",
+    "transactionID": 248133
+}
+```
+
+**Action:** redirect indicates that the API will return a redirectURL that must be consumed to continue the flow
+
+
+### VISA
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "BRW",
+  "threeDSAuthenticationInd": "PAYMENT_TRANSACTION",
+  "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "112",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "January 2024",
+  "messageVersion": "2.2.0"
+}
+```
+
+**DeviceChannel:** BRW (02) - Browser
+
+**ThreeDSAuthenticationInd:** PAYMENT_TRANSACTION (01) indicates that the transaction is a payment
+
+**ThreeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04) the challenge is mandatory
+
+***Response Lookup***
+
+```json
+{
+    "action": "redirect",
+    "sessionToken": "3dcdb5b0d1403b0b1e14348037a3c74f202bf18d73233597a07a38963721b18e",
+    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86170/3dcdb5b0d1403b0b1e14348037a3c74f202bf18d73233597a07a38963721b18e",
+    "transactionID": 248136
+}
+```
+
+**Action:** redirect indicates that the API will return a redirectURL that must be consumed to continue the flow
+
+
+**3RI request for a delayed good/service.**
+
+Send a 3RI request for the value of the second good/service
+
+### MASTERCARD
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "RI",
+  "threeRIInd": "SPLIT_OR_DELAYED_SHIPMENT",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "2024-09-10T21:06:02+00:00",
+    "threeDSReqPriorRef": "2dd8d5d0-8563-4ae5-aa9e-23d31fa6fb85"
+  },
+  "acctNumber": "5107000000010018",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "112",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "February 2024",
+  "messageVersion": "2.2.0"
+}
+```
+
+**deviceChannel:** RI (03) indicates the channel is RI
+
+**threeRIInd:** SPLIT_OR_DELAYED_SHIPMENT (06), indicates the transaction is a split or delayed shipment
+
+**threeDSReqPriorAuthMethod:** Method used by the cardholder for authentication.
+- FRICTIONLESS_AUTHENTICATION (01) frictionless,
+- CARDHOLDER_CHALLENGE_OCCURRED (02) with challenge, see the session Get the data from threeDSRequestorPriorAuthenticationInfo
+
+**threeDSReqPriorAuthTimestamp:** Date and time in UTC format of the previous authentication. The format is C, see the session Get the data from threeDSRequestorPriorAuthenticationInfo
+
+**threeDSReqPriorRef:** The ID provided by the ACS in the previous transaction ***first authentication***, see the session Get the data from threeDSRequestorPriorAuthenticationInfo
+
+**threeDSReqPriorAuthData:** The ID provided by the DS in the previous transaction ***first authentication***, if this data is not sent 3DSS assigns it, see the session Get the data from threeDSRequestorPriorAuthenticationInfo
+
+***Response Lookup***
+
+```json
+{
+    "action": "continue",
+    "messageType": "ARes",
+    "threeDSServerTransID": "f91b89a9-7924-48de-97ab-8cc58bc5fcc2",
+    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
+    "acsTransID": "cc3b5ff3-9dd7-44ae-bfa0-472de466f449",
+    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+    "dsTransID": "a730d64c-ddb1-4f99-8f2c-4591d00021e3",
+    "messageVersion": "2.2.0",
+    "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
+    "authenticationValue": "xgQkuJ5tAAAAAAAAAAAAAAAAAAA=",
+    "eci": "07",
+    "transStatus": "Y",
+    "whiteListStatusSource": "03",
+    "whiteListStatus": "Y",
+    "deviceChannel": "RI",
+    "messageCategory": "PA",
+    "authMethod": "FRICTIONLESS_AUTHENTICATION",
+    "authTimestamp": "2024-09-10T21:07:09+00:00",
+    "transactionID": 248135
+}
+```
+
+**Action:** continue indicates that the API will return the authentication information, so there is no need to consume additional endpoints to continue the flow
+
+### VISA
+
+***Request Lookup***
+
+```json
+{
+  "deviceChannel": "RI",
+  "threeRIInd": "SPLIT_OR_DELAYED_SHIPMENT",
+  "threeDSRequestorPriorAuthenticationInfo": {
+    "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+    "threeDSReqPriorAuthTimestamp": "2024-09-10T21:10:29+00:00",
+    "threeDSReqPriorRef": "7f7c0594-7e0f-4b13-bd45-6d180c35ffb0"
+  },
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "purchaseAmount": "112",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "reference": "February 2024",
+  "messageVersion": "2.2.0"
+}
+```
+
+**DeviceChannel:** RI (03) indicates the channel is RI
+
+**ThreeRIInd:** SPLIT_OR_DELAYED_SHIPMENT (06), indicates the transaction is a split or delayed shipment
+
+**ThreeDSReqPriorAuthMethod:** Method used by the cardholder for authentication.
+- FRICTIONLESS_AUTHENTICATION (01) frictionless,
+- CARDHOLDER_CHALLENGE_OCCURRED (02) with challenge, see the session Get the data from threeDSRequestorPriorAuthenticationInfo
+
+**ThreeDSReqPriorAuthTimestamp:** Date and time in UTC format of the previous authentication. The format is C, see the session Get the data from threeDSRequestorPriorAuthenticationInfo
+
+**ThreeDSReqPriorRef:** The ID provided by the ACS in the previous transaction ***first authentication***, see the session Get the data from threeDSRequestorPriorAuthenticationInfo
+
+**ThreeDSReqPriorAuthData:** The ID provided by the DS in the previous transaction **first authentication**, if this data is not sent 3DSS assigns it, see the session Get the data from threeDSRequestorPriorAuthenticationInfo
+
+***Response Lookup***
+
+```json
+ {
+    "action": "continue",
+    "messageType": "ARes",
+    "threeDSServerTransID": "0ec3a36a-3c91-4864-bfc0-730300027805",
+    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+    "acsTransID": "4483ff06-0f36-45a2-aa13-b7f88564910b",
+    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+    "dsTransID": "8360727e-22ff-4c23-bef8-ba2510eaf59b",
+    "messageVersion": "2.2.0",
+    "acsOperatorID": "10078025",
+    "authenticationValue": "AJkCAREXeQAAACvAhAJUdYknEmE=",
+    "eci": "05",
+    "transStatus": "Y",
+    "whiteListStatusSource": "03",
+    "whiteListStatus": "Y",
+    "deviceChannel": "RI",
+    "messageCategory": "PA",
+    "authMethod": "FRICTIONLESS_AUTHENTICATION",
+    "authTimestamp": "2024-09-10T21:12:29+00:00",
+    "transactionID": 248138
+}
+```
+
+**Action:** continue indicates that the API will return the authentication information, so there is no need to consume additional endpoints to continue the flow
+
+---
