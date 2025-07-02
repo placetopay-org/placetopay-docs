@@ -1502,7 +1502,7 @@ export const TAB_NAVIGATION = {
                 title: 'HTTP Codes in the Authentication Process',
                 href: '/acs/http-codes',
               },
-              { title: 'Amounts', href: '/acs/imports-configurations' },
+              { title: 'Imports', href: '/acs/imports-configurations' },
               { title: 'User Invitations', href: '/acs/invitations' },
               { title: 'Issuers in ACS', href: '/acs/issuer-configuration' },
               { title: 'Issuer Services', href: '/acs/issuer-services' },
