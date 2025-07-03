@@ -1535,27 +1535,34 @@ export const TAB_NAVIGATION = {
   accountValidator: {
     [LANGUAGES_CODES.ES]: [
       {
-        title: 'API',
+        title: 'Documentación',
         identifier: 'account-validator',
-        href: '/account-validator/api',
-        icon: DocumentCode,
+        href: '/account-validator',
+        icon: Book,
         links: [
           {
-            title: 'Documentación',
+            title: 'Account Validator',
             links: [
-
-              { title: 'Introducción', href: '/account-validator', },
+              { title: 'Introducción', href: '/account-validator' },
               { title: '¿Cómo funciona?', href: '/account-validator/how-to-work' },
               { title: 'Flujo del usuario', href: '/account-validator/user-flow' },
               { title: 'Micro depósitos', href: '/account-validator/micro-deposits' },
               { title: 'Soporte para Lightbox', href: '/account-validator/support' },
-              { title: 'Webhook de Eventos', href: '/account-validator/webhooks' }
-            ]
+              { title: 'Webhook de Eventos', href: '/account-validator/webhooks' },
+            ],
           },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'account-validator/api',
+        href: '/account-validator/api/environment-urls',
+        icon: DocumentCode,
+        links: [
           {
             title: 'API',
             links: [
-              { title: 'Url de ambientes', href: '/account-validator/api/environment-urls', },
+              { title: 'Url de ambientes', href: '/account-validator/api/environment-urls' },
               { title: 'Sesión', href: '/account-validator/api/session' },
               { title: 'Validador de cuenta', href: '/account-validator/api/validate-existing-account' },
             ],
@@ -1565,27 +1572,34 @@ export const TAB_NAVIGATION = {
     ],
     [LANGUAGES_CODES.EN]: [
       {
-        title: 'API',
+        title: 'Documentation',
         identifier: 'account-validator',
-        href: '/account-validator/api',
-        icon: DocumentCode,
+        href: '/en/account-validator',
+        icon: Book,
         links: [
           {
-            title: 'Documentation',
+            title: 'Account Validator',
             links: [
-
-              { title: 'Introduction', href: '/account-validator', },
-              { title: '¿How it works?', href: '/account-validator/how-to-work' },
+              { title: 'Introduction', href: '/account-validator' },
+              { title: 'How it works', href: '/account-validator/how-to-work' },
               { title: 'User flow', href: '/account-validator/user-flow' },
               { title: 'Micro deposits', href: '/account-validator/micro-deposits' },
               { title: 'Lightbox Support', href: '/account-validator/support' },
-              { title: 'Webhooks', href: '/account-validator/webhooks' }
-            ]
+              { title: 'Webhooks', href: '/account-validator/webhooks' },
+            ],
           },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'account-validator/api',
+        href: '/en/account-validator/api/environment-urls',
+        icon: DocumentCode,
+        links: [
           {
             title: 'API',
             links: [
-              { title: 'URL of environments', href: '/account-validator/api/environment-urls', },
+              { title: 'Environment URLs', href: '/account-validator/api/environment-urls' },
               { title: 'Session', href: '/account-validator/api/session' },
               { title: 'Account validator', href: '/account-validator/api/validate-existing-account' },
             ],
