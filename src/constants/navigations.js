@@ -1372,71 +1372,23 @@ export const TAB_NAVIGATION = {
                 title: '¿Cómo configurar ACS?',
                 href: '/acs/a-c-s-general-configuration',
               },
-              { title: 'Gestión de cuenta', href: '/acs/account' },
-              { title: 'Motor de Control de Fraude', href: '/acs/antifraud' },
+
               {
-                title: 'Estados del proceso de autenticación',
-                href: '/acs/authentication-status',
+                title: 'Emisores en ACS',
+                href: '/acs/issuer-configuration'
               },
-              { title: 'Autenticaciones', href: '/acs/authentications' },
-              {
-                title: 'Suscripción por marcas',
-                href: '/acs/brands-subscriptions',
-              },
-              { title: 'Rangos de tarjetas', href: '/acs/card-ranges' },
-              {
-                title: 'Certificados',
-                href: '/acs/certificates-configurations',
-              },
-              { title: 'Configuraciones', href: '/acs/configuration-fields' },
-              { title: 'Países en ACS', href: '/acs/countries-configurations' },
-              {
-                title: 'Monedas utilizadas en ACS',
-                href: '/acs/currencies-configurations',
-              },
-              {
-                title: 'Autenticaciones Desacopladas',
-                href: '/acs/decoupled-authentications',
-              },
-              { title: 'Disputas', href: '/acs/disputes' },
-              { title: 'Códigos de error', href: '/acs/error-codes' },
-              {
-                title: 'Preguntas frecuentes sobre el funcionamiento ACS',
-                href: '/acs/f-a-q',
-              },
-              {
-                title: 'Campos de configuración',
-                href: '/acs/fields-configurations',
-              },
-              { title: 'Marcas en ACS', href: '/acs/franchise-creation' },
-              {
-                title: 'Códigos HTTP en el proceso de autenticación',
-                href: '/acs/http-codes',
-              },
-              { title: 'Importes', href: '/acs/imports-configurations' },
-              { title: 'Invitaciones de usuarios', href: '/acs/invitations' },
-              { title: 'Emisores en ACS', href: '/acs/issuer-configuration' },
-              { title: 'Servicios del emisor', href: '/acs/issuer-services' },
-              {
-                title: 'Gestión de idioma',
-                href: '/acs/language-configurations',
-              },
-              { title: 'Logs de Seguridad', href: '/acs/logs' },
-              {
-                title: 'Códigos de categoría del comercio',
-                href: '/acs/merchant-codes-configurations',
-              },
-              { title: 'Métricas', href: '/acs/metrics' },
-              { title: 'Perfiles', href: '/acs/profiles' },
-              { title: 'Reportes', href: '/acs/reports' },
-              { title: 'Roles', href: '/acs/roles' },
-              { title: 'Alertas del servicio', href: '/acs/service-alerts' },
               {
                 title: 'Términos y Definiciones',
                 href: '/acs/terms-and-definitions',
               },
-              { title: 'Tarjetas de Prueba', href: '/acs/test-cards' },
-              { title: 'Usuarios', href: '/acs/users' },
+              {
+                title: 'Tarjetas de Prueba',
+                href: '/acs/test-cards'
+              },
+              {
+                title: 'Preguntas frecuentes sobre el funcionamiento ACS',
+                href: '/acs/f-a-q',
+              },
             ],
           },
         ],
