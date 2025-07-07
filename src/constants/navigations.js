@@ -1399,7 +1399,7 @@ export const TAB_NAVIGATION = {
         title: 'Documentation',
         identifier: 'acs',
         href: '/en/acs',
-        icon: 'Book',
+        icon: Book,
         links: [
           {
             title: 'ACS',
@@ -1418,17 +1418,16 @@ export const TAB_NAVIGATION = {
                 href: '/acs/issuer-configuration'
               },
               {
-                title: 'FAQs about ACS Functionality',
-                href: '/acs/f-a-q'
-              },
-
-              {
                 title: 'Terms and Definitions',
                 href: '/acs/terms-and-definitions',
               },
               {
                 title: 'Test Cards',
                 href: '/acs/test-cards'
+              },
+              {
+                title: 'FAQs about ACS Functionality',
+                href: '/acs/f-a-q'
               },
             ],
           },
