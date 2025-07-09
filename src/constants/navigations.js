@@ -225,9 +225,7 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Transacciones', links: [
-                  { title: 'Consulta de transacciones', href: '/payments/newpanel/transaction/search' },
-                  { title: 'Filtros de transacciones', href: '/payments/newpanel/fields' },
-                  
+                  { title: 'Consulta de transacciones', href: '/payments/newpanel/transaction/search' }                                   
                 ],
               },
               {
