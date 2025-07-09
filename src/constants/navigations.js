@@ -229,9 +229,8 @@ export const TAB_NAVIGATION = {
                 ],
               },
               {
-                title: 'Exportes y estadísticas', links: [
-                  { title: 'Exportes', href: '/payments/newpanel/export' },
-                  { title: 'Estadísticas', href: '/payments/newpanel/statistics' },
+                title: 'Reportes transaccionales', links: [
+                  { title: 'Exportes y Estadísticas', href: '/payments/newpanel/reports/export' }
                 ],
               },
             ],
