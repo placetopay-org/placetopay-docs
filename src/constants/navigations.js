@@ -445,6 +445,7 @@ export const TAB_NAVIGATION = {
               { title: 'Cómo Funciona', href: '/checkout/how-checkout-works' },
               { title: 'Plugins', href: '/checkout/plugins' },
               { title: 'Lightbox', href: '/checkout/lightbox' },
+              { title: 'Navegadores soportados', href: '/checkout/support-browser' },
             ],
           },
           {
@@ -536,6 +537,7 @@ export const TAB_NAVIGATION = {
               { title: 'How it works', href: '/checkout/how-checkout-works' },
               { title: 'Plugins', href: '/checkout/plugins' },
               { title: 'Lightbox', href: '/checkout/lightbox' },
+              { title: 'Supported browser', href: '/checkout/support-browser' },
             ],
           },
           {
