@@ -722,6 +722,10 @@ export const TAB_NAVIGATION = {
                 title: 'Operaciones con PinPad',
                 href: '/gateway/api/reference/pinpad',
               },
+               {
+                title: 'Operaciones con ordenes de pago',
+                href: '/gateway/api/reference/cashorder',
+              },
               {
                 title: 'Reporte de operaciones realizadas',
                 href: '/gateway/api/reference/report',
@@ -824,6 +828,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'PinPad Operations',
                 href: '/gateway/api/reference/pinpad',
+              },
+              {
+                title: 'Cash orders operations',
+                href: '/gateway/api/reference/cashorder',
               },
               {
                 title: 'Report of operations carried out',
