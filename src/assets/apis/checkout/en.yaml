@@ -840,14 +840,20 @@ paths:
                 - auth
   '/api/session/{requestId}/cancel':
     parameters:
-      - schema:
-          type: string
+      - in: path
         name: requestId
-        in: path
         required: true
+        schema:
+          type: integer
+        description: "Identifier of the session to be cancelled"
     post:
-      summary: Cancel session (CancelSessionResponse)
+      summary: Cancel session
       operationId: cancel-api-session-requestId
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelSessionRequest' 
       responses:
         '200':
           description: OK
@@ -855,66 +861,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CancelSessionResponse'
-              examples:
-                Aprobado:
-                  value:
-                    status:
-                      status: OK
-                      reason: '00'
-                      message: La petición se ha procesado correctamente
-                      date: '2025-07-11T14:05:44-05:00'
-                    session:
-                      requestId: 28
-                      status:
-                        status: REJECTED
-                        reason: MC
-                        message: La petición ha sido cancelada por el comercio
-                        date: '2025-07-11T14:05:44-05:00'
-                      request:
-                        locale: es_CO
-                        payer:
-                          document: '118877455'
-                          documentType: CC
-                          name: John
-                          surname: Doe
-                          email: Johny@Doe.com
-                          mobile: '+573123123123'
-                        payment:
-                          reference: 'Ord: 1001/2023'
-                          description: _pueba pagoEfectivo
-                          amount:
-                            currency: USD
-                            total: 20000
-                          allowPartial: false
-                          subscribe: false
-                          fields:
-                            - keyword: _test_field_
-                              value: _test_field_value_
-                              displayOn: payment
-                        returnUrl: https://mysite.com/response/32120
-                        ipAddress: 127.0.0.1
-                        userAgent: PlacetoPay Sandbox
-                        expiration: '2025-07-11T19:25:39.497Z'
-                      payment: null
-                      subscription: null
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - auth
-              properties:
-                auth:
-                  $ref: '#/components/schemas/Authentication'
-            examples:
-              Ejemplo:
-                value:
-                  auth:
-                    login: c51ce410c124a10e0db5e4b97fc2af39
-                    tranKey: VQOcRcVH2DfL6Y4B4SaK6yhoH/VOUveZ3xT16OQnvxE=
-                    nonce: NjE0OWVkODgwYjNhNw==
-                    seed: '2021-09-21T09:34:48-05:00'
+        '4XX':
+          description: Something went wrong and action could not be completted.
+          $ref: '#/components/responses/StatusResponse'
   /api/reverse:
     post:
       summary: Reembolsar pago (ReversePayment)
@@ -2836,11 +2785,26 @@ components:
               - keyword: installments
                 value: null
                 displayOn: none
+    CancelSessionRequest:
+      title: CancelSessionRequest
+      type: object
+      description: "Request structure to cancel a session."
+      required:
+        - auth
+      properties:
+        auth:
+          $ref: '#/components/schemas/Authentication'
+      examples:
+        - auth:
+            login: c51ce410c124a10e0db5e4b97fc2af39
+            tranKey: VQOcRcVH2DfL6Y4B4SaK6yhoH/VOUveZ3xT16OQnvxE=
+            nonce: NjE0OWVkODgwYjNhNw==
+            seed: '2021-09-21T09:34:48-05:00'
     CancelSessionResponse:
       title: CancelSessionResponse
       type: object
       description: |
-        Response structure to a request about sesion cancellation.
+        Response structure to a cancel session request.
       properties:
         status:
           $ref: '#/components/schemas/Status'
@@ -2850,17 +2814,17 @@ components:
         - status:
             status: OK
             reason: '00'
-            message: La petición se ha procesado correctamente
+            message: The request has been processed correctly
             date: '2025-07-11T14:05:44-05:00'
           session:
             requestId: 28
             status:
               status: REJECTED
               reason: MC
-              message: La petición ha sido cancelada por el comercio
+              message: The request has been cancelled by the merchant
               date: '2025-07-11T14:05:44-05:00'
             request:
-              locale: es_CO
+              locale: en_US
               payer:
                 document: '118877455'
                 documentType: CC
