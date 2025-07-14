@@ -1,0 +1,83 @@
+export const description = 'Learn how to cancel a Web Checkout session and understand when it is possible to perform this operation.'
+
+# Cancel a Session
+
+A Web Checkout session can be canceled by the merchant when circumstances require it, as long as certain conditions are met. {{ className: 'lead' }}
+
+Merchants may need to cancel a session for various reasons, such as inventory changes, amount errors, customer decisions, or when the user decides to switch to a different payment method outside the platform.
+
+## When a session can be canceled
+
+A Web Checkout session **can be canceled** only when **all** of the following conditions are met:
+
+- There are no approved payments in the session
+- There are no payments in progress (in pending processing status)
+
+## When a session CANNOT be canceled
+
+A session **cannot be canceled** once it contains at least one approved payment. In these cases, you must use the [refund](/en/checkout/refund) process if you need to return money to the customer.
+
+If cancellation is not available you will need to:
+
+1. Use the refunds API to return the money
+2. Handle the process according to your business policies
+3. Communicate directly with the customer about next steps
+
+---
+
+## Effect of cancellation
+
+When a session is successfully canceled:
+
+**Session status**: Changes to `REJECTED`
+
+**Reason code**: Set as `MC` (Merchant Cancellation)
+
+**User access**: Users will no longer be able to complete any additional payments in the same session
+
+**Session URL**: If the user tries to access the canceled session URL, they will see a message indicating that the session is not available
+
+<Note>
+Cancellation is an irreversible action. Once canceled, the session cannot be reactivated and it will be necessary to create a new session if payment processing is required.
+</Note>
+
+---
+
+## How to cancel a session
+
+To cancel a session, you must use the corresponding endpoint of our API. Check the detailed API documentation at [API - Cancel Session](/en/checkout/api/reference/session#cancel-a-session).
+
+
+```json {{ 'title': 'Response example - Canceled session' }}
+{
+  "status": {
+    "status": "OK",
+    "reason": "00",
+    "message": "The request has been processed successfully",
+    "date": "2025-07-11T14:05:44-05:00"
+  },
+  "session": {
+    "requestId": 28,
+    "status": {
+      "status": "REJECTED",
+      "reason": "MC",
+      "message": "The request has been canceled by the merchant",
+      "date": "2025-07-11T14:05:44-05:00"
+    },
+    ...
+  }
+```
+
+---
+    
+## Best practices
+
+<Note>
+**Programmatic cancellation is not required for your integration.** All sessions can be canceled by the user directly in the Checkout web interface, and all sessions expire automatically according to the parameter configured during session creation. This functionality is only necessary if your business logic requires your application to cancel sessions programmatically.
+</Note>
+
+**Communicate with the customer**: Always inform your customers when a session has been canceled and provide clear instructions about next steps.
+
+**Log the reason**: Keep an internal record of why each session was canceled for future analysis and process improvement.
+
+**Alternatives**: Whenever possible, provide alternatives to the customer, such as creating a new session with corrected information.
