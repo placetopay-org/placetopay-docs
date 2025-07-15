@@ -243,8 +243,7 @@ const ParentProperty = ({
                   <div
                     className={clsx(
                       'overflow-hidden',
-                      open &&
-                        'rounded-lg border border-zinc-200 dark:border-white/5'
+                      open ?  'rounded-lg border border-zinc-200 dark:border-white/5' : 'hidden'
                     )}
                   >
                     <ChildProperties
@@ -322,7 +321,7 @@ export const ApiResponses = ({ responses = {} }) => {
         <ReactMarkdown>{response.description}</ReactMarkdown>
       )}
 
-      
+
 
       {isMulti && (
         <div className="flex justify-end">
