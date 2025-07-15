@@ -321,8 +321,6 @@ export const ApiResponses = ({ responses = {} }) => {
         <ReactMarkdown>{response.description}</ReactMarkdown>
       )}
 
-
-
       {isMulti && (
         <div className="flex justify-end">
           <select
