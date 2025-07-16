@@ -240,14 +240,17 @@ const ParentProperty = ({
                     open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
                   )}
                 >
-                  {open && (
-                    <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-white/5">
-                      <ChildProperties
-                        properties={Object.entries(properties)}
-                        requireds={requireds}
-                      />
-                    </div>
-                  )}
+                  <div
+                    className={clsx(
+                      'overflow-hidden',
+                      open ? 'rounded-lg border border-zinc-200 dark:border-white/5' : 'hidden'
+                    )}
+                  >
+                    <ChildProperties
+                      properties={Object.entries(properties)}
+                      requireds={requireds}
+                    />
+                  </div>
                 </Disclosure.Panel>
               </>
             )}
