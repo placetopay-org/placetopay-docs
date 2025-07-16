@@ -311,9 +311,9 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-          title: 'Reportes de Conciliación Bancaria',
+          title: 'Proceso de Conciliación Bancaria & Reportes',
           links: [                                  
-               {title: 'Definiciones de Conciliación Bancaria',href: '/payments/reportsbank/reportsbanks',},
+               {title: 'Reportes de Conciliación Bancaria',href: '/payments/reportsbank/reportsbanks',},
                { title: 'Ejemplos de reportes de Conciliación Bancaria', href: '/payments/reportsbank/examplereportsbanks' },              
           ],
           }
