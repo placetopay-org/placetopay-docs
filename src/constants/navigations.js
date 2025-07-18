@@ -307,9 +307,16 @@ export const TAB_NAVIGATION = {
           {
             title: 'Integraciones',
             links: [
-              { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },
+              { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },                                
             ],
           },
+          {
+            title: 'Reportes de conciliación bancaria ',
+            links: [                                  
+              { title: 'Reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr' },
+              { title: 'Ejemplos de reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr-examples' },              
+            ],
+          }
         ],
       }
     ],
