@@ -230,7 +230,7 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Reportes transaccionales', links: [
-                  { title: 'Exportes y Estadísticas', href: '/payments/newpanel/reports/export' }
+                  { title: 'Exportes y estadísticas', href: '/payments/newpanel/reports/export' }
                 ],
               },
             ],
