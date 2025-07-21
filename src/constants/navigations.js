@@ -433,6 +433,13 @@ export const TAB_NAVIGATION = {
               { title: 'Transaction Modifiers', href: '/payments/integrations/transaction-modifiers' },
             ],
           },
+           {
+            title: 'Bank reconciliation reports',
+            links: [                                  
+              { title: 'Bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr' },
+              { title: 'Examples of bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr-examples' },              
+            ],
+          }
         ],
       },
     ],
