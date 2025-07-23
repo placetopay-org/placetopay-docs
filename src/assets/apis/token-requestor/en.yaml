@@ -636,3 +636,718 @@ paths:
                 - merchantId
                 - data
       responses:
+  /api/admin/credentials/create:
+    post:
+      summary: Create a credential (PROCESSOR)
+      description: >
+        This endpoint allows the creation of a new access credential for the platform.  
+        *Requires authentication using WS‐Security UsernameToken (**auth** block).*
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  type: object
+                  description: Authentication object. See more in **[Authentication](/en/token-requestor/integration/authentication)**. Structure
+                    that contains the site's authentication information generated according to the WSSE UsernameToken Profile 1.1
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: 'Login for authentication'
+                      example: 1441d14df19ec88431e513bb990326e1
+                    tranKey:
+                      type: string
+                      description: 'Transaction key'
+                      example: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
+                    nonce:
+                      type: string
+                      description: 'Random value to avoid repetitions'
+                      example: enQ4dXh3YWhkMWM=
+                    seed:
+                      type: string
+                      description: 'Datetime seed for the transaction'
+                      example: 2023-06-21T09:56:06-05:00
+                data:
+                  type: object
+                  description: Data for the credential to be created.
+                  required:
+                    - name
+                    - role
+                  properties:
+                    name:
+                      type: string
+                      maxLength: 100
+                      description: Identifier name for the credential.
+                      example: Getnet UY
+                    description:
+                      type: string
+                      maxLength: 220
+                      description: Functional description (optional).
+                      example: Credential for Getnet UY
+                    role:
+                      type: string
+                      description: Credential role.
+                      enum:
+                        - PROCESSOR
+                      example: PROCESSOR
+                    restrictions:
+                      type: object
+                      description: >
+                        Resources the credential will have access to.  
+                        *Must include at least one of the arrays **consumers** or **sites**.*
+                      properties:
+                        consumers:
+                          type: array
+                          minItems: 1
+                          items:
+                            type: string
+                            format: uuid
+                            example: f5ff8bb0-1db9-433b-8d66-e20ebcbd12ae
+                          description: Authorized consumer IDs.
+                        sites:
+                          type: array
+                          minItems: 1
+                          items:
+                            type: string
+                            format: uuid
+                            example: 34227455-2fe8-4596-8999-9c249dec618a
+                          description: Authorized site IDs.
+              required:
+                - auth
+                - data
+            examples:
+              credential_processor:
+                summary: Successful request – PROCESSOR
+                value:
+                  auth:
+                    login: 06c258dfab64db74352680fbdc224ffe
+                    tranKey: ptvCmJF7KgwGmYmL
+                    nonce: cHJ1ZWJhZGU=
+                    seed: 2025-07-10T10:10:00-05:00
+                  data:
+                    name: Sura
+                    description: Credential for SURA
+                    role: PROCESSOR
+                    restrictions:
+                      sites:
+                        - 34227455-2fe8-4596-8999-9c249dec618a
+                      consumers:
+                        - f5ff8bb0-1db9-433b-8d66-e20ebcbd12ae
+                        - 06a58597-c416-48d6-a7e1-f5a546b91858
+      responses:
+        '200':
+          description: Credential created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Operation result information.
+                    properties:
+                      status:
+                        type: string
+                        example: OK
+                      reason:
+                        type: string
+                        example: '00'
+                      message:
+                        type: string
+                        example: The request has been successfully processed
+                    required:
+                      - status
+                      - reason
+                      - message
+                  data:
+                    type: object
+                    description: Details of the created credential.
+                    properties:
+                      login:
+                        type: string
+                        description: Login assigned to the new credential.
+                        example: 06c258dfab64db74352680fbdc224ffe
+                      secretKey:
+                        type: string
+                        description: Generated secret key.
+                        example: ptvCmJF7KgwGmYmL
+                      restrictions:
+                        type: object
+                        description: Resources associated with the credential.
+                        properties:
+                          consumers:
+                            type: array
+                            items:
+                              type: string
+                              format: uuid
+                            example:
+                              - f5ff8bb0-1db9-433b-8d66-e20ebcbd12ae
+                              - 06a58597-c416-48d6-a7e1-f5a546b91858
+                          sites:
+                            type: array
+                            items:
+                              type: string
+                              format: uuid
+                            example:
+                              - 34227455-2fe8-4596-8999-9c249dec618a
+                required:
+                  - status
+                  - data
+  /api/admin/credentials/show:
+    post:
+      summary: Query credential by login
+      description: >
+        This endpoint allows querying the information of a previously created credential
+        using its login.  
+        Requires authentication via WS‐Security UsernameToken (**auth**).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  type: object
+                  description: Authentication object. See more at **[Authentication](/en/token-requestor/integration/authentication)**.
+                    Structure containing the site's authentication information generated according to the WSSE UsernameToken Profile 1.1.
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: Login for authentication
+                      example: 1441d14df19ec88431e513bb990326e1
+                    tranKey:
+                      type: string
+                      description: Transaction key
+                      example: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
+                    nonce:
+                      type: string
+                      description: Random value to prevent replay attacks
+                      example: enQ4dXh3YWhkMWM=
+                    seed:
+                      type: string
+                      description: Date and time seed for the transaction
+                      example: 2023-06-21T09:56:06-05:00
+                login:
+                  type: string
+                  description: Login of the credential to query
+                  example: 06c258dfab64db74352680fbdc224ffe
+              required:
+                - auth
+                - login
+            examples:
+              query_credential:
+                summary: Sample request
+                value:
+                  auth:
+                    login: 1441d14df19ec88431e513bb990326e1
+                    tranKey: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
+                    nonce: enQ4dXh3YWhkMWM=
+                    seed: 2023-06-21T09:56:06-05:00
+                  login: 06c258dfab64db74352680fbdc224ffe
+      responses:
+        '200':
+          description: Successful query.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Result information.
+                    properties:
+                      status:
+                        type: string
+                        example: OK
+                      reason:
+                        type: string
+                        example: '00'
+                      message:
+                        type: string
+                        example: The request has been successfully processed
+                      date:
+                        type: string
+                        format: date-time
+                        example: 2025-07-09T15:46:00+00:00
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                  data:
+                    type: object
+                    description: Details of the queried credential.
+                    properties:
+                      login:
+                        type: string
+                        example: 06c258dfab64db74352680fbdc224ffe
+                      name:
+                        type: string
+                        example: PTP Credential
+                      description:
+                        type: string
+                        example: Credential for Placetopay wallet
+                      role:
+                        type: string
+                        enum:
+                          - PROCESSOR
+                        example: PROCESSOR
+                      restrictions:
+                        type: object
+                        properties:
+                          consumers:
+                            type: array
+                            items:
+                              type: string
+                              format: uuid
+                            example:
+                              - 34227455-2fe8-4596-8999-9c249dec618a
+                          sites:
+                            type: array
+                            items:
+                              type: string
+                              format: uuid
+                      isEnabled:
+                        type: boolean
+                        example: true
+                      createdAt:
+                        type: string
+                        example: 2025-07-09 15:45:05
+                      updatedAt:
+                        type: string
+                        example: 2025-07-09 15:45:05
+                required:
+                  - status
+                  - data
+  /api/admin/credentials/edit:
+    post:
+      summary: Edit an existing credential
+      description: >
+        Allows modifying configurable attributes of a credential.  
+        It's not possible to directly change the login or the tranKey.  
+        If the `restrictions` field is provided, it will completely replace the current restrictions.
+      operationId: admin.credentials.edit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - login
+              properties:
+                auth:
+                  type: object
+                  description: Authentication object. See more at **[Authentication](/en/token-requestor/integration/authentication)**. Structure
+                    containing the site's authentication information generated according to the WSSE UsernameToken Profile 1.1.
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: Login for authentication
+                      example: 1441d14df19ec88431e513bb990326e1
+                    tranKey:
+                      type: string
+                      description: Transaction key
+                      example: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
+                    nonce:
+                      type: string
+                      description: Random value to prevent replay attacks
+                      example: enQ4dXh3YWhkMWM=
+                    seed:
+                      type: string
+                      description: Date and time seed for the transaction
+                      example: 2023-06-21T09:56:06-05:00
+                login:
+                  type: string
+                  description: Login of the credential to edit.
+                  example: 06c258dfab64db74352680fbdc224ffe
+                data:
+                  type: object
+                  description: Optional fields to update the credential.
+                  properties:
+                    name:
+                      type: string
+                      maxLength: 100
+                      example: PTP Credential
+                    description:
+                      type: string
+                      maxLength: 220
+                      example: Credential for the Placetopay wallet
+                    role:
+                      type: string
+                      enum:
+                        - PROCESSOR
+                      example: PROCESSOR
+                    isEnabled:
+                      type: boolean
+                      example: true
+                    restrictions:
+                      type: object
+                      description: >
+                        Resources the credential will have access to.  
+                        *If included, the current restrictions will be fully replaced.*
+                      properties:
+                        consumers:
+                          type: array
+                          items:
+                            type: string
+                            format: uuid
+                          example:
+                            - 34227455-2fe8-4596-8999-9c249dec618a
+                            - 893246327-2fe8-4596-8999-9c249dec872b
+                        sites:
+                          type: array
+                          items:
+                            type: string
+                            format: uuid
+                          example:
+                            - 34227455-2fe8-4596-8999-9c249dec618a
+            examples:
+              edit_credential:
+                summary: Example of edit request
+                value:
+                  auth:
+                    login: 1441d14df19ec88431e513bb990326e1
+                    tranKey: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
+                    nonce: enQ4dXh3YWhkMWM=
+                    seed: 2023-06-21T09:56:06-05:00
+                  login: 06c258dfab64db74352680fbdc224ffe
+                  data:
+                    name: PTP Credential
+                    description: Credential for the Placetopay wallet
+                    role: PROCESSOR
+                    isEnabled: true
+                    restrictions:
+                      consumers:
+                        - 34227455-2fe8-4596-8999-9c249dec618a
+                        - 893246327-2fe8-4596-8999-9c249dec872b
+                      sites:
+                        - 34227455-2fe8-4596-8999-9c249dec618a
+      responses:
+        '200':
+          description: Credential successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Operation result.
+                    properties:
+                      status:
+                        type: string
+                        example: OK
+                      reason:
+                        type: string
+                        example: '00'
+                      message:
+                        type: string
+                        example: The request has been successfully processed
+                      date:
+                        type: string
+                        format: date-time
+                        example: 2025-07-09T15:46:27+00:00
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: ID of the updated credential.
+                        example: 0197efdc-aac3-7394-8f35-f0ce1e244c2c
+                required:
+                  - status
+                  - data
+  /api/admin/credentials/delete:
+    post:
+      summary: Delete a credential
+      description: >
+        Permanently deletes an existing credential from the system, based on its login.  
+        This operation requires administrative authentication and special permissions.
+      operationId: admin.credentials.delete
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - login
+              properties:
+                auth:
+                  type: object
+                  description: Authentication object. See more at **[Authentication](/en/token-requestor/integration/authentication)**. Structure
+                    that contains the site's authentication information generated according to the WSSE UsernameToken Profile 1.1
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: 'Authentication login'
+                      example: 1441d14df19ec88431e513bb990326e1
+                    tranKey:
+                      type: string
+                      description: 'Transaction key'
+                      example: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
+                    nonce:
+                      type: string
+                      description: 'Random value to prevent repetitions'
+                      example: enQ4dXh3YWhkMWM=
+                    seed:
+                      type: string
+                      description: 'Datetime seed for the transaction'
+                      example: 2023-06-21T09:56:06-05:00
+                login:
+                  type: string
+                  description: Login of the credential to be deleted.
+                  example: 06c258dfab64db74352680fbdc224ffe
+            examples:
+              eliminar_credencial:
+                summary: Request example
+                value:
+                  auth:
+                    login: 1441d14df19ec88431e513bb990326e1
+                    tranKey: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
+                    nonce: enQ4dXh3YWhkMWM=
+                    seed: 2023-06-21T09:56:06-05:00
+                  login: 06c258dfab64db74352680fbdc224ffe
+      responses:
+        '200':
+          description: Successful deletion.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Result of the operation.
+                    properties:
+                      status:
+                        type: string
+                        example: OK
+                      reason:
+                        type: string
+                        example: '00'
+                      message:
+                        type: string
+                        example: The request has been successfully processed
+                      date:
+                        type: string
+                        format: date-time
+                        example: 2025-07-09T15:47:14+00:00
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                required:
+                  - status
+  /api/admin/credentials/index:
+    post:
+      tags:
+        - Admin Credentials
+      summary: List Credentials
+      operationId: indexAdminCredentials
+      description: >
+        Allows listing the credentials registered in the system with support for filters and pagination.
+        It can be filtered by name, role, sites, consumers, or creation date range.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  type: object
+                  description: Authentication object. See more at **[Authentication](/en/token-requestor/integration/authentication)**. Structure
+                    that contains the site's authentication information generated according to the WSSE UsernameToken Profile 1.1
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: 'Authentication login'
+                      example: 1441d14df19ec88431e513bb990326e1
+                    tranKey:
+                      type: string
+                      description: 'Transaction key'
+                      example: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
+                    nonce:
+                      type: string
+                      description: 'Random value to prevent repetitions'
+                      example: enQ4dXh3YWhkMWM=
+                    seed:
+                      type: string
+                      description: 'Datetime seed for the transaction'
+                      example: 2023-06-21T09:56:06-05:00
+                filters:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: Exact name of the credential.
+                    role:
+                      type: string
+                      description: Role of the credential.
+                      example: PROCESSOR
+                    sites:
+                      type: array
+                      items:
+                        type: string
+                      description: List of site IDs.
+                    consumers:
+                      type: array
+                      items:
+                        type: string
+                      description: List of consumer IDs.
+                    createdAt:
+                      type: object
+                      properties:
+                        from:
+                          type: string
+                          format: date-time
+                          description: Start creation date (ISO 8601).
+                          example: "2025-01-01T00:00:00-05:00"
+                        to:
+                          type: string
+                          format: date-time
+                          description: End creation date (ISO 8601).
+                          example: "2025-01-31T23:59:59-05:00"
+                page:
+                  type: object
+                  properties:
+                    number:
+                      type: integer
+                      description: Page to query.
+                      example: 1
+                    size:
+                      type: integer
+                      description: Number of items per page.
+                      example: 10
+                      maxLength: 100
+      responses:
+        '200':
+          description: Successful response with paginated credential data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Result of the operation.
+                    properties:
+                      status:
+                        type: string
+                        example: OK
+                      reason:
+                        type: string
+                        example: '00'
+                      message:
+                        type: string
+                        example: The request has been successfully processed
+                      date:
+                        type: string
+                        format: date-time
+                        example: 2025-07-09T15:46:27+00:00
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        login:
+                          type: string
+                          example: "06c258dfab64db74352680fbdc224ffe"
+                        name:
+                          type: string
+                          example: "Credencial PTP"
+                        role:
+                          type: string
+                          example: "PROCESSOR"
+                        isEnabled:
+                          type: boolean
+                          example: true
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2025-07-09 15:45:05"
+                        updatedAt:
+                          type: string
+                          format: date-time
+                          example: "2025-07-09 15:46:27"
+                  links:
+                    type: object
+                    properties:
+                      first:
+                        type: string
+                        example: "/admin/credentials?page=1"
+                      last:
+                        type: string
+                        example: "/admin/credentials?page=1"
+                      prev:
+                        type: string
+                        nullable: true
+                        example: null
+                      next:
+                        type: string
+                        nullable: true
+                        example: null
+                  meta:
+                    type: object
+                    properties:
+                      current_page:
+                        type: integer
+                        example: 1
+                      from:
+                        type: integer
+                        example: 1
+                      last_page:
+                        type: integer
+                        example: 1
+                      path:
+                        type: string
+                        example: "/admin/credentials"
+                      per_page:
+                        type: integer
+                        example: 10
+                      to:
+                        type: integer
+                        example: 1
+                      total:
+                        type: integer
+                        example: 1
