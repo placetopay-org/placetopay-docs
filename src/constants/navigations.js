@@ -1268,7 +1268,7 @@ export const TAB_NAVIGATION = {
             title: 'Api de administracón',
             links: [
               {
-                title: 'Administracion de Credenciales',
+                title: 'Administración de Credenciales',
                 href: '/token-requestor/api/admin/credentials',
               },
             ],
