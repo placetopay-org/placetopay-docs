@@ -115,7 +115,7 @@ This applies to theory pages and API pages.
 
 #### Steps to generate or modify a new entry
 
-1. Creates a new branch from `develop` following the git flow convention it should be called with the prefix `Feature/`, `Refactor/` or `Fix/`.
+1. Creates a new branch from `main` following the git flow convention it should be called with the prefix `feature/`, `refactor/` or `fix/`.
 
 2. Make your changes in that branch and commit progressively with your changes to avoid problems if a revert is necessary.
 
@@ -126,6 +126,50 @@ This applies to theory pages and API pages.
 5. Notify by internal message about the existence of the PR to speed up review, merger and deployment times.
 
 6. Wait for the change notice to be displayed and check in production that your changes are just as you expect.
+
+#### Always take into account
+
+**Data Privacy and Security Guidelines:**
+
+- The documentation contains numerous JSON request/response examples that may include sensitive-looking information
+- **Never use real-world data** in examples, even if obtained from legitimate sources
+- **Always sanitize examples** to ensure all data is obviously fictional and cannot be interpreted as real information
+
+**Required Data Sanitization Standards:**
+
+When creating or reviewing examples, ensure all data follows these patterns:
+
+- **Names**: Use clearly fictional names
+  - ✅ `John Doe`, `Jane Smith`, `Alice Johnson`
+  - ❌ Real-looking names that could belong to actual people
+
+- **Email addresses**: Use obvious example domains
+  - ✅ `user@example.com`, `contact@example.org`, `test@placeholder.com`
+  - ❌ Real domains or emails that could exist
+
+- **Login credentials**: Use clearly artificial tokens
+  - ✅ `123example456token789abc012def345` (32 alphanumeric characters, obviously fake)
+  - ✅ `aabbccdd1234567890aabbccdd123456` (patterned to show it's an example)
+  - ❌ Tokens that could be mistaken for real credentials
+
+- **Card numbers**: Use industry-standard test numbers
+  - ✅ `4111111111111111` (widely recognized PlacetoPay test card)
+  - ✅ `4000000000000002` (standard test card number)
+  - ❌ Any sequence that could be a real card number
+
+- **Phone numbers**: Use clearly fictional formats
+  - ✅ `+1-555-0123`, `(555) 123-4567`
+  - ❌ Real area codes or numbers
+
+- **Addresses**: Use placeholder locations
+  - ✅ `123 Example Street, Sample City, ST 12345`
+  - ❌ Real addresses that could be looked up
+
+**Additional Security Requirements:**
+
+- Never include personal or corporate email addresses in documentation or commit messages
+- Review all examples before publishing to ensure compliance with these guidelines
+- When in doubt, make the fictional nature of the data more obvious rather than less
 
 ## License
 
