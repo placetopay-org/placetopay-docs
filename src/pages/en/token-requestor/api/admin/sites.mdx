@@ -1,152 +1,117 @@
-export const description = 'credentials.';
+export const description = 'sites';
 import {ApiReader, CodeGroup, Col, Row} from "../../../../../components/mdx";
 export const sectionMode = 'nav';
 export const apiRefs = [
-  '/api/admin/credentials/edit',
-  '/api/admin/credentials/delete',
-  '/api/admin/credentials/index',
-  '/api/admin/credentials/show',
-  '/api/admin/credentials/create'
+ '/api/admin/sites/edit',
+ '/api/admin/sites/delete',
+ '/api/admin/sites/index',
+ '/api/admin/sites/show',
+ '/api/admin/sites/create'
 ];
 
-# Credentials
+# Sites
 
-The Administrative Credentials API is designed to manage the credentials used by processors within the system’s administrative environment.
-These credentials are required to interact with protected services, as they contain authentication values.
+The Sites API is designed to simplify the management of sites that belong to a merchant-consumer within the administrative environment. These sites act as integration points, enabling each merchant to connect independently and securely with tokenization and authorization services.
 
-With this API, it is possible to register new credentials, query them by login, update them with new parameters, delete them when no longer needed, and list them using filters.
-Credentials are associated with the `PROCESSOR` role.
+Through this API, you can register new sites, query them individually or via paginated lists, update their configuration, or delete them when no longer needed. Each site is always linked to a merchant and a consumer, and can be configured with parameters such as its name, notification URLs, security credentials, and activation dates.
 
-<Note> All operations require authentication using valid credentials; more details are available in the authentication section of this documentation. </Note>
+The aim is to offer administrators a clear and secure way to manage these connection points. The following sections detail each available operation, the required fields, applicable validation rules, and examples of the response structure for each request.
 
-### Available Permissions
-
-| Name         | Value                 |
-|--------------|------------------------|
-| Tokenization | `TOKENIZATION_PROCESS` |
-
-### Default System Roles
-
-| Case           | Role        | Limitation                            | Relationship                                               | Description                                                                                   | Permissions             |
-|----------------|-------------|----------------------------------------|------------------------------------------------------------|-----------------------------------------------------------------------------------------------|--------------------------|
-| Merchant/Site  | `PROCESSOR` | Operational only. Cannot manage data. | Specifies its consumer and associated sites (INCLUDE)      | Can only generate tokens and cryptograms. No management actions allowed.                     | `TOKENIZATION_PROCESS`   |
+<Note> All operations require authentication using valid credentials. More details are available in the authentication section of this documentation. </Note>
 
 ---
 
 ## Credential Creation
 
-This endpoint allows the creation of new access credentials associated with consumers or sites.
-Generated credentials can be used to access protected services according to their role and ACL (Access Control List) restrictions.
-Only users with specific administrative permissions can invoke this operation.
-Credentials may have the `PROCESSOR` role, each with different requirements and restrictions.
-Creation is performed securely by randomly assigning the login and `secretKey`, and registering `INCLUDE`-type ACL rules for the allowed resources.
+This operation allows you to register a new site within the administrative system environment. It is available only to authenticated users with the appropriate permissions and requires a valid credential to associate the site with an authorized merchant. This is mainly used in administrative environments, whether for testing or production, depending on the values provided.
+
+Once created, the site is stored in the system with its corresponding configuration, activation status, and webhook parameters (if applicable). It can also be registered in test mode (`onTest`), which affects how it operates.
 
 <Row>
   <Col>
     <ApiReader
-      path="/api/admin/credentials/create"
+      path="/api/admin/sites/create"
       method="post"
       api={props.refs}
     />
   </Col>
-
   <Col sticky>
-    <CodeGroup title="Request" tag="POST" label="/api/admin/credential/create">
-      ```bash {{ title: 'Create Credential' }}
-      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/credential/create \
+    <br />
+    <CodeGroup title="Request" tag="POST" label="/api/admin/sites/create">
+      ```bash {{ title: 'Create Site (all fields)' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/create \
       -H "Content-Type: application/json" \
       -d '{
         "auth": {
-           "login":"1441d14df19ec88431e513bb990326e1",
-           "tranKey":"DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=",
-           "nonce":"enQ4dXh3YWhkMWM=",
-           "seed":"2023-06-21T09:56:06-05:00"
+          "login":"f329e676189bb2a447a17ea595153545",
+          "tranKey":"coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=",
+          "nonce":"MnFrcmZlYjQ0bXk=",
+          "seed":"2025-07-03T20:28:43-05:00"
         },
         "data": {
-          "name": "Getnet UY",
-          "description": "Credential for Getnet UY",
-          "role": "PROCESSOR",
-          "restrictions": {
-            "sites": [
-              "34227455-2fe8-4596-8999-9c249dec618a"
-            ],
-            "consumers": [
-              "f5ff8bb0-1db9-433b-8d66-e20ebcbd12ae",
-              "06a58597-c416-48d6-a7e1-f5a546b91858"
-            ]
-          }
+          "name": "Site Test",
+          "webhookURL": "https://webhook.site/asdads",
+          "webhookSecret": "E0wWIBNtNr3GSF6G",
+          "merchantId": "f1d0888b-f5a9-445a-8c54-dba63763fbc5",
+          "onTest": true,
+          "enabledAt": "2025-06-16T22:29:01+00:00"
         }
       }'
       ```
-    </CodeGroup>
-  </Col>
-</Row>
-
-<Row>
-  <Col>
-    <ApiReader
-      path="/api/admin/credentials/create"
-      method="post"
-      type="response"
-      api={props.refs}
-    />
-  </Col>
-
-  <Col sticky>
-    <CodeGroup title="Response">
-      ```json {{ title: 'Successful Response' }}
-      {
-        "status": {
-          "status": "OK",
-          "reason": "00",
-          "message": "The request has been successfully processed"
-        },
-        "data": {
-          "login": "06c258dfab64db74352680fbdc224ffe",
-          "secretKey": "ptvCmJF7KgwGmYmL",
-          "restrictions": {
-            "sites": [
-              "34227455-2fe8-4596-8999-9c249dec618a"
-            ],
-            "consumers": [
-              "f5ff8bb0-1db9-433b-8d66-e20ebcbd12ae",
-              "06a58597-c416-48d6-a7e1-f5a546b91858"
-            ]
-          }
-        }
-      }
-      ```
-    </CodeGroup>
-  </Col>
-</Row>
-
-## Credential Query
-
-This operation retrieves the details of a previously generated credential by its login.
-It returns all configured attributes, including role, description, status (`isEnabled`), and restrictions.
-
-<Row>
-  <Col>
-    <ApiReader
-      path="/api/admin/credentials/show"
-      method="post"
-      api={props.refs}
-    />
-  </Col>
-
-  <Col sticky>
-    <CodeGroup title="Request" tag="POST" label="/api/admin/credential/show">
-      ```bash {{ title: 'Query Credential by Login' }}
-      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/credential/show \
+      ```bash {{ title: 'Create Site (only required)' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/create \
       -H "Content-Type: application/json" \
       -d '{
-         "auth": {
-            "login":"1441d14df19ec88431e513bb990326e1",
-            "tranKey":"DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=",
-            "nonce":"enQ4dXh3YWhkMWM=",
-            "seed":"2023-06-21T09:56:06-05:00"
+        "auth": {
+          "login":"f329e676189bb2a447a17ea595153545",
+          "tranKey":"coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=",
+          "nonce":"MnFrcmZlYjQ0bXk=",
+          "seed":"2025-07-03T20:28:43-05:00"
         },
-        "login": "06c258dfab64db74352680fbdc224ffe"
+        "data": {
+          "name": "Site Test",
+          "merchantId": "f1d0888b-f5a9-445a-8c54-dba63763fbc5"
+        }
+      }'
+      ```
+      ```bash {{ title: 'Error - Null name field' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/create \
+      -H "Content-Type: application/json" \
+      -d '{
+        "auth": {
+          "login":"f329e676189bb2a447a17ea595153545",
+          "tranKey":"coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=",
+          "nonce":"MnFrcmZlYjQ0bXk=",
+          "seed":"2025-07-03T20:28:43-05:00"
+        },
+        "data": {
+          "name": null,
+          "webhookURL": "https://webhook.site/test",
+          "webhookSecret": "E0wWIBNtNr3GSF6G",
+          "merchantId": "f1d0888b-f5a9-445a-8c54-dba63763fbc5",
+          "onTest": true,
+          "enabledAt": "2025-06-16T22:29:01+00:00"
+        }
+      }'
+      ```
+      ```bash {{ title: 'Error - Invalid merchantId' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/create \
+      -H "Content-Type: application/json" \
+      -d '{
+        "auth": {
+          "login":"f329e676189bb2a447a17ea595153545",
+          "tranKey":"coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=",
+          "nonce":"MnFrcmZlYjQ0bXk=",
+          "seed":"2025-07-03T20:28:43-05:00"
+        },
+        "data": {
+          "name": "Site Test",
+          "webhookURL": "https://webhook.site/test",
+          "webhookSecret": "E0wWIBNtNr3GSF6G",
+          "merchantId": "invalid",
+          "onTest": true,
+          "enabledAt": "2025-06-16T22:29:01+00:00"
+        }
       }'
       ```
     </CodeGroup>
@@ -156,14 +121,14 @@ It returns all configured attributes, including role, description, status (`isEn
 <Row>
   <Col>
     <ApiReader
-      path="/api/admin/credentials/show"
+      path="/api/admin/sites/create"
       method="post"
       type="response"
       api={props.refs}
     />
   </Col>
-
   <Col sticky>
+    <br />
     <CodeGroup title="Response">
       ```json {{ title: 'Successful Response' }}
       {
@@ -171,22 +136,283 @@ It returns all configured attributes, including role, description, status (`isEn
           "status": "OK",
           "reason": "00",
           "message": "The request has been successfully processed",
-          "date": "2025-07-22T14:01:00+00:00"
+          "date": "2025-07-03T23:37:15+00:00"
         },
         "data": {
-          "login": "06c258dfab64db74352680fbdc224ffe",
-          "name": "PTP Credential",
-          "description": "Credential for PlacetoPay wallet",
-          "role": "PROCESSOR",
-          "restrictions": {
-            "consumers": [
-              "34227455-2fe8-4596-8999-9c249dec618a"
-            ],
-            "sites": []
+          "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea"
+        }
+      }
+      ```
+      ```json {{ title: 'Failed Response' }}
+      {
+        "status": {
+          "status": "FAILED",
+          "reason": "BR",
+          "message": "The data.name field is required.",
+          "date": "2025-07-04T01:59:29+00:00"
+        }
+      }
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Site Query
+
+This operation allows querying detailed information about a site previously registered in the administrative system. It is exclusively available to authenticated users who have access and visibility permissions over the resource.
+
+The response includes basic site information, its enablement status, test mode (`onTest`), and data related to the associated merchant and consumer. Additionally, if applicable, it returns the configured webhook settings.
+
+This operation validates that the provided identifier exists and that the requesting user has authorized access to the resource, either through a direct relationship or via ACL exclusion rules.
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/show"
+      method="post"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <br />
+    <CodeGroup title="Request" tag="POST" label="/api/admin/sites/show">
+      ```bash {{ title: 'Query a site' }}
+         curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/show \
+         -H "Content-Type: application/json" \
+         -d '{
+        "auth": {
+          "login": "1441d14df19ec88431e513bb990326e1",
+          "tranKey": "DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=",
+          "nonce": "enQ4dXh3YWhkMWM=",
+          "seed": "2025-07-25T09:00:00-05:00"
+        },
+        "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea"
+      }'
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/show"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <br />
+    <CodeGroup title="Response">
+    ```json {{ title: 'Successful Response' }}
+      {
+        "status": {
+          "status": "OK",
+          "reason": "00",
+          "message": "The request has been successfully processed",
+          "date": "2025-07-25T09:00:02-05:00"
+        },
+        "data": {
+          "uuid": "e32d7a3d-c2ee-4c1c-9623-920a8b1c82cd",
+          "consumer": "a99ee271-ff14-47b1-97bc-3d9deeb1b91b",
+          "name": "Example Site",
+          "code": "SITE123",
+          "url": "https://www.ejemplo.com",
+          "type": "ECOMMERCE",
+          "environment": "production",
+          "isEnabled": true,
+          "createdAt": "2025-07-25 09:00:02",
+          "updatedAt": "2025-07-25 09:00:02"
+        }
+      }
+    ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Site Update
+
+This operation allows modifying the attributes of an existing site in the administrative environment. It is designed to update only the fields included in the request, without altering the site's other values. It is available only to authenticated users with proper site management permissions.
+
+Each editable attribute must be sent inside the `data` object, along with the required `id` field identifying the site to be updated. The operation is secure and controlled, preventing unauthorized modifications to fields like `merchant` or `consumer`.
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/edit"
+      method="post"
+      type="request"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <br />
+    <CodeGroup title="Request" tag="POST" label="/api/admin/sites/edit">
+      ```bash {{ title: 'Edit a site' }}
+         curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/edit \
+         -H "Content-Type: application/json" \
+         -d '{
+        "auth": {
+          "login": "1441d14df19ec88431e513bb990326e1",
+          "tranKey": "DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=",
+          "nonce": "enQ4dXh3YWhkMWM=",
+          "seed": "2025-07-25T09:00:00-05:00"
+        },
+        "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea",
+         "data": {
+           "name": "Updated test site",
+           "webhookURL": "https://miwebhook.com/notificaciones",
+           "webhookSecret": "clave-secreta-webhook",
+           "onTest": false,
+           "enabledAt": "2025-08-01T08:30:00-05:00"
+         }
+      }'
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/edit"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <br />
+    <CodeGroup title="Response">
+    ```json {{ title: 'Successful Response' }}
+      {
+        "status": {
+          "status": "OK",
+          "reason": "00",
+          "message": "The request has been successfully processed",
+          "date": "2025-07-25T14:01:22-05:00"
+        },
+        "data": {
+          "id": "1f2c8c0a-9e2a-4e71-9431-364c4fa4b54b"
+        }
+      }
+      ```
+    ```json {{ title: 'Failed Response' }}
+      {
+        "status": {
+          "status": "FAILED",
+          "reason": "BR",
+          "message": "The field 'webhookURL' is not a valid URL",
+          "date": "2025-07-25T14:02:30-05:00"
+        }
+      }
+    ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Site Deletion
+
+This operation allows deleting a previously registered site in the administrative system. It is exclusively available to authenticated users who have access and visibility permissions over the resource.
+
+The response includes basic site information, enablement status, test mode (`onTest`), and data related to the associated merchant and consumer. Additionally, if applicable, it returns the configured webhook settings.
+
+This operation validates that the provided identifier exists and that the requesting user has authorized access to the resource, either through direct relation or ACL exclusion rules.
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/delete"
+      method="post"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <br />
+    <CodeGroup title="Request" tag="POST" label="/api/admin/sites/delete">
+      ```bash {{ title: 'Successfully delete a site' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/delete \
+        -H "Content-Type: application/json" \
+        -d '{
+          "auth": {
+            "login": "f329e676189bb2a447a17ea595153545",
+            "tranKey": "coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=",
+            "nonce": "MnFrcmZlYjQ0bXk=",
+            "seed": "2025-07-03T20:28:43-05:00"
           },
-          "isEnabled": true,
-          "createdAt": "2025-07-09 15:45:05",
-          "updatedAt": "2025-07-09 15:45:05"
+          "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea"
+        }'
+      ```
+      ```bash {{ title: 'Error - Site has associated tokens' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/delete \
+        -H "Content-Type: application/json" \
+        -d '{
+          "auth": {
+            "login": "f329e676189bb2a447a17ea595153545",
+            "tranKey": "coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=",
+            "nonce": "MnFrcmZlYjQ0bXk=",
+            "seed": "2025-07-03T20:28:43-05:00"
+          },
+          "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea"
+        }'
+      ```
+      ```bash {{ title: 'Error - Invalid site ID' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/delete \
+        -H "Content-Type: application/json" \
+        -d '{
+          "auth": {
+            "login": "f329e676189bb2a447a17ea595153545",
+            "tranKey": "coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=",
+            "nonce": "MnFrcmZlYjQ0bXk=",
+            "seed": "2025-07-03T20:28:43-05:00"
+          },
+          "id": "invalid"
+        }'
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/delete"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <br />
+    <CodeGroup title="Response">
+      ```json {{ title: 'Successful response' }}
+      {
+        "status": {
+          "status": "OK",
+          "reason": "00",
+          "message": "The request has been successfully processed",
+          "date": "2025-07-04T14:50:00+00:00"
+        }
+      }
+      ```
+      ```json {{ title: 'Failed response - Site has tokens' }}
+      {
+        "status": {
+          "status": "FAILED",
+          "reason": "BR",
+          "message": "The site has associated tokens.",
+          "date": "2025-07-04T14:53:40+00:00"
+        }
+      }
+      ```
+      ```json {{ title: 'Failed response - Invalid ID' }}
+      {
+        "status": {
+          "status": "FAILED",
+          "reason": "BR",
+          "message": "The selected id is invalid.",
+          "date": "2025-07-04T14:54:02+00:00"
         }
       }
       ```
@@ -194,51 +420,53 @@ It returns all configured attributes, including role, description, status (`isEn
   </Col>
 </Row>
 
-## Credential Update
+---
 
-Allows modifying the configurable attributes of an existing credential.
-You can update the name, description, role, status (`isEnabled`), and restrictions (consumers, sites, and advanced ACLs).
-`login` and `tranKey` cannot be modified.
+## Site Listing
 
-<Note type='warning'>
-If the `restrictions` field is sent, it will replace the current restrictions of the credential. This means existing restrictions will be deleted and new ones will be created.
-</Note>
+This operation retrieves a list of sites registered in the administrative system, returning a paginated set of results with the ability to apply multiple filters to narrow down the search. It can only be used by authenticated and authorized credentials, based on access permissions defined by the system.
+
+The result includes basic information about each site, such as its identifier, related consumer and merchant data, name, webhook URLs, key dates, and its test or production status.
+
+The system also supports exclusion mechanisms via ACLs, so certain sites may not appear depending on the access rules configured for the authenticated credential.
 
 <Row>
   <Col>
     <ApiReader
-      path="/api/admin/credentials/edit"
+      path="/api/admin/sites/index"
       method="post"
       api={props.refs}
     />
   </Col>
-
   <Col sticky>
-    <CodeGroup title="Request" tag="POST" label="/api/admin/credentials/edit">
-      ```bash {{ title: 'Edit Credential' }}
-      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/credentials/edit \
-      -H "Content-Type: application/json" \
-      -d '{
-         "auth": {
-            "login":"1441d14df19ec88431e513bb990326e1",
-            "tranKey":"DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=",
-            "nonce":"enQ4dXh3YWhkMWM=",
-            "seed":"2023-06-21T09:56:06-05:00"
-        },
-        "credential": {
-          "login": "06c258dfab64db74352680fbdc224ffe",
-          "name": "Updated Name",
-          "email": "newemail@example.com",
-          "ipAddress": "10.0.0.1",
-          "isEnabled": true,
-          "restrictions": {
-            "allowedOrigins": ["https://example.com"],
-            "allowedIpAddresses": ["10.0.0.1"],
-            "allowedReferers": ["https://example.com"],
-            "allowedUserAgents": ["PostmanRuntime"]
+    <br />
+    <CodeGroup title="Request" tag="POST" label="/api/admin/sites/index">
+      ```bash {{ title: 'List all sites' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/index \
+        -H "Content-Type: application/json" \
+        -d '{
+          "auth": {
+            "login": "f329e676189bb2a447a17ea595153545",
+            "tranKey": "coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=",
+            "nonce": "MnFrcmZlYjQ0bXk=",
+            "seed": "2025-07-03T20:28:43-05:00"
           }
-        }
-      }'
+        }'
+      ```
+      ```bash {{ title: 'List sites by merchant' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/index \
+        -H "Content-Type: application/json" \
+        -d '{
+          "auth": {
+            "login": "f329e676189bb2a447a17ea595153545",
+            "tranKey": "coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=",
+            "nonce": "MnFrcmZlYjQ0bXk=",
+            "seed": "2025-07-03T20:28:43-05:00"
+          },
+          "filter": {
+            "merchant": "merchant_slug"
+          }
+        }'
       ```
     </CodeGroup>
   </Col>
@@ -247,180 +475,43 @@ If the `restrictions` field is sent, it will replace the current restrictions of
 <Row>
   <Col>
     <ApiReader
-      path="/api/admin/credentials/edit"
+      path="/api/admin/sites/index"
       method="post"
       type="response"
       api={props.refs}
     />
   </Col>
-
   <Col sticky>
+    <br />
     <CodeGroup title="Response">
-      ```json {{ title: 'Successful Response' }}
+      ```json {{ title: 'Successful response' }}
       {
         "status": {
           "status": "OK",
           "reason": "00",
           "message": "The request has been successfully processed",
-          "date": "2025-07-22T14:01:00+00:00"
+          "date": "2025-07-04T15:03:00+00:00"
         },
-        "data": {
-          "login": "06c258dfab64db74352680fbdc224ffe",
-          "name": "Updated Name",
-          "role": "CONSUMER",
-          "isEnabled": true,
-          "createdAt": "2025-07-10 10:15:30",
-          "updatedAt": "2025-07-22 14:00:59"
-        }
-      }
-      ```
-    </CodeGroup>
-  </Col>
-</Row>
-
-## Credential Deletion
-
-Deletes a credential from the system using its login.
-This operation is irreversible and requires administrative privileges.
-
-<Row>
-  <Col>
-    <ApiReader
-      path="/api/admin/credentials/delete"
-      method="post"
-      api={props.refs}
-    />
-  </Col>
-
-  <Col sticky>
-    <CodeGroup title="Request" tag="POST" label="/api/admin/credentials/delete">
-      ```bash {{ title: 'Delete Credential' }}
-      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/credentials/delete \
-      -H "Content-Type: application/json" \
-      -d '{
-         "auth": {
-            "login":"1441d14df19ec88431e513bb990326e1",
-            "tranKey":"DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=",
-            "nonce":"enQ4dXh3YWhkMWM=",
-            "seed":"2023-06-21T09:56:06-05:00"
-        },
-        "login": "06c258dfab64db74352680fbdc224ffe"
-      }'
-      ```
-    </CodeGroup>
-  </Col>
-</Row>
-
-<Row>
-  <Col>
-    <ApiReader
-      path="/api/admin/credentials/delete"
-      method="post"
-      type="response"
-      api={props.refs}
-    />
-  </Col>
-
-  <Col sticky>
-    <CodeGroup title="Response">
-      ```json {{ title: 'Successful Response' }}
-      {
-        "status": {
-          "status": "OK",
-          "reason": "00",
-          "message": "The request has been successfully processed",
-          "date": "2025-07-09T15:47:14+00:00"
-        }
-      }
-      ```
-    </CodeGroup>
-  </Col>
-</Row>
-
-## List Credentials
-
-Lists registered credentials with support for filtering and pagination.
-You can filter by name, role, sites, consumers, or creation date range.
-
-<Row>
-  <Col>
-    <ApiReader
-      path="/api/admin/credentials/index"
-      method="post"
-      api={props.refs}
-    />
-  </Col>
-
-  <Col sticky>
-    <CodeGroup title="Request" tag="POST" label="/api/admin/credentials">
-      ```bash {{ title: 'List Credentials' }}
-      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/credentials \
-      -H "Content-Type: application/json" \
-      -d '{
-        "auth": {
-           "login":"1441d14df19ec88431e513bb990326e1",
-           "tranKey":"DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=",
-           "nonce":"enQ4dXh3YWhkMWM=",
-           "seed":"2023-06-21T09:56:06-05:00"
-        },
-        "filters": {
-          "role": "PROCESSOR"
-        },
-        "page": {
-          "number": 1,
-          "size": 10
-        }
-      }'
-      ```
-    </CodeGroup>
-  </Col>
-</Row>
-
-<Row>
-  <Col>
-    <ApiReader
-      path="/api/admin/credentials/index"
-      method="post"
-      type="response"
-      api={props.refs}
-    />
-  </Col>
-
-  <Col sticky>
-    <CodeGroup title="Response">
-      ```json {{ title: 'Successful Response' }}
-      {
-        "status": {
-          "status": "OK",
-          "reason": "00",
-          "message": "The request has been successfully processed",
-          "date": "2025-07-09T15:48:00+00:00"
-        },
-        "data": [
+        "sites": [
           {
-            "login": "06c258dfab64db74352680fbdc224ffe",
-            "name": "PTP Credential",
-            "role": "PROCESSOR",
-            "isEnabled": true,
-            "createdAt": "2025-07-09 15:45:05",
-            "updatedAt": "2025-07-09 15:46:27"
+            "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea",
+            "name": "Website XYZ",
+            "slug": "website-xyz",
+            "merchant": "merchant_slug",
+            "environment": "sandbox",
+            "url": "https://xyz.com",
+            "created_at": "2025-07-01T12:30:00-05:00"
+          },
+          {
+            "id": "e8933493-b4f1-44cb-b6c7-02db9f9e3b57",
+            "name": "Site ABC",
+            "slug": "site-abc",
+            "merchant": "merchant_slug",
+            "environment": "production",
+            "url": "https://abc.com",
+            "created_at": "2025-06-15T09:45:00-05:00"
           }
-        ],
-        "links": {
-          "first": "/admin/credentials?page=1",
-          "last": "/admin/credentials?page=1",
-          "prev": null,
-          "next": null
-        },
-        "meta": {
-          "current_page": 1,
-          "from": 1,
-          "last_page": 1,
-          "path": "/admin/credentials",
-          "per_page": 10,
-          "to": 1,
-          "total": 1
-        }
+        ]
       }
       ```
     </CodeGroup>
