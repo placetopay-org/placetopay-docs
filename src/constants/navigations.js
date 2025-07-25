@@ -1271,6 +1271,10 @@ export const TAB_NAVIGATION = {
                 title: 'Administración de Credenciales',
                 href: '/token-requestor/api/admin/credentials',
               },
+              {
+                title: 'Administración de Sitios',
+                href: '/token-requestor/api/admin/sites',
+              },
             ],
           },
         ],
@@ -1352,6 +1356,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Credential Management',
                 href: '/token-requestor/api/admin/credentials',
+              },
+              {
+                title: 'Sites Management',
+                href: '/token-requestor/api/admin/sites',
               },
             ],
           },
