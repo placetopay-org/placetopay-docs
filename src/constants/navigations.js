@@ -1225,6 +1225,10 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/integration/authentication',
               },
               {
+                title: 'Códigos de razón',
+                href: '/token-requestor/integration/reason-codes',
+              },
+              {
                 title: 'Notificaciones',
                 href: '/token-requestor/integration/notifications',
               },
@@ -1293,6 +1297,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Authentication',
                 href: '/token-requestor/integration/authentication',
+              },
+              {
+                title: 'Reason codes',
+                href: '/token-requestor/integration/reason-codes',
               },
               {
                 title: 'Notifications',
