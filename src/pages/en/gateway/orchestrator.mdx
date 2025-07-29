@@ -1,0 +1,148 @@
+# Payment Orchestrator
+
+This feature allows you to select a payment method from a list of eligible payment methods, using an index associated
+with the priority configured for the desired payment method.
+
+## Payment method selection flow by index
+
+<ImageZoom
+    src="/OrchestratorInformation_en.webp"
+    alt="Service selection by index flow"
+    className="w-full max-w-full shadow rounded-md my-0 transition-transform duration-300 ease-in-out"
+/>
+
+## Requirements to Enable the Feature
+To enable the feature, several requirements must be met.
+
+### Orchestrator configuration enabled
+
+The site must have the Orchestrator integration associated and active.
+
+**Integration:** `payment_orchestrator`
+
+**Content:** The `enabled` property must be `true`
+```json
+{
+    "enabled": true
+}
+```
+
+### Valid index present in the request
+
+In the request, whether from the `information` or `process` endpoint, the `preferredPaymentMethodIndex` field must be
+present within the `metadata` property.
+
+### Franchise
+This feature only supports transactions with **Visa** and **Mastercard** franchise cards.
+
+### Payment methods availability
+
+More than one eligible payment method must exist.
+
+## Processes that do not support payment method selection by index.
+
+* Dispersion, both airline and merchant.
+* Manual provider selection.
+* Forwarding.
+
+<Note>Processes that do not support payment method selection by index use the traditional payment method selection flow.</Note>
+
+## How is the payment method selected by index?
+
+Currently, the first payment method is selected from a series of eligible payment methods for processing using
+the entered card.
+
+With the integration of this feature, it is possible to select the desired payment method from the list of available payment methods,
+using an index provided in the request.
+
+### Payment method selection by index in the information request
+
+When making a request to the `information` endpoint, the `preferredPaymentMethodIndex` field must be present in
+the `metadata` property.
+
+**Example, request**
+```json
+// ...
+"metadata": {
+    "preferredPaymentMethodIndex": 2
+}
+// ...
+```
+
+If the aforementioned conditions are met, a list of eligible payment methods is obtained. This is
+sorted in ascending order payment method priority.
+
+With the indexed list, the payment method is selected using the index and the total number of payment methods is taken.
+
+Once the selection is made, the `availablePaymentMethods` property is added to the `information` response, which indicates
+ the total number of payment methods available to process a transaction with the entered card.
+
+**Response Example**
+```json
+// ...
+    "availablePaymentMethods": 5
+// ...
+```
+
+## Retry Availability Flow
+<ImageZoom
+    src="/OrchestratorProcess_en.webp"
+    alt="Retry Availability Flow"
+    className="w-full max-w-full shadow rounded-md my-0 transition-transform duration-300 ease-in-out"
+/>
+
+When making a request to the `process` endpoint, it must contain the `preferredPaymentMethodIndex` field in the `metadata` property.
+
+The same payment method selection process as when requesting information is performed.
+
+<Note>Using an invalid index or one that exceeds the total number of eligible payment methods (both in the information
+request and in the processing process) results in an error response.</Note>
+
+If a processed transaction is **rejected** or **failed**, and if the orchestrator integration on the site is active and
+the aforementioned requirements for index selection are met, the transaction is validated as eligible for reprocessing
+with an alternative payment method.
+
+To indicate whether the transaction is eligible, the `canRetry` field is appended to the `process` response in the `additional` property.
+
+A transaction may be eligible if it meets both the requirements validated during the selection process and the following:
+
+**Response Code**
+
+The response code must be within the list of codes that allow reprocessing.
+
+| Code | Description                      |
+|------|----------------------------------|
+| `96` | System malfunction               |
+| `68` | Late response                    |
+| `R1` | Revocation of authorization      |
+| `R3` | Revocation of all authorizations |
+| `13` | Invalid amount                   |
+| `61` | Invalid max amount               |
+| `XH` | Invalid host                     |
+| `XR` | Invalid response                 |
+| `XE` | Invalid card type                |
+| `XX` | Invalid settings                 |
+
+**Index**
+
+The index `preferredPaymentMethodIndex` in the request must be less than the total number of eligible payment methods to be processed.
+
+In scenarios where the rejection code is in the list of eligible codes and the index is less than the total number of payment methods, `canRetry` will be `true`, otherwise, it will be `false`.
+
+**Response Example**
+```json
+    // ...
+    "additional": {
+        // ...
+        "canRetry": true
+    }
+    // ...
+```
+
+For more information about examples and properties, see the **api** section.
+
+## FAQs
+<details>
+<summary>How do I request Payment Orchestrator configuration on a site?</summary>
+<p> You must make a request to our after-sales team through the email servicioposventa@placetopay.ec </p>
+</details>

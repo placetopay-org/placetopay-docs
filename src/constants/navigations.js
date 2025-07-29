@@ -671,6 +671,10 @@ export const TAB_NAVIGATION = {
                 title: 'Webhooks',
                 href: '/gateway/webhooks',
               },
+              {
+                title: 'Orquestador de pagos',
+                href: '/gateway/orchestrator',
+              },
             ],
           },
         ],
@@ -771,6 +775,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Webhooks',
                 href: '/gateway/webhooks',
+              },
+              {
+                title: 'Payment Orchestrator',
+                href: '/gateway/orchestrator',
               },
             ],
           },
