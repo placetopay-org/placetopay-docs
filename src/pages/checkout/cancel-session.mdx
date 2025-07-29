@@ -1,0 +1,83 @@
+export const description = 'Aprende cómo cancelar una sesión de Web Checkout y comprende cuándo es posible realizar esta operación.'
+
+# Cancelar una Sesión
+
+Una sesión de Web Checkout puede ser cancelada por el comercio cuando las circunstancias lo requieran, siempre y cuando se cumplan ciertas condiciones. {{ className: 'lead' }}
+
+Los comercios pueden necesitar cancelar una sesión por diversas razones, como cambios en el inventario, errores en el monto, decisiones del cliente, o cuando el usuario decide cambiar a un método de pago diferente fuera de la plataforma.
+
+## Cuándo se puede cancelar una sesión
+
+Una sesión de Web Checkout **puede ser cancelada** únicamente cuando se cumplan **todas** las siguientes condiciones:
+
+- No hay pagos aprobados en la sesión
+- No hay pagos en progreso (en estado pendiente de procesamiento)
+
+## Cuándo NO se puede cancelar una sesión
+
+Una sesión **no puede ser cancelada** una vez que contiene al menos un pago aprobado. En estos casos, deberás usar el proceso de [reembolso](/checkout/refund) si necesitas devolver el dinero al cliente.
+
+Si la cancelación no está disponible tendrás que:
+
+1. Usar el API de reembolsos para devolver el dinero
+2. Manejar el proceso según tus políticas comerciales
+3. Comunicarte directamente con el cliente sobre los próximos pasos
+
+---
+
+## Efecto de la cancelación
+
+Cuando una sesión es cancelada exitosamente:
+
+**Estado de la sesión**: Cambia a `REJECTED`
+
+**Código de razón**: Se establece como `MC` (Merchant Cancellation - Cancelación del Comercio)
+
+**Acceso del usuario**: Los usuarios ya no podrán completar ningún pago adicional en la misma sesión
+
+**URL de la sesión**: Si el usuario intenta acceder a la URL de la sesión cancelada, verá un mensaje indicando que la sesión no está disponible
+
+<Note>
+La cancelación es una acción irreversible. Una vez cancelada, la sesión no puede ser reactivada y será necesario crear una nueva sesión si se requiere procesar un pago.
+</Note>
+
+---
+
+## Cómo cancelar una sesión
+
+Para cancelar una sesión, debes usar el endpoint correspondiente de nuestra API. Consulta la documentación detallada del API en [API - Cancelar Sesión](/checkout/api/reference/session#cancel-a-session).
+
+
+```json {{ 'title': 'CancelSessionResponse - Ejemplo, cancelar una sesión' }}
+{
+  "status": {
+    "status": "OK",
+    "reason": "00",
+    "message": "La petición se ha procesado correctamente",
+    "date": "2025-07-11T14:05:44-05:00"
+  },
+  "session": {
+    "requestId": 28,
+    "status": {
+      "status": "REJECTED",
+      "reason": "MC",
+      "message": "La petición ha sido cancelada por el comercio",
+      "date": "2025-07-11T14:05:44-05:00"
+    },
+    ...
+  }
+```
+
+---
+    
+## Mejores prácticas
+
+<Note>
+**La cancelación programática no es requerida para tu integración.** Todas las sesiones pueden ser canceladas por el usuario directamente en la interfaz web de Checkout, y todas las sesiones expiran automáticamente según el parámetro configurado durante la creación de la sesión. Esta funcionalidad solo es necesaria si tu lógica de negocio requiere que tu aplicación cancele las sesiones programáticamente.
+</Note>
+
+**Comunica con el cliente**: Siempre informa a tus clientes cuando una sesión ha sido cancelada y proporciona instrucciones claras sobre los próximos pasos.
+
+**Registra la razón**: Mantén un registro interno de por qué se canceló cada sesión para análisis futuros y mejora de procesos.
+
+**Alternativas**: Siempre que sea posible, proporciona alternativas al cliente, como crear una nueva sesión con información corregida.

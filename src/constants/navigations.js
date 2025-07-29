@@ -330,9 +330,16 @@ export const TAB_NAVIGATION = {
           {
             title: 'Integraciones',
             links: [
-              { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },
+              { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },                                
             ],
           },
+          {
+            title: 'Reportes de conciliación bancaria ',
+            links: [                                  
+              { title: 'Reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr' },
+              { title: 'Ejemplos de reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr-examples' },              
+            ],
+          }
         ],
       }
     ],
@@ -449,6 +456,13 @@ export const TAB_NAVIGATION = {
               { title: 'Transaction Modifiers', href: '/payments/integrations/transaction-modifiers' },
             ],
           },
+           {
+            title: 'Bank reconciliation reports',
+            links: [                                  
+              { title: 'Bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr' },
+              { title: 'Examples of bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr-examples' },              
+            ],
+          }
         ],
       },
     ],
@@ -475,8 +489,9 @@ export const TAB_NAVIGATION = {
             title: 'Integración',
             links: [
               { title: 'Autenticación', href: '/checkout/authentication' },
-              { title: 'Crear Sesión', href: '/checkout/create-session' },
+              { title: 'Crear sesión', href: '/checkout/create-session' },
               { title: 'Notificación', href: '/checkout/notification' },
+              { title: 'Cancelar sesión', href: '/checkout/cancel-session' },
               { title: 'Localización', href: '/checkout/localization' },
               { title: 'Tipos de documento', href: '/checkout/document-types' },
               {
@@ -569,6 +584,7 @@ export const TAB_NAVIGATION = {
               { title: 'Authentication', href: '/checkout/authentication' },
               { title: 'Create session', href: '/checkout/create-session' },
               { title: 'Notification', href: '/checkout/notification' },
+              { title: 'Cancel session', href: '/checkout/cancel-session' },
               { title: 'Localization', href: '/checkout/localization' },
               { title: 'Document types', href: '/checkout/document-types' },
               {
