@@ -240,18 +240,14 @@ const ParentProperty = ({
                     open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
                   )}
                 >
-                  <div
-                    className={clsx(
-                      'overflow-hidden',
-                      open &&
-                        'rounded-lg border border-zinc-200 dark:border-white/5'
-                    )}
-                  >
-                    <ChildProperties
-                      properties={Object.entries(properties)}
-                      requireds={requireds}
-                    />
-                  </div>
+                  {open && (
+                    <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-white/5">
+                      <ChildProperties
+                        properties={Object.entries(properties)}
+                        requireds={requireds}
+                      />
+                    </div>
+                  )}
                 </Disclosure.Panel>
               </>
             )}
@@ -321,8 +317,6 @@ export const ApiResponses = ({ responses = {} }) => {
       {response.description && (
         <ReactMarkdown>{response.description}</ReactMarkdown>
       )}
-
-      
 
       {isMulti && (
         <div className="flex justify-end">
