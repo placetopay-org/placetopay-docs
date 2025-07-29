@@ -1264,6 +1264,10 @@ export const TAB_NAVIGATION = {
               },
             ],
           },
+          {
+            title: 'API de administración',
+            links: [{ title: 'Administración de comercios', href: '/token-requestor/api/admin/merchant' }],
+          },
         ],
       },
     ],
@@ -1336,6 +1340,10 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/api/delete-token'
               },
             ],
+          },
+          {
+            title: 'Administration API',
+            links: [{ title: 'Merchant management', href: '/token-requestor/api/admin/merchant' }],
           },
         ],
       },
