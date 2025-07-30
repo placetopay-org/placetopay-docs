@@ -742,7 +742,7 @@ export const TAB_NAVIGATION = {
                 title: 'Operaciones con PinPad',
                 href: '/gateway/api/reference/pinpad',
               },
-              {
+               {
                 title: 'Operaciones con ordenes de pago',
                 href: '/gateway/api/reference/cashorder',
               },
