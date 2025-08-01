@@ -267,6 +267,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Proceso de pago en WebCheckout', href: '/payments/process-pay' },
               { title: 'Preautorización', href: '/payments/preauthorization' },
+              { title: 'Conciliación', href: '/payments/conciliation' },
             ],
           },
           {
@@ -390,6 +391,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Payment Process in Web Checkout', href: '/payments/process-pay' },
               { title: 'Preauthorization', href: '/payments/preauthorization' },
+              { title: 'Conciliation', href: '/payments/conciliation' },
             ],
           },
           {
