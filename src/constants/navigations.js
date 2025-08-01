@@ -356,7 +356,29 @@ export const TAB_NAVIGATION = {
               { title: 'Introduction', href: '/payments' },
             ],
           },
-
+           {
+            title: 'New administrative panel',
+            links: [
+              { title: 'Introduction', href: '/payments/newpanel/introduction'},
+                { title: 'Access to new panel',
+                links: [
+                  { title: 'User migration', href: '/payments/newpanel/users/migration' },
+                  { title: 'User creation', href: '/payments/newpanel/users/createuser' },
+                  
+                ], 
+              },
+              {
+                title: 'Transactions', links: [
+                  { title: 'Transaction inquiry', href: '/payments/newpanel/transaction/search' }                                   
+                ],
+              },
+              {
+                title: 'Transactional reports', links: [
+                  { title: 'Exports and statistics', href: '/payments/newpanel/reports/export' }
+                ],
+              },
+            ],
+          },
           {
             title: 'Payment Links',
             links: [
