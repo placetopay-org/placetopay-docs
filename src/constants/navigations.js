@@ -1266,6 +1266,15 @@ export const TAB_NAVIGATION = {
               },
             ],
           },
+          {
+            title: 'Api de administracón',
+            links: [
+              {
+                title: 'Administración de Credenciales',
+                href: '/token-requestor/api/admin/credentials',
+              },
+            ],
+          },
         ],
       },
     ],
@@ -1336,6 +1345,15 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Delete Token',
                 href: '/token-requestor/api/delete-token'
+              },
+            ],
+          },
+          {
+            title: 'Management API',
+            links: [
+              {
+                title: 'Credential Management',
+                href: '/token-requestor/api/admin/credentials',
               },
             ],
           },
