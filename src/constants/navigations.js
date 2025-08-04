@@ -308,14 +308,14 @@ export const TAB_NAVIGATION = {
           {
             title: 'Integraciones',
             links: [
-              { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },                                
+              { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },
             ],
           },
           {
             title: 'Reportes de conciliación bancaria ',
-            links: [                                  
+            links: [
               { title: 'Reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr' },
-              { title: 'Ejemplos de reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr-examples' },              
+              { title: 'Ejemplos de reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr-examples' },
             ],
           }
         ],
@@ -437,9 +437,9 @@ export const TAB_NAVIGATION = {
           },
            {
             title: 'Bank reconciliation reports',
-            links: [                                  
+            links: [
               { title: 'Bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr' },
-              { title: 'Examples of bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr-examples' },              
+              { title: 'Examples of bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr-examples' },
             ],
           }
         ],
@@ -703,6 +703,10 @@ export const TAB_NAVIGATION = {
                 title: 'Indicador de iniciador de transacción',
                 href: '/gateway/initiator-indicator',
               },
+              {
+                title: 'Orquestador de pagos',
+                href: '/gateway/orchestrator',
+              },
             ],
           },
         ],
@@ -811,6 +815,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Transaction Initiator Indicator',
                 href: '/gateway/initiator-indicator',
+              },
+              {
+                title: 'Payment Orchestrator',
+                href: '/gateway/orchestrator',
               },
             ],
           },
