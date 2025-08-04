@@ -1266,7 +1266,16 @@ export const TAB_NAVIGATION = {
           },
           {
             title: 'API de administración',
-            links: [{ title: 'Administración de comercios', href: '/token-requestor/api/admin/merchant' }],
+            links: [
+              {
+                title: 'Administración de credenciales',
+                href: '/token-requestor/api/admin/credentials',
+              },
+              {
+                title: 'Administración de comercios',
+                href: '/token-requestor/api/admin/merchant',
+              },
+            ],
           },
         ],
       },
@@ -1342,8 +1351,17 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Administration API',
-            links: [{ title: 'Merchant management', href: '/token-requestor/api/admin/merchant' }],
+            title: 'Management API',
+            links: [
+              {
+                title: 'Credential management',
+                href: '/token-requestor/api/admin/credentials',
+              },
+              {
+                title: 'Merchant management',
+                href: '/token-requestor/api/admin/merchant',
+              },
+            ],
           },
         ],
       },
