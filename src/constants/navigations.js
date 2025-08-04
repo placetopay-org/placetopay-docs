@@ -1276,7 +1276,7 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/api/admin/credentials',
               },
               {
-                title: 'Administración de comercios',
+                title: 'Administración de Comercios',
                 href: '/token-requestor/api/admin/merchant',
               },
             ],
@@ -1366,7 +1366,7 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/api/admin/credentials',
               },
               {
-                title: 'Administración de comercios',
+                title: 'Merchant Manegement',
                 href: '/token-requestor/api/admin/merchant',
               },
             ],
