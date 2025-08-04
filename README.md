@@ -121,7 +121,7 @@ This applies to theory pages and API pages.
 
 3. Push your changes to the repository and create a new Pull request.
 
-4. Modify the description of your Pull Request with a brief explanation of the change and add your leader or a maintainer as a reviewer.
+4. Modify the description of your Pull Request with a brief explanation of the change and add Eduardo Gúzman as a Reviewer.
 
 5. Notify by internal message about the existence of the PR to speed up review, merger and deployment times.
 
