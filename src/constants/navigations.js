@@ -213,6 +213,29 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
+            title: 'Nuevo panel administrativo',
+            links: [
+              { title: 'Introducción', href: '/payments/newpanel/introduction'},
+                { title: 'Ingreso a nuevo panel',
+                links: [
+                  { title: 'Migración de usuario', href: '/payments/newpanel/users/migration' },
+                  { title: 'Creación de usuario', href: '/payments/newpanel/users/createuser' },
+                  
+                ], 
+              },
+              {
+                title: 'Transacciones', links: [
+                  { title: 'Consulta de transacciones', href: '/payments/newpanel/transaction/search' }                                   
+                ],
+              },
+              {
+                title: 'Reportes transaccionales', links: [
+                  { title: 'Exportes y estadísticas', href: '/payments/newpanel/reports/export' }
+                ],
+              },
+            ],
+          },
+          {
             title: 'Link de pagos',
             links: [
               { title: 'Introducción', href: '/payments/payments-links/introduction' },
@@ -334,7 +357,29 @@ export const TAB_NAVIGATION = {
               { title: 'Introduction', href: '/payments' },
             ],
           },
-
+           {
+            title: 'New administrative panel',
+            links: [
+              { title: 'Introduction', href: '/payments/newpanel/introduction'},
+                { title: 'Access to new panel',
+                links: [
+                  { title: 'User migration', href: '/payments/newpanel/users/migration' },
+                  { title: 'User creation', href: '/payments/newpanel/users/createuser' },
+                  
+                ], 
+              },
+              {
+                title: 'Transactions', links: [
+                  { title: 'Transaction inquiry', href: '/payments/newpanel/transaction/search' }                                   
+                ],
+              },
+              {
+                title: 'Transactional reports', links: [
+                  { title: 'Exports and statistics', href: '/payments/newpanel/reports/export' }
+                ],
+              },
+            ],
+          },
           {
             title: 'Payment Links',
             links: [
