@@ -267,6 +267,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Proceso de pago en WebCheckout', href: '/payments/process-pay' },
               { title: 'Preautorización', href: '/payments/preauthorization' },
+              { title: 'Conciliación', href: '/payments/conciliation' },
             ],
           },
           {
@@ -390,6 +391,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Payment Process in Web Checkout', href: '/payments/process-pay' },
               { title: 'Preauthorization', href: '/payments/preauthorization' },
+              { title: 'Conciliation', href: '/payments/conciliation' },
             ],
           },
           {
@@ -1406,71 +1408,23 @@ export const TAB_NAVIGATION = {
                 title: '¿Cómo configurar ACS?',
                 href: '/acs/a-c-s-general-configuration',
               },
-              { title: 'Gestión de cuenta', href: '/acs/account' },
-              { title: 'Motor de Control de Fraude', href: '/acs/antifraud' },
+
               {
-                title: 'Estados del proceso de autenticación',
-                href: '/acs/authentication-status',
+                title: 'Emisores en ACS',
+                href: '/acs/issuer-configuration'
               },
-              { title: 'Autenticaciones', href: '/acs/authentications' },
-              {
-                title: 'Suscripción por marcas',
-                href: '/acs/brands-subscriptions',
-              },
-              { title: 'Rangos de tarjetas', href: '/acs/card-ranges' },
-              {
-                title: 'Certificados',
-                href: '/acs/certificates-configurations',
-              },
-              { title: 'Configuraciones', href: '/acs/configuration-fields' },
-              { title: 'Países en ACS', href: '/acs/countries-configurations' },
-              {
-                title: 'Monedas utilizadas en ACS',
-                href: '/acs/currencies-configurations',
-              },
-              {
-                title: 'Autenticaciones Desacopladas',
-                href: '/acs/decoupled-authentications',
-              },
-              { title: 'Disputas', href: '/acs/disputes' },
-              { title: 'Códigos de error', href: '/acs/error-codes' },
-              {
-                title: 'Preguntas frecuentes sobre el funcionamiento ACS',
-                href: '/acs/f-a-q',
-              },
-              {
-                title: 'Campos de configuración',
-                href: '/acs/fields-configurations',
-              },
-              { title: 'Marcas en ACS', href: '/acs/franchise-creation' },
-              {
-                title: 'Códigos HTTP en el proceso de autenticación',
-                href: '/acs/http-codes',
-              },
-              { title: 'Importes', href: '/acs/imports-configurations' },
-              { title: 'Invitaciones de usuarios', href: '/acs/invitations' },
-              { title: 'Emisores en ACS', href: '/acs/issuer-configuration' },
-              { title: 'Servicios del emisor', href: '/acs/issuer-services' },
-              {
-                title: 'Gestión de idioma',
-                href: '/acs/language-configurations',
-              },
-              { title: 'Logs de Seguridad', href: '/acs/logs' },
-              {
-                title: 'Códigos de categoría del comercio',
-                href: '/acs/merchant-codes-configurations',
-              },
-              { title: 'Métricas', href: '/acs/metrics' },
-              { title: 'Perfiles', href: '/acs/profiles' },
-              { title: 'Reportes', href: '/acs/reports' },
-              { title: 'Roles', href: '/acs/roles' },
-              { title: 'Alertas del servicio', href: '/acs/service-alerts' },
               {
                 title: 'Términos y Definiciones',
                 href: '/acs/terms-and-definitions',
               },
-              { title: 'Tarjetas de Prueba', href: '/acs/test-cards' },
-              { title: 'Usuarios', href: '/acs/users' },
+              {
+                title: 'Tarjetas de Prueba',
+                href: '/acs/test-cards'
+              },
+              {
+                title: 'Preguntas frecuentes sobre el funcionamiento ACS',
+                href: '/acs/f-a-q',
+              },
             ],
           },
         ],
@@ -1481,7 +1435,7 @@ export const TAB_NAVIGATION = {
         title: 'Documentation',
         identifier: 'acs',
         href: '/en/acs',
-        icon: 'Book',
+        icon: Book,
         links: [
           {
             title: 'ACS',
@@ -1495,71 +1449,22 @@ export const TAB_NAVIGATION = {
                 title: 'How to configure ACS?',
                 href: '/acs/a-c-s-general-configuration',
               },
-              { title: 'Account Management', href: '/acs/account' },
-              { title: 'Fraud Control Engine', href: '/acs/antifraud' },
               {
-                title: 'Authentication Process Status',
-                href: '/acs/authentication-status',
+                title: 'Issuers in ACS',
+                href: '/acs/issuer-configuration'
               },
-              { title: 'Authentications', href: '/acs/authentications' },
-              {
-                title: 'Brand Subscriptions',
-                href: '/acs/brands-subscriptions',
-              },
-              { title: 'Card Ranges', href: '/acs/card-ranges' },
-              {
-                title: 'Certificates',
-                href: '/acs/certificates-configurations',
-              },
-              { title: 'Configurations', href: '/acs/configuration-fields' },
-              {
-                title: 'Countries in ACS',
-                href: '/acs/countries-configurations',
-              },
-              {
-                title: 'Currencies Used in ACS',
-                href: '/acs/currencies-configurations',
-              },
-              {
-                title: 'Decoupled Authentications',
-                href: '/acs/decoupled-authentications',
-              },
-              { title: 'Disputes', href: '/acs/disputes' },
-              { title: 'Error Codes', href: '/acs/error-codes' },
-              { title: 'FAQs about ACS Functionality', href: '/acs/f-a-q' },
-              {
-                title: 'Configuration Fields',
-                href: '/acs/fields-configurations',
-              },
-              { title: 'Brands in ACS', href: '/acs/franchise-creation' },
-              {
-                title: 'HTTP Codes in the Authentication Process',
-                href: '/acs/http-codes',
-              },
-              { title: 'Amounts', href: '/acs/imports-configurations' },
-              { title: 'User Invitations', href: '/acs/invitations' },
-              { title: 'Issuers in ACS', href: '/acs/issuer-configuration' },
-              { title: 'Issuer Services', href: '/acs/issuer-services' },
-              {
-                title: 'Language Management',
-                href: '/acs/language-configurations',
-              },
-              { title: 'Security Logs', href: '/acs/logs' },
-              {
-                title: 'Merchant Category Codes',
-                href: '/acs/merchant-codes-configurations',
-              },
-              { title: 'Metrics', href: '/acs/metrics' },
-              { title: 'Profiles', href: '/acs/profiles' },
-              { title: 'Reports', href: '/acs/reports' },
-              { title: 'Roles', href: '/acs/roles' },
-              { title: 'Service Alerts', href: '/acs/service-alerts' },
               {
                 title: 'Terms and Definitions',
                 href: '/acs/terms-and-definitions',
               },
-              { title: 'Test Cards', href: '/acs/test-cards' },
-              { title: 'Users', href: '/acs/users' },
+              {
+                title: 'Test Cards',
+                href: '/acs/test-cards'
+              },
+              {
+                title: 'FAQs about ACS Functionality',
+                href: '/acs/f-a-q'
+              },
             ],
           },
         ],
@@ -1569,27 +1474,34 @@ export const TAB_NAVIGATION = {
   accountValidator: {
     [LANGUAGES_CODES.ES]: [
       {
-        title: 'API',
+        title: 'Documentación',
         identifier: 'account-validator',
-        href: '/account-validator/api',
-        icon: DocumentCode,
+        href: '/account-validator',
+        icon: Book,
         links: [
           {
-            title: 'Documentación',
+            title: 'Account Validator',
             links: [
-
-              { title: 'Introducción', href: '/account-validator', },
+              { title: 'Introducción', href: '/account-validator' },
               { title: '¿Cómo funciona?', href: '/account-validator/how-to-work' },
               { title: 'Flujo del usuario', href: '/account-validator/user-flow' },
               { title: 'Micro depósitos', href: '/account-validator/micro-deposits' },
               { title: 'Soporte para Lightbox', href: '/account-validator/support' },
-              { title: 'Webhook de Eventos', href: '/account-validator/webhooks' }
-            ]
+              { title: 'Webhook de Eventos', href: '/account-validator/webhooks' },
+            ],
           },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'account-validator/api',
+        href: '/account-validator/api/environment-urls',
+        icon: DocumentCode,
+        links: [
           {
             title: 'API',
             links: [
-              { title: 'Url de ambientes', href: '/account-validator/api/environment-urls', },
+              { title: 'Url de ambientes', href: '/account-validator/api/environment-urls' },
               { title: 'Sesión', href: '/account-validator/api/session' },
               { title: 'Validador de cuenta', href: '/account-validator/api/validate-existing-account' },
             ],
@@ -1599,27 +1511,34 @@ export const TAB_NAVIGATION = {
     ],
     [LANGUAGES_CODES.EN]: [
       {
-        title: 'API',
+        title: 'Documentation',
         identifier: 'account-validator',
-        href: '/account-validator/api',
-        icon: DocumentCode,
+        href: '/en/account-validator',
+        icon: Book,
         links: [
           {
-            title: 'Documentation',
+            title: 'Account Validator',
             links: [
-
-              { title: 'Introduction', href: '/account-validator', },
-              { title: '¿How it works?', href: '/account-validator/how-to-work' },
+              { title: 'Introduction', href: '/account-validator' },
+              { title: 'How it works', href: '/account-validator/how-to-work' },
               { title: 'User flow', href: '/account-validator/user-flow' },
               { title: 'Micro deposits', href: '/account-validator/micro-deposits' },
               { title: 'Lightbox Support', href: '/account-validator/support' },
-              { title: 'Webhooks', href: '/account-validator/webhooks' }
-            ]
+              { title: 'Webhooks', href: '/account-validator/webhooks' },
+            ],
           },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'account-validator/api',
+        href: '/en/account-validator/api/environment-urls',
+        icon: DocumentCode,
+        links: [
           {
             title: 'API',
             links: [
-              { title: 'URL of environments', href: '/account-validator/api/environment-urls', },
+              { title: 'Environment URLs', href: '/account-validator/api/environment-urls' },
               { title: 'Session', href: '/account-validator/api/session' },
               { title: 'Account validator', href: '/account-validator/api/validate-existing-account' },
             ],
