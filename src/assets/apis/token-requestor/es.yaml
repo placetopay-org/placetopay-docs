@@ -766,7 +766,9 @@ paths:
                     properties:
                       status:
                         type: string
-                        example: OK
+                        example:
+                        - OK
+                        - FAILED
                       reason:
                         type:
                           - string
@@ -892,7 +894,10 @@ paths:
                     properties:
                       status:
                         type: string
-                        example: OK
+                        description: Estado de la operación.
+                        example:
+                          - OK
+                          - FAILED
                       reason:
                         type:
                           - string
@@ -1122,7 +1127,9 @@ paths:
                     properties:
                       status:
                         type: string
-                        example: OK
+                        example:
+                          - OK
+                          - FAILED
                       reason:
                         type:
                           - string
@@ -1223,8 +1230,11 @@ paths:
                     description: Estructura que contiene la información de la respuesta sobre una solicitud o pago, e informa el estado actual de la misma.
                     properties:
                       status:
+                        description: Estado de la operación.
                         type: string
-                        example: OK
+                        example:
+                          - OK
+                          - FAILED
                       reason:
                         type:
                           - string
@@ -1333,10 +1343,12 @@ paths:
                       description: Número de elementos que se mostrarán por página. Define el tamaño de la página.
                       example: 10
                       maximum: 100
+                      default: 15
                     currentPage:
                       type: integer
                       description: Número de la página actual que se desea consultar (basado en el total de elementos y `perPage`).
                       example: 1
+                      default: 1
       responses:
         '200':
           description: Respuesta exitosa con datos paginados de credenciales
@@ -1350,8 +1362,11 @@ paths:
                     description: Estructura que contiene la información de la respuesta sobre una solicitud o pago, e informa el estado actual de la misma.
                     properties:
                       status:
+                        description: Estado de la operación.
                         type: string
-                        example: OK
+                        example:
+                          - OK
+                          - FAILED
                       reason:
                         type:
                           - string
@@ -1408,6 +1423,7 @@ paths:
                         type: integer
                         description: Página actual que se está consultando.
                         example: 1
+                        default: 1
                       lastPage:
                         type: integer
                         description: Última página disponible, calculada en función del total de registros y la cantidad por página.
@@ -1417,11 +1433,876 @@ paths:
                         description: Cantidad de elementos que se muestran por página.
                         example: 10
                         maximum: 100
+                        default: 15
+                      total:
+                        type: integer
+                        example: 1
+  /api/admin/sites/create:
+    post:
+      summary: Crear un nuevo sitio
+      description: >
+        Este endpoint permite registrar un nuevo sitio dentro del entorno de administración del sistema.  
+        *Requiere autenticación mediante WS‐Security UsernameToken (bloque **auth**).*  
+        El sitio será asociado a un merchant válido y podrá tener configuración adicional como URL de webhook, modo prueba, y fecha de habilitación.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  type: object
+                  description: Objeto de autenticación. Ver más en **[Autenticación](/token-requestor/integration/authentication)**. Estructura
+                    que contiene la información de autenticación del sitio generada de acuerdo al WSSE UsernameToken Profile 1.1
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: Login para autenticación
+                      example: f329e676189bb2a447a17ea595153545
+                    tranKey:
+                      type: string
+                      description: Clave de transacción
+                      example: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce:
+                      type: string
+                      description: Valor aleatorio para evitar repeticiones
+                      example: MnFrcmZlYjQ0bXk=
+                    seed:
+                      type: string
+                      description: Semilla de fecha y hora para la transacción
+                      example: 2025-07-03T20:28:43-05:00
+                data:
+                  type: object
+                  description: Datos del sitio a registrar.
+                  required:
+                    - name
+                    - merchantId
+                  properties:
+                    name:
+                      type: string
+                      maxLength: 225
+                      description: Nombre del sitio que será registrado.
+                      example: Site Test
+                    webhookURL:
+                      type: string
+                      maxLength: 225
+                      description: URL a la que se enviarán notificaciones del sitio.
+                      example: https://webhook.site/asdads
+                    webhookSecret:
+                      type: string
+                      maxLength: 25
+                      description: Token utilizado para verificar las notificaciones entrantes.
+                      example: E0wWIBNtNr3GSF6G
+                    merchantId:
+                      type: string
+                      format: uuid V4
+                      description: Identificador del merchant al que se asociará el sitio.
+                      example: f1d0888b-f5a9-445a-8c54-dba63763fbc5
+                    onTest:
+                      type: boolean
+                      description: Indica si un sitio o entidad está funcionando en modo de prueba o en modo productivo.
+                      example: true
+                    enabledAt:
+                      type: string
+                      format: date-time
+                      description: Fecha a partir de la cual el sitio estará habilitado.
+                      example: 2025-07-01 10:00:00
+              required:
+                - auth
+                - data
+            examples:
+              full_request:
+                summary: Solicitud exitosa – todos los campos
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: 2025-07-03T20:28:43-05:00
+                  data:
+                    name: Site Test
+                    webhookURL: https://webhook.site/asdads
+                    webhookSecret: E0wWIBNtNr3GSF6G
+                    merchantId: f1d0888b-f5a9-445a-8c54-dba63763fbc5
+                    onTest: true
+                    enabledAt: 2025-07-01 10:00:00
+              minimal_request:
+                summary: Solicitud exitosa – solo campos requeridos
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: 2025-07-03T20:28:43-05:00
+                  data:
+                    name: Site Test
+                    merchantId: f1d0888b-f5a9-445a-8c54-dba63763fbc5
+      responses:
+        '200':
+          description: Sitio creado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Estructura que contiene la información de la respuesta sobre una solicitud o pago, e informa el estado actual de la misma.
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la operación.
+                        example: OK
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        description: Código del resultado
+                        example: '00'
+                      message:
+                        type: string
+                        description: Descripción del resultado.
+                        example: The request has been successfully processed
+                      date:
+                        type: string
+                        format: date-time
+                        description: Fecha de la respuesta.
+                        example: '2025-07-04T14:50:00+00:00'
+                  data:
+                    type: object
+                    description: Detalles del sitio creado.
+                    properties:
+                      id:
+                        type: string
+                        format: uuid V4
+                        description: ID del sitio creado.
+                        example: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+                required:
+                  - status
+                  - data
+
+  /api/admin/sites/show:
+    post:
+      summary: Consulta de sitio
+      description: >
+        Esta operación permite consultar la información detallada de un sitio previamente registrado en el sistema administrativo.  
+        Está disponible exclusivamente para usuarios autenticados que tengan permisos de acceso y visibilidad sobre el recurso.
+
+        La respuesta incluye información básica del sitio, su estado de habilitación, modo de prueba (`onTest`), y los datos del comercio y consumidor al que está vinculado.  
+        También incluye configuración de webhook, si aplica.
+
+        Esta operación valida:
+          - Autenticación con el bloque `auth`
+          - Formato del campo `id`
+          - Existencia del sitio
+          - Permisos de acceso (ACL)
+      operationId: api.admin.sites.show
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+              properties:
+                auth:
+                  type: object
+                  description: Objeto de autenticación. Ver más en **[Autenticación](/token-requestor/integration/authentication)**. Estructura
+                    que contiene la información de autenticación del sitio generada de acuerdo al WSSE UsernameToken Profile 1.1
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: Login de la credencial.
+                      example: f329e676189bb2a447a17ea595153545
+                    tranKey:
+                      type: string
+                      description: TranKey generado usando SHA256 con la clave secreta.
+                      example: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce:
+                      type: string
+                      description: Valor aleatorio codificado en base64.
+                      example: MnFrcmZlYjQ0bXk=
+                    seed:
+                      type: string
+                      format: date-time
+                      description: Fecha en formato ISO8601.
+                      example: 2025-07-03T20:28:43-05:00
+                id:
+                  type: string
+                  format: uuid V4
+                  description: Identificador único del sitio a consultar.
+                  example: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+      responses:
+        '200':
+          description: Consulta exitosa del sitio.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Estructura que contiene la información de la respuesta sobre una solicitud o pago, e informa el estado actual de la misma.
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la operación.
+                        example: OK
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        description: Código del resultado
+                        example: '00'
+                      message:
+                        type: string
+                        description: Descripción del resultado.
+                        example: The request has been successfully processed
+                      date:
+                        type: string
+                        format: date-time
+                        description: Fecha de la respuesta.
+                        example: '2025-07-04T14:50:00+00:00'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid V4
+                        description: Identificador UUID del sitio
+                        example: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+                      name:
+                        type: string
+                        maxLength: 225
+                        example: Site Test
+                      merchant:
+                        type: object
+                        description: Información del comercio
+                        properties:
+                          id:
+                            type: string
+                            format: uuid V4
+                            description: Identificador UUID del comercio
+                            example: f1d0888b-f5a9-445a-8c54-dba63763fbc5
+                          name:
+                            type: string
+                            example: Merchant Test
+                            maxLength: 225
+                            description: Nombre del comercio
+                      consumer:
+                        description: Información del consumidor
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid V4
+                            description: Identificador UUID del consumidor
+                            example: e1a8c0b2-c7f1-49e3-91e0-7059b50e3f43
+                          name:
+                            type: string
+                            example: Consumer Test
+                            maxLength: 225
+                            description: Nombre del consumidor
+                      webhookURL:
+                        description: URL a la que se enviarán las notificaciones automáticas
+                        type: string
+                        format: uri
+                        maxLength: 225
+                        example: https://webhook.site/test
+                      webhookSecret:
+                        description: Clave secreta para validar mensajes de webhook
+                        type: string
+                        maxLength: 25
+                        example: secret-token
+                      onTest:
+                        description: Indica si un sitio o entidad está funcionando en modo de prueba o en modo productivo.
+                        type: boolean
+                        example: true
+                      enabledAt:
+                        description: Indica cuándo fue habilitado un sitio dentro del sistema
+                        type: string
+                        format: date-time
+                        example: 2025-07-01 10:00:00
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: 2025-06-16T22:29:01
+                        description: Fecha de creación
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        example: 2025-07-02T15:30:00
+                        description: Fecha de actualización
+        '400':
+          description: Error en la solicitud, datos inválidos o sin autorización.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: FAILED
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        example: BR
+                      message:
+                        type: string
+                        example: The selected id is invalid.
+                      date:
+                        type: string
+                        format: date-time
+                        description: Fecha de la respuesta.
+                        example: '2025-07-04T14:50:00+00:00'
+  /api/admin/sites/edit:
+    post:
+      tags:
+        - Admin / Sitios
+      summary: Actualización de sitio
+      operationId: api.admin.sites.update
+      description: >
+        Permite modificar parcialmente los atributos de un sitio existente. Solo se actualizarán los campos enviados en el objeto `data`.  
+        Esta operación requiere autenticación con credenciales válidas y permisos de gestión sobre sitios.  
+        Campos como `consumerId` y `merchantId` no son modificables.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+                - data
+              properties:
+                auth:
+                  type: object
+                  description: Objeto de autenticación. Ver más en **[Autenticación](/token-requestor/integration/authentication)**. Estructura
+                    que contiene la información de autenticación del sitio generada de acuerdo al WSSE UsernameToken Profile 1.1
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: Login de la credencial.
+                      example: f329e676189bb2a447a17ea595153545
+                    tranKey:
+                      type: string
+                      description: TranKey generado usando SHA256 con la clave secreta.
+                      example: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce:
+                      type: string
+                      description: Valor aleatorio codificado en base64.
+                      example: MnFrcmZlYjQ0bXk=
+                    seed:
+                      type: string
+                      format: date-time
+                      description: Fecha en formato ISO8601.
+                      example: 2025-07-03T20:28:43-05:00
+                id:
+                  type: string
+                  format: uuid V4
+                  description: Identificador UUID del sitio que se desea actualizar
+                data:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      maxLength: 225
+                      example: Sitio Test
+                      description: Nombre del sitio, obligatorio si se incluye
+                    webhookURL:
+                      type: string
+                      format: uri
+                      maxLength: 225
+                      description: URL del webhook de notificaciones automáticas
+                    webhookSecret:
+                      type: string
+                      maxLength: 25
+                      description: Clave secreta para validar mensajes de webhook
+                    onTest:
+                      type: boolean
+                      example: true
+                      description: Indica si un sitio o entidad está funcionando en modo de prueba o en modo productivo.
+                    enabledAt:
+                      type: string
+                      format: date-time
+                      description: Fecha y hora de activación del sitio
+                      example: 2025-07-01 10:00:00
+      responses:
+        '200':
+          description: Actualización exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Estructura que contiene la información de la respuesta sobre una solicitud o pago, e informa el estado actual de la misma.
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la operación.
+                        example: OK
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        description: Código del resultado
+                        example: '00'
+                      message:
+                        type: string
+                        description: Descripción del resultado.
+                        example: The request has been successfully processed
+                      date:
+                        type: string
+                        format: date-time
+                        description: Fecha de la respuesta.
+                        example: '2025-07-04T14:50:00+00:00'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid V4
+                        description: Identificador UUID del sitio
+        '400':
+          description: Error en la solicitud (datos inválidos o id incorrecto)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    description: Estructura que contiene la información de la respuesta sobre una solicitud o pago, e informa el estado actual de la misma.
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: FAILED
+                        description: Estado de la operación.
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        example: BR
+                      message:
+                        type: string
+                        example: The selected id is invalid.
+                      date:
+                        type: string
+                        format: date-time
+                        description: Fecha de la respuesta.
+                        example: '2025-07-04T14:50:00+00:00'
+  /api/admin/sites/delete:
+    post:
+      summary: Eliminación de sitio
+      operationId: deleteSite
+      description: >
+        Esta operación permite eliminar un sitio registrado en el entorno administrativo del sistema. Está restringida a usuarios autenticados que cuenten con los permisos correspondientes para gestión de sitios. La eliminación está condicionada por el estado del sitio y su relación con otros recursos.
+
+        En caso de que el sitio tenga tokens asociados, la operación será rechazada y se notificará al cliente que no puede proceder con la eliminación. Solo los sitios sin tokens podrán ser eliminados exitosamente. Esta operación es irreversible.
+      tags:
+        - Sitios
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  type: object
+                  description: Objeto de autenticación. Ver más en **[Autenticación](/token-requestor/integration/authentication)**. Estructura
+                    que contiene la información de autenticación del sitio generada de acuerdo al WSSE UsernameToken Profile 1.1
+                  properties:
+                    login:
+                      type: string
+                      description: Login de la credencial.
+                      example: f329e676189bb2a447a17ea595153545
+                    tranKey:
+                      type: string
+                      description: TranKey generado para la autenticación.
+                      example: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce:
+                      type: string
+                      description: Nonce generado para la autenticación.
+                      example: MnFrcmZlYjQ0bXk=
+                    seed:
+                      type: string
+                      format: date-time
+                      description: Fecha en formato ISO 8601.
+                      example: '2025-07-03T20:28:43-05:00'
+                id:
+                  type: string
+                  format: uuid V4
+                  description: Identificador único del sitio que se desea eliminar.
+                  example: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+              required:
+                - auth
+                - id
+            examples:
+              successful:
+                summary: Solicitud exitosa
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: "2025-07-03T20:28:43-05:00"
+                  id: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+              failed_tokens:
+                summary: Fallida - sitio con tokens asociados
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: "2025-07-03T20:28:43-05:00"
+                  id: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+              failed_invalid:
+                summary: Fallida - sitio inexistente
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: "2025-07-03T20:28:43-05:00"
+                  id: invalid
+      responses:
+        '200':
+          description: Eliminación exitosa del sitio
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    description: Estructura que contiene la información de la respuesta sobre una solicitud o pago, e informa el estado actual de la misma.
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la operación.
+                        example: OK
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        description: Código del resultado
+                        example: '00'
+                      message:
+                        type: string
+                        description: Descripción del resultado.
+                        example: The request has been successfully processed
+                      date:
+                        type: string
+                        format: date-time
+                        description: Fecha de la respuesta.
+                        example: '2025-07-04T14:50:00+00:00'
+              examples:
+                success:
+                  summary: Éxito
+                  value:
+                    status:
+                      status: OK
+                      reason: '00'
+                      message: The request has been successfully processed
+                      date: '2025-07-04T14:50:00+00:00'
+                error_tokens:
+                  summary: Fallo - sitio con tokens
+                  value:
+                    status:
+                      status: FAILED
+                      reason: BR
+                      message: The site has associated tokens.
+                      date: '2025-07-04T14:53:40+00:00'
+        '400':
+          description: Error en la solicitud, datos inválidos o sin autorización.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Estructura que contiene la información de la respuesta sobre una solicitud o pago, e informa el estado actual de la misma.
+                    properties:
+                      status:
+                        type: string
+                        example: FAILED
+                        description: Estado de la operación.
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        example: BR
+                      message:
+                        type: string
+                        example: The selected id is invalid.
+                      date:
+                        type: string
+                        format: date-time
+                        description: Fecha de la respuesta.
+                        example: '2025-07-04T14:50:00+00:00'
+  /api/admin/sites/index:
+    post:
+      tags:
+        - Sites
+      summary: Listado de sitios
+      description: >
+        Esta operación permite obtener un listado de los sitios registrados en el sistema administrativo.  
+        Retorna resultados paginados y admite múltiples filtros para acotar la búsqueda.  
+        La respuesta incluye información básica de cada sitio y puede estar sujeta a reglas de control de acceso (ACL).
+      operationId: api.admin.sites.index
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  type: object
+                  description: Objeto de autenticación. Ver más en **[Autenticación](/token-requestor/integration/authentication)**. Estructura
+                    que contiene la información de autenticación del sitio generada de acuerdo al WSSE UsernameToken Profile 1.1
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: Login de la credencial.
+                      example: f329e676189bb2a447a17ea595153545
+                    tranKey:
+                      type: string
+                      description: TranKey generado usando SHA256 con la clave secreta.
+                      example: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce:
+                      type: string
+                      description: Valor aleatorio codificado en base64.
+                      example: MnFrcmZlYjQ0bXk=
+                    seed:
+                      type: string
+                      format: date-time
+                      description: Fecha en formato ISO8601.
+                      example: 2025-07-03T20:28:43-05:00
+                filters:
+                  type: object
+                  properties:
+                    consumers:
+                      type: array
+                      description: Lista de Identificadores de los consumidores
+                      properties:
+                        ids:
+                          format: uuid V4
+                          type: string
+                    merchants:
+                      type: array
+                      description: Lista de Identificadores de los comercios
+                      properties:
+                        ids:
+                          format: uuid V4
+                          type: string
+                    name:
+                      type: string
+                      description: Nombre del sitio
+                      example: Site Test
+                      maxLength: 225
+                    onTest:
+                      type: boolean
+                      example: true
+                      description: Indica si un sitio o entidad está funcionando en modo de prueba o en modo productivo.
+                    createdAt:
+                      description: Rango de fecha de creación
+                      type: object
+                      properties:
+                        from:
+                          type: string
+                          format: date-time
+                          description: Fecha inicial de creación (ISO 8601).
+                          example: 2025-06-16T22:29:01+00:00
+                        to:
+                          description: Fecha final de creación (ISO 8601).
+                          type: string
+                          format: date-time
+                          example: 2025-07-27T18:00:00-05:00
+                pagination:
+                  type: object
+                  description: Información sobre la paginación de los resultados.
+                  properties:
+                    currentPage:
+                      type: integer
+                      description: Página actual que se está consultando.
+                      example: 1
+                      default: 1
+                    perPage:
+                      type: integer
+                      description: Cantidad de elementos que se muestran por página.
+                      example: 10
+                      maximum: 100
+                      default: 15
+      responses:
+        '200':
+          description: Respuesta exitosa con datos paginados de sitios
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Estructura que contiene la información de la respuesta sobre una solicitud o pago, e informa el estado actual de la misma.
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la operación.
+                        example: OK
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        description: Código del resultado
+                        example: '00'
+                      message:
+                        type: string
+                        description: Descripción del resultado.
+                        example: The request has been successfully processed
+                      date:
+                        type: string
+                        format: date-time
+                        description: Fecha de la respuesta.
+                        example: '2025-07-04T14:50:00+00:00'
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: Identificador UUID del sitio que se desea actualizar
+                          format: uuid V4
+                        merchant:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid V4
+                              description: Identificador UUID del comercio
+                            name:
+                              type: string
+                              maxLength: 225
+                              description: Nombre del comercio
+                        consumer:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: Identificador UUID del consumidor
+                              format: uuid V4
+                            name:
+                              type: string
+                              maxLength: 225
+                              description: Nombre del consumidor
+                        name:
+                          type: string
+                          description: Nombre del sitio
+                          maxLength: 225
+                        onTest:
+                          type: boolean
+                          example: true
+                          description: Indica si un sitio o entidad está funcionando en modo de prueba o en modo productivo.
+                        enabledAt:
+                          type: string
+                          format: date-time
+                          example: 2025-07-01 10:00:00
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: 2025-07-01 10:00:00
+                  pagination:
+                    type: object
+                    description: Información sobre la paginación de los resultados.
+                    properties:
+                      currentPage:
+                        type: integer
+                        description: Página actual que se está consultando.
+                        example: 1
+                        default: 1
+                      lastPage:
+                        type: integer
+                        description: Última página disponible, calculada en función del total de registros y la cantidad por página.
+                        example: 5
+                      perPage:
+                        type: integer
+                        description: Cantidad de elementos que se muestran por página.
+                        example: 10
+                        maximum: 100
+                        default: 15
                       total:
                         type: integer
                         description: Total de registros disponibles en la colección consultada.
                         example: 47
-
+        '400':
+          description: Solicitud inválida por errores en parámetros
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Estructura que contiene la información de la respuesta sobre una solicitud o pago, e informa el estado actual de la misma.
+                    properties:
+                      status:
+                        type: string
+                        example: FAILED
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        example: BR
+                      message:
+                        type: string
+                        example: The selected id is invalid.
+                      date:
+                        type: string
+                        format: date-time
+                        description: Fecha de la respuesta.
+                        example: '2025-07-04T14:50:00+00:00'
   /api/admin/merchants/create:
     post:
       summary: "Creación de comercios"

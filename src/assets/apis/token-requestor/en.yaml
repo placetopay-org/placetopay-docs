@@ -1265,11 +1265,13 @@ paths:
                       type: integer
                       description: The current page being viewed.
                       example: 1
+                      default: 1
                     perPage:
                       type: integer
                       description: The number of items returned per page.
                       example: 10
                       maximum: 100
+                      default: 15
       responses:
         '200':
           description: Successful response with paginated credential data
@@ -1334,6 +1336,7 @@ paths:
                         type: integer
                         description: The current page being viewed.
                         example: 1
+                        default: 1
                       lastPage:
                         type: integer
                         description: The last page available, based on the total number of records and items per page.
@@ -1343,10 +1346,841 @@ paths:
                         description: The number of items returned per page.
                         example: 10
                         maximum: 100
+                        default: 15
+                      total:
+                        type: integer
+                        example: 1
+
+  /api/admin/sites/create:
+    post:
+      summary: Create a new site
+      description: >
+        This endpoint allows you to register a new site within the system's administration environment.  
+        *Requires authentication using WS‐Security UsernameToken (**auth** block).*  
+        The site will be associated with a valid merchant and may include additional configuration such as webhook URL, test mode, and enablement date.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  type: object
+                  description: Authentication object. See more at **[Authentication](/en/token-requestor/integration/authentication)**.
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: Authentication login
+                      example: f329e676189bb2a447a17ea595153545
+                    tranKey:
+                      type: string
+                      description: Transaction key
+                      example: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce:
+                      type: string
+                      description: Random value to prevent replay attacks
+                      example: MnFrcmZlYjQ0bXk=
+                    seed:
+                      type: string
+                      description: Timestamp seed for the transaction
+                      example: 2025-07-03T20:28:43-05:00
+                data:
+                  type: object
+                  description: Data of the site to be registered.
+                  required:
+                    - name
+                    - merchantId
+                  properties:
+                    name:
+                      type: string
+                      maxLength: 225
+                      description: Name of the site to be registered.
+                      example: Site Test
+                    webhookURL:
+                      type: string
+                      maxLength: 225
+                      description: URL where site notifications will be sent.
+                      example: https://webhook.site/asdads
+                    webhookSecret:
+                      type: string
+                      maxLength: 25
+                      description: Token used to verify incoming notifications.
+                      example: E0wWIBNtNr3GSF6G
+                    merchantId:
+                      type: string
+                      format: uuid V4
+                      description: Identifier of the merchant associated with the site.
+                      example: f1d0888b-f5a9-445a-8c54-dba63763fbc5
+                    onTest:
+                      type: boolean
+                      description: Indicates whether the site is in test (sandbox) mode.
+                      example: true
+                    enabledAt:
+                      type: string
+                      format: date-time
+                      description: Date from which the site will be enabled.
+                      example: 2025-06-16T22:29:01+00:00
+              required:
+                - auth
+                - data
+            examples:
+              full_request:
+                summary: Successful request – all fields
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: 2025-07-03T20:28:43-05:00
+                  data:
+                    name: Site Test
+                    webhookURL: https://webhook.site/asdads
+                    webhookSecret: E0wWIBNtNr3GSF6G
+                    merchantId: f1d0888b-f5a9-445a-8c54-dba63763fbc5
+                    onTest: true
+                    enabledAt: 2025-06-16T22:29:01+00:00
+              minimal_request:
+                summary: Successful request – only required fields
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: 2025-07-03T20:28:43-05:00
+                  data:
+                    name: Site Test
+                    merchantId: f1d0888b-f5a9-445a-8c54-dba63763fbc5
+      responses:
+        '200':
+          description: Site created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    description: Result information.
+                    properties:
+                      status:
+                        type: string
+                        description: Operation status `OK`.
+                        example: OK
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        description: Result code `00`.
+                        example: '00'
+                      message:
+                        type: string
+                        description: Result description.
+                        example: The request has been successfully processed
+                      date:
+                        type: string
+                        format: date-time
+                        description: Response date.
+                        example: '2025-07-04T14:50:00+00:00'
+                  data:
+                    type: object
+                    description: Details of the created site.
+                    properties:
+                      id:
+                        type: string
+                        format: uuid V4
+                        description: ID of the created site.
+                        example: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+                required:
+                  - status
+                  - data
+
+  /api/admin/sites/show:
+    post:
+      summary: Site query
+      description: >
+        This operation allows querying the detailed information of a previously registered site in the administrative system.  
+        It is available exclusively to authenticated users who have access and visibility permissions over the resource.
+
+        The response includes basic information about the site, its enablement status, test mode (`onTest`), and the merchant and consumer it is linked to.  
+        It also includes webhook configuration, if applicable.
+
+        This operation validates:
+          - Authentication using the `auth` block
+          - Format of the `id` field
+          - Site existence
+          - Access permissions (ACL)
+      operationId: api.admin.sites.show
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+              properties:
+                auth:
+                  type: object
+                  description: Authentication object. See more at **[Authentication](/en/token-requestor/integration/authentication)**.
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: Credential login.
+                      example: f329e676189bb2a447a17ea595153545
+                    tranKey:
+                      type: string
+                      description: TranKey generated using SHA256 with the secret key.
+                      example: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce:
+                      type: string
+                      description: Random value encoded in base64.
+                      example: MnFrcmZlYjQ0bXk=
+                    seed:
+                      type: string
+                      format: date-time
+                      description: Date in ISO8601 format.
+                      example: 2025-07-03T20:28:43-05:00
+                id:
+                  type: string
+                  format: uuid V4
+                  description: Unique identifier of the site to query.
+                  example: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+      responses:
+        '200':
+          description: Site successfully queried.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Operation status `OK`.
+                        example: OK
+                      reason:
+                        type: string
+                        description: Result code `00`.
+                        example: '00'
+                      message:
+                        type: string
+                        description: Result description.
+                        example: The request has been successfully processed
+                      date:
+                        type: string
+                        format: date-time
+                        description: Response date.
+                        example: '2025-07-04T14:50:00+00:00'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid V4
+                        example: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+                      name:
+                        type: string
+                        maxLength: 225
+                        example: Site Test
+                      merchant:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid V4
+                            example: f1d0888b-f5a9-445a-8c54-dba63763fbc5
+                          name:
+                            type: string
+                            maxLength: 225
+                            example: Merchant Test
+                      consumer:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid V4
+                            example: e1a8c0b2-c7f1-49e3-91e0-7059b50e3f43
+                          name:
+                            type: string
+                            maxLength: 225
+                            example: Consumer Test
+                      webhookURL:
+                        type: string
+                        format: uri
+                        maxLength: 225
+                        example: https://webhook.site/test
+                      webhookSecret:
+                        type: string
+                        maxLength: 25
+                        description: Secret key to validate webhook messages
+                        example: secret-token
+                      onTest:
+                        type: boolean
+                        example: true
+                        description: Indicates whether the site is in test (sandbox) mode.
+                      enabledAt:
+                        type: string
+                        format: date-time
+                        example: 2025-06-16T22:29:01
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: 2025-07-01T10:00:00
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        example: 2025-07-02T15:30:00
+        '400':
+          description: Request error, invalid data or unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: FAILED
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        example: BR
+                      message:
+                        type: string
+                        example: The selected id is invalid.
+                      date:
+                        type: string
+                        format: date-time
+                        example: 2025-07-25T12:34:56-05:00
+  /api/admin/sites/edit:
+    post:
+      tags:
+        - Admin / Sites
+      summary: Site update
+      operationId: api.admin.sites.update
+      description: >
+        Allows partial modification of the attributes of an existing site. Only the fields provided in the `data` object will be updated.  
+        This operation requires authentication with valid credentials and management permissions for sites.  
+        Fields such as `consumerId` and `merchantId` are not editable.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+                - data
+              properties:
+                auth:
+                  type: object
+                  description: Authentication object. See more at **[Authentication](/en/token-requestor/integration/authentication)**.
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: Credential login.
+                      example: f329e676189bb2a447a17ea595153545
+                    tranKey:
+                      type: string
+                      description: TranKey generated for authentication.
+                      example: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce:
+                      type: string
+                      description: Nonce generated for authentication.
+                      example: MnFrcmZlYjQ0bXk=
+                    seed:
+                      type: string
+                      format: date-time
+                      description: Date in ISO 8601 format.
+                      example: '2025-07-03T20:28:43-05:00'
+                id:
+                  type: string
+                  format: uuid V4
+                  description: UUID identifier of the site to be updated
+                data:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      maxLength: 225
+                      description: Site name (required if included)
+                    webhookURL:
+                      type: string
+                      format: uri
+                      maxLength: 225
+                      description: URL for automatic notification webhook
+                    webhookSecret:
+                      type: string
+                      maxLength: 25
+                      description: Secret key to validate webhook messages
+                    onTest:
+                      type: boolean
+                      description: Indicates whether the site is in test (sandbox) mode.
+                      example: true
+                    enabledAt:
+                      type: string
+                      format: date-time
+                      description: Activation date and time for the site (ISO 8601)
+      responses:
+        '200':
+          description: Successful update
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Operation status `OK`.
+                        example: OK
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        description: Result code `00`.
+                        example: '00'
+                      message:
+                        type: string
+                        description: Result description.
+                        example: The request has been successfully processed
+                      date:
+                        type: string
+                        format: date-time
+                        description: Response date.
+                        example: '2025-07-04T14:50:00+00:00'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid V4
+        '400':
+          description: Request error (invalid data or incorrect ID)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: FAILED
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        example: BR
+                      message:
+                        type: string
+                        example: The selected id is invalid.
+                      date:
+                        type: string
+                        format: date-time
+                        example: 2025-07-25T12:34:56-05:00
+  /api/admin/sites/delete:
+    post:
+      summary: Site deletion
+      operationId: deleteSite
+      description: >
+        This operation allows deleting a registered site in the system's administrative environment. It is restricted to authenticated users with the proper site management permissions. The deletion is conditional based on the site state and its relation to other resources.
+
+        If the site has associated tokens, the operation will be rejected and the client will be notified that the site cannot be deleted. Only sites without tokens can be successfully deleted. This operation is irreversible.
+      tags:
+        - Sites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  type: object
+                  description: Authentication object. See more at **[Authentication](/en/token-requestor/integration/authentication)**.
+                  properties:
+                    login:
+                      type: string
+                      description: Credential login.
+                      example: f329e676189bb2a447a17ea595153545
+                    tranKey:
+                      type: string
+                      description: TranKey generated for authentication.
+                      example: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce:
+                      type: string
+                      description: Nonce generated for authentication.
+                      example: MnFrcmZlYjQ0bXk=
+                    seed:
+                      type: string
+                      format: date-time
+                      description: Date in ISO 8601 format.
+                      example: '2025-07-03T20:28:43-05:00'
+                id:
+                  type: string
+                  format: uuid V4
+                  description: Unique identifier of the site to be deleted.
+                  example: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+              required:
+                - auth
+                - id
+            examples:
+              successful:
+                summary: Successful request
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: "2025-07-03T20:28:43-05:00"
+                  id: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+              failed_tokens:
+                summary: Failed - site with associated tokens
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: "2025-07-03T20:28:43-05:00"
+                  id: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+              failed_invalid:
+                summary: Failed - nonexistent site
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: "2025-07-03T20:28:43-05:00"
+                  id: invalid
+      responses:
+        '200':
+          description: Successful removal
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Operation status `OK`.
+                        example: OK
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        description: Result code `00`.
+                        example: '00'
+                      message:
+                        type: string
+                        description: Result description.
+                        example: The request has been successfully processed
+                      date:
+                        type: string
+                        format: date-time
+                        description: Response date.
+                        example: '2025-07-04T14:50:00+00:00'
+              examples:
+                success:
+                  summary: Success
+                  value:
+                    status:
+                      status: OK
+                      reason: '00'
+                      message: The request has been successfully processed
+                      date: '2025-07-04T14:50:00+00:00'
+                error_tokens:
+                  summary: Failure - site with tokens
+                  value:
+                    status:
+                      status: FAILED
+                      reason: BR
+                      message: The selected id is invalid.
+                      date: '2025-07-04T14:53:40+00:00'
+        '400':
+          description: Request error, invalid data or unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: FAILED
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        example: BR
+                      message:
+                        type: string
+                        example: The selected id is invalid.
+                      date:
+                        type: string
+                        format: date-time
+                        example: 2025-07-25T12:34:56-05:00
+  /api/admin/sites/index:
+    post:
+      tags:
+        - Sites
+      summary: Site listing
+      description: >
+        This operation retrieves a list of sites registered in the administrative system.  
+        It returns paginated results and supports multiple filters to narrow the search.  
+        The response includes basic information about each site and may be subject to Access Control List (ACL) rules.
+      operationId: api.admin.sites.index
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  type: object
+                  description: Authentication object. See more in **[Authentication](/en/token-requestor/integration/authentication)**.
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: Credential login.
+                      example: f329e676189bb2a447a17ea595153545
+                    tranKey:
+                      type: string
+                      description: TranKey generated for authentication.
+                      example: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce:
+                      type: string
+                      description: Nonce generated for authentication.
+                      example: MnFrcmZlYjQ0bXk=
+                    seed:
+                      type: string
+                      format: date-time
+                      description: Date in ISO 8601 format.
+                      example: '2025-07-03T20:28:43-05:00'
+                filters:
+                  type: object
+                  properties:
+                    consumers:
+                      type: array
+                      description: UUIDś consumers List
+                      properties:
+                        ids:
+                          format: uuid V4
+                          type: string
+                    merchants:
+                      type: array
+                      description: UUIDś merchants List
+                      properties:
+                        ids:
+                          format: uuid V4
+                          type: string
+                    name:
+                      type: string
+                      maxLength: 225
+                      description: Site name
+                    onTest:
+                      type: boolean
+                      example: true
+                      description: Indicates whether the site is in test (sandbox) mode.
+                    createdAt:
+                      type: object
+                      properties:
+                        from:
+                          type: string
+                          format: date-time
+                          description: Start creation date (ISO 8601).
+                          example: "2025-01-01T00:00:00-05:00"
+                        to:
+                          type: string
+                          format: date-time
+                          description: End creation date (ISO 8601).
+                          example: "2025-01-31T23:59:59-05:00"
+                pagination:
+                  type: object
+                  description: Pagination information for the result set.
+                  properties:
+                    currentPage:
+                      type: integer
+                      description: The current page being viewed.
+                      example: 1
+                      default: 1
+                    perPage:
+                      type: integer
+                      description: The number of items returned per page.
+                      example: 10
+                      maximum: 100
+                      default: 15
+      responses:
+        '200':
+          description: Successful response with paginated site data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Operation status `OK`.
+                        example: OK
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        description: Result code `00`.
+                        example: '00'
+                      message:
+                        type: string
+                        description: Result description.
+                        example: The request has been successfully processed
+                      date:
+                        type: string
+                        format: date-time
+                        description: Response date.
+                        example: '2025-07-04T14:50:00+00:00'
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid V4
+                          description: Site UUID
+                        merchant:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid V4
+                              description: Merchant UUID
+                            name:
+                              type: string
+                              maxLength: 225
+                              description: Merchant Name
+                        consumer:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid V4
+                              description: Consumer UUID
+                            name:
+                              type: string
+                              maxLength: 225
+                              description: Consumer name
+                        name:
+                          type: string
+                          maxLength: 225
+                          description: Site Name
+                        onTest:
+                          type: boolean
+                          example: true
+                          description: Indicates whether the site is in test (sandbox) mode.
+                        enabledAt:
+                          type: string
+                          format: date-time
+                          example: 2025-07-01 10:00:00
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: 2025-07-01 10:00:00
+                  pagination:
+                    type: object
+                    description: Pagination information for the result set.
+                    properties:
+                      currentPage:
+                        type: integer
+                        description: The current page being viewed.
+                        example: 1
+                        default: 1
+                      lastPage:
+                        type: integer
+                        description: The last page available, based on the total number of records and items per page.
+                        example: 5
+                      perPage:
+                        type: integer
+                        description: The number of items returned per page.
+                        example: 10
+                        maximum: 100
+                        default: 15
                       total:
                         type: integer
                         description: The total number of records available for the query.
                         example: 47
+        '400':
+          description: Invalid request due to parameter errors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: FAILED
+                      reason:
+                        type:
+                          - string
+                          - number
+                          - 'null'
+                        example: BR
+                      message:
+                        type: string
+                        example: The selected id is invalid.
+                      date:
+                        type: string
+                        format: date-time
+                        example: 2025-07-25T12:34:56-05:00
+                        description: Response date.
 
   /api/admin/merchants/create:
     post:
