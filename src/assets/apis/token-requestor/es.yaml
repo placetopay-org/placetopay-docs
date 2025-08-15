@@ -18,7 +18,7 @@ paths:
                   nonce: enQ4dXh3YWhkMWM=
                   seed: 2023-06-21T09:56:06-05:00
                 requestId: d9efb07c-43ff-45e6-adcc-1b41bf3b9eb5
-                merchantId: 5b820bee-8741-4bc9-bc56-f6c1ca7068fb
+                siteId: 5b820bee-8741-4bc9-bc56-f6c1ca7068fb
                 instrument:
                   card:
                     number: '4123700070000045'
@@ -30,35 +30,17 @@ paths:
                   email: test@visa.com
               properties:
                 auth:
-                  type: object
-                  description: Objeto de autenticación. Ver más en **[Autentición](/token-requestor/integration/authentication)**. Estructura que contiene la información de autenticación del sitio generada de acuerdo al WSSE UsernameToken Profile 1.1
-                  properties:
-                    login:
-                      type: string
-                      description: 'Login para autenticación'
-                      example: aabbccdd1234567890aabbccdd123456
-                    tranKey:
-                      type: string
-                      description: 'Clave de transacción'
-                      example: ABC123example456trankey+789abc012def3456ABC=
-                    nonce:
-                      type: string
-                      description: 'Valor aleatorio para evitar repeticiones'
-                      example: enQ4dXh3YWhkMWM=
-                    seed:
-                      type: string
-                      description: 'Semilla de fecha y hora para la transacción'
-                      example: 2023-06-21T09:56:06-05:00
+                  $ref: "#/components/schemas/Authentication"
                 requestId:
                   type: string
                   format: uuid V4
                   description: Identificador de la solicitud enviado por el cliente para trazabilidad de errores.
                     Ver más en **[Uso del identificador de la solicitud](/token-requestor/api/enroll-card#uso-del-identificador-de-solicitud-request-id)**
                   example: 8a83df8b-f704-4761-a6a1-14a7fd3635b1
-                merchantId:
+                siteId:
                   type: string
                   format: uuid V4
-                  description: Identificador único del comercio
+                  description: Identificador único del sitio
                   example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
                 instrument:
                   type: object
@@ -102,10 +84,14 @@ paths:
                       minLength: 1
                       example: jhon@doe.com
                       description: 'Correo electrónico del titular de la tarjeta'
+                locale:
+                  type: string
+                  example: es_WR
+                  description: Este parámetro se compone por el código del lenguaje según el estándar [ISO 631-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes), seguido de un guión bajo `_` y 2 letras que corresponden al país según el estándar [ISO 3166-1 alpha-2](https://es.wikipedia.org/wiki/ISO_3166-1#C%C3%B3digos_ISO_3166-1)
               required:
                 - auth
                 - requestId
-                - merchantId
+                - siteId
                 - instrument
       responses:
         '200':
@@ -116,36 +102,7 @@ paths:
                 type: object
                 properties:
                   status:
-                    type: object
-                    description: Estructura que contiene la información sobre una solicitud.
-                    required:
-                      - status
-                      - reason
-                      - date
-                    properties:
-                      status:
-                        type: string
-                        description: Estado de la operación
-                        example: OK
-                        enum:
-                          - OK
-                          - REJECTED
-                          - FAILED
-                          - PENDING
-                      reason:
-                        type: string
-                        description: Razón del estado de la operación
-                        maxLength: 2
-                        example: '00'
-                      description:
-                        type: string
-                        description: Descripción del estado
-                        example: Token created
-                      date:
-                        type: string
-                        format: date-time
-                        description: Fecha en la que se ejecutó la operación
-                        example: '2025-03-17T22:45:27+00:00'
+                    $ref: "#/components/schemas/Status"
                   data:
                     type: object
                     description: Datos del resultado
@@ -194,7 +151,7 @@ paths:
                               artURL:
                                 type: string
                                 description: URL con imagen de la tarjeta
-                                example: https://s3Propio.aws.com/tr/brand/1/logo.png
+                                example: https://token-requestor.placetopay.ws/storage/card-art/mastercard.png
                               issuerName:
                                 type: string
                                 description: Nombre del banco emisor del token
@@ -215,40 +172,16 @@ paths:
               type: object
               required:
                 - auth
-                - merchantId
+                - siteId
                 - instrument
                 - isRecurring
               properties:
                 auth:
-                  type: object
-                  description: Objeto de autenticación. Ver más en **[Autentición](/token-requestor/integration/authentication)**. Estructura
-                    que contiene la información de autenticación del sitio generada de acuerdo al WSSE UsernameToken Profile 1.1
-                  required:
-                    - login
-                    - tranKey
-                    - nonce
-                    - seed
-                  properties:
-                    login:
-                      type: string
-                      description: 'Login para autenticación'
-                      example: aabbccdd1234567890aabbccdd123456
-                    tranKey:
-                      type: string
-                      description: 'Clave de transacción'
-                      example: ABC123example456trankey+789abc012def3456ABC=
-                    nonce:
-                      type: string
-                      description: 'Valor aleatorio para evitar repeticiones'
-                      example: enQ4dXh3YWhkMWM=
-                    seed:
-                      type: string
-                      description: 'Semilla de fecha y hora para la transacción'
-                      example: 2023-06-21T09:56:06-05:00
-                merchantId:
+                  $ref: "#/components/schemas/Authentication"
+                siteId:
                   type: string
                   format: uuid V4
-                  description: Identificador único del comercio
+                  description: Identificador único del sitio
                   example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
                 instrument:
                   type: object
@@ -283,36 +216,7 @@ paths:
                   - status
                 properties:
                   status:
-                    type: object
-                    description: Estructura que contiene la información sobre una solicitud.
-                    required:
-                      - status
-                      - reason
-                      - date
-                    properties:
-                      status:
-                        type: string
-                        description: Estado de la operación
-                        example: OK
-                        enum:
-                          - OK
-                          - REJECTED
-                          - FAILED
-                          - PENDING
-                      reason:
-                        type: string
-                        maxLength: 2
-                        description: Razón del estado de la operación
-                        example: '00'
-                      description:
-                        type: string
-                        description: Descripción del estado
-                        example: Token created
-                      date:
-                        type: string
-                        format: date-time
-                        description: Fecha en la que se ejecutó la operación
-                        example: '2025-03-17T22:45:27+00:00'
+                    $ref: "#/components/schemas/Status"
                   data:
                     type: object
                     description: Datos del resultado
@@ -337,39 +241,15 @@ paths:
               type: object
               required:
                 - auth
-                - merchantId
+                - siteId
                 - instrument
               properties:
                 auth:
-                  type: object
-                  description: Objeto de autenticación. Ver más en **[Autentición](/token-requestor/integration/authentication)**. Estructura
-                    que contiene la información de autenticación del sitio generada de acuerdo al WSSE UsernameToken Profile 1.1
-                  required:
-                    - login
-                    - tranKey
-                    - nonce
-                    - seed
-                  properties:
-                    login:
-                      type: string
-                      description: 'Login para autenticación'
-                      example: aabbccdd1234567890aabbccdd123456
-                    tranKey:
-                      type: string
-                      description: 'Clave de transacción'
-                      example: ABC123example456trankey+789abc012def3456ABC=
-                    nonce:
-                      type: string
-                      description: 'Valor aleatorio para evitar repeticiones'
-                      example: enQ4dXh3YWhkMWM=
-                    seed:
-                      type: string
-                      description: 'Semilla de fecha y hora para la transacción'
-                      example: 2023-06-21T09:56:06-05:00
-                merchantId:
+                  $ref: "#/components/schemas/Authentication"
+                siteId:
                   type: string
                   format: uuid V4
-                  description: Identificador único del comercio
+                  description: Identificador único del sitio
                   example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
                 instrument:
                   type: object
@@ -399,36 +279,7 @@ paths:
                 type: object
                 properties:
                   status:
-                    type: object
-                    description: Estructura que contiene la información sobre una solicitud.
-                    required:
-                      - status
-                      - reason
-                      - date
-                    properties:
-                      status:
-                        type: string
-                        description: Estado de la operación
-                        example: OK
-                        enum:
-                          - OK
-                          - REJECTED
-                          - FAILED
-                          - PENDING
-                      reason:
-                        type: string
-                        maxLength: 2
-                        description: Razón del estado de la operación
-                        example: '00'
-                      description:
-                        type: string
-                        description: Descripción del estado
-                        example: Token created
-                      date:
-                        type: string
-                        format: date-time
-                        description: Fecha en la que se ejecutó la operación
-                        example: '2025-03-17T22:45:27+00:00'
+                    $ref: "#/components/schemas/Status"
                   data:
                     type: object
                     properties:
@@ -449,7 +300,11 @@ paths:
                       artURL:
                         type: string
                         description: Url con imagen de la tarjeta
-                        example: https://s3Propio.aws.com/tr/brand/1/logo.png
+                        example: https://token-requestor.placetopay.ws/storage/card-art/mastercard.png
+                      onTest:
+                        description: Indica si el token se creo en un ambiente de pruebas o directamente con la marca.
+                        type: boolean
+                        example: true
                       createdAt:
                         type: string
                         format: date
@@ -473,35 +328,11 @@ paths:
               type: object
               properties:
                 auth:
-                  type: object
-                  description: Objeto de autenticación. Ver más en **[Autentición](/token-requestor/integration/authentication)**. Estructura
-                    que contiene la información de autenticación del sitio generada de acuerdo al WSSE UsernameToken Profile 1.1
-                  required:
-                    - login
-                    - tranKey
-                    - nonce
-                    - seed
-                  properties:
-                    login:
-                      type: string
-                      description: 'Login para autenticación'
-                      example: aabbccdd1234567890aabbccdd123456
-                    tranKey:
-                      type: string
-                      description: 'Clave de transacción'
-                      example: ABC123example456trankey+789abc012def3456ABC=
-                    nonce:
-                      type: string
-                      description: 'Valor aleatorio para evitar repeticiones'
-                      example: enQ4dXh3YWhkMWM=
-                    seed:
-                      type: string
-                      description: 'Semilla de fecha y hora para la transacción'
-                      example: 2023-06-21T09:56:06-05:00
-                merchantId:
+                  $ref: "#/components/schemas/Authentication"
+                siteId:
                   type: string
                   format: uuid V4
-                  description: Identificador único del comercio
+                  description: Identificador único del sitio
                   example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
                 instrument:
                   type: object
@@ -538,7 +369,7 @@ paths:
 
               required:
                 - reason
-                - merchantId
+                - siteId
                 - instrument
                 - auth
       responses:
@@ -550,30 +381,7 @@ paths:
                 type: object
                 properties:
                   status:
-                    type: object
-                    description: Información del estado
-                    properties:
-                      status:
-                        type: string
-                        description: Estado de la operación
-                        example: "OK"
-                      reason:
-                        type: string
-                        description: Razón del estado
-                        example: "00"
-                      description:
-                        type: string
-                        description: Descripción del estado
-                        example: "successfully removed!"
-                      date:
-                        type: string
-                        format: date-time
-                        description: Fecha en que se ejecutó la operación
-                        example: "2025-03-17T22:45:27+00:00"
-                    required:
-                      - reason
-                      - status
-                      - date
+                    $ref: "#/components/schemas/Status"
                 required:
                   - status
 
@@ -600,10 +408,11 @@ paths:
                   type: string
                   description: "Valor criptográfico generado a partir de la combinación de datos y una clave secreta."
                   example: "Base64(SHA-256(secretKey + data + date))"
-                merchantId:
+                siteId:
                   type: string
-                  description: "ID del comercio."
+                  description: "ID del sitio."
                   example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                  format: uuid V4
                 data:
                   type: object
                   description: "Datos relacionados con el evento."
@@ -635,6 +444,1718 @@ paths:
                 - date
                 - type
                 - signature
-                - merchantId
+                - siteId
                 - data
       responses:
+  /api/admin/credentials/create:
+    post:
+      summary: Crear una credencial (PROCESSOR)
+      description: >
+        Este endpoint permite crear una nueva credencial de acceso a la
+        plataforma.  
+        *Requiere autenticación mediante WS‐Security UsernameToken (bloque **auth**).*
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                data:
+                  type: object
+                  description: Datos de la credencial a crear.
+                  required:
+                    - name
+                    - role
+                    - restrictions
+                  properties:
+                    name:
+                      type: string
+                      maxLength: 100
+                      description: Nombre identificador de la credencial.
+                      example: Wallet de placetopay
+                    description:
+                      type: string
+                      maxLength: 220
+                      description: Descripción funcional.
+                      example: Credencial para la wallet de placetopay
+                    role:
+                      type: string
+                      description: Rol de la credencial.
+                      enum:
+                        - PROCESSOR
+                      example: PROCESSOR
+                    restrictions:
+                      type: object
+                      description: >
+                        Recursos a los que la credencial tendrá acceso.  
+                        *Debe incluir al menos uno de los arreglos **consumers** o **sites**.*
+                      properties:
+                        consumers:
+                          type: "array"
+                          description: "Contenedor con los identificadores de consumidores asociados a comercios."
+                          items:
+                            type: "string"
+                          example: '["your-consumer-id"]'
+                        sites:
+                          type: "array"
+                          description: "Contenedor con los identificadores de sitios asociados a consumidores."
+                          items:
+                            type: "string"
+                          example: '["your-site-id", "your-site-id-2"]'
+              required:
+                - auth
+                - data
+            examples:
+              credential_processor:
+                summary: Solicitud exitosa – PROCESSOR
+                value:
+                  auth:
+                    login: 06c258dfab64db74352680fbdc224ffe
+                    tranKey: ptvCmJF7KgwGmYmL
+                    nonce: cHJ1ZWJhZGU=
+                    seed: 2025-07-10T10:10:00-05:00
+                  data:
+                    name: Sura
+                    description: Credencial para SURA
+                    role: PROCESSOR
+                    restrictions:
+                      sites: ["34227455-2fe8-4596-8999-9c249dec618a"]
+                      consumers: [ "f5ff8bb0-1db9-433b-8d66-e20ebcbd12ae"]
+      responses:
+        '200':
+          description: Credencial creada exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: object
+                    description: Detalles de la credencial creada.
+                    properties:
+                      login:
+                        type: string
+                        description: Login asignado a la nueva credencial.
+                        example: 06c258dfab64db74352680fbdc224ffe
+                      secretKey:
+                        type: string
+                        description: Clave secreta generada.
+                        example: ptvCmJF7KgwGmYmL
+                      restrictions:
+                        type: object
+                        description: Recursos asociados a la credencial.
+                        properties:
+                          consumers:
+                            type: "array"
+                            description: "Contenedor con los identificadores de consumidores asociados a comercios."
+                            items:
+                              type: "string"
+                            example: '["your-consumer-id"]'
+                          sites:
+                            type: "array"
+                            description: "Contenedor con los identificadores de sitios asociados a comercios."
+                            items:
+                              type: "string"
+                            example: '["your-site-id", "your-site-id-2"]'
+                required:
+                  - status
+  /api/admin/credentials/show:
+    post:
+      summary: Consultar credencial por login
+      description: >
+        Este endpoint permite consultar la información de una credencial previamente creada, 
+        a partir de su login.  
+        Requiere autenticación mediante WS‐Security UsernameToken (**auth**).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                login:
+                  type: string
+                  description: Login de la credencial a consultar.
+                  example: 06c258dfab64db74352680fbdc224ffe
+              required:
+                - auth
+                - login
+            examples:
+              consulta_credencial:
+                summary: Ejemplo de solicitud
+                value:
+                  auth:
+                    login: 1441d14df19ec88431e513bb990326e1
+                    tranKey: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
+                    nonce: enQ4dXh3YWhkMWM=
+                    seed: 2023-06-21T09:56:06-05:00
+                  login: 06c258dfab64db74352680fbdc224ffe
+      responses:
+        '200':
+          description: Consulta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: object
+                    description: Detalles de la credencial consultada.
+                    properties:
+                      login:
+                        type: string
+                        example: 06c258dfab64db74352680fbdc224ffe
+                      name:
+                        type: string
+                        example: Credencial PTP
+                        maxLength: 100
+                        description: Nombre identificador de la credencial.
+                      description:
+                        type: string
+                        description: Descripción funcional.
+                        example: Credencial para la wallet de placetopay
+                      role:
+                        type: string
+                        description: Rol de la credencial.
+                        enum:
+                          - PROCESSOR
+                        example: PROCESSOR
+                      restrictions:
+                        type: object
+                        description: Recursos a los que la credencial tendrá acceso.
+                        properties:
+                          consumers:
+                            type: "array"
+                            description: "Contenedor con los identificadores de consumidores asociados a comercios."
+                            items:
+                              type: "string"
+                            example: '["your-consumer-id"]'
+                          sites:
+                            type: "array"
+                            description: "Contenedor con los identificadores de sitios asociados a comercios."
+                            items:
+                              type: "string"
+                            example: '["your-site-id", "your-site-id-2"]'
+                      isEnabled:
+                        type: boolean
+                        example: true
+                        description: Indica si el recurso o funcionalidad está habilitado (`true`) o deshabilitado (`false`)
+                      createdAt:
+                        type: string
+                        description: Fecha de creación
+                        example: 2025-07-09 15:45:05
+                      updatedAt:
+                        type: string
+                        description: Fecha de actualización
+                        example: 2025-07-09 15:45:05
+                required:
+                  - status
+  /api/admin/credentials/edit:
+    post:
+      summary: Editar una credencial existente
+      description: >
+        Permite modificar los atributos configurables de una credencial.  
+        No es posible cambiar directamente el login ni el tranKey.  
+        Si se envía el campo `restrictions`, reemplazará completamente las restricciones actuales.
+      operationId: admin.credentials.edit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - login
+                - data
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                login:
+                  type: string
+                  description: Login de la credencial a editar.
+                  example: 06c258dfab64db74352680fbdc224ffe
+                data:
+                  type: object
+                  description: Campos opcionales para editar la credencial.
+                  properties:
+                    name:
+                      type: string
+                      example: Credencial PTP
+                      maxLength: 100
+                      description: Nombre identificador de la credencial.
+                    description:
+                      type: string
+                      maxLength: 220
+                      description: Descripción funcional.
+                      example: Credencial para la wallet de placetopay
+                    role:
+                      type: string
+                      description: Rol de la credencial.
+                      enum:
+                        - PROCESSOR
+                      example: PROCESSOR
+                    isEnabled:
+                      type: boolean
+                      example: true
+                      description: Indica si el recurso o funcionalidad está habilitado (`true`) o deshabilitado (`false`)
+                    restrictions:
+                      type: object
+                      description: >
+                        Recursos a los que la credencial tendrá acceso.  
+                        *Si se incluye, se reemplazarán completamente las restricciones actuales.*
+                      properties:
+                        consumers:
+                          type: "array"
+                          description: "Contenedor con los identificadores de consumidores asociados a comercios."
+                          items:
+                            type: "string"
+                          example: '["your-consumer-id"]'
+                        sites:
+                          type: "array"
+                          description: "Contenedor con los identificadores de sitios asociados a comercios."
+                          items:
+                            type: "string"
+                          example: '["your-site-id"]'
+            examples:
+              editar_credencial:
+                summary: Ejemplo de solicitud de edición
+                value:
+                  auth:
+                    login: 1441d14df19ec88431e513bb990326e1
+                    tranKey: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
+                    nonce: enQ4dXh3YWhkMWM=
+                    seed: 2023-06-21T09:56:06-05:00
+                  login: 06c258dfab64db74352680fbdc224ffe
+                  data:
+                    name: Credencial PTP
+                    description: Credencial para la wallet de placetopay
+                    role: PROCESSOR
+                    isEnabled: true
+                    restrictions:
+                      type: object
+                      description: Recursos a los que la credencial tendrá acceso.
+                      properties:
+                        consumers:
+                          type: "array"
+                          description: "Contenedor con los identificadores de consumidores asociados a comercios."
+                          items:
+                            type: "string"
+                          example: '["your-consumer-id"]'
+                        sites:
+                          type: "array"
+                          description: "Contenedor con los identificadores de sitios asociados a comercios."
+                          items:
+                            type: "string"
+                          example: '["your-site-id"]'
+      responses:
+        '200':
+          description: Edición exitosa de la credencial.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid V4
+                        description: ID de la credencial modificada.
+                        example: 0197efdc-aac3-7394-8f35-f0ce1e244c2c
+                required:
+                  - status
+  /api/admin/credentials/delete:
+    post:
+      summary: Eliminar una credencial
+      description: >
+        Elimina de forma **irreversible** una credencial existente del sistema, a partir de su login.  
+        Esta operación requiere autenticación administrativa y permisos especiales.
+      operationId: admin.credentials.delete
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - login
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                login:
+                  type: string
+                  description: Login de la credencial que se desea eliminar.
+                  example: 06c258dfab64db74352680fbdc224ffe
+            examples:
+              eliminar_credencial:
+                summary: Ejemplo de solicitud
+                value:
+                  auth:
+                    login: 1441d14df19ec88431e513bb990326e1
+                    tranKey: DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY=
+                    nonce: enQ4dXh3YWhkMWM=
+                    seed: 2023-06-21T09:56:06-05:00
+                  login: 06c258dfab64db74352680fbdc224ffe
+      responses:
+        '200':
+          description: Eliminación exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                required:
+                  - status
+  /api/admin/credentials/index:
+    post:
+      tags:
+        - Admin Credentials
+      summary: Listar Credenciales
+      operationId: indexAdminCredentials
+      description: >
+        Permite listar las credenciales registradas en el sistema con soporte de filtros y paginación.
+        Puede filtrarse por nombre, rol, sitios, consumidores o rango de fechas de creación.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                filters:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      maxLength: 100
+                      description: Nombre identificador de la credencial.
+                    role:
+                      type: string
+                      description: Rol de la credencial.
+                      enum:
+                        - PROCESSOR
+                      example: PROCESSOR
+                    sites:
+                      type: "array"
+                      description: "Contenedor con los identificadores de sitios asociados a comercios."
+                      items:
+                        type: "string"
+                      example: '["your-site-id"]'
+                    consumers:
+                      type: "array"
+                      description: "Contenedor con los identificadores de consumidores asociados a comercios."
+                      items:
+                        type: "string"
+                      example: '["your-consumer-id"]'
+                    createdAt:
+                      type: object
+                      properties:
+                        from:
+                          type: string
+                          format: date-time
+                          description: Fecha inicial de creación (ISO 8601).
+                          example: "2025-01-01T00:00:00-05:00"
+                        to:
+                          type: string
+                          format: date-time
+                          description: Fecha final de creación (ISO 8601).
+                          example: "2025-01-31T23:59:59-05:00"
+                pagination:
+                  type: object
+                  properties:
+                    perPage:
+                      type: integer
+                      description: Número de elementos que se mostrarán por página. Define el tamaño de la página.
+                      example: 10
+                      maximum: 100
+                      default: 15
+                    currentPage:
+                      type: integer
+                      description: Número de la página actual que se desea consultar (basado en el total de elementos y `perPage`).
+                      example: 1
+                      default: 1
+      responses:
+        '200':
+          description: Respuesta exitosa con datos paginados de credenciales
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        login:
+                          type: string
+                          example: "06c258dfab64db74352680fbdc224ffe"
+                        name:
+                          type: string
+                          example: "Credencial PTP"
+                          maxLength: 100
+                          description: Nombre identificador de la credencial.
+                        role:
+                          type: string
+                          description: Rol de la credencial.
+                          enum:
+                            - PROCESSOR
+                          example: PROCESSOR
+                        isEnabled:
+                          type: boolean
+                          example: true
+                          description: Indica si el recurso o funcionalidad está habilitado (`true`) o deshabilitado (`false`)
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2025-07-09 15:45:05"
+                          description: Fecha de creación
+                        updatedAt:
+                          type: string
+                          format: date-time
+                          example: "2025-07-09 15:46:27"
+                          description: Fecha de actualización
+                  pagination:
+                    type: object
+                    description: Información sobre la paginación de los resultados.
+                    properties:
+                      currentPage:
+                        type: integer
+                        description: Página actual que se está consultando.
+                        example: 1
+                        default: 1
+                      lastPage:
+                        type: integer
+                        description: Última página disponible, calculada en función del total de registros y la cantidad por página.
+                        example: 5
+                      perPage:
+                        type: integer
+                        description: Cantidad de elementos que se muestran por página.
+                        example: 10
+                        maximum: 100
+                        default: 15
+                      total:
+                        type: integer
+                        example: 1
+  /api/admin/sites/create:
+    post:
+      summary: Crear un nuevo sitio
+      description: >
+        Este endpoint permite registrar un nuevo sitio dentro del entorno de administración del sistema.  
+        *Requiere autenticación mediante WS‐Security UsernameToken (bloque **auth**).*  
+        El sitio será asociado a un merchant válido y podrá tener configuración adicional como URL de webhook, modo prueba, y fecha de habilitación.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                data:
+                  type: object
+                  description: Datos del sitio a registrar.
+                  required:
+                    - name
+                    - merchantId
+                  properties:
+                    name:
+                      type: string
+                      maxLength: 225
+                      description: Nombre del sitio que será registrado.
+                      example: Site Test
+                    webhookURL:
+                      type: string
+                      maxLength: 225
+                      description: URL a la que se enviarán notificaciones del sitio.
+                      example: https://webhook.site/asdads
+                    webhookSecret:
+                      type: string
+                      maxLength: 25
+                      description: Token utilizado para verificar las notificaciones entrantes.
+                      example: E0wWIBNtNr3GSF6G
+                    merchantId:
+                      type: string
+                      format: uuid V4
+                      description: Identificador del merchant al que se asociará el sitio.
+                      example: f1d0888b-f5a9-445a-8c54-dba63763fbc5
+                    onTest:
+                      type: boolean
+                      description: Indica si un sitio o entidad está funcionando en modo de prueba o en modo productivo.
+                      example: true
+                    enabledAt:
+                      type: string
+                      format: date-time
+                      description: Fecha a partir de la cual el sitio estará habilitado.
+                      example: 2025-07-01 10:00:00
+              required:
+                - auth
+                - data
+            examples:
+              full_request:
+                summary: Solicitud exitosa – todos los campos
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: 2025-07-03T20:28:43-05:00
+                  data:
+                    name: Site Test
+                    webhookURL: https://webhook.site/asdads
+                    webhookSecret: E0wWIBNtNr3GSF6G
+                    merchantId: f1d0888b-f5a9-445a-8c54-dba63763fbc5
+                    onTest: true
+                    enabledAt: 2025-07-01 10:00:00
+              minimal_request:
+                summary: Solicitud exitosa – solo campos requeridos
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: 2025-07-03T20:28:43-05:00
+                  data:
+                    name: Site Test
+                    merchantId: f1d0888b-f5a9-445a-8c54-dba63763fbc5
+      responses:
+        '200':
+          description: Sitio creado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: object
+                    description: Detalles del sitio creado.
+                    properties:
+                      id:
+                        type: string
+                        format: uuid V4
+                        description: ID del sitio creado.
+                        example: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+                required:
+                  - status
+                  - data
+
+  /api/admin/sites/show:
+    post:
+      summary: Consulta de sitio
+      description: >
+        Esta operación permite consultar la información detallada de un sitio previamente registrado en el sistema administrativo.  
+        Está disponible exclusivamente para usuarios autenticados que tengan permisos de acceso y visibilidad sobre el recurso.
+
+        La respuesta incluye información básica del sitio, su estado de habilitación, modo de prueba (`onTest`), y los datos del comercio y consumidor al que está vinculado.  
+        También incluye configuración de webhook, si aplica.
+
+        Esta operación valida:
+          - Autenticación con el bloque `auth`
+          - Formato del campo `id`
+          - Existencia del sitio
+          - Permisos de acceso (ACL)
+      operationId: api.admin.sites.show
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                id:
+                  type: string
+                  format: uuid V4
+                  description: Identificador único del sitio a consultar.
+                  example: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+      responses:
+        '200':
+          description: Consulta exitosa del sitio.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid V4
+                        description: Identificador UUID del sitio
+                        example: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+                      name:
+                        type: string
+                        maxLength: 225
+                        example: Site Test
+                      merchant:
+                        type: object
+                        description: Información del comercio
+                        properties:
+                          id:
+                            type: string
+                            format: uuid V4
+                            description: Identificador UUID del comercio
+                            example: f1d0888b-f5a9-445a-8c54-dba63763fbc5
+                          name:
+                            type: string
+                            example: Merchant Test
+                            maxLength: 225
+                            description: Nombre del comercio
+                      consumer:
+                        description: Información del consumidor
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid V4
+                            description: Identificador UUID del consumidor
+                            example: e1a8c0b2-c7f1-49e3-91e0-7059b50e3f43
+                          name:
+                            type: string
+                            example: Consumer Test
+                            maxLength: 225
+                            description: Nombre del consumidor
+                      webhookURL:
+                        description: URL a la que se enviarán las notificaciones automáticas
+                        type: string
+                        format: uri
+                        maxLength: 225
+                        example: https://webhook.site/test
+                      webhookSecret:
+                        description: Clave secreta para validar mensajes de webhook
+                        type: string
+                        maxLength: 25
+                        example: secret-token
+                      onTest:
+                        description: Indica si un sitio o entidad está funcionando en modo de prueba o en modo productivo.
+                        type: boolean
+                        example: true
+                      enabledAt:
+                        description: Indica cuándo fue habilitado un sitio dentro del sistema
+                        type: string
+                        format: date-time
+                        example: 2025-07-01 10:00:00
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: 2025-06-16T22:29:01
+                        description: Fecha de creación
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        example: 2025-07-02T15:30:00
+                        description: Fecha de actualización
+        '400':
+          description: Error en la solicitud, datos inválidos o sin autorización.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+  /api/admin/sites/edit:
+    post:
+      tags:
+        - Admin / Sitios
+      summary: Actualización de sitio
+      operationId: api.admin.sites.update
+      description: >
+        Permite modificar parcialmente los atributos de un sitio existente. Solo se actualizarán los campos enviados en el objeto `data`.  
+        Esta operación requiere autenticación con credenciales válidas y permisos de gestión sobre sitios.  
+        Campos como `consumerId` y `merchantId` no son modificables.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+                - data
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                id:
+                  type: string
+                  format: uuid V4
+                  description: Identificador UUID del sitio que se desea actualizar
+                data:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      maxLength: 225
+                      example: Sitio Test
+                      description: Nombre del sitio, obligatorio si se incluye
+                    webhookURL:
+                      type: string
+                      format: uri
+                      maxLength: 225
+                      description: URL del webhook de notificaciones automáticas
+                    webhookSecret:
+                      type: string
+                      maxLength: 25
+                      description: Clave secreta para validar mensajes de webhook
+                    onTest:
+                      type: boolean
+                      example: true
+                      description: Indica si un sitio o entidad está funcionando en modo de prueba o en modo productivo.
+                    enabledAt:
+                      type: string
+                      format: date-time
+                      description: Fecha y hora de activación del sitio
+                      example: 2025-07-01 10:00:00
+      responses:
+        '200':
+          description: Actualización exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid V4
+                        description: Identificador UUID del sitio
+        '400':
+          description: Error en la solicitud (datos inválidos o id incorrecto)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+  /api/admin/sites/delete:
+    post:
+      summary: Eliminación de sitio
+      operationId: deleteSite
+      description: >
+        Esta operación permite eliminar un sitio registrado en el entorno administrativo del sistema. Está restringida a usuarios autenticados que cuenten con los permisos correspondientes para gestión de sitios. La eliminación está condicionada por el estado del sitio y su relación con otros recursos.
+
+        En caso de que el sitio tenga tokens asociados, la operación será rechazada y se notificará al cliente que no puede proceder con la eliminación. Solo los sitios sin tokens podrán ser eliminados exitosamente. Esta operación es irreversible.
+      tags:
+        - Sitios
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                id:
+                  type: string
+                  format: uuid V4
+                  description: Identificador único del sitio que se desea eliminar.
+                  example: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+              required:
+                - auth
+                - id
+            examples:
+              successful:
+                summary: Solicitud exitosa
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: "2025-07-03T20:28:43-05:00"
+                  id: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+              failed_tokens:
+                summary: Fallida - sitio con tokens asociados
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: "2025-07-03T20:28:43-05:00"
+                  id: 9f4e4926-4783-44b9-a169-f3ad38e61bea
+              failed_invalid:
+                summary: Fallida - sitio inexistente
+                value:
+                  auth:
+                    login: f329e676189bb2a447a17ea595153545
+                    tranKey: coMTloZknUHnioHIKvJYq5d31fVhOdCrn3kaExSvTGo=
+                    nonce: MnFrcmZlYjQ0bXk=
+                    seed: "2025-07-03T20:28:43-05:00"
+                  id: invalid
+      responses:
+        '200':
+          description: Eliminación exitosa del sitio
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+              examples:
+                success:
+                  summary: Éxito
+                  value:
+                    status:
+                      status: OK
+                      reason: '00'
+                      message: The request has been successfully processed
+                      date: '2025-07-04T14:50:00+00:00'
+                error_tokens:
+                  summary: Fallo - sitio con tokens
+                  value:
+                    status:
+                      status: FAILED
+                      reason: BR
+                      message: The site has associated tokens.
+                      date: '2025-07-04T14:53:40+00:00'
+        '400':
+          description: Error en la solicitud, datos inválidos o sin autorización.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+  /api/admin/sites/index:
+    post:
+      tags:
+        - Sites
+      summary: Listado de sitios
+      description: >
+        Esta operación permite obtener un listado de los sitios registrados en el sistema administrativo.  
+        Retorna resultados paginados y admite múltiples filtros para acotar la búsqueda.  
+        La respuesta incluye información básica de cada sitio y puede estar sujeta a reglas de control de acceso (ACL).
+      operationId: api.admin.sites.index
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                filters:
+                  type: object
+                  properties:
+                    consumers:
+                      type: "array"
+                      description: "Contenedor con los identificadores de consumidores asociados a comercios."
+                      items:
+                        type: "string"
+                      example: '["your-consumer-id"]'
+                    merchants:
+                      type: "array"
+                      description: "Contenedor con los identificadores de comercios."
+                      items:
+                        type: "string"
+                      example: '["your-merchant-id"]'
+                    name:
+                      type: string
+                      description: Nombre del sitio
+                      example: Site Test
+                      maxLength: 225
+                    onTest:
+                      type: boolean
+                      example: true
+                      description: Indica si un sitio o entidad está funcionando en modo de prueba o en modo productivo.
+                    createdAt:
+                      description: Rango de fecha de creación
+                      type: object
+                      properties:
+                        from:
+                          type: string
+                          format: date-time
+                          description: Fecha inicial de creación (ISO 8601).
+                          example: 2025-06-16T22:29:01+00:00
+                        to:
+                          description: Fecha final de creación (ISO 8601).
+                          type: string
+                          format: date-time
+                          example: 2025-07-27T18:00:00-05:00
+                pagination:
+                  type: object
+                  description: Información sobre la paginación de los resultados.
+                  properties:
+                    currentPage:
+                      type: integer
+                      description: Página actual que se está consultando.
+                      example: 1
+                      default: 1
+                    perPage:
+                      type: integer
+                      description: Cantidad de elementos que se muestran por página.
+                      example: 10
+                      maximum: 100
+                      default: 15
+      responses:
+        '200':
+          description: Respuesta exitosa con datos paginados de sitios
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: Identificador UUID del sitio que se desea actualizar
+                          format: uuid V4
+                        merchant:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid V4
+                              description: Identificador UUID del comercio
+                            name:
+                              type: string
+                              maxLength: 225
+                              description: Nombre del comercio
+                        consumer:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: Identificador UUID del consumidor
+                              format: uuid V4
+                            name:
+                              type: string
+                              maxLength: 225
+                              description: Nombre del consumidor
+                        name:
+                          type: string
+                          description: Nombre del sitio
+                          maxLength: 225
+                        onTest:
+                          type: boolean
+                          example: true
+                          description: Indica si un sitio o entidad está funcionando en modo de prueba o en modo productivo.
+                        enabledAt:
+                          type: string
+                          format: date-time
+                          example: 2025-07-01 10:00:00
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: 2025-07-01 10:00:00
+                  pagination:
+                    type: object
+                    description: Información sobre la paginación de los resultados.
+                    properties:
+                      currentPage:
+                        type: integer
+                        description: Página actual que se está consultando.
+                        example: 1
+                        default: 1
+                      lastPage:
+                        type: integer
+                        description: Última página disponible, calculada en función del total de registros y la cantidad por página.
+                        example: 5
+                      perPage:
+                        type: integer
+                        description: Cantidad de elementos que se muestran por página.
+                        example: 10
+                        maximum: 100
+                        default: 15
+                      total:
+                        type: integer
+                        description: Total de registros disponibles en la colección consultada.
+                        example: 47
+        '400':
+          description: Solicitud inválida por errores en parámetros
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+  /api/admin/merchants/create:
+    post:
+      summary: "Creación de comercios"
+      operationId: "token-requestor-admin-merchants-create"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                data:
+                  type: "object"
+                  description: "Contenedor principal de los datos del comercio."
+                  properties:
+                    name:
+                      type: "string"
+                      description: "Nombre del comercio."
+                      maxLength: "225"
+                      example: "ACME Corp"
+                    brand:
+                      type: "string"
+                      description: "Nombre de la marca asociada al comercio."
+                      maxLength: "225"
+                      example: "ACME Corp BRAND"
+                    mcc:
+                      type: "string"
+                      description: "Código MCC (actividad económica)."
+                      maxLength: "10"
+                      example: "0742"
+                    websiteURL:
+                      type: "string"
+                      description: "URL del sitio web del comercio."
+                      maxLength: "225"
+                      example: "https://acme.com"
+                    consumerId:
+                      type: "string"
+                      description: "Identificador del consumidor."
+                      maxLength: "36"
+                      example: "your-consumer-id"
+                    address:
+                      $ref: "#/components/schemas/Address"
+                    document:
+                      $ref: "#/components/schemas/Document"
+                    legalRepresentative:
+                      $ref: "#/components/schemas/LegalRepresentative"
+                  required:
+                    - "name"
+                    - "brand"
+                    - "consumerId"
+                    - "address"
+                    - "document"
+                    - "legalRepresentative"
+              required:
+                - "auth"
+                - "data"
+      responses:
+        '200':
+          description: "Respuesta exitosa"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: "object"
+                    description: "Datos del resultado"
+                    properties:
+                      id:
+                        type: "string"
+                        format: "uuid V4"
+                        description: "Identificador del comercio."
+                        example: "62a89e6b-6ea9-463a-b720-4d34f76436d9"
+  /api/admin/merchants/update:
+    post:
+      summary: "Actualización de comercios"
+      operationId: "token-requestor-admin-merchants-update"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                id:
+                  type: "uuid"
+                  description: "Identificador del comercio."
+                  maxLength: "36"
+                  example: "9f5db0db-102a-40f8-a1aa-d7735d9fb50a"
+                data:
+                  type: "object"
+                  description: "Contenedor principal de los datos del comercio."
+                  properties:
+                    name:
+                      type: "string"
+                      description: "Nombre del comercio."
+                      maxLength: "225"
+                      example: "ACME Corp"
+                    brand:
+                      type: "string"
+                      description: "Nombre de la marca asociada al comercio."
+                      maxLength: "225"
+                      example: "ACME Corp BRAND"
+                    websiteURL:
+                      type: "string"
+                      description: "URL del sitio web del comercio."
+                      maxLength: "225"
+                      example: "https://acme.com"
+                    address:
+                      $ref: "#/components/schemas/Address"
+                    legalRepresentative:
+                      $ref: "#/components/schemas/LegalRepresentative"
+              required:
+                - "auth"
+                - "id"
+                - "data"
+      responses:
+        '200':
+          description: "Respuesta exitosa"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: "object"
+                    description: "Datos del resultado"
+                    properties:
+                      id:
+                        type: "string"
+                        format: "uuid V4"
+                        description: "Identificador del comercio."
+                        example: "62a89e6b-6ea9-463a-b720-4d34f76436d9"
+  /api/admin/merchants/delete:
+    post:
+      summary: "Eliminación de comercio"
+      operationId: "token-requestor-admin-merchants-delete"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                id:
+                  type: "uuid"
+                  description: "Identificador del comercio."
+                  maxLength: "36"
+                  example: "9f5db0db-102a-40f8-a1aa-d7735d9fb50a"
+              required:
+                - "auth"
+                - "id"
+      responses:
+        '200':
+          description: "Respuesta exitosa"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+  /api/admin/merchants/show:
+    post:
+      summary: "Consulta de comercio"
+      operationId: "token-requestor-admin-merchants-show"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                id:
+                  type: "uuid"
+                  description: "Identificador del comercio."
+                  maxLength: "36"
+                  example: "9f5db0db-102a-40f8-a1aa-d7735d9fb50a"
+              required:
+                - "auth"
+                - "id"
+      responses:
+        '200':
+          description: "Respuesta exitosa"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: "object"
+                    description: "Contenedor principal de los datos del comercio."
+                    properties:
+                      id:
+                        type: "uuid"
+                        description: "Identificador del comercio."
+                        maxLength: "36"
+                        example: "9f5db0db-102a-40f8-a1aa-d7735d9fb50a"
+                      name:
+                        type: "string"
+                        description: "Nombre del comercio."
+                        maxLength: "225"
+                        example: "ACME Corp"
+                      brand:
+                        type: "string"
+                        description: "Nombre de la marca asociada al comercio."
+                        maxLength: "225"
+                        example: "ACME Corp BRAND"
+                      mcc:
+                        type: "string"
+                        description: "Código MCC (actividad económica)."
+                        maxLength: "10"
+                        example: "0742"
+                      websiteURL:
+                        type: "string"
+                        description: "URL del sitio web del comercio."
+                        maxLength: "225"
+                        example: "https://acme.com"
+                      consumer:
+                        type: "object"
+                        description: "Contenedor principal de los datos del consumidor."
+                        properties:
+                          id:
+                            type: "string"
+                            description: "Identificador del consumidor."
+                            maxLength: "36"
+                            example: "your-consumer-id"
+                          name:
+                            type: "uuid"
+                            description: "Nombre del consumidor."
+                            maxLength: "225"
+                            example: "Consumer Name"
+                      address:
+                        $ref: "#/components/schemas/Address"
+                      document:
+                        $ref: "#/components/schemas/Document"
+                      legalRepresentative:
+                        $ref: "#/components/schemas/LegalRepresentative"
+                      createdAt:
+                        type: "string"
+                        description: "Fecha de creación del comercio."
+                        format: "date-time"
+                        example: "2022-12-30 13:45:02"
+                      updatedAt:
+                        type: "string"
+                        description: "Fecha de actualización del comercio."
+                        format: "date-time"
+                        example: "2022-12-30 13:45:02"
+                    required:
+                      - "name"
+                      - "brand"
+                      - "consumer"
+                      - "address"
+                      - "document"
+                      - "legalRepresentative"
+  /api/admin/merchants/index:
+    post:
+      summary: "Listado de comercios"
+      operationId: "token-requestor-admin-merchants-index"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                filters:
+                  type: "object"
+                  description: "Contenedor de los criterios de filtrado."
+                  properties:
+                    consumers:
+                      type: "array"
+                      description: "Contenedor con los identificadores de consumidores asociados a comercios."
+                      items:
+                        type: "string"
+                      example: '["your-consumer-id"]'
+                    name:
+                      type: "string"
+                      description: "Nombre del comercio."
+                      maxLength: "225"
+                      example: "ACME Corp"
+                    brand:
+                      type: "string"
+                      description: "Nombre de la marca asociada al comercio."
+                      maxLength: "225"
+                      example: "ACME Corp BRAND"
+                    document:
+                      $ref: "#/components/schemas/Document"
+                    createdAt:
+                      type: "object"
+                      description: "Contenedor para filtrado por fecha de creación."
+                      properties:
+                        from:
+                          type: "string"
+                          description: "Fecha inicial del rango de creación."
+                          format: "date-time"
+                          example: "2022-12-30 13:45:02"
+                        to:
+                          type: "string"
+                          description: "Fecha final del rango de creación."
+                          format: "date-time"
+                          example: "2022-12-30 13:45:02"
+                    updatedAt:
+                      type: "object"
+                      description: "Contenedor para filtrado por fecha de actualización."
+                      properties:
+                        from:
+                          type: "string"
+                          description: "Fecha inicial del rango de actualización."
+                          format: "date-time"
+                          example: "2022-12-30 13:45:02"
+                        to:
+                          type: "string"
+                          description: "Fecha final del rango de actualización."
+                          format: "date-time"
+                          example: "2022-12-30 13:45:02"
+                    pagination:
+                      type: "object"
+                      description: "Parámetros de paginación."
+                      properties:
+                        perPage:
+                          type: "integer"
+                          description: "Número de elementos que se mostrarán por página. Define el tamaño de la página."
+                          maxLength: "100"
+                          example: "10"
+                        currentPage:
+                          type: "integer"
+                          description: "Número de la página actual que se desea consultar (basado en el total de elementos y `perPage`)."
+                          minLength: "1"
+                          example: "1"
+              required:
+                - "auth"
+      responses:
+        '200':
+          description: "Respuesta exitosa"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  pagination:
+                    type: "object"
+                    description: "Información sobre la paginación de los resultados."
+                    properties:
+                      total:
+                        type: "integer"
+                        description: "Total de registros disponibles en la colección consultada."
+                        example: "10"
+                      perPage:
+                        type: "integer"
+                        description: "Cantidad de elementos que se muestran por página."
+                        example: "10"
+                      currentPage:
+                        type: "integer"
+                        description: "Página actual que se está consultando."
+                        example: "1"
+                      lastPage:
+                        type: "integer"
+                        description: "Última página disponible, calculada en función del total de registros y la cantidad por página."
+                        example: "1"
+                  data:
+                    type: "object"
+                    description: "Contenedor principal de los datos del comercio."
+                    properties:
+                      id:
+                        type: "uuid"
+                        description: "Identificador del comercio."
+                        maxLength: "36"
+                        example: "9f5db0db-102a-40f8-a1aa-d7735d9fb50a"
+                      name:
+                        type: "string"
+                        description: "Nombre del comercio."
+                        maxLength: "225"
+                        example: "ACME Corp"
+                      brand:
+                        type: "string"
+                        description: "Nombre de la marca asociada al comercio."
+                        maxLength: "225"
+                        example: "ACME Corp BRAND"
+                      consumer:
+                        type: "object"
+                        description: "Contenedor principal de los datos del consumidor."
+                        properties:
+                          id:
+                            type: "string"
+                            description: "Identificador del consumidor."
+                            maxLength: "36"
+                            example: "your-consumer-id"
+                          name:
+                            type: "uuid"
+                            description: "Nombre del consumidor."
+                            maxLength: "225"
+                            example: "Consumer Name"
+                      document:
+                        $ref: "#/components/schemas/Document"
+                      createdAt:
+                        type: "string"
+                        description: "Fecha de creación del comercio."
+                        format: "date-time"
+                        example: "2022-12-30 13:45:02"
+                      updatedAt:
+                        type: "string"
+                        description: "Fecha de actualización del comercio."
+                        format: "date-time"
+                        example: "2022-12-30 13:45:02"
+                    required:
+                      - "name"
+                      - "brand"
+                      - "consumer"
+                      - "document"
+
+components:
+  schemas:
+    Status:
+      title: "Status"
+      type: "object"
+      description: "Estructura que contiene la información sobre una solicitud, informa al estado actual de la misma."
+      properties:
+        status:
+          type: "string"
+          description: "Estado de la operación."
+          enum:
+            - "OK"
+            - "REJECTED"
+            - "FAILED"
+            - "PENDING"
+          example: "OK"
+        reason:
+          type: "string"
+          description: "Razón del estado de la operación."
+          maxLength: "2"
+          example: "00"
+        message:
+          type: "string"
+          description: "Descripción del estado."
+          example: "The request has been successfully processed"
+        date:
+          type: "string"
+          description: "Fecha en la que se ejecutó la operación."
+          format: "date-time"
+          example: '2025-03-17T22:45:27+00:00'
+      required:
+        - "status"
+        - "reason"
+        - "message"
+        - "date"
+    Authentication:
+      title: "Autenticación"
+      type: "object"
+      description: "Objeto de autenticación. Ver más en **[Autenticación](/token-requestor/integration/authentication)**. 
+        Estructura que contiene la información de autenticación del sitio generada de acuerdo al WSSE UsernameToken Profile 1.1."
+      properties:
+        login:
+          type: "string"
+          description: "Login para autenticación."
+          minLength: "1"
+          example: "1441d14df19ec88431e513bb990326e1"
+        tranKey:
+          type: "string"
+          description: "Clave de transacción."
+          minLength: "1"
+          example: "DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY="
+        nonce:
+          type: "string"
+          description: "Valor aleatorio para cada solicitud codificado en Base64."
+          minLength: "1"
+          example: "enQ4dXh3YWhkMWM="
+        seed:
+          type: "string"
+          description: "Fecha actual, la cual se genera en formato ISO 8601."
+          minLength: "1"
+          example: "2023-06-21T09:56:06-05:00"
+      required:
+        - "login"
+        - "tranKey"
+        - "nonce"
+        - "seed"
+    Address:
+      title: "Address"
+      type: "object"
+      description: "Estructura que contiene la información sobre una dirección física."
+      properties:
+        street:
+          type: "string"
+          description: "Dirección (calle)."
+          maxLength: "100"
+          example: "Direccion del customer"
+        city:
+          type: "string"
+          description: "Ciudad."
+          maxLength: "100"
+          example: "Medellin"
+        state:
+          type: "string"
+          description: "Departamento o provincia."
+          maxLength: "100"
+          example: "belen"
+        country:
+          type: "string"
+          description: "País. Código ISO 3166-1 alpha-2."
+          maxLength: "2"
+          example: "CO"
+        phone:
+          type: "string"
+          description: "Teléfono de contacto."
+          maxLength: "20"
+          example: "3172234333"
+        zipCode:
+          type: "string"
+          description: "Código postal."
+          maxLength: "20"
+          example: "050031"
+      required:
+        - "zipCode"
+        - "city"
+        - "country"
+    Document:
+      title: "Document"
+      type: "object"
+      description: "Estructura que contiene información acerca de un documento."
+      properties:
+        type:
+          type: "string"
+          description: "Tipo de documento de identificación."
+          maxLength: "4"
+          enum:
+            - "CC"
+            - "CE"
+            - "TI"
+            - "NIT"
+            - "RUT"
+            - "PPN"
+            - "TAX"
+            - "LIC"
+            - "CIP"
+            - "PARUC"
+            - "CPF"
+            - "CI"
+            - "RUC"
+            - "DNI"
+            - "PERUC"
+            - "CRCPF"
+            - "CPJ"
+            - "DIMEX"
+            - "DIDI"
+            - "CLRUT"
+            - "HNDNI"
+            - "HNDR"
+            - "RTN"
+            - "BZSSN"
+            - "BRN"
+            - "EIN"
+            - "UYCI"
+            - "UYRUT"
+          example: "NIT"
+        number:
+          type: "string"
+          description: "Número de documento de identificación."
+          example: "123456123"
+      required:
+        - "type"
+        - "number"
+    LegalRepresentative:
+      title: "Legal Representative"
+      type: "object"
+      description: "Estructura que refleja la información del representante legal del comercio."
+      properties:
+        documentType:
+          type: "string"
+          description: "Tipo de documento de identificación."
+          maxLength: "4"
+          enum:
+            - "CC"
+            - "CE"
+            - "TI"
+            - "NIT"
+            - "RUT"
+            - "PPN"
+            - "TAX"
+            - "LIC"
+            - "CIP"
+            - "PARUC"
+            - "CPF"
+            - "CI"
+            - "RUC"
+            - "DNI"
+            - "PERUC"
+            - "CRCPF"
+            - "CPJ"
+            - "DIMEX"
+            - "DIDI"
+            - "CLRUT"
+            - "HNDNI"
+            - "HNDR"
+            - "RTN"
+            - "BZSSN"
+            - "BRN"
+            - "EIN"
+            - "UYCI"
+            - "UYRUT"
+          example: "CC"
+        documentNumber:
+          type: "string"
+          description: "Número de documento de identificación."
+          maxLength: "20"
+          example: "12345678"
+        name:
+          type: "string"
+          description: "Nombre del representante legal."
+          maxLength: "100"
+          example: "Legal representative name"
+        surname:
+          type: "string"
+          description: "Apellidos del representante legal."
+          maxLength: "100"
+          example: "Legal representative surname"
+        email:
+          type: "string"
+          description: "Correo electrónico del representante legal."
+          maxLength: "225"
+          example: "Jane@Doe"
+        phone:
+          type: "string"
+          description: "Teléfono de contacto del representante legal."
+          maxLength: "20"
+          example: "34455"
+      required:
+        - "name"
+        - "surname"
+        - "email"
+        - "phone"

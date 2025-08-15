@@ -3,7 +3,7 @@ import { Book, MonitorMobbile, Activity, SecurityCard, Link, Calendar, ShieldTic
 
 /**
  * List of options to be displayed in the navigation selector
- * 
+ *
  * title: Title of the option
  * description: Description of the option
  * href: Route to redirect to
@@ -150,10 +150,10 @@ export const NAMESPACES_SELECTOR = {
   ],
 }
 
-/** 
+/**
  * List of options used to map the URL path to
  * its corresponding path in the routes object
- * 
+ *
  * KEY : URL path
  * VALUE : TAB_NAVIGATION key
  */
@@ -177,20 +177,20 @@ export const NAMESPACE_ROUTES = {
 /**
  * List of options that will be displayed in
  * the left navigation menu within each page
- * 
+ *
  * KEY : TAB_NAVIGATION key
  * VALUE : List of options
- * 
+ *
  * title: Title of the option
  * identifier: Unique identifier of the option which must be included in the path to identify the object that is active on the page
  * href: Route to redirect to
  * icon: Icon to display
  * links: List of sub-options
- * 
+ *
  * Sub-options (Sections):
  * title: Title of the sub-option
  * links: List of sub-options
- * 
+ *
  * Sub-options (Pages):
  * title: Title of the sub-option
  * href: Route to redirect to
@@ -308,14 +308,14 @@ export const TAB_NAVIGATION = {
           {
             title: 'Integraciones',
             links: [
-              { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },                                
+              { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },
             ],
           },
           {
             title: 'Reportes de conciliación bancaria ',
-            links: [                                  
+            links: [
               { title: 'Reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr' },
-              { title: 'Ejemplos de reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr-examples' },              
+              { title: 'Ejemplos de reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr-examples' },
             ],
           }
         ],
@@ -435,11 +435,11 @@ export const TAB_NAVIGATION = {
               { title: 'Transaction Modifiers', href: '/payments/integrations/transaction-modifiers' },
             ],
           },
-           {
+          {
             title: 'Bank reconciliation reports',
-            links: [                                  
+            links: [
               { title: 'Bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr' },
-              { title: 'Examples of bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr-examples' },              
+              { title: 'Examples of bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr-examples' },
             ],
           }
         ],
@@ -740,7 +740,7 @@ export const TAB_NAVIGATION = {
                 title: 'Operaciones con PinPad',
                 href: '/gateway/api/reference/pinpad',
               },
-               {
+              {
                 title: 'Operaciones con ordenes de pago',
                 href: '/gateway/api/reference/cashorder',
               },
@@ -1227,6 +1227,10 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/integration/authentication',
               },
               {
+                title: 'Códigos de razón',
+                href: '/token-requestor/integration/reason-codes',
+              },
+              {
                 title: 'Notificaciones',
                 href: '/token-requestor/integration/notifications',
               },
@@ -1266,6 +1270,23 @@ export const TAB_NAVIGATION = {
               },
             ],
           },
+          {
+            title: 'Api de administración',
+            links: [
+              {
+                title: 'Administración de Credenciales',
+                href: '/token-requestor/api/admin/credentials',
+              },
+              {
+                title: 'Administración de Sitios',
+                href: '/token-requestor/api/admin/sites',
+              },
+              {
+                title: 'Administración de Comercios',
+                href: '/token-requestor/api/admin/merchant',
+              },
+            ],
+          },
         ],
       },
     ],
@@ -1295,6 +1316,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Authentication',
                 href: '/token-requestor/integration/authentication',
+              },
+              {
+                title: 'Reason codes',
+                href: '/token-requestor/integration/reason-codes',
               },
               {
                 title: 'Notifications',
@@ -1336,6 +1361,23 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Delete Token',
                 href: '/token-requestor/api/delete-token'
+              },
+            ],
+          },
+          {
+            title: 'Management API',
+            links: [
+              {
+                title: 'Credential Management',
+                href: '/token-requestor/api/admin/credentials',
+              },
+              {
+                title: 'Sites Management',
+                href: '/token-requestor/api/admin/sites',
+              },
+              {
+                title: 'Merchant Manegement',
+                href: '/token-requestor/api/admin/merchant',
               },
             ],
           },
