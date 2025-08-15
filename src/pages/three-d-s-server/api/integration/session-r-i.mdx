@@ -26,7 +26,6 @@ Este documento recopila **información general** sobre el flujo 3RI (Merchant In
 
 ## 2. Consideraciones Comunes
 
-
 **Errores frecuentes DS**
 * Error 201: falta campo requerido.
 * Error 203: formato inválido (p.ej. El objeto threeDSRequestorPriorAuthenticationInfo no fue enviado).
@@ -49,15 +48,13 @@ Decoupled Fallback: opcional; ACS envía RReq con transStatus=D, luego 3DS Serve
 |----------------------------------------------|--------------------------|-----------|---------------|
 | **RECURRING_TRANSACTION** (01)               | Visa con DAF, Mastercard | SI        | NO            |
 | **INSTALMENT_TRANSACTION** (02)              | Visa con DAF, Mastercard | SI        | NO            |
-| **ADD_CARD** (03)                            | Visa, Mastercard         | NO        | SI            |
-| **MAINTAIN_CARD_INFORMATION** (04)           | Visa, Mastercard         | NO        | SI            |
-| **ACCOUNT_VERIFICATION** (05)                | Visa, Mastercard         | NO        | SI            |
-| **SPLIT_OR_DELAYED_SHIPMENT** (06)           | Visa, Mastercard         | SI        | NO            |
-| **TOP_UP** (07)                              | Visa, Mastercard         | NO        | NO            |
-| **MAIL_ORDER** (08)                          | Visa, Mastercard         | NO        | NO            |
-| **TELEPHONE_ORDER** (09)                     | Visa, Mastercard         | NO        | NO            |
+| **SPLIT_OR_DELAYED_SHIPMENT** (06)           | Visa, Mastercard con BME | SI        | NO            |
+| **MAIL_ORDER** (08)                          | Visa                     | SI        | SI            |
+| **TELEPHONE_ORDER** (09)                     | Visa, Mastercard         | SI        | SI            |
 | **WHITELIST_STATUS_CHECK** (10)              | Visa, Mastercard         | NO        | SI            |
 | **OTHER_PAYMENT** (11)                       | Visa, Mastercard         | SI        | NO            |
+| **DELAYED_SHIPMENT** (15)                    | Visa, Mastercard con BME | SI        | NO            |
+| **SPLIT_PAYMENT** (16)                       | Visa, Mastercard con BME | SI        | NO            |
 | **VISA_UNSCHEDULED_CREDENTIAL_ON_FILE** (81) | Visa con DAF             | SI        | NO            |
 
 ---
@@ -95,13 +92,13 @@ Decoupled Fallback: opcional; ACS envía RReq con transStatus=D, luego 3DS Serve
 
 ## 7. Respuestas Stand‑In para MIT (threeRIInd=01,02,81)
 
-| Región                     | Response | ECI | CAVV    |
-| -------------------------- | -------- | --- | ------- |
-| AP, Canada, CEMEA, EU, LAC | Y        | 05  | Present |
-| Canada, EU, LAC            | I        | 07  | Present |
-| AP, CEMEA, LAC             | A        | 06  | Present |
-| AP, CEMEA, LAC             | N        | 07  | *No*    |
-| AP, CEMEA, LAC             | R        | 07  | *No*    |
+| Región                     | Respuesta | ECI | CAVV     |
+|----------------------------|-----------|-----|----------|
+| AP, Canada, CEMEA, EU, LAC | Y         | 05  | Presente |
+| Canada, EU, LAC            | I         | 07  | Presente |
+| AP, CEMEA, LAC             | A         | 06  | Presente |
+| AP, CEMEA, LAC             | N         | 07  | *No*     |
+| AP, CEMEA, LAC             | R         | 07  | *No*     |
 
 ---
 
@@ -365,11 +362,11 @@ En la fase recurrente, use `deviceChannel`: `RI`.
 
 ## Glosario
 
-* **3DS**: Three-Domain Secure.
-* **3RI**: 3‑D Secure Recurrent Initiation.
-* **CAVV**: Cardholder Authentication Verification Value.
-* **BRW**: Autenticación Browser (canal 02).
-* **RI**: Recurrent Initiation (canal 03).
+* **3DS**: Seguridad de tres dominios.
+* **3RI**: Inicio recurrente de 3-D Secure.
+* **CAVV**: Valor de verificación de autenticación del titular de la tarjeta.
+* **BRW**: Autenticación del navegador (canal 02).
+* **RI**: Inicio recurrente (canal 03).
 
 ## Definiciones
 Una transacción a plazos es aquella en la que el monto total de la compra se divide en pagos periódicos más pequeños a lo largo de un período de tiempo determinado. Estos pagos pueden incluir intereses u otras tarifas asociadas con la financiación de la compra.
@@ -380,6 +377,10 @@ A diferencia de una transacción recurrente, en una transacción a plazos, el ti
 
 * **Recurrente:** mismo monto, misma frecuencia hasta `recurringExpiry`.
 * **Plazos:** montos acumulados y límite en número de autorizaciones (`purchaseInstalData`) y fecha (`recurringExpiry`).
+
+<note>
+    Para Mastercard este valor solo está disponible en la versión 2.3.1 del estándar y con Bridging Message Extension.
+</note>
 
 ### Casos de Uso
 
@@ -1234,10 +1235,6 @@ Un titular de tarjeta ha reservado en un sitio web de viajes **agente de reserva
 | Autorización para bienes/servicios (Vuelo)                 | Comerciante de viajes 1         | $170      | El comerciante de la aerolínea utiliza el CAVV de la transacción 3RI con un valor de 170 (y su nombre en el CAVV) para realizar la autorización del boleto de avión.    |
 | Autorización para bienes/servicios (Alojamiento)           | Comerciante de viajes 2 (hotel) | $0        | El comerciante de alojamiento utiliza el CAVV de la transacción 3RI con un valor de 0 (y su nombre en el CAVV) para realizar la autorización para configurar un MIT.    |
 | Autorización para bienes/servicios (Alquiler de automóvil) | Comerciante de viajes 3         | $50       | El comerciante de alquiler de automóviles utiliza el CAVV de la transacción 3RI con un valor de 50 (y su nombre en el CAVV) para realizar la autorización del depósito. |
-
-### Casos de Uso
-
-
 
 ## Integración
 
@@ -2435,4 +2432,3 @@ Nos complace invitarles a visitar el apartado de [Adicional Data](/three-d-s-ser
 La inclusión de estos datos adicionales en sus solicitudes permite a los emisores realizar una evaluación más precisa, lo que puede mejorar considerablemente la tasa de autenticaciones exitosas.
 
 Les recomendamos revisar estas pautas para aprovechar al máximo las funcionalidades del API y así ofrecer una experiencia más segura y eficiente a sus usuarios.
-
