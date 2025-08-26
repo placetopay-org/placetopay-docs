@@ -98,7 +98,56 @@ Decoupled Fallback: optional; the ACS sends an RReq with transStatus=D, then the
 | AP, CEMEA, LAC             | N        | 07  | *No*    |
 | AP, CEMEA, LAC             | R        | 07  | *No*    |
 
-## 8. Specific Flows
+## Frequently Asked Questions
+
+### **Is it possible to add a card (`threeDSAuthenticationInd: ADD_CARD (04)`) and authenticate a payment (PA) at the same time?**
+
+No, it is not possible.
+
+The **Add Card** process in a merchant aims to validate the identity of the cardholder. During this flow, a verification amount may be sent, which will be deducted to check for available funds and **must be refunded later by the merchant.**
+
+This **does not constitute a Payment Authentication (PA)** by itself.
+If payment authentication is required, an **additional authentication process** must be performed after completing the Add Card flow.
+
+---
+
+### **Can a CIT NPA be used as `PriorInformation` for a MIT PA?**
+
+Yes, but **only in the case of a one-time payment.**
+
+In this scenario, a **CIT NPA** of type *Add Card* can be used.
+
+The **MIT** transaction must be sent with the indicator `threeRIInd = 81` _(Unscheduled Credential-on-File – UCOF)._
+
+This type of transaction does not require recurrence values (`recurringExpiry`, `recurringFrequency`), only the **payment amount.**
+
+> This is the only confirmed valid use case. Other scenarios may eventually be added in future protocol versions. This exception applies **exclusively to VISA** using the **DAF** extension.
+
+#### Key differences between these transaction categories
+
+1. **MIT (Merchant Initiated Transaction):**
+Initiated by the **merchant**, usually for recurring payments (monthly, annual subscriptions, etc.). The cardholder has previously given consent for the merchant to charge their card periodically. It does not require active interaction from the cardholder at the time of the charge.
+
+2. **CIT NPA (Customer Initiated Transaction – Non Payment Authentication):**
+Initiated by the **cardholder**, but it does not involve a direct payment. It is used for validations, such as verifying the card or checking available balance. Authentication can occur, but without transferring funds.
+
+Since a **MIT involves a payment** and a **CIT NPA does not**, under normal circumstances it would not make sense to combine them. The only valid exception is the one described above (one-time payment with VISA + DAF).
+
+In summary: **a CIT NPA can be used as `PriorInformation` in a MIT PA only if it is a one-time (non-recurring) payment.**
+
+---
+
+### **What is Visa Digital Authentication Framework (DAF)?**
+
+**Visa DAF** is an extension of the **3D Secure** protocol that allows Visa to identify cardholders who have successfully completed a challenge authentication flow at a specific merchant–acquirer.
+
+Once the customer is authenticated, Visa designates the credential as an **Authenticated Credential Payment (ACP).**
+
+This grants a trusted status so that the **subsequent transactions** made by the same cardholder at that merchant can be authenticated **immediately**, without requiring another challenge.
+
+---
+
+## 9. Specific Flows
 
 # Recurring Payments
 
