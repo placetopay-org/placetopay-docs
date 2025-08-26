@@ -74,6 +74,7 @@ export function Property({
   type,
   children,
   isRequired = true,
+  isConditional = false,
   multiProperties = [],
   selected = 0,
   onSelected = () => {},
@@ -120,10 +121,15 @@ export function Property({
         <dt className="sr-only">is {isRequired ? 'Required' : 'optional'}</dt>
         <dd
           className={clsx(
-            'text-2xs font-medium text-teal-500 dark:text-teal-300'
+            'text-2xs font-medium',
+            isRequired
+              ? 'text-teal-500 dark:text-teal-300'
+              : isConditional
+              ? 'text-yellow-500 dark:text-yellow-300'
+              : ''
           )}
         >
-          {isRequired ? 'REQUIRED' : ''}
+          {isRequired ? 'REQUIRED' : isConditional ? 'CONDITIONAL' : ''}
         </dd>
         <dt className="sr-only">Description</dt>
         <dd className="w-full flex-none [&>:first-child]:mt-0 [&>:last-child]:mb-0">
