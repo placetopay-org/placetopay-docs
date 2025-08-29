@@ -49,7 +49,6 @@ paths:
                       type: object
                       required:
                         - number
-                        - expiration
                       description: Structure containing card information.
                       properties:
                         number:
@@ -58,7 +57,7 @@ paths:
                           maxLength: 20
                         expiration:
                           type: string
-                          description: 'Card expiration date'
+                          description: 'Card expiration date (Required for Mastercard)'
                           example: "12/23"
                         cvv:
                           type: string
@@ -91,6 +90,7 @@ paths:
                 - requestId
                 - siteId
                 - instrument
+
       responses:
         '200':
           description: Successful response
@@ -384,65 +384,197 @@ paths:
                   - status
   /notifications:
     post:
-      summary: Notifications
+      summary: "Notifications"
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                date:
-                  type: string
-                  description: "Notification date."
-                  example: "2023-01-19 15:57:23"
-                  format: 'Y-m-d h:m:s'
-                type:
-                  type: string
-                  description: "Type of event."
-                  enum: "TOKEN_UPDATED"
-                  example: "TOKEN_UPDATED"
-                signature:
-                  type: string
-                  description: "Cryptographic value generated from the combination of data and a secret key."
-                  example: "Base64(SHA-256(secretKey + data + date))"
-                siteId:
-                  type: string
-                  description: "Site ID."
-                  example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-                  format: uuid V4
-                data:
-                  type: object
-                  description: "Data related to the event."
+              oneOf:
+                - title: "Token notification sites"
+                  type: "object"
                   properties:
-                    id:
-                      type: string
-                      format: uuid V4
-                      description: "Unique identifier of the token."
-                      example: "d8677265-03d2-4ffd-bf1e-9831073c1b11"
-                    status:
-                      type: string
-                      description: "Status of the token."
-                      enum:
-                        - ACTIVE
-                        - INACTIVE
-                        - EXPIRED
-                        - DELETED
-                      example: "ACTIVE"
-                    expiration:
-                      type: string
-                      description: "Token expiration date."
-                      format: "mm/YY"
-                      example: "01/26"
+                    type:
+                      type: "string"
+                      description: "Type of event."
+                      enum: "TOKEN_UPDATED"
+                      example: "TOKEN_UPDATED"
+                    siteId:
+                      type: "string"
+                      description: "Site ID."
+                      format: "uuid V4"
+                      example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                    signature:
+                      type: "string"
+                      description: "Cryptographic value generated from the combination of data and a secret key."
+                      format: "Base64(SHA-256(secretKey + data + date))"
+                      example: "example/P1JX8/skd4V0Lxruc69+FB/vwhLqqipJ2jo="
+                    date:
+                      type: "string"
+                      description: "Notification date."
+                      format: 'Y-m-d h:m:s'
+                      example: "2023-01-19 15:57:23"
+                    data:
+                      type: "object"
+                      description: "Data related to the event."
+                      properties:
+                        id:
+                          type: "string"
+                          description: "Unique identifier of the token."
+                          format: "uuid V4"
+                          example: "d8677265-03d2-4ffd-bf1e-9831073c1b11"
+                        status:
+                          type: "string"
+                          description: "Status of the token."
+                          enum:
+                            - "ACTIVE"
+                            - "INACTIVE"
+                            - "EXPIRED"
+                            - "DELETED"
+                          example: "ACTIVE"
+                        expiration:
+                          type: "string"
+                          description: "Token expiration date."
+                          format: "mm/YY"
+                          example: "01/26"
+                      required:
+                        - "id"
+                        - "status"
+                        - "expiration"
                   required:
-                    - id
-                    - status
-                    - expiration
-              required:
-                - date
-                - type
-                - signature
-                - siteId
-                - data
+                    - "type"
+                    - "siteId"
+                    - "signature"
+                    - "date"
+                    - "data"
+                - title: "Token notification consumers"
+                  type: "object"
+                  properties:
+                    type:
+                      type: "string"
+                      description: "Type of event."
+                      enum: "TOKEN_UPDATED"
+                      example: "TOKEN_UPDATED"
+                    consumerId:
+                      type: "string"
+                      description: "Consumer ID."
+                      format: "uuid V4"
+                      example: "9f9cb003-a67b-4119-bb62-75c85599d5d1"
+                    siteId:
+                      type: "string"
+                      description: "Site ID."
+                      format: "uuid V4"
+                      example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                    signature:
+                      type: "string"
+                      description: "Cryptographic value generated from the combination of data and a secret key."
+                      format: "Base64(SHA-256(secretKey + data + date))"
+                      example: "example/P1JX8/skd4V0Lxruc69+FB/vwhLqqipJ2jo="
+                    date:
+                      type: "string"
+                      description: "Notification date."
+                      format: 'Y-m-d h:m:s'
+                      example: "2023-01-19 15:57:23"
+                    data:
+                      type: "object"
+                      description: "Data related to the event."
+                      properties:
+                        id:
+                          type: "string"
+                          description: "Unique identifier of the token."
+                          format: "uuid V4"
+                          example: "d8677265-03d2-4ffd-bf1e-9831073c1b11"
+                        status:
+                          type: "string"
+                          description: "Status of the token."
+                          enum:
+                            - "ACTIVE"
+                            - "INACTIVE"
+                            - "EXPIRED"
+                            - "DELETED"
+                          example: "ACTIVE"
+                        expiration:
+                          type: "string"
+                          description: "Token expiration date."
+                          format: "mm/YY"
+                          example: "01/26"
+                      required:
+                        - "id"
+                        - "status"
+                        - "expiration"
+                  required:
+                    - "type"
+                    - "consumerId"
+                    - "siteId"
+                    - "signature"
+                    - "date"
+                    - "data"
+                - title: "OnBoarding notification consumers"
+                  type: "object"
+                  properties:
+                    type:
+                      type: "string"
+                      description: "Type of event."
+                      enum: "TOKEN_UPDATED"
+                      example: "TOKEN_UPDATED"
+                    merchantId:
+                      type: "string"
+                      description: "Merchant ID."
+                      format: "uuid V4"
+                      example: "9f9cb003-a67b-4119-bb62-75c85599d5d1"
+                    signature:
+                      type: "string"
+                      description: "Cryptographic value generated from the combination of data and a secret key."
+                      format: "Base64(SHA-256(secretKey + data + date))"
+                      example: "example/P1JX8/skd4V0Lxruc69+FB/vwhLqqipJ2jo="
+                    date:
+                      type: "string"
+                      description: "Notification date."
+                      format: 'Y-m-d h:m:s'
+                      example: "2023-01-19 15:57:23"
+                    data:
+                      type: "object"
+                      description: "Data related to the event."
+                      properties:
+                        id:
+                          type: "string"
+                          description: "Unique identifier of the token."
+                          format: "uuid V4"
+                          example: "d8677265-03d2-4ffd-bf1e-9831073c1b11"
+                        document:
+                          $ref: "#/components/schemas/Document"
+                        franchise:
+                          type: "string"
+                          description: "Franchise name."
+                          enum:
+                            - "visa"
+                            - "master"
+                          example: "visa"
+                        status:
+                          type: "object"
+                          description: "Information status of the OnBoarding."
+                          properties:
+                            status:
+                              type: "string"
+                              description: "Status of the OnBoarding."
+                              enum:
+                                - "ACTIVE"
+                              example: "ACTIVE"
+                            reason:
+                              type: "string"
+                              description: "Reason for the operation status."
+                              maxLength: "2"
+                              example: "00"
+                      required:
+                        - "id"
+                        - "document"
+                        - "franchise"
+                        - "status"
+                  required:
+                    - "type"
+                    - "merchantId"
+                    - "signature"
+                    - "date"
+                    - "data"
       responses:
   /api/admin/credentials/create:
     post:
@@ -1112,6 +1244,8 @@ paths:
                         format: uri
                         maxLength: 225
                         example: https://webhook.site/test
+                      availableFranchises:
+                        $ref: "#/components/schemas/AvailableFranchises"
                       webhookSecret:
                         type: string
                         maxLength: 25
@@ -1721,6 +1855,8 @@ paths:
                         $ref: "#/components/schemas/Document"
                       legalRepresentative:
                         $ref: "#/components/schemas/LegalRepresentative"
+                      availableFranchises:
+                        $ref: "#/components/schemas/AvailableFranchises"
                       createdAt:
                         type: "string"
                         description: "Merchant creation date."
@@ -2117,3 +2253,22 @@ components:
         - "surname"
         - "email"
         - "phone"
+    AvailableFranchises:
+      title: "Available Franchises"
+      type: "object"
+      description: "Availability status of each franchise for token management."
+      properties:
+        visa:
+          type: "string"
+          description: "Availability status visa."
+          enum:
+            - "PENDING"
+            - "ACTIVE"
+          example: "ACTIVE"
+        master:
+          type: "string"
+          description: "Availability status mastercard."
+          enum:
+            - "PENDING"
+            - "ACTIVE"
+          example: "ACTIVE"

@@ -1,35 +1,78 @@
 # Notificaciones
 
-Token Requestor Services envía notificaciones cuando hay un cambio en el estado de los
-tokens. Al recibir una notificación, se recomienda llamar a la API correspondiente para
-obtener más detalles sobre el cambio.
+Token Requestor Services envía notificaciones cuando hay un cambio en el estado de los tokens o de los onboardings.
+Al recibir una notificación, se recomienda llamar a la API correspondiente para obtener más detalles sobre el cambio,
+de manera que siempre se tenga información precisa y actualizada.
 
-Antes de consumir esta API debe existir en la plataforma un comercio registrado en la
-marca y un token anteriormente dado.
+Antes de consumir esta API, debe existir en la plataforma un comercio registrado y, en caso de notificaciones de token,
+un token previamente generado. Para los onboardings, el proceso parte de la creación o actualización del registro de
+vinculación del comercio con la franquicia de pago.
 
-Cada notificación incluye una firma **signature**, que debe ser validada por el receptor para
-confirmar que la notificación proviene del emisor que es una fuente legítima y esperada.
-Esta firma permite verificar la autenticidad del mensaje, asegurando que fue enviado por
-Token Requestor Services y no por un tercero no autorizado. De esta manera, se refuerza la
-seguridad del proceso de manera sencilla y efectiva para el usuario.
+Cada notificación incluye una firma signature, que debe ser validada por el receptor para confirmar que proviene de
+Token Requestor Services, garantizando la autenticidad del mensaje y evitando que información sensible sea alterada
+por terceros. Esto refuerza la seguridad de todo el proceso de forma sencilla y confiable.
 
-El signature es un valor criptográfico generado a partir de la combinación de datos
-específicos del mensaje y una clave secreta. Su propósito es garantizar la autenticidad e
-integridad de la notificación, asegurando que:
+El signature es un valor criptográfico generado a partir de la combinación de datos específicos del mensaje y una
+clave secreta. Su propósito es garantizar que la notificación no ha sido manipulada durante la transmisión y que
+proviene de una fuente legítima.
 
-La generación del signature generalmente sigue un proceso como:
-- Se toma una combinación de datos clave, como el contenido del mensaje y la fecha.
-- Se aplica una función hash junto con una clave secreta compartida entre el emisor y
-el receptor.
-- El resultado es una firma digital única que el receptor puede verificar usando la
-misma clave secreta.
+La generación del signature normalmente sigue este proceso:
+- Se combinan datos clave como el contenido del mensaje y la fecha de generación.
+- Se aplica una función hash junto con una clave secreta compartida entre emisor y receptor.
+- El resultado es una firma digital única que el receptor puede recalcular para verificar la autenticidad del mensaje.
+- Para validar la firma, el receptor debe recalcularla utilizando los mismos datos y la misma clave secreta.
+Si el resultado coincide con el signature recibido, se confirma que la notificación es legítima y no ha sido alterada.
 
-Para validar la firma, el receptor debe recalcular el signature utilizando los mismos datos y
-la clave secreta. Si el resultado coincide con el signature recibido, se confirma que el
-mensaje es legítimo y no ha sido alterado.
+## Destinatarios de las notificaciones
 
-## Token updated {{ id: 'token-updated-notification' }}
-Notificación relacionada con la actualización del estado de un token
+Las notificaciones generadas por Token Requestor Services pueden ser recibidas tanto por un consumidor como por un sitio.
+
+La entrega depende únicamente de la configuración previa realizada por cada uno:
+* Si el consumidor tiene configurada una URL de notificación junto con su clave secreta, recibirá la notificación.
+* Si el sitio también tiene configurada su URL de notificación y su clave secreta, igualmente recibirá la notificación.
+* En caso de que ambos estén configurados, ambos recibirán la notificación de manera independiente.
+* Si ninguno cuenta con esta configuración, la notificación no será entregada a nadie.
+
+De esta forma, el sistema garantiza flexibilidad en la entrega, asegurando que cada actor reciba la notificación
+únicamente si está preparado para validarla y procesarla.
+
+## Notificaciones de Tokens
+
+Las notificaciones de tokens se generan cuando ocurre un cambio en el estado de un token, ya sea creación,
+actualización, expiración o eliminación. Esto permite a los sistemas externos mantenerse sincronizados con la
+información real de los medios de pago asociados al comercio o al sitio.
+
+### Flujo
+
+1. Cuando se registra un cambio en un token la plataforma primero actualiza internamente la información del token.
+Esto incluye el estado actual, la fecha de expiración y cualquier detalle adicional relevante.
+2. Una vez actualizado el token, se dispara un evento interno que indica que el token ha cambiado y que es momento de
+notificar a los destinatarios configurados.
+3. Dependiendo de la configuración, se envía una notificación al sitio asociado, al consumidor o a ambos.
+Cada notificación contiene la información del token, la fecha de generación y la firma de seguridad signature.
+4. El receptor valida la firma para asegurarse de que la notificación proviene de Token Requestor Services y no ha sido alterada.
+5. Una vez validada, el receptor puede procesar la notificación y realizar acciones adicionales según corresponda,
+como actualizar sus propios registros o notificar a otros sistemas internos.
+
+## Notificaciones de Onboarding
+
+Las notificaciones de onboarding se generan cuando se crea, actualiza o completa el proceso de vinculación de un
+comercio con una franquicia de pago. Permiten que los consumidores reciban información en tiempo real sobre el estado
+de esta vinculación, ya sea aprobada, pendiente o fallida, facilitando la coordinación y la acción inmediata
+sobre los comercios.
+
+### Flujo
+
+1. Se inicia o actualiza un onboarding para un comercio.
+2. El sistema genera un evento interno indicando que ha habido un cambio en el estado del onboarding.
+3. Si el consumidor tiene configurada una URL de notificación, se envía la información relevante, incluyendo identificador del onboarding, franquicia, documento del comercio y estado actualizado.
+4. La notificación incluye un signature que permite verificar que proviene de una fuente confiable y que los datos no han sido modificados.
+5. Los consumidores pueden procesar la información automáticamente para habilitar al comercio, reintentar un onboarding fallido o realizar cualquier acción asociada al cambio de estado.
+
+## Ejemplos {{ id: 'token-updated-notification' }}
+Notificaciones generadas cuando cambia el estado de un recurso gestionado por Token Requestor Services.
+Esto puede incluir tanto tokens de pago como procesos de onboarding de comercios. Cada notificación informa sobre el
+estado actual del recurso, la fecha del cambio y contiene un signature que permite validar la autenticidad del mensaje.
 
 export const apiRefs = ['/notifications'];
 
@@ -41,22 +84,59 @@ export const apiRefs = ['/notifications'];
             api={props.refs}
         />
     </Col>
-    <Col sticky>
 
-        ```json {{ 'title': 'Ejemplo de Notificación TOKEN_UPDATED' }}
-        {
-            "type": "TOKEN_UPDATED",
-            "siteId": "2972c13d-6315-4da3-80d7-64c24eb232ad",
-            "signature": "Base64(SHA-256(secretKey + data + date))",
-            "date": "2023-01-19 15:57:23",
-            "data": {
-                "id": "d8677265-03d2-4ffd-bf1e-9831073c1b11",
-                "status": "INACTIVE",
-                "expiration": "01/26"
+    <Col sticky>
+        <br />
+        <CodeGroup title="Response" tag="POST" label="/notifications">
+            ```json {{ 'title': 'Notificación token sitios' }}
+            {
+                "type": "TOKEN_UPDATED",
+                "siteId": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                "signature": "Base64(SHA-256(secretKey + data + date))",
+                "date": "2023-01-19 15:57:23",
+                "data": {
+                    "id": "d8677265-03d2-4ffd-bf1e-9831073c1b11",
+                    "status": "INACTIVE",
+                    "expiration": "01/26"
+                }
             }
-        }
-        ```
+            ```
+
+            ```json {{ 'title': 'Notificación token consumidores' }}
+            {
+                "type": "TOKEN_UPDATED",
+                "consumerId": "9f9cb003-a67b-4119-bb62-75c85599d5d1",
+                "siteId": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                "signature": "Base64(SHA-256(secretKey + data + date))",
+                "date": "2023-01-19 15:57:23",
+                "data": {
+                    "id": "d8677265-03d2-4ffd-bf1e-9831073c1b11",
+                    "status": "INACTIVE",
+                    "expiration": "01/26"
+                }
+            }
+            ```
+
+            ```json {{ 'title': 'Notificación onBoarding consumidores' }}
+            {
+                "type": "ONBOARDING_UPDATED",
+                "merchantId": "45f1d89c-1a3b-4e5c-9c9a-4a2b1cde5678",
+                "signature": "Base64(SHA-256(secretKey + data + date))",
+                "date": "2023-01-19 16:12:45",
+                "data": {
+                    "id": "a1234567-89bc-4def-0123-456789abcdef",
+                    "document": {
+                        "number": "123456789",
+                        "type": "NIT"
+                    },
+                    "franchise": "visa",
+                    "status": {
+                        "status": "ACTIVE",
+                        "reason": "00"
+                    }
+                }
+            }
+            ```
+        </CodeGroup>
     </Col>
 </Row>
-
-
