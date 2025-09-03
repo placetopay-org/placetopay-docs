@@ -213,10 +213,10 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Nuevo panel administrativo',
+            title: 'Dash',
             links: [
               { title: 'Introducción', href: '/payments/newpanel/introduction'},
-                { title: 'Ingreso a nuevo panel',
+                { title: 'Ingreso a Dash',
                 links: [
                   { title: 'Migración de usuario', href: '/payments/newpanel/users/migration' },
                   { title: 'Creación de usuario', href: '/payments/newpanel/users/createuser' },
@@ -357,10 +357,10 @@ export const TAB_NAVIGATION = {
             ],
           },
            {
-            title: 'New administrative panel',
+            title: 'Dash',
             links: [
               { title: 'Introduction', href: '/payments/newpanel/introduction'},
-                { title: 'Access to new panel',
+                { title: 'Access to Dash',
                 links: [
                   { title: 'User migration', href: '/payments/newpanel/users/migration' },
                   { title: 'User creation', href: '/payments/newpanel/users/createuser' },
