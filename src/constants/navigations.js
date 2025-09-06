@@ -703,6 +703,10 @@ export const TAB_NAVIGATION = {
                 title: 'Indicador de iniciador de transacción',
                 href: '/gateway/initiator-indicator',
               },
+              {
+                title: 'Orquestador de pagos',
+                href: '/gateway/orchestrator',
+              },
             ],
           },
         ],
@@ -811,6 +815,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Transaction Initiator Indicator',
                 href: '/gateway/initiator-indicator',
+              },
+              {
+                title: 'Payment Orchestrator',
+                href: '/gateway/orchestrator',
               },
             ],
           },
