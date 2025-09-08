@@ -758,6 +758,10 @@ export const TAB_NAVIGATION = {
                 title: 'Reporte de operaciones realizadas',
                 href: '/gateway/api/reference/report',
               },
+              {
+                title: 'Account validator',
+                href: '/gateway/api/reference/account-validator',
+              },
             ],
           },
         ],
@@ -864,6 +868,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Report of operations carried out',
                 href: '/gateway/api/reference/report',
+              },
+              {
+                title: 'Account validator',
+                href: '/gateway/api/reference/account-validator',
               },
             ],
           },
