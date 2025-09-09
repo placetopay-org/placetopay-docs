@@ -1,11 +1,6 @@
-import { DocumentTextTwoToneIcon } from '@/components/iconsax/DocumentTextTwoToneIcon'
-import { PeronalizationTwoToneIcon } from '@/components/iconsax/PeronalizationTwoToneIcon'
-import { ImportTwoToneIcon } from '@/components/iconsax/ImportTwoToneIcon'
-import { TransactionTwoToneIcon } from '@/components/iconsax/TransactionTwoToneIcon'
-import { FlexibilityTwoToneIcon } from '@/components/iconsax/FlexibilityTwoToneIcon'
-import { ErrorTwoToneIcon } from '@/components/iconsax/ErrorTwoToneIcon'
 import { useLocale } from './LocaleProvider'
 import { ResourceCard } from './ResourceCard'
+import { ShieldTick, MoneyTick, Hierarchy } from 'iconsax-react'
 
 const resources = [
 
@@ -15,7 +10,7 @@ const resources = [
       es: 'La interfaz estándar y la redirección automática simplifican el proceso de pago, haciendo que los usuarios puedan completar las transacciones sin complicaciones.',
       en: 'The standard interface and automatic redirection simplify the payment process, allowing users to complete transactions effortlessly.',
     },
-    icon: TransactionTwoToneIcon,
+    icon: () => <MoneyTick variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -27,7 +22,7 @@ const resources = [
       es: 'Los campos configurables permiten adaptarse a diferentes tipos de servicios o productos, asegurando que cada transacción incluya la información necesaria.',
       en: 'Configurable fields allow adaptation to different types of services or products, ensuring that each transaction includes the necessary information.',
     },
-    icon: FlexibilityTwoToneIcon,
+    icon: () => <Hierarchy variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -39,7 +34,7 @@ const resources = [
       es: 'La consola administrativa ofrece un punto único de control para configurar, actualizar y monitorear el micrositio, lo que mejora la eficiencia operativa.',
       en: 'The administrative console provides a single point of control to configure, update, and monitor the microsite, enhancing operational efficiency.',
     },
-    icon: ErrorTwoToneIcon,
+    icon: () => <ShieldTick variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
