@@ -213,7 +213,7 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Dash',
+            title: 'Gestiona tu cuenta en nuestro Dash',
             links: [
               { title: 'Introducción', href: '/payments/newpanel/introduction'},
                 { title: 'Ingreso a Dash',
@@ -356,8 +356,8 @@ export const TAB_NAVIGATION = {
               { title: 'Introduction', href: '/payments' },
             ],
           },
-           {
-            title: 'Dash',
+          {
+            title: 'Manage your account on our Dash',
             links: [
               { title: 'Introduction', href: '/payments/newpanel/introduction'},
                 { title: 'Access to Dash',
