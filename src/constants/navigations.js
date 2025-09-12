@@ -536,8 +536,8 @@ export const TAB_NAVIGATION = {
               { title: 'Token', href: '/checkout/api/reference/token' },
               {
                 title: 'Gateway', links: [
-                  { title: 'information', href: '/checkout/api/reference/gateway/information' },
-                  { title: 'token', href: '/checkout/api/reference/gateway/token' },
+                  { title: 'Information', href: '/checkout/api/reference/gateway/information' },
+                  { title: 'Token', href: '/checkout/api/reference/gateway/token' },
                 ],
               }
             ],
@@ -634,8 +634,8 @@ export const TAB_NAVIGATION = {
               { title: 'Token', href: '/checkout/api/reference/token' },
               {
                 title: 'Gateway', links: [
-                  { title: 'information', href: '/checkout/api/reference/gateway/information' },
-                  { title: 'token', href: '/checkout/api/reference/gateway/token' },
+                  { title: 'Information', href: '/checkout/api/reference/gateway/information' },
+                  { title: 'Token', href: '/checkout/api/reference/gateway/token' },
                 ],
               }
             ]
