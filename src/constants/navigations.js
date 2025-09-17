@@ -534,7 +534,12 @@ export const TAB_NAVIGATION = {
               { title: 'Sesión', href: '/checkout/api/reference/session' },
               { title: 'Pagos', href: '/checkout/api/reference/payment' },
               { title: 'Token', href: '/checkout/api/reference/token' },
-              { title: 'Gateway Information', href: '/checkout/api/reference/gateway-information' },
+              {
+                title: 'Gateway', links: [
+                  { title: 'Information', href: '/checkout/api/reference/gateway/information' },
+                  { title: 'Token', href: '/checkout/api/reference/gateway/token' },
+                ],
+              }
             ],
           },
         ],
@@ -627,8 +632,13 @@ export const TAB_NAVIGATION = {
               { title: 'Session', href: '/checkout/api/reference/session' },
               { title: 'Payments', href: '/checkout/api/reference/payment' },
               { title: 'Token', href: '/checkout/api/reference/token' },
-              { title: 'Gateway Information', href: '/checkout/api/reference/gateway-information' },
-            ],
+              {
+                title: 'Gateway', links: [
+                  { title: 'Information', href: '/checkout/api/reference/gateway/information' },
+                  { title: 'Token', href: '/checkout/api/reference/gateway/token' },
+                ],
+              }
+            ]
           },
         ],
       },

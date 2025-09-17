@@ -1,11 +1,6 @@
-import { DocumentTextTwoToneIcon } from '@/components/iconsax/DocumentTextTwoToneIcon'
-import { PeronalizationTwoToneIcon } from '@/components/iconsax/PeronalizationTwoToneIcon'
-import { ImportTwoToneIcon } from '@/components/iconsax/ImportTwoToneIcon'
-import { TransactionTwoToneIcon } from '@/components/iconsax/TransactionTwoToneIcon'
-import { FlexibilityTwoToneIcon } from '@/components/iconsax/FlexibilityTwoToneIcon'
-import { ErrorTwoToneIcon } from '@/components/iconsax/ErrorTwoToneIcon'
 import { useLocale } from './LocaleProvider'
 import { ResourceCard } from './ResourceCard'
+import { ShieldTick, Hierarchy, MoneyTick } from 'iconsax-react'
 
 const resources = [
  
@@ -15,7 +10,7 @@ const resources = [
       es: 'Los clientes pueden generar, compartir y administrar sus códigos QR de manera sencilla, sin necesidad de asistencia técnica especializada.',
       en: 'Customers can easily generate, share and manage their QR codes without the need for specialized technical support.',
     },
-    icon: TransactionTwoToneIcon,
+    icon: () => <MoneyTick variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -27,7 +22,7 @@ const resources = [
       es: 'Permite a los usuarios finales acceder rápidamente a la plataforma de pago mediante el escaneo del QR o el enlace compartido, agilizando las transacciones.',
       en: 'Allows end-users to quickly access the payment platform by scanning the QR or shared link, streamlining transactions',
     },
-    icon: FlexibilityTwoToneIcon,
+    icon: () => <Hierarchy variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -39,7 +34,7 @@ const resources = [
       es: 'A través del panel administrativo, es posible revisar los pagos recibidos y acceder a información detallada sobre las transacciones realizadas.',
       en: 'Through the administrative panel, it is possible to review payments received and access detailed information on transactions made.',
     },
-    icon: ErrorTwoToneIcon,
+    icon: () => <ShieldTick variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
