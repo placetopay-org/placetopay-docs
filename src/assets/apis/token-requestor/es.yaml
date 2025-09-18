@@ -10,90 +10,172 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              example:
-                auth:
-                  login: aabbccdd1234567890aabbccdd123456
-                  tranKey: ABC123example456trankey+789abc012def3456ABC=
-                  nonce: enQ4dXh3YWhkMWM=
-                  seed: 2023-06-21T09:56:06-05:00
-                requestId: d9efb07c-43ff-45e6-adcc-1b41bf3b9eb5
-                siteId: 5b820bee-8741-4bc9-bc56-f6c1ca7068fb
-                instrument:
-                  card:
-                    number: '4123700070000045'
-                    expiration: "12/23"
-                    cvv: '758'
-                payer:
-                  name: Bill
-                  surname: Evans
-                  email: test@visa.com
-              properties:
-                auth:
-                  $ref: "#/components/schemas/Authentication"
-                requestId:
-                  type: string
-                  format: uuid V4
-                  description: Identificador de la solicitud enviado por el cliente para trazabilidad de errores.
-                    Ver más en **[Uso del identificador de la solicitud](/token-requestor/api/enroll-card#uso-del-identificador-de-solicitud-request-id)**
-                  example: 8a83df8b-f704-4761-a6a1-14a7fd3635b1
-                siteId:
-                  type: string
-                  format: uuid V4
-                  description: Identificador único del sitio
-                  example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
-                instrument:
+              oneOf:
+                - title: "Tokenización de tarjeta"
                   type: object
-                  description: Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos.
+                  example:
+                    auth:
+                      login: aabbccdd1234567890aabbccdd123456
+                      tranKey: ABC123example456trankey+789abc012def3456ABC=
+                      nonce: enQ4dXh3YWhkMWM=
+                      seed: 2023-06-21T09:56:06-05:00
+                    requestId: d9efb07c-43ff-45e6-adcc-1b41bf3b9eb5
+                    siteId: 5b820bee-8741-4bc9-bc56-f6c1ca7068fb
+                    instrument:
+                      card:
+                        number: '4123700070000045'
+                        expiration: "12/23"
+                        cvv: '758'
+                    payer:
+                      name: Bill
+                      surname: Evans
+                      email: test@visa.com
                   properties:
-                    card:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    requestId:
+                      type: string
+                      format: uuid V4
+                      description: Identificador de la solicitud enviado por el cliente para trazabilidad de errores.
+                        Ver más en **[Uso del identificador de la solicitud](/token-requestor/api/enroll-card#uso-del-identificador-de-solicitud-request-id)**
+                      example: 8a83df8b-f704-4761-a6a1-14a7fd3635b1
+                    siteId:
+                      type: string
+                      format: uuid V4
+                      description: Identificador único del sitio
+                      example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
+                    instrument:
                       type: object
-                      required:
-                        - number
-                      x-conditional:
-                        - expiration
-                      description: Estructura que contiene la información de la tarjeta.
+                      description: Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos.
                       properties:
-                        number:
+                        card:
+                          type: object
+                          required:
+                            - number
+                          x-conditional:
+                            - expiration
+                          description: Estructura que contiene la información de la tarjeta.
+                          properties:
+                            number:
+                              type: string
+                              maxLength: 20
+                              description: 'Número de tarjeta'
+                            expiration:
+                              type: string
+                              description: 'Fecha de vencimiento de la tarjeta (Requerido para Mastercard)'
+                              example: "12/23"
+                              format: "mm/YY"
+                            cvv:
+                              type: string
+                              description: 'Código de seguridad'
+                    payer:
+                      type: object
+                      description: Estructura que refleja la información de una persona involucrada en una transacción.
+                      properties:
+                        name:
                           type: string
-                          maxLength: 20
-                          description: 'Número de tarjeta'
-                        expiration:
+                          description: 'Nombre del titular de la tarjeta'
+                          example: Jhon
+                          minLength: 1
+                        surname:
                           type: string
-                          description: 'Fecha de vencimiento de la tarjeta (Requerido para Mastercard)'
-                          example: "12/23"
-                          format: "mm/YY"
-                        cvv:
+                          example: Doe
+                          minLength: 1
+                          description: 'Apellido del titular de la tarjeta'
+                        email:
                           type: string
-                          description: 'Código de seguridad'
-                payer:
+                          minLength: 1
+                          example: jhon@doe.com
+                          description: 'Correo electrónico del titular de la tarjeta'
+                    locale:
+                      type: string
+                      example: es_WR
+                      description: Este parámetro se compone por el código del lenguaje según el estándar [ISO 631-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes), seguido de un guión bajo `_` y 2 letras que corresponden al país según el estándar [ISO 3166-1 alpha-2](https://es.wikipedia.org/wiki/ISO_3166-1#C%C3%B3digos_ISO_3166-1)
+                  required:
+                    - auth
+                    - requestId
+                    - siteId
+                    - instrument
+                - title: "Tokenización de token externo"
                   type: object
-                  description: Estructura que refleja la información de una persona involucrada en una transacción.
+                  example:
+                    auth:
+                      login: aabbccdd1234567890aabbccdd123456
+                      tranKey: ABC123example456trankey+789abc012def3456ABC=
+                      nonce: enQ4dXh3YWhkMWM=
+                      seed: 2023-06-21T09:56:06-05:00
+                    requestId: 8a83df8b-f704-4761-a6a1-14a7fd3635b1
+                    siteId: d9efb07c-43ff-45e6-adcc-1b41bf3b9eb5
+                    instrument:
+                      brandToken:
+                        token: '4123700070000045'
+                        expiration: '12/23'
+                    payer:
+                      name: Bill
+                      surname: Evans
+                      email: test@visa.com
                   properties:
-                    name:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    requestId:
                       type: string
-                      description: 'Nombre del titular de la tarjeta'
-                      example: Jhon
-                      minLength: 1
-                    surname:
+                      format: uuid V4
+                      description: Identificador de la solicitud enviado por el cliente para trazabilidad de errores.
+                        Ver más en **[Uso del identificador de la solicitud](/token-requestor/api/enroll-card#uso-del-identificador-de-solicitud-request-id)**
+                      example: 8a83df8b-f704-4761-a6a1-14a7fd3635b1
+                    siteId:
                       type: string
-                      example: Doe
-                      minLength: 1
-                      description: 'Apellido del titular de la tarjeta'
-                    email:
+                      format: uuid V4
+                      description: Identificador único del sitio
+                      example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
+                    instrument:
+                      type: object
+                      description:  Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos.
+                      properties:
+                        brandToken:
+                          type: object
+                          required:
+                            - token
+                          x-conditional:
+                            - expiration
+                          description: Estructura que contiene información sobre el token externo. Disponible solo para tokens de la marca VISA.
+                          properties:
+                            token:
+                              type: string
+                              description: 'Token entregado por la marca o servicio externo.'
+                              maxLength: 20
+                            expiration:
+                              type: string
+                              description: 'Fecha de expiración del token. Opcional para VISA'
+                              example: "12/23"
+                    payer:
+                      type: object
+                      description: Estructura que refleja la información de una persona involucrada en una transacción.
+                      properties:
+                        name:
+                          type: string
+                          description: 'Nombre del titular de la tarjeta'
+                          example: Jhon
+                          minLength: 1
+                        surname:
+                          type: string
+                          example: Doe
+                          minLength: 1
+                          description: 'Apellido del titular de la tarjeta'
+                        email:
+                          type: string
+                          minLength: 1
+                          example: jhon@doe.com
+                          description: 'Correo electrónico del titular de la tarjeta'
+                    locale:
                       type: string
-                      minLength: 1
-                      example: jhon@doe.com
-                      description: 'Correo electrónico del titular de la tarjeta'
-                locale:
-                  type: string
-                  example: es_WR
-                  description: Este parámetro se compone por el código del lenguaje según el estándar [ISO 631-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes), seguido de un guión bajo `_` y 2 letras que corresponden al país según el estándar [ISO 3166-1 alpha-2](https://es.wikipedia.org/wiki/ISO_3166-1#C%C3%B3digos_ISO_3166-1)
-              required:
-                - auth
-                - requestId
-                - siteId
-                - instrument
+                      example: es_WR
+                      description: Este parámetro se compone por el código del lenguaje según el estándar [ISO 631-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes), seguido de un guión bajo `_` y 2 letras que corresponden al país según el estándar [ISO 3166-1 alpha-2](https://es.wikipedia.org/wiki/ISO_3166-1#C%C3%B3digos_ISO_3166-1)
+                  required:
+                    - auth
+                    - requestId
+                    - siteId
+                    - instrument
       responses:
         '200':
           description: Respuesta exitosa
