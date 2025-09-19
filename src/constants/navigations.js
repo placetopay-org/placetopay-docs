@@ -536,8 +536,8 @@ export const TAB_NAVIGATION = {
               { title: 'Token', href: '/checkout/api/reference/token' },
               {
                 title: 'Gateway', links: [
-                  { title: 'information', href: '/checkout/api/reference/gateway/information' },
-                  { title: 'token', href: '/checkout/api/reference/gateway/token' },
+                  { title: 'Information', href: '/checkout/api/reference/gateway/information' },
+                  { title: 'Token', href: '/checkout/api/reference/gateway/token' },
                 ],
               }
             ],
@@ -634,8 +634,8 @@ export const TAB_NAVIGATION = {
               { title: 'Token', href: '/checkout/api/reference/token' },
               {
                 title: 'Gateway', links: [
-                  { title: 'information', href: '/checkout/api/reference/gateway/information' },
-                  { title: 'token', href: '/checkout/api/reference/gateway/token' },
+                  { title: 'Information', href: '/checkout/api/reference/gateway/information' },
+                  { title: 'Token', href: '/checkout/api/reference/gateway/token' },
                 ],
               }
             ]
@@ -1269,7 +1269,7 @@ export const TAB_NAVIGATION = {
                 title: 'Enroll card',
                 href: '/token-requestor/api/enroll-card',
               },
-              { title: 'Checkout', href: '/token-requestor/api/checkout' },
+              { title: 'Get cryptogram', href: '/token-requestor/api/checkout' },
               {
                 title: 'Get token status',
                 href: '/token-requestor/api/get-token-status',
@@ -1361,7 +1361,7 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/api/enroll-card',
               },
               {
-                title: 'Checkout',
+                title: 'Get cryptogram',
                 href: '/token-requestor/api/checkout'
               },
               {

@@ -3,93 +3,176 @@ info:
   title: 'Token management and administration'
   version: 1.0.0
 paths:
-  /api/token/enroll:
+  /api/tokens/enroll:
     post:
       summary: EnrollCard
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              example:
-                auth:
-                  login: aabbccdd1234567890aabbccdd123456
-                  tranKey: ABC123example456trankey+789abc012def3456ABC=
-                  nonce: enQ4dXh3YWhkMWM=
-                  seed: 2023-06-21T09:56:06-05:00
-                requestId: 8a83df8b-f704-4761-a6a1-14a7fd3635b1
-                siteId: d9efb07c-43ff-45e6-adcc-1b41bf3b9eb5
-                instrument:
-                  card:
-                    number: '4123700070000045'
-                    expiration: "12/23"
-                    cvv: '758'
-                payer:
-                  name: Bill
-                  surname: Evans
-                  email: test@visa.com
-              properties:
-                auth:
-                  $ref: "#/components/schemas/Authentication"
-                requestId:
-                  type: string
-                  format: uuid V4
-                  example: 8a83df8b-f704-4761-a6a1-14a7fd3635b1
-                  description: Request identifier sent by the client for error traceability. See more at **[Use of the request identifier](/en/token-requestor/api/enroll-card#use-of-the-request-identifier-request-id)**
-                siteId:
-                  type: string
-                  format: uuid V4
-                  description: Unique identifier of the site
-                  example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
-                instrument:
+              oneOf:
+                - title: "Card tokenization"
                   type: object
-                  description: Structure containing information about the payment method to be used in a transaction; this structure varies according to the request generated; each service requires the use of certain data.
+                  example:
+                    auth:
+                      login: aabbccdd1234567890aabbccdd123456
+                      tranKey: ABC123example456trankey+789abc012def3456ABC=
+                      nonce: enQ4dXh3YWhkMWM=
+                      seed: 2023-06-21T09:56:06-05:00
+                    requestId: 8a83df8b-f704-4761-a6a1-14a7fd3635b1
+                    siteId: d9efb07c-43ff-45e6-adcc-1b41bf3b9eb5
+                    instrument:
+                      card:
+                        number: '4123700070000045'
+                        expiration: "12/23"
+                        cvv: '758'
+                    payer:
+                      name: Bill
+                      surname: Evans
+                      email: test@visa.com
                   properties:
-                    card:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    requestId:
+                      type: string
+                      format: uuid V4
+                      example: 8a83df8b-f704-4761-a6a1-14a7fd3635b1
+                      description: Request identifier sent by the client for error traceability. See more at **[Use of the request identifier](/en/token-requestor/api/enroll-card#use-of-the-request-identifier-request-id)**
+                    siteId:
+                      type: string
+                      format: uuid V4
+                      description: Unique identifier of the site
+                      example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
+                    instrument:
                       type: object
-                      required:
-                        - number
-                      description: Structure containing card information.
+                      description: Structure containing information about the payment method to be used in a transaction; this structure varies according to the request generated; each service requires the use of certain data.
                       properties:
-                        number:
+                        card:
+                          type: object
+                          required:
+                            - number
+                          x-conditional:
+                            - expiration
+                          description: Structure containing card information.
+                          properties:
+                            number:
+                              type: string
+                              description: 'Card number'
+                              maxLength: 20
+                            expiration:
+                              type: string
+                              description: 'Card expiration date (Required for Mastercard)'
+                              example: "12/23"
+                            cvv:
+                              type: string
+                              description: 'Security code'
+                    payer:
+                      type: object
+                      description: Structure reflecting the information of a person involved in a transaction.
+                      properties:
+                        name:
                           type: string
-                          description: 'Card number'
-                          maxLength: 20
-                        expiration:
+                          example: Jhon
+                          minLength: 1
+                          description: "Cardholder's first name"
+                        surname:
                           type: string
-                          description: 'Card expiration date (Required for Mastercard)'
-                          example: "12/23"
-                        cvv:
+                          description: "Cardholder's last name"
+                          example: Doe
+                          minLength: 1
+                        email:
                           type: string
-                          description: 'Security code'
-                payer:
+                          example: jhon@doe.com
+                          minLength: 1
+                          description: "Cardholder's email address"
+                    locale:
+                      type: string
+                      example: es_WR
+                      description: This parameter is composed of the language code according to the [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) standard, followed by an underscore `_` and two letters corresponding to the country according to the [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) standard.
+                  required:
+                    - auth
+                    - requestId
+                    - siteId
+                    - instrument
+                - title: "Token for token"
                   type: object
-                  description: Structure reflecting the information of a person involved in a transaction.
+                  example:
+                    auth:
+                      login: aabbccdd1234567890aabbccdd123456
+                      tranKey: ABC123example456trankey+789abc012def3456ABC=
+                      nonce: enQ4dXh3YWhkMWM=
+                      seed: 2023-06-21T09:56:06-05:00
+                    requestId: 8a83df8b-f704-4761-a6a1-14a7fd3635b1
+                    siteId: d9efb07c-43ff-45e6-adcc-1b41bf3b9eb5
+                    instrument:
+                      brandToken:
+                        token: '4123700070000045'
+                        expiration: '12/23'
+                    payer:
+                      name: Bill
+                      surname: Evans
+                      email: test@visa.com
                   properties:
-                    name:
+                    auth:
+                      $ref: "#/components/schemas/Authentication"
+                    requestId:
                       type: string
-                      example: Jhon
-                      minLength: 1
-                      description: "Cardholder's first name"
-                    surname:
+                      format: uuid V4
+                      example: 8a83df8b-f704-4761-a6a1-14a7fd3635b1
+                      description: Request identifier sent by the client for error traceability. See more at **[Use of the request identifier](/en/token-requestor/api/enroll-card#use-of-the-request-identifier-request-id)**
+                    siteId:
                       type: string
-                      description: "Cardholder's last name"
-                      example: Doe
-                      minLength: 1
-                    email:
+                      format: uuid V4
+                      description: Unique identifier of the site
+                      example: 1d6b1456-5fae-4932-92f1-5c46fe6c83e3
+                    instrument:
+                      type: object
+                      description: Structure containing information about the payment method to be used in a transaction; this structure varies according to the request generated; each service requires the use of certain data.
+                      properties:
+                        brandToken:
+                          type: object
+                          required:
+                            - token
+                          x-conditional:
+                            - expiration
+                          description: Structure containing external information about the token. Only available for VISA-branded tokens.
+                          properties:
+                            token:
+                              type: string
+                              description: 'Token provided by the brand'
+                              maxLength: 20
+                            expiration:
+                              type: string
+                              description: 'Token expiration date. Optional for VISA'
+                              example: "12/23"
+                    payer:
+                      type: object
+                      description: Structure reflecting the information of a person involved in a transaction.
+                      properties:
+                        name:
+                          type: string
+                          example: Jhon
+                          minLength: 1
+                          description: "Cardholder's first name"
+                        surname:
+                          type: string
+                          description: "Cardholder's last name"
+                          example: Doe
+                          minLength: 1
+                        email:
+                          type: string
+                          example: jhon@doe.com
+                          minLength: 1
+                          description: "Cardholder's email address"
+                    locale:
                       type: string
-                      example: jhon@doe.com
-                      minLength: 1
-                      description: "Cardholder's email address"
-                locale:
-                  type: string
-                  example: es_WR
-                  description: This parameter is composed of the language code according to the [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) standard, followed by an underscore `_` and two letters corresponding to the country according to the [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) standard.
-              required:
-                - auth
-                - requestId
-                - siteId
-                - instrument
+                      example: es_WR
+                      description: This parameter is composed of the language code according to the [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) standard, followed by an underscore `_` and two letters corresponding to the country according to the [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) standard.
+                  required:
+                    - auth
+                    - requestId
+                    - siteId
+                    - instrument
 
       responses:
         '200':
@@ -142,7 +225,7 @@ paths:
                             type: object
                             description: Additional token information
                             properties:
-                              tokenRequestorId:
+                              tokenRequestorID:
                                 type: string
                                 description: TR identifier before the brands
                                 maxLength: 11
@@ -161,7 +244,7 @@ paths:
                                 example: '1234'
                 required:
                   - status
-  /api/checkout:
+  /api/tokens/cryptogram:
     post:
       summary: Checkout
       requestBody:
@@ -232,7 +315,7 @@ paths:
                         maxLength: 2
                         example: "05"
 
-  /api/token/status:
+  /api/tokens/status:
     post:
       summary: GetTokenStatus
       requestBody:
@@ -317,8 +400,8 @@ paths:
                         example: 2025-01-20
                 required:
                   - status
-  /api/token/delete:
-    post:
+  /api/tokens/delete:
+    delete:
       summary: Delete a token
       requestBody:
         required: true
