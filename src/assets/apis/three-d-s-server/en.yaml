@@ -590,11 +590,122 @@ paths:
                   data:
                     type: object
                     required:
-                      - token
+                      - merchant
+                      - branches
                     properties:
-                      token:
-                        type: string
-                        minLength: 1
+                      merchant:
+                        type: object
+                        required:
+                          - id
+                          - name
+                          - token
+                          - expires_at
+                          - enrollment
+                        properties:
+                          id:
+                            type: integer
+                          name:
+                            type: string
+                          token:
+                            type: string
+                            minLength: 1
+                          expires_at:
+                            type: string
+                            format: date-time
+                          enrollment:
+                            type: object
+                            properties:
+                              mastercard:
+                                type: object
+                                required:
+                                  - uuid
+                                  - messageType
+                                  - data
+                                  - subscriptionId
+                                properties:
+                                  uuid:
+                                    type: string
+                                    format: uuid
+                                  messageType:
+                                    type: string
+                                  data:
+                                    type: object
+                                    properties:
+                                      acquirerBIN:
+                                        type: string
+                                      acquirerICA:
+                                        type: string
+                                      acquirerName:
+                                        type: string
+                                      acquirerCID:
+                                        type: string
+                                      status:
+                                        type: string
+                                      reason:
+                                        type: string
+                                      modelId:
+                                        type: string
+                                      modelName:
+                                        type: string
+                                  subscriptionId:
+                                    type: integer
+                      branches:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            - id
+                            - name
+                            - token
+                            - expires_at
+                          properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+                            token:
+                              type: string
+                              minLength: 1
+                            expires_at:
+                              type: string
+                              format: date-time
+                            enrollment:
+                              type: object
+                              properties:
+                                mastercard:
+                                  type: object
+                                  required:
+                                    - uuid
+                                    - messageType
+                                    - data
+                                    - subscriptionId
+                                  properties:
+                                    uuid:
+                                      type: string
+                                      format: uuid
+                                    messageType:
+                                      type: string
+                                    data:
+                                      type: object
+                                      properties:
+                                        acquirerBIN:
+                                          type: string
+                                        acquirerICA:
+                                          type: string
+                                        acquirerName:
+                                          type: string
+                                        acquirerCID:
+                                          type: string
+                                        status:
+                                          type: string
+                                        reason:
+                                          type: string
+                                        modelId:
+                                          type: string
+                                        modelName:
+                                          type: string
+                                    subscriptionId:
+                                      type: integer
                 required:
                   - status
                   - data
@@ -842,6 +953,278 @@ paths:
               properties: {}
         description: 'Send the required fields for the API to create a new merchant.'
       description: Create a merchant
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Accept
+          description: application/json
+          required: true
+        - schema:
+            type: string
+          in: header
+          name: Authorization
+          description: Bearer ACCESS_TOKEN
+          required: true
+      tags:
+        - Merchants
+  /v1/merchants/{merchantCode}/{acquirerBIN}:
+    get:
+      summary: Consultar un comercio
+      operationId: get-merchant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                merchantCode:
+                  type: string
+                  maxLength: 30
+                  description: Acquirer Commercial Code.
+                acquirerBIN:
+                  type: string
+                  maxLength: 11
+                  description: Acquirer BIN.
+              required:
+                - merchantCode
+                - acquirerBIN
+          application/xml:
+            schema:
+              type: object
+              properties: { }
+        description: Envíe los campos necesarios para que la API agregue las sucursales a un comercio.
+      responses:
+        '200':
+          description: |-
+            Response received: 200 Ok
+                This is a satisfactory response for the trade consultation service.
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                    required:
+                      - code
+                    properties:
+                      code:
+                        type: number
+                        enum:
+                          - '1000'
+                  data:
+                    type: object
+                    required:
+                      - merchant
+                    properties:
+                      merchant:
+                        type: object
+                        required:
+                          - id
+                          - name
+                          - country
+                          - currency
+                          - url
+                        properties:
+                          id:
+                            type: integer
+                            description: Merchant ID.
+                          name:
+                            type: string
+                            maxLength: 90
+                            description: Merchant name.
+                          brand:
+                            type: string
+                            maxLength: 25
+                            description: Trademark name.
+                          country:
+                            type: string
+                            maxLength: 3
+                            description: 3-letter alphabetic country code.
+                          currency:
+                            type: string
+                            maxLength: 3
+                            description: 3-letter alphabetic currency code.
+                          document:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                                maxLength: 10
+                                description: Document type
+                              document:
+                                type: string
+                                maxLength: 30
+                                description: Document number
+                          url:
+                            type: string
+                            maxLength: 90
+                            description: Merchant website URL
+                          mcc:
+                            type: string
+                            maxLength: 4
+                            description: Merchant category code
+                          subscriptions:
+                            type: array
+                            required:
+                              - acquirerBIN
+                              - merchantCode
+                              - franchise
+                              - version
+                            properties:
+                              acquirerBIN:
+                                type: string
+                                maxLength: 11
+                                description: Acquirer BIN.
+                              merchantCode:
+                                type: string
+                                maxLength: 30
+                                description: Acquirer Commercial Code.
+                              franchise:
+                                type: string
+                                maxLength: 20
+                                description: Franchise name.
+                              version:
+                                example: '2'
+                                type: integer
+                                description: 3DS protocol version number.
+                      branches:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            - id
+                            - name
+                            - token
+                            - expires_at
+                          properties:
+                            id:
+                              type: integer
+                              description: Branch ID.
+                            name:
+                              type: string
+                              maxLength: 90
+                              description: Branch name.
+                            brand:
+                              type: string
+                              maxLength: 25
+                              description: Branch brand name.
+                            country:
+                              type: string
+                              maxLength: 3
+                              description: 3-letter alphabetic country code.
+                            currency:
+                              type: string
+                              maxLength: 3
+                              description: 3-letter alphabetic currency code.
+                            url:
+                              type: string
+                              maxLength: 90
+                              description: Branch website URL
+                            enabled:
+                              type: boolean
+                              enum:
+                                - true
+                                - false
+                              description: Branch status
+                            subscriptions:
+                              type: array
+                              required:
+                                - acquirerBIN
+                                - merchantCode
+                                - franchise
+                                - version
+                              properties:
+                                acquirerBIN:
+                                  type: string
+                                  maxLength: 11
+                                  description: Acquirer BIN.
+                                merchantCode:
+                                  type: string
+                                  maxLength: 30
+                                  description: Acquirer Commercial Code.
+                                franchise:
+                                  type: string
+                                  maxLength: 20
+                                  description: Franchise name.
+                                version:
+                                  example: '2'
+                                  type: integer
+                                  description: 3DS protocol version number.
+                required:
+                  - status
+                  - data
+              examples:
+                Sucursal creada con éxito:
+                  value:
+                    status:
+                      code: 1000
+                    data:
+                      - id: 1
+                        name: Oficina Ciudad A
+                        brand: Compañía Ciudad A
+                        url: 'https://company-a.com'
+                      - id: 2
+                        name: Oficina Ciudad B
+                        brand: Compañía Ciudad B
+                        url: 'https://company-b.com'
+        '401':
+          description: |
+            Response received: 401 Unauthorized
+                This error message may appear when the token provided in the request
+                does not allow for successful authentication:
+                  - Token absent, expired or invalid
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  message:
+                    type: string
+                    minLength: 1
+                    enum:
+                      - 'Unauthenticated.'
+                required:
+                  - message
+        '404':
+          description: |-
+            Response received: 404 Not Found
+             This error message may appear when the parameters {merchantCode} and {acquirerBIN}
+              in the endpoint do not find a record in the database and therefore the resource is not available.
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      code:
+                        type: number
+                        enum:
+                          - '1013'
+                      error:
+                        type: string
+                        minLength: 1
+                        enum:
+                          - 'The merchant does not exist'
+                    required:
+                      - code
+                      - error
+                required:
+                  - status
+              examples:
+                Validación de comercio exista:
+                  value:
+                    status:
+                      code: 1010
+                      error: The merchant does not exist
+      description: Agregar sucursales a un comercio
       parameters:
         - schema:
             type: string
