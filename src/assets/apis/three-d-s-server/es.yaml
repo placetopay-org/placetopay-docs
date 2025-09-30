@@ -567,7 +567,7 @@ paths:
       tags:
         - 'Transactions '
       x-internal: false
-  /v1/merchants:
+  /api/v1/merchants:
     post:
       summary: Crear un comercio
       operationId: post-user
@@ -968,7 +968,281 @@ paths:
           required: true
       tags:
         - Merchants
-  /v1/merchants/{merchantID}/branches:
+  /api/v1/merchants/{merchantCode}/{acquirerBIN}:
+    get:
+      summary: Consultar un comercio
+      operationId: get-merchant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                merchantCode:
+                  type: string
+                  maxLength: 30
+                  description: Código del comercio adquiriente
+                acquirerBIN:
+                  type: string
+                  maxLength: 11
+                  description: BIN del adquiriente
+              required:
+                - merchantCode
+                - acquirerBIN
+          application/xml:
+            schema:
+              type: object
+              properties: { }
+        description: Envíe los campos necesarios para que la API agregue las sucursales a un comercio.
+      responses:
+        '200':
+          description: |-
+            Respuesta recibida: 200 Ok
+                Esta es una respuesta satisfactoria para el servicio de
+                consulta de comercio.
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                    required:
+                      - code
+                    properties:
+                      code:
+                        type: number
+                        enum:
+                          - '1000'
+                  data:
+                    type: object
+                    required:
+                      - merchant
+                    properties:
+                      merchant:
+                        type: object
+                        required:
+                          - id
+                          - name
+                          - country
+                          - currency
+                          - url
+                        properties:
+                          id:
+                            type: integer
+                            description: ID del comercio.
+                          name:
+                            type: string
+                            maxLength: 90
+                            description: Nombre del comercio.
+                          brand:
+                            type: string
+                            maxLength: 25
+                            description: Nombre de la marca del comercio.
+                          country:
+                            type: string
+                            maxLength: 3
+                            description: Código de país alfabético de 3 letras.
+                          currency:
+                            type: string
+                            maxLength: 3
+                            description: Código de moneda alfabético de 3 letras.
+                          document:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                                maxLength: 10
+                                description: Tipo de documento.
+                              document:
+                                type: string
+                                maxLength: 30
+                                description: Número de documento.
+                          url:
+                            type: string
+                            maxLength: 90
+                            description: URL del sitio web del comerciante.
+                          mcc:
+                            type: string
+                            maxLength: 4
+                            description: Código de categoría de comercio.
+                          subscriptions:
+                            type: array
+                            required:
+                              - acquirerBIN
+                              - merchantCode
+                              - franchise
+                              - version
+                            properties:
+                              acquirerBIN:
+                                type: string
+                                maxLength: 11
+                                description: BIN del adquiriente.
+                              merchantCode:
+                                type: string
+                                maxLength: 30
+                                description: Código del comercio adquiriente.
+                              franchise:
+                                type: string
+                                maxLength: 20
+                                description: Nombre de la franquicia.
+                              version:
+                                example: '2'
+                                type: integer
+                                description: Número de versión de protocolo 3DS.
+                      branches:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            - id
+                            - name
+                            - token
+                            - expires_at
+                          properties:
+                            id:
+                              type: integer
+                              description: ID de la sucursal.
+                            name:
+                              type: string
+                              maxLength: 90
+                              description: Nombre de la sucursal.
+                            brand:
+                              type: string
+                              maxLength: 25
+                              description: Nombre de la marca de la sucursal.
+                            country:
+                              type: string
+                              maxLength: 3
+                              description: Código de país alfabético de 3 letras.
+                            currency:
+                              type: string
+                              maxLength: 3
+                              description: Código de moneda alfabético de 3 letras.
+                            url:
+                              type: string
+                              maxLength: 90
+                              description: URL del sitio web de la sucursal.
+                            enabled:
+                              type: boolean
+                              enum:
+                                - true
+                                - false
+                              description: Estado de la sucursal.
+                            subscriptions:
+                              type: array
+                              required:
+                                - acquirerBIN
+                                - merchantCode
+                                - franchise
+                                - version
+                              properties:
+                                acquirerBIN:
+                                  type: string
+                                  maxLength: 11
+                                  description: BIN del adquiriente.
+                                merchantCode:
+                                  type: string
+                                  maxLength: 30
+                                  description: Código del comercio adquiriente.
+                                franchise:
+                                  type: string
+                                  maxLength: 20
+                                  description: Nombre de la franquicia.
+                                version:
+                                  example: '2'
+                                  type: integer
+                                  description: Número de versión de protocolo 3DS.
+                required:
+                  - status
+                  - data
+              examples:
+                Sucursal creada con éxito:
+                  value:
+                    status:
+                      code: 1000
+                    data:
+                      - id: 1
+                        name: Oficina Ciudad A
+                        brand: Compañía Ciudad A
+                        url: 'https://company-a.com'
+                      - id: 2
+                        name: Oficina Ciudad B
+                        brand: Compañía Ciudad B
+                        url: 'https://company-b.com'
+        '401':
+          description: |
+            Respuesta recibida: 401 Unauthorized
+                Este mensaje de error puede aparecer cuando en la petición,
+                el token aportado no permite autenticarse satisfactoriamente:
+                - Token ausente, expirado o inválido
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  message:
+                    type: string
+                    minLength: 1
+                    enum:
+                      - 'Unauthenticated.'
+                required:
+                  - message
+        '404':
+          description: |-
+            Respuesta recibida: 404 Not Found
+             Este mensaje de error puede aparecer cuando los parametros {merchantCode} y {acquirerBIN}
+             en el endpoint, no se encuentra registro en la
+             base de datos y por tanto el recurso no se encuentra disponible.
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      code:
+                        type: number
+                        enum:
+                          - '1013'
+                      error:
+                        type: string
+                        minLength: 1
+                        enum:
+                          - 'The merchant does not exist'
+                    required:
+                      - code
+                      - error
+                required:
+                  - status
+              examples:
+                Validación de comercio exista:
+                  value:
+                    status:
+                      code: 1010
+                      error: The merchant does not exist
+      description: Agregar sucursales a un comercio
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Accept
+          description: application/json
+          required: true
+        - schema:
+            type: string
+          in: header
+          name: Authorization
+          description: Bearer ACCESS_TOKEN
+          required: true
+      tags:
+        - Merchants
+  /api/v1/merchants/{merchantID}/branches:
     post:
       summary: Agregar sucursales a un comercio
       operationId: post-branches
@@ -1573,8 +1847,8 @@ components:
           description: |-
             Indica si el titular de la tarjeta está reordenando mercancía comprada anteriormente.
             **Valores:**
-            * MERCHANDISE_AVAILABLE (01) - Mercancía disponible
-            * FUTURE_AVAILABILITY (02) - Disponibilidad futura
+            * FIRST_TIME_ORDERED (01) - Primera vez que se ordena
+            * REORDERED (02) - Reordenado
           minLength: 2
           maxLength: 2
         shipIndicator:
