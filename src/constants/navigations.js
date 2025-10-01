@@ -80,7 +80,7 @@ export const NAMESPACES_SELECTOR = {
     {
       title: 'Facturas',
       description: 'Gestión de facturas',
-      href: '/invoice',
+      href: '/invoicing',
       icon: DocumentCode,
     },
   ],
@@ -154,9 +154,9 @@ export const NAMESPACES_SELECTOR = {
       icon: Courthouse,
     },
     {
-      title: 'Invoice',
+      title: 'Invoicing',
       description: 'Invoice management',
-      href: '/en/invoice',
+      href: '/en/invoicing',
       icon: DocumentCode,
     },
   ],
@@ -184,7 +184,7 @@ export const NAMESPACE_ROUTES = {
   'account-validator': 'accountValidator',
   'api-scudo': 'apiScudo',
   'selfdeclarations': 'selfdeclarations',
-  invoice: 'invoice',
+  invoicing: 'invoicing',
 }
 
 /**
@@ -2249,12 +2249,12 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
-  invoice: {
+  invoicing: {
     [LANGUAGES_CODES.ES]: [
       {
         title: 'Documentación',
-        identifier: 'invoice',
-        href: '/invoice',
+        identifier: 'invoicing',
+        href: '/invoicing',
         icon: Book,
         links: [
           {
@@ -2262,7 +2262,7 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Introducción',
-                href: '/invoice'
+                href: '/invoicing'
               },
             ],
           },
@@ -2271,15 +2271,15 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Autenticación',
-                href: '/invoice/integration/authentication',
+                href: '/invoicing/integration/authentication',
               },
               {
                 title: 'Estados de la factura',
-                href: '/invoice/integration/status',
+                href: '/invoicing/integration/status',
               },
               {
                 title: 'Definiciones',
-                href: '/invoice/integration/definitions',
+                href: '/invoicing/integration/definitions',
               },
             ],
           },
@@ -2287,36 +2287,40 @@ export const TAB_NAVIGATION = {
       },
       {
         title: 'API',
-        identifier: 'invoice/api',
-        href: '/invoice/api',
+        identifier: 'invoicing/api',
+        href: '/invoicing/api',
         icon: DocumentCode,
         links: [
           {
             title: 'Introducción',
-            links: [{ title: 'Inicio', href: '/invoice/api' }],
+            links: [
+                { title: 'Inicio',
+                  href: '/invoicing/api'
+                }
+            ],
           },
           {
             title: 'Api de facturas',
             links: [
               {
                 title: 'Solicitud de creación de facturas',
-                href: '/invoice/api/create',
+                href: '/invoicing/api/create',
               },
               {
                 title: 'Solicitud de eliminación de facturas vencidas',
-                href: '/invoice/api/flush'
+                href: '/invoicing/api/flush'
               },
               {
                 title: 'Solicitud de bloqueo o liberación de factura',
-                href: '/invoice/api/hold',
+                href: '/invoicing/api/hold',
               },
               {
                 title: 'Solicitud remover factura',
-                href: '/invoice/api/remove'
+                href: '/invoicing/api/remove'
               },
               {
                 title: 'Solicitud de búsqueda de factura',
-                href: '/invoice/api/search'
+                href: '/invoicing/api/search'
               },
             ],
           },
@@ -2326,16 +2330,16 @@ export const TAB_NAVIGATION = {
     [LANGUAGES_CODES.EN]: [
       {
         title: 'Documentación',
-        identifier: 'invoice',
-        href: '/en/invoice',
+        identifier: 'invoicing',
+        href: '/en/invoicing',
         icon: Book,
         links: [
           {
-            title: 'Invoice',
+            title: 'Invoicing',
             links: [
               {
                 title: 'Introduction',
-                href: '/invoice'
+                href: '/invoicing'
               },
             ],
           },
@@ -2344,15 +2348,15 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Authentication',
-                href: '/invoice/integration/authentication',
+                href: '/invoicing/integration/authentication',
               },
               {
-                title: 'Status invoice',
-                href: '/invoice/integration/status',
+                title: 'Status invoicing',
+                href: '/invoicing/integration/status',
               },
               {
                 title: 'Definitions',
-                href: '/invoice/integration/definitions',
+                href: '/invoicing/integration/definitions',
               },
             ],
           },
@@ -2360,40 +2364,40 @@ export const TAB_NAVIGATION = {
       },
       {
         title: 'API',
-        identifier: 'invoice/api',
-        href: '/en/invoice/api',
+        identifier: 'invoicing/api',
+        href: '/en/invoicing/api',
         icon: DocumentCode,
         links: [
           {
             title: 'Introduction',
             links: [
                 { title: 'Home',
-                  href: '/invoice/api'
+                  href: '/invoicing/api'
                 }
             ],
           },
           {
-            title: 'Invoice API',
+            title: 'Invoicing API',
             links: [
               {
                 title: 'Invoice creation request',
-                href: '/invoice/api/create',
+                href: '/invoicing/api/create',
               },
               {
                 title: 'Expired invoices removal request',
-                href: '/invoice/api/flush'
+                href: '/invoicing/api/flush'
               },
               {
                 title: 'Invoice hold or release request',
-                href: '/invoice/api/hold',
+                href: '/invoicing/api/hold',
               },
               {
                 title: 'Invoice removal request',
-                href: '/invoice/api/remove'
+                href: '/invoicing/api/remove'
               },
               {
                 title: 'Invoice search request',
-                href: '/invoice/api/search'
+                href: '/invoicing/api/search'
               },
             ],
           },
