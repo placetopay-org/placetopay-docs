@@ -77,6 +77,12 @@ export const NAMESPACES_SELECTOR = {
       href: '/selfdeclarations',
       icon: Courthouse,
     },
+    {
+      title: 'Facturas',
+      description: 'Gestión de facturas',
+      href: '/invoice',
+      icon: DocumentCode,
+    },
   ],
   [LANGUAGES_CODES.EN]: [
     {
@@ -147,6 +153,12 @@ export const NAMESPACES_SELECTOR = {
       href: '/en/selfdeclarations',
       icon: Courthouse,
     },
+    {
+      title: 'Invoice',
+      description: 'Invoice management',
+      href: '/en/invoice',
+      icon: DocumentCode,
+    },
   ],
 }
 
@@ -172,6 +184,7 @@ export const NAMESPACE_ROUTES = {
   'account-validator': 'accountValidator',
   'api-scudo': 'apiScudo',
   'selfdeclarations': 'selfdeclarations',
+  invoice: 'invoice',
 }
 
 /**
@@ -2230,6 +2243,158 @@ export const TAB_NAVIGATION = {
               { title: 'Income PDF', href: '/selfdeclarations/api/income-pdf' },
               { title: 'Empresas - Creación/Actualización', href: '/selfdeclarations/api/companies' },
               { title: 'Usuarios - Creación/Actualizacion', href: '/selfdeclarations/api/company-bidders' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  invoice: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'invoice',
+        href: '/invoice',
+        icon: Book,
+        links: [
+          {
+            title: 'Facturas',
+            links: [
+              {
+                title: 'Introducción',
+                href: '/invoice'
+              },
+            ],
+          },
+          {
+            title: 'Integración',
+            links: [
+              {
+                title: 'Autenticación',
+                href: '/invoice/integration/authentication',
+              },
+              {
+                title: 'Estados de la factura',
+                href: '/invoice/integration/status',
+              },
+              {
+                title: 'Definiciones',
+                href: '/invoice/integration/definitions',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'invoice/api',
+        href: '/invoice/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introducción',
+            links: [{ title: 'Inicio', href: '/invoice/api' }],
+          },
+          {
+            title: 'Api de facturas',
+            links: [
+              {
+                title: 'Solicitud de creación de facturas',
+                href: '/invoice/api/create',
+              },
+              {
+                title: 'Solicitud de eliminación de facturas vencidas',
+                href: '/invoice/api/flush'
+              },
+              {
+                title: 'Solicitud de bloqueo o liberación de factura',
+                href: '/invoice/api/hold',
+              },
+              {
+                title: 'Solicitud remover factura',
+                href: '/invoice/api/remove'
+              },
+              {
+                title: 'Solicitud de búsqueda de factura',
+                href: '/invoice/api/search'
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentación',
+        identifier: 'invoice',
+        href: '/en/invoice',
+        icon: Book,
+        links: [
+          {
+            title: 'Invoice',
+            links: [
+              {
+                title: 'Introduction',
+                href: '/invoice'
+              },
+            ],
+          },
+          {
+            title: 'Integration',
+            links: [
+              {
+                title: 'Authentication',
+                href: '/invoice/integration/authentication',
+              },
+              {
+                title: 'Status invoice',
+                href: '/invoice/integration/status',
+              },
+              {
+                title: 'Definitions',
+                href: '/invoice/integration/definitions',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'invoice/api',
+        href: '/en/invoice/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introduction',
+            links: [
+                { title: 'Home',
+                  href: '/invoice/api'
+                }
+            ],
+          },
+          {
+            title: 'Invoice API',
+            links: [
+              {
+                title: 'Invoice creation request',
+                href: '/invoice/api/create',
+              },
+              {
+                title: 'Expired invoices removal request',
+                href: '/invoice/api/flush'
+              },
+              {
+                title: 'Invoice hold or release request',
+                href: '/invoice/api/hold',
+              },
+              {
+                title: 'Invoice removal request',
+                href: '/invoice/api/remove'
+              },
+              {
+                title: 'Invoice search request',
+                href: '/invoice/api/search'
+              },
             ],
           },
         ],
