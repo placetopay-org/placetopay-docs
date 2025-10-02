@@ -20,6 +20,7 @@ paths:
               type: object
               required:
                 - auth
+                - site
               properties:
                 auth:
                   $ref: "#/components/schemas/Authentication"
@@ -27,14 +28,30 @@ paths:
                   type: string
                   description: Debtor’s invoicing document number
                   example: "1234567813"
+                  pattern: '^[0-9A-Za-z\-\.]{1,16}$'
                 reference:
                   type: string
                   description: Invoice reference number
                   example: "2024ABC"
+                  pattern: '^[0-9A-Za-z_\-\s]+$'
                 altReference:
                   type: string
                   description: Alternate invoicing reference number
                   example: "02019003"
+                  pattern: '^[0-9A-Za-z_\-\s]+$'
+                site:
+                  type: integer
+                  description: Site identifier
+                  example: 3
+                status:
+                  type: array
+                  description: "Invoice status list filter. Valid values"
+                  example: "[ ACTIVE, PAYED, EXPIRED, HOLD ]"
+                orderByCreatedDate:
+                  type: string
+                  description: Sort invoices by creation date.
+                  enum: [ asc, desc ]
+                  example: asc
               example:
                 auth:
                   login: "d15aac486fd785cda0e471a83c2b1fdf"
@@ -56,6 +73,8 @@ paths:
                     $ref: "#/components/schemas/Status"
                   data:
                     $ref: "#/components/schemas/Invoice"
+
+
   /create:
     post:
       summary: Create invoices
@@ -80,6 +99,10 @@ paths:
                   description: List of invoices to create.
                   items:
                     $ref: "#/components/schemas/InvoiceCash"
+                site:
+                  type: integer
+                  description: Site identifier, required if `invoices.*.siteId` is present.
+                  example: 3
               example:
                 auth:
                   login: "d15aac486fd785cda0e471a83c2b1fdf"
@@ -133,6 +156,7 @@ paths:
                     date: "2025-03-17T22:45:27+00:00"
                   count: 2
 
+
   /hold:
     post:
       summary: Hold or release invoicing
@@ -156,6 +180,10 @@ paths:
                   type: integer
                   description: Unique invoicing ID number (system generated).
                   example: 675983
+                site:
+                  type: integer
+                  description: Site identifier
+                  example: 3
                 revoke:
                   type: boolean
                   description: |
@@ -244,9 +272,14 @@ paths:
                   type: integer
                   description: Unique invoicing ID number (system generated).
                   example: 675967
+                site:
+                  type: integer
+                  description: Site Id
+                  example: 3
               required:
                 - auth
                 - invoice
+                - site
       responses:
         '200':
           description: Successful response with deleted invoicing information.
@@ -321,8 +354,13 @@ paths:
               properties:
                 auth:
                   $ref: '#/components/schemas/Authentication'
+                site:
+                  type: integer
+                  description: Site identifier
+                  example: 3
               required:
                 - auth
+                - site
       responses:
         '200':
           description: Successful response.
@@ -477,7 +515,7 @@ components:
           type: integer
           description: "Service or product code billed (max 13 digits)."
           example: 999
-        siteId:
+        site:
           type: integer
           description: "Site identifier."
           example: 40
@@ -661,6 +699,10 @@ components:
           type: string
           maxLength: 30
           description: Alternative invoicing code.
+        siteId:
+          type: integer
+          description: Site identifier, required if `site` is present.
+          example: 3
         expiration:
           type: string
           format: date-time
@@ -671,6 +713,13 @@ components:
         dueDate:
           type: string
           format: date-time
+        dueRate:
+          format: numeric
+        secondDueDate:
+          type: string
+          format: date-time
+        secondDueRate:
+          format: numeric
         serviceCode:
           type: integer
           description: Service code.
@@ -687,6 +736,8 @@ components:
           type: string
           description: Unique invoicing reference number.
           example: "1234567890129"
+          minimum: 1
+          maximum: 30
         description:
           type: string
           description: Invoice description.
@@ -703,6 +754,28 @@ components:
               example: 2.22
           required:
             - total
+        modifiers:
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - FEDERAL_GOVERNMENT
+              example: FEDERAL_GOVERNMENT
+            code:
+              type: string
+              description: Law Discount
+              enum:
+                - 17934
+                - 18083
+                - 18910
+                - 18999
+                - 19210
+              example: 17934
+            additional:
+              type: array
+              description: Additional data
+              example: "[ 'invoice' => '1234' ]"
       required:
         - reference
         - amount

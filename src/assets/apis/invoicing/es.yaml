@@ -20,6 +20,7 @@ paths:
               type: object
               required:
                 - auth
+                - site
               properties:
                 auth:
                   $ref: "#/components/schemas/Authentication"
@@ -27,6 +28,7 @@ paths:
                   type: string
                   description: Número del documento del deudor de la factura
                   example: "1234567813"
+                  pattern: '^[0-9A-Za-z\-.]{1,16}$'
                 reference:
                   type: string
                   description: Número de referencia de la factura
@@ -35,6 +37,20 @@ paths:
                   type: string
                   description: Número de referencia alterno de la factura
                   example: "02019003"
+                  pattern: '^[0-9A-Za-z_\-\s]+$'
+                site:
+                  type: integer
+                  description: Identificador del sitio
+                  example: 3
+                status:
+                  type: array
+                  description: "Lista de valores a filtrar"
+                  example: "[ ACTIVE, PAYED, EXPIRED, HOLD ]"
+                orderByCreatedDate:
+                  type: string
+                  description: Sort invoices by creation date.
+                  enum: [ asc, desc ]
+                  example: asc
               example:
                 auth:
                   login: "d15aac486fd785cda0e471a83c2b1fdf"
@@ -44,6 +60,7 @@ paths:
                 document: "1234567813"
                 altReference: "02019003"
                 reference: "2024ABC"
+                site: "3"
       responses:
         '200':
           description: Respuesta exitosa
@@ -56,6 +73,8 @@ paths:
                     $ref: "#/components/schemas/Status"
                   data:
                     $ref: "#/components/schemas/Invoice"
+
+
   /create:
     post:
       summary: Crear facturas
@@ -80,6 +99,10 @@ paths:
                   description: Lista de facturas a crear.
                   items:
                     $ref: "#/components/schemas/InvoiceCash"
+                site:
+                  type: integer
+                  description: Identificador del sitio, Requerido si `invoices.*.siteId` esta presente.
+                  example: 3
               example:
                 auth:
                   login: "d15aac486fd785cda0e471a83c2b1fdf"
@@ -157,6 +180,10 @@ paths:
                   type: integer
                   description: Número de identificación único de la factura (id generado por el sistema).
                   example: 675983
+                site:
+                  type: integer
+                  description: Site identifier
+                  example: 3
                 revoke:
                   type: boolean
                   description: |
@@ -246,9 +273,14 @@ paths:
                   type: integer
                   description: Número de identificación único de la factura (id generado por el sistema).
                   example: 675967
+                site:
+                  type: integer
+                  description: Identificador del sitio
+                  example: 3
               required:
                 - auth
                 - invoice
+                - site
       responses:
         '200':
           description: Respuesta exitosa con la información de la factura eliminada.
@@ -323,8 +355,16 @@ paths:
               properties:
                 auth:
                   $ref: '#/components/schemas/Authentication'
+                site:
+                  type: integer
+                  description: Site identifier
+                  example: 3
+                removePending:
+                  nullable: true
+                  type: boolean
               required:
                 - auth
+                - site
       responses:
         '200':
           description: Respuesta exitosa.
@@ -341,7 +381,6 @@ paths:
                   reason: "00"
                   message: "La petición se ha procesado correctamente"
                   date: "2020-07-26T20:01:15-05:00"
-
 
 
 components:
@@ -441,6 +480,7 @@ components:
           description: "Código alterno de la factura (máx 30 caracteres)."
           maxLength: 30
           example: "02019039"
+          pattern: '^[0-9A-Za-z_\-\s]+$'
         createdAt:
           type: string
           format: date-time
@@ -479,6 +519,8 @@ components:
           type: integer
           description: "Código del servicio o producto facturado (máx 13 números)."
           example: 999
+          minLength: 1
+          maxLength: 13
         siteId:
           type: integer
           description: "Identificador del sitio."
@@ -551,6 +593,7 @@ components:
           description: "Número de referencia (máx 32 caracteres)."
           maxLength: 32
           example: "1234567890129"
+          pattern: '^[0-9A-Za-z_\-\s]+$'
         description:
           type: string
           description: "Descripción del pago (máx 255 caracteres)."
@@ -663,19 +706,35 @@ components:
           type: string
           maxLength: 30
           description: Código alterno de la factura.
+          minLength: 1
+          pattern: '^[0-9A-Za-z_\-\s]+$'
+        siteId:
+          type: integer
+          description:  requerido si `site` está presente
         expiration:
           type: string
           format: date-time
           description: Fecha y hora de expiración de la factura.
         dueType:
           type: integer
+          enum:
+            - 0
+            - 1
+            - 2
           description: Tipo de incremento al vencimiento [1 = fijo, 0 = diario].
-        dueDate:
-          type: string
-          format: date-time
         serviceCode:
           type: integer
           description: Código del servicio.
+        dueDate:
+          type: string
+          format: date-time
+        dueRate:
+          format: numeric
+        secondDueDate:
+          type: string
+          format: date-time
+        secondDueRate:
+          format: numeric
       required:
         - payment
         - debtor
@@ -689,6 +748,8 @@ components:
           type: string
           description: Número de referencia único de la factura.
           example: "1234567890129"
+          minLength: 1
+          maxLength: 30
         description:
           type: string
           description: Descripción de la factura.
@@ -705,6 +766,28 @@ components:
               example: 2.22
           required:
             - total
+        modifiers:
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - FEDERAL_GOVERNMENT
+              example: FEDERAL_GOVERNMENT
+            code:
+              type: string
+              description: Ley Descuento
+              enum:
+                - 17934
+                - 18083
+                - 18910
+                - 18999
+                - 19210
+              example: 17934
+            additional:
+              type: array
+              description: Data adicional
+              example: "[ 'invoice' => '1234' ]"
       required:
         - reference
         - amount
@@ -715,6 +798,8 @@ components:
         document:
           type: string
           example: "1234567899"
+          maxLength: 16
+          minLength: 0
         documentType:
           type: string
           example: "CC"
