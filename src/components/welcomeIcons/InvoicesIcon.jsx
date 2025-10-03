@@ -1,9 +1,9 @@
 import { twMerge } from 'tailwind-merge'
 
-export function InvoicingIcon({ className }) {
+export function InvoicesIcon({ className }) {
     return (
         <svg
-            className={twMerge(className, 'invoicing h-48 w-52 md:h-36 md:w-40')}
+            className={twMerge(className, 'invoices h-48 w-52 md:h-36 md:w-40')}
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 -10 70 145"
