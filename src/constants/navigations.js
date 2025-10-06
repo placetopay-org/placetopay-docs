@@ -2345,7 +2345,7 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Gestion de ordenes de pago',
+            title: 'Gestión de ordenes de pago',
             links: [
               {
                 title: 'Creación',
@@ -2434,11 +2434,11 @@ export const TAB_NAVIGATION = {
                 href: '/invoices/api/remove'
               },
               {
-                title: 'Bulk Deletion',
+                title: 'Bulk deletion',
                 href: '/invoices/api/flush'
               },
               {
-                title: 'Hold or Release',
+                title: 'Hold or release',
                 href: '/invoices/api/hold',
               },
               {
