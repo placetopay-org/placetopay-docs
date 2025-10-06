@@ -154,8 +154,8 @@ export const NAMESPACES_SELECTOR = {
       icon: Courthouse,
     },
     {
-      title: 'Payment Order',
-      description: 'Payment Order Management',
+      title: 'Payment order',
+      description: 'Payment order management',
       href: '/en/invoices',
       icon: DocumentCode,
     },
@@ -2303,7 +2303,7 @@ export const TAB_NAVIGATION = {
         icon: Book,
         links: [
           {
-            title: 'Oedenes de pago',
+            title: 'Ordenes de pago',
             links: [
               {
                 title: 'Introducción',
@@ -2345,7 +2345,7 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Gestion de Ordenes de pago',
+            title: 'Gestion de ordenes de pago',
             links: [
               {
                 title: 'Creación',
@@ -2376,11 +2376,11 @@ export const TAB_NAVIGATION = {
       {
         title: 'Documentation',
         identifier: 'invoices',
-        href: '/invoices',
+        href: '/en/invoices',
         icon: Book,
         links: [
           {
-            title: 'Payment Orders',
+            title: 'Payment orders',
             links: [
               {
                 title: 'Introduction',
@@ -2396,7 +2396,7 @@ export const TAB_NAVIGATION = {
                 href: '/invoices/integration/authentication',
               },
               {
-                title: 'Payment Order Statuses',
+                title: 'Payment order statuses',
                 href: '/invoices/integration/status',
               },
               {
@@ -2410,7 +2410,7 @@ export const TAB_NAVIGATION = {
       {
         title: 'API',
         identifier: 'invoices/api',
-        href: '/invoices/api',
+        href: '/en/invoices/api',
         icon: DocumentCode,
         links: [
           {
@@ -2423,7 +2423,7 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Payment Order Management',
+            title: 'Payment order management',
             links: [
               {
                 title: 'Creation',
