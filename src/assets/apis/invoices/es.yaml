@@ -5,9 +5,9 @@ info:
 paths:
   /search:
     post:
-      summary: Buscar facturas
+      summary: Buscar orden de pago
       description: |
-        Este endpoint permite consultar la información completa de las facturas
+        Este endpoint permite consultar la información completa de las ordenes de pago
         utilizando el documento del deudor, la referencia o la referencia alterna.  
         **Se deben enviar al menos 2 de los 3 parámetros siguientes:**
         - `document`
@@ -26,16 +26,16 @@ paths:
                   $ref: "#/components/schemas/Authentication"
                 document:
                   type: string
-                  description: "Número del documento del deudor de la factura."
+                  description: "Número del documento del deudor de la orden de pago."
                   example: "1234567813"
                   pattern: '^[0-9A-Za-z\-.]{1,16}$'
                 reference:
                   type: string
-                  description: "Número de referencia de la factura."
+                  description: "Número de referencia de la orden de pago."
                   example: "2024ABC"
                 altReference:
                   type: string
-                  description: "Número de referencia alterno de la factura."
+                  description: "Número de referencia alterno de la orden de pago."
                   example: "02019003"
                   pattern: '^[0-9A-Za-z_\-\s]+$'
                 site:
@@ -48,7 +48,7 @@ paths:
                   example: "[ ACTIVE, PAYED, EXPIRED, HOLD ]"
                 orderByCreatedDate:
                   type: string
-                  description: "Ordenar facturas por fecha de creación."
+                  description: "Ordenar por fecha de creación."
                   enum: [ asc, desc ]
                   example: asc
               example:
@@ -77,11 +77,11 @@ paths:
 
   /create:
     post:
-      summary: Crear facturas
+      summary: Crear ordenes de pago
       description: |
-        Este endpoint permite realizar la carga masiva de facturas.
-        - Si una factura es creada con la misma referencia de una factura ya existente, será sustituida si no está pagada.
-        - Se pueden enviar múltiples facturas en un solo request.
+        Este endpoint permite realizar la carga masiva de ordenes de pago.
+        - Si una orden de pago es creada con la misma referencia de una orden de pago ya existente, será sustituida si no está pagada.
+        - Se pueden enviar múltiples ordenes de pago en un solo request.
       requestBody:
         required: true
         content:
@@ -98,7 +98,7 @@ paths:
                   $ref: "#/components/schemas/Authentication"
                 invoices:
                   type: array
-                  description: Lista de facturas a crear.
+                  description: Lista de ordenes de pago a crear.
                   items:
                     $ref: "#/components/schemas/InvoiceCash"
                 site:
@@ -148,7 +148,7 @@ paths:
                     $ref: "#/components/schemas/Status"
                   count:
                     type: integer
-                    description: Número de facturas creadas.
+                    description: Número de ordenes de pago creadas.
                     example: 2
                 example:
                   status:
@@ -161,12 +161,12 @@ paths:
 
   /hold:
     post:
-      summary: Bloquear o liberar factura
+      summary: Bloquear o liberar orden de pago
       description: |
-        Este endpoint permite **bloquear** o **liberar** una factura.  
-        - Cuando una factura es **bloqueada**, su estado de pago aparece como `"en proceso"` en el panel administrativo y no puede editarse ni eliminarse.  
+        Este endpoint permite **bloquear** o **liberar** una orden de pago.  
+        - Cuando una orden de pago es **bloqueada**, su estado de pago aparece como `"en proceso"` en el panel administrativo y no puede editarse ni eliminarse.  
         - Para desbloquearla, se debe usar el campo `revoke: true`.  
-        - La operación requiere el **id único de la factura**, generado por el sistema.
+        - La operación requiere el **id único de la orden de pago**, generado por el sistema.
       tags:
         - Facturas
       requestBody:
@@ -180,7 +180,7 @@ paths:
                   $ref: '#/components/schemas/Authentication'
                 invoice:
                   type: integer
-                  description: Número de identificación único de la factura (id generado por el sistema).
+                  description: Número de identificación único de la orden de pago (id generado por el sistema).
                   example: 675983
                 site:
                   type: integer
@@ -189,8 +189,8 @@ paths:
                 revoke:
                   type: boolean
                   description: |
-                    - `false`: la factura será bloqueada.  
-                    - `true`: la factura será liberada.
+                    - `false`: la orden de pago será bloqueada.  
+                    - `true`: la orden de pago será liberada.
                   example: false
               required:
                 - auth
@@ -198,7 +198,7 @@ paths:
                 - revoke
       responses:
         '200':
-          description: Respuesta exitosa con información de la factura.
+          description: Respuesta exitosa con información de la orden de pago.
           content:
             application/json:
               schema:
@@ -255,11 +255,11 @@ paths:
 
   /remove:
     post:
-      summary: Remover factura
+      summary: Remover orden de pago
       description: |
-        Este endpoint permite **eliminar definitivamente** una factura.  
+        Este endpoint permite **eliminar definitivamente** una orden de pago.  
         La eliminación **no puede ser revertida**.  
-        La respuesta devuelve la información completa de la factura tal como estaba registrada antes de ser eliminada.
+        La respuesta devuelve la información completa de la orden de pago tal como estaba registrada antes de ser eliminada.
       tags:
         - Facturas
       requestBody:
@@ -273,7 +273,7 @@ paths:
                   $ref: '#/components/schemas/Authentication'
                 invoice:
                   type: integer
-                  description: Número de identificación único de la factura (id generado por el sistema).
+                  description: Número de identificación único de la orden de pago (id generado por el sistema).
                   example: 675967
                 site:
                   type: integer
@@ -285,7 +285,7 @@ paths:
                 - site
       responses:
         '200':
-          description: Respuesta exitosa con la información de la factura eliminada.
+          description: Respuesta exitosa con la información de la orden de pago eliminada.
           content:
             application/json:
               schema:
@@ -341,11 +341,8 @@ paths:
 
   /flush:
     post:
-      summary: Eliminar facturas vencidas
-      description: |
-        Este endpoint permite **eliminar masivamente** todas las facturas cuyo `expirationDate` sea anterior a la fecha y hora actual.  
-        Solo se eliminan las facturas que **no estén pagadas ni bloqueadas**.  
-        La operación es irreversible.
+      summary: Eliminar ordenes de pago
+      description: La operación es irreversible.
       tags:
         - Facturas
       requestBody:
@@ -457,15 +454,15 @@ components:
     Invoice:
       title: "Invoice"
       type: "object"
-      description: "Estructura que contiene la información sobre una factura."
+      description: "Estructura que contiene la información sobre una orden de pago."
       properties:
         id:
           type: integer
-          description: "Identificador único de la factura generado por el sistema."
+          description: "Identificador único de la orden de pago generado por el sistema."
           example: 675978
         status:
           type: string
-          description: "Estado de la factura."
+          description: "Estado de la orden de pago."
           enum:
             - PAYED
             - EXPIRED
@@ -479,24 +476,24 @@ components:
           $ref: "#/components/schemas/Payment"
         altReference:
           type: string
-          description: "Código alterno de la factura (máx 30 caracteres)."
+          description: "Código alterno de la orden de pago."
           maxLength: 30
           example: "02019039"
           pattern: '^[0-9A-Za-z_\-\s]+$'
         createdAt:
           type: string
           format: date-time
-          description: "Fecha y hora de creación de la factura."
+          description: "Fecha y hora de creación de la orden de pago."
           example: "2020-07-28T08:00:47-05:00"
         expirationDate:
           type: string
           format: date-time
-          description: "Fecha y hora de expiración de la factura en el sistema."
+          description: "Fecha y hora de expiración de la orden de pago en el sistema."
           example: "2021-03-25T10:14:24-05:00"
         finalDate:
           type: string
           format: date-time
-          description: "Fecha y hora de finalización de plazo para pago (23:59:59 del día de expiración)."
+          description: "Fecha y hora de finalización de plazo para pago."
           example: "2020-07-28T23:59:59-05:00"
         dueType:
           type: integer
@@ -518,21 +515,21 @@ components:
         dueRate:
           type: number
           format: float
-          description: "Valor a acrecentar a la factura vencida."
+          description: "Valor a acrecentar a la orden de pago vencida."
           example: 5.5
         dueDate:
           type: string
           format: date-time
-          description: "Fecha y hora de vencimiento de la factura."
+          description: "Fecha y hora de vencimiento de la orden de pago."
           example: "2021-03-25T10:14:24-05:00"
         expiration:
           type: string
           format: date-time
-          description: "Fecha y hora de expiración de la factura."
+          description: "Fecha y hora de expiración de la orden de pago."
           example: "2021-03-25T10:14:24-05:00"
         serviceCode:
           type: integer
-          description: "Código del servicio o producto facturado (máx 13 números)."
+          description: "Código del servicio o producto facturado."
           example: 999
           minLength: 1
           maxLength: 13
@@ -554,11 +551,11 @@ components:
     Debtor:
       title: "Debtor"
       type: "object"
-      description: "Estructura que contiene la información sobre el deudor de la factura."
+      description: "Estructura que contiene la información sobre el deudor de la orden de pago."
       properties:
         document:
           type: string
-          description: "Número de documento del deudor (máx 16 caracteres)."
+          description: "Número de documento del deudor."
           maxLength: 16
           example: "1234567899"
         documentType:
@@ -601,7 +598,7 @@ components:
     Payment:
       title: "Payment"
       type: "object"
-      description: "Estructura que contiene la información de pago de la factura."
+      description: "Estructura que contiene la información de pago."
       properties:
         reference:
           type: string
@@ -631,7 +628,7 @@ components:
     Amount:
       title: "Amount"
       type: "object"
-      description: "Estructura que contiene la información del valor de la factura."
+      description: "Estructura que contiene la información del valor de la orden de pago."
       properties:
         taxes:
           type: array
@@ -640,7 +637,7 @@ components:
             $ref: "#/components/schemas/Tax"
         details:
           type: array
-          description: "Detalles adicionales de la factura."
+          description: "Detalles adicionales de la orden de pago."
           items:
             $ref: "#/components/schemas/AmountDetail"
         currency:
@@ -650,7 +647,7 @@ components:
         total:
           type: number
           format: float
-          description: "Valor total de la factura (máximo 9,999,999,999.99)."
+          description: "Valor total de la orden de pago (máximo 9,999,999,999.99)."
           example: 30.12
       required:
         - currency
@@ -711,7 +708,7 @@ components:
     InvoiceCash:
       title: "InvoiceCash"
       type: object
-      description: "Factura a crear en el sistema."
+      description: "Orden de pago a crear en el sistema."
       properties:
         payment:
           $ref: "#/components/schemas/PaymentCreate"
@@ -720,7 +717,7 @@ components:
         altReference:
           type: string
           maxLength: 30
-          description: "Código alterno de la factura."
+          description: "Código alterno de la orden de pago."
           minLength: 1
           pattern: '^[0-9A-Za-z_\-\s]+$'
         siteId:
@@ -729,7 +726,7 @@ components:
         expiration:
           type: string
           format: date-time
-          description: "Fecha y hora de expiración de la factura."
+          description: "Fecha y hora de expiración de la orden de pago."
         dueType:
           type: integer
           enum:
@@ -752,14 +749,14 @@ components:
         dueDate:
           type: string
           format: date-time
-          description: "Fecha y hora de vencimiento de la factura."
+          description: "Fecha y hora de vencimiento de la orden de pago."
         dueRate:
           format: numeric
           description: "Recargo."
         secondDueDate:
           type: string
           format: date-time
-          description: "Fecha y hora de vencimiento de la factura."
+          description: "Fecha y hora de vencimiento de la orden de pago."
         secondDueRate:
           format: numeric
           description: "Recargo segundario."
@@ -772,21 +769,21 @@ components:
         - siteId
 
     PaymentCreate:
-      description: "Estructura que contiene la información de pago de la factura."
+      description: "Estructura que contiene la información de pago."
       type: object
       properties:
         reference:
           type: string
-          description: "Número de referencia único de la factura."
+          description: "Número de referencia único de la orden de pago."
           example: "1234567890129"
           minLength: 1
           maxLength: 30
         description:
           type: string
-          description: "Descripción de la factura."
+          description: "Descripción de la orden de pago."
           example: "E999"
         amount:
-          description: "Estructura que contiene la información del valor de la factura."
+          description: "Estructura que contiene la información del valor de la orden de pago."
           type: object
           properties:
             currency:
@@ -795,7 +792,7 @@ components:
               description: "Moneda en la que se realiza el pago"
             total:
               type: number
-              description: "Valor total de la factura."
+              description: "Valor total de la orden de pago."
               format: double
               example: 2.22
           required:
@@ -831,14 +828,14 @@ components:
 
     DebtorCreate:
       type: object
-      description: "Información del deudor de la factura."
+      description: "Información del deudor de la orden de pago."
       properties:
         document:
           type: string
           example: "1234567899"
           maxLength: 16
           minLength: 0
-          description: "Número del documento del deudor de la factura."
+          description: "Número del documento del deudor de la orden de pago."
         documentType:
           type: string
           example: "CC"
@@ -858,7 +855,7 @@ components:
             - "RUC"
             - "DNI"
             - "CLRUT"
-          description: "Tipo del documento del deudor de la factura."
+          description: "Tipo del documento del deudor de la orden de pago."
         name:
           type: string
           example: "DAVID JIMENEZ"

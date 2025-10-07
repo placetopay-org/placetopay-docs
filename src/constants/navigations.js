@@ -78,8 +78,8 @@ export const NAMESPACES_SELECTOR = {
       icon: Courthouse,
     },
     {
-      title: 'Facturas',
-      description: 'Gestión de facturas',
+      title: 'Ordenes de pago',
+      description: 'Gestión de ordenes de pago',
       href: '/invoices',
       icon: DocumentCode,
     },
@@ -154,8 +154,8 @@ export const NAMESPACES_SELECTOR = {
       icon: Courthouse,
     },
     {
-      title: 'invoices',
-      description: 'Invoice management',
+      title: 'Payment order',
+      description: 'Payment order management',
       href: '/en/invoices',
       icon: DocumentCode,
     },
@@ -2303,7 +2303,7 @@ export const TAB_NAVIGATION = {
         icon: Book,
         links: [
           {
-            title: 'Facturas',
+            title: 'Ordenes de pago',
             links: [
               {
                 title: 'Introducción',
@@ -2319,7 +2319,7 @@ export const TAB_NAVIGATION = {
                 href: '/invoices/integration/authentication',
               },
               {
-                title: 'Estados de la factura',
+                title: 'Estados de las ordenes de pago',
                 href: '/invoices/integration/status',
               },
               {
@@ -2345,26 +2345,26 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Api de facturas',
+            title: 'Gestión de ordenes de pago',
             links: [
               {
-                title: 'Solicitud de creación de facturas',
+                title: 'Creación',
                 href: '/invoices/api/create',
               },
               {
-                title: 'Solicitud de eliminación de facturas vencidas',
-                href: '/invoices/api/flush'
-              },
-              {
-                title: 'Solicitud de bloqueo o liberación de factura',
-                href: '/invoices/api/hold',
-              },
-              {
-                title: 'Solicitud remover factura',
+                title: 'Eliminación',
                 href: '/invoices/api/remove'
               },
               {
-                title: 'Solicitud de búsqueda de factura',
+                title: 'Eliminación masiva',
+                href: '/invoices/api/flush'
+              },
+              {
+                title: 'Bloqueo o liberación',
+                href: '/invoices/api/hold',
+              },
+              {
+                title: 'Búsqueda',
                 href: '/invoices/api/search'
               },
             ],
@@ -2374,13 +2374,13 @@ export const TAB_NAVIGATION = {
     ],
     [LANGUAGES_CODES.EN]: [
       {
-        title: 'Documentación',
+        title: 'Documentation',
         identifier: 'invoices',
         href: '/en/invoices',
         icon: Book,
         links: [
           {
-            title: 'Invoices',
+            title: 'Payment orders',
             links: [
               {
                 title: 'Introduction',
@@ -2396,7 +2396,7 @@ export const TAB_NAVIGATION = {
                 href: '/invoices/integration/authentication',
               },
               {
-                title: 'Status invoices',
+                title: 'Payment order statuses',
                 href: '/invoices/integration/status',
               },
               {
@@ -2416,32 +2416,33 @@ export const TAB_NAVIGATION = {
           {
             title: 'Introduction',
             links: [
-                { title: 'Home',
-                  href: '/invoices/api'
-                }
+              {
+                title: 'Home',
+                href: '/invoices/api'
+              }
             ],
           },
           {
-            title: 'invoices API',
+            title: 'Payment order management',
             links: [
               {
-                title: 'Invoice creation request',
+                title: 'Creation',
                 href: '/invoices/api/create',
               },
               {
-                title: 'Expired invoices removal request',
-                href: '/invoices/api/flush'
-              },
-              {
-                title: 'Invoice hold or release request',
-                href: '/invoices/api/hold',
-              },
-              {
-                title: 'Invoice removal request',
+                title: 'Deletion',
                 href: '/invoices/api/remove'
               },
               {
-                title: 'Invoice search request',
+                title: 'Bulk deletion',
+                href: '/invoices/api/flush'
+              },
+              {
+                title: 'Hold or release',
+                href: '/invoices/api/hold',
+              },
+              {
+                title: 'Search',
                 href: '/invoices/api/search'
               },
             ],
