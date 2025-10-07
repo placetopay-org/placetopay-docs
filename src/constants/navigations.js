@@ -1,5 +1,15 @@
-import { LANGUAGES_CODES } from '@/components/LocaleProvider'
-import { Book, MonitorMobbile, Activity, SecurityCard, Link, Calendar, ShieldTick, DocumentCode, Courthouse } from 'iconsax-react'
+import {LANGUAGES_CODES} from '@/components/LocaleProvider'
+import {
+  Book,
+  MonitorMobbile,
+  Activity,
+  SecurityCard,
+  Link,
+  Calendar,
+  ShieldTick,
+  DocumentCode,
+  Courthouse
+} from 'iconsax-react'
 
 /**
  * List of options to be displayed in the navigation selector
@@ -127,14 +137,12 @@ export const NAMESPACES_SELECTOR = {
       href: '/en/payment-links',
       icon: Link,
     },
-
     {
       title: 'Microsites',
       description: 'Create and manage microsites',
       href: '/en/microsites',
       icon: Calendar,
     },
-
     {
       title: 'Account Validator',
       description: 'Account verification',
@@ -348,7 +356,7 @@ export const TAB_NAVIGATION = {
               { title: 'Manage Payment Links', href: '/payments/payments-links/link-management' }
             ],
           },
-         {
+          {
             title: 'QR code payments',
             links: [
               { title: 'Introduction', href: '/payments/qr/introduction' },
@@ -2083,7 +2091,7 @@ export const TAB_NAVIGATION = {
         icon: Book,
         links: [
           {
-            title: 'Api Scudo',
+            title: 'Documentos',
             links: [
               { title: 'Introducción', href: '/autopay' },
               { title: 'Autenticación', href: '/autopay/authentication' },
@@ -2092,23 +2100,36 @@ export const TAB_NAVIGATION = {
         ],
       },
       {
-        title: 'API',
-        identifier: '/autopay/api/balance',
-        href: '/autopay/api/balance',
+        title: 'Api cliente',
+        identifier: '/autopay/client-api',
+        href: '/autopay/client-api',
         icon: DocumentCode,
         links: [
           {
-            title: 'API',
+            title: 'Servicios',
             links: [
-              { title: 'Balance', href: '/autopay/api/balance' },
-              { title: 'Webhook', href: '/autopay/api/webhook' },
+              { title: 'Balance', href: '/autopay/client-api/balance' },
+              { title: 'Webhook', href: '/autopay/client-api/webhook' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'Placetopay api',
+        identifier: '/autopay/placetopay-api',
+        href: '/autopay/placetopay-api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Api',
+            links: [
+              { title: 'Crear autopago', href: '/autopay/placetopay-api/create' },
             ],
           },
         ],
       },
     ],
-    [LANGUAGES_CODES.EN]: [
-    ],
+    [LANGUAGES_CODES.EN]: [],
   },
   selfdeclarations: {
     [LANGUAGES_CODES.ES]: [
@@ -2132,24 +2153,39 @@ export const TAB_NAVIGATION = {
                 title: 'General',
                 links: [
                   { title: 'Filtros', href: '/selfdeclarations/general/filters' },
-                  { title: 'Solución a posibles problemas', href: '/selfdeclarations/general/problem-solutions' },
+                  {
+                    title: 'Solución a posibles problemas',
+                    href: '/selfdeclarations/general/problem-solutions'
+                  },
                   { title: 'Idioma', href: '/selfdeclarations/general/language' },
-                  { title: 'Medidas de seguridad y contingencia', href: '/selfdeclarations/general/security-and-contingency' },
-                  { title: 'Gestión del servicio y mesa de ayuda', href: '/selfdeclarations/general/service-management-and-help-desk' },
+                  {
+                    title: 'Medidas de seguridad y contingencia',
+                    href: '/selfdeclarations/general/security-and-contingency'
+                  },
+                  {
+                    title: 'Gestión del servicio y mesa de ayuda',
+                    href: '/selfdeclarations/general/service-management-and-help-desk'
+                  },
                 ],
               },
               {
                 title: 'Usuario administrador',
                 links: [
                   { title: 'Acciones', href: '/selfdeclarations/admin-user/actions' },
-                  { title: 'Entrada y salida del software', href: '/selfdeclarations/admin-user/entry-and-exit' },
+                  {
+                    title: 'Entrada y salida del software',
+                    href: '/selfdeclarations/admin-user/entry-and-exit'
+                  },
                 ],
               },
               {
                 title: 'Usuario declarante',
                 links: [
                   { title: 'Acciones', href: '/selfdeclarations/declarant-user/actions' },
-                  { title: 'Entrada y salida del software', href: '/selfdeclarations/declarant-user/entry-and-exit' },
+                  {
+                    title: 'Entrada y salida del software',
+                    href: '/selfdeclarations/declarant-user/entry-and-exit'
+                  },
                 ],
               },
             ],
@@ -2200,24 +2236,39 @@ export const TAB_NAVIGATION = {
                 title: 'General',
                 links: [
                   { title: 'Filters', href: '/selfdeclarations/general/filters' },
-                  { title: 'Solutions to possible problems', href: '/selfdeclarations/general/problem-solutions' },
+                  {
+                    title: 'Solutions to possible problems',
+                    href: '/selfdeclarations/general/problem-solutions'
+                  },
                   { title: 'Language', href: '/selfdeclarations/general/language' },
-                  { title: 'Security and contingency measures', href: '/selfdeclarations/general/security-and-contingency' },
-                  { title: 'Service management and help desk', href: '/selfdeclarations/general/service-management-and-help-desk' },
+                  {
+                    title: 'Security and contingency measures',
+                    href: '/selfdeclarations/general/security-and-contingency'
+                  },
+                  {
+                    title: 'Service management and help desk',
+                    href: '/selfdeclarations/general/service-management-and-help-desk'
+                  },
                 ],
               },
               {
                 title: 'Admin user',
                 links: [
                   { title: 'Actions', href: '/selfdeclarations/admin-user/actions' },
-                  { title: 'Logging in and out of the software', href: '/selfdeclarations/admin-user/entry-and-exit' },
+                  {
+                    title: 'Logging in and out of the software',
+                    href: '/selfdeclarations/admin-user/entry-and-exit'
+                  },
                 ],
               },
               {
                 title: 'Declaring user',
                 links: [
                   { title: 'Actions', href: '/selfdeclarations/declarant-user/actions' },
-                  { title: 'Logging in and out of the software', href: '/selfdeclarations/declarant-user/entry-and-exit' },
+                  {
+                    title: 'Logging in and out of the software',
+                    href: '/selfdeclarations/declarant-user/entry-and-exit'
+                  },
                 ],
               },
             ],
