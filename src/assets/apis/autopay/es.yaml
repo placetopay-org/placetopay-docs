@@ -98,7 +98,7 @@ paths:
                   reason: "XH"
                   message: "Respuesta insatisfactoria"
                   date: "2025-09-29T17:09:29-05:00"
-      description: 'Este endpoint devolvera un balance con su informacion de montos'
+      description: 'Este endpoint devuelve un balance con su información de montos'
       requestBody:
         content:
           application/json:
@@ -134,18 +134,171 @@ paths:
                   format: uuid
                   description: Identificador único de la solicitud.
                   example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-            examples:
-              example-success:
-                value:
-                  id: a2ce48f8-bba3-11ea-b3de-0242ac13352b
-                  transaction:
-                    reference: f0ce88f8-bba3-11ea-b3de-0242ac130004
-                    status:
-                      name: approved
         description: ''
     parameters: [ ]
+  /autopay/webhook:
+    post:
+      summary: Recepción de notificaciones Autopay
+      description: |
+        Este endpoint recibe notificaciones (webhooks) cuando ocurren eventos
+        relacionados con los pagos automáticos (`autopay`).
+        
+        ### Seguridad de la firma:
+        La cabecera `signature` se genera como:
+        ```
+        Base64(SHA-256(secretKey + data + date))
+        ```
+        donde:
+        - `secretKey`: Clave compartida entre el cliente y el servidor.
+        - `data`: Contenido del objeto `data` serializado en JSON.
+        - `date`: Fecha del evento.
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEvent'
+            examples:
+              AUTOPAY_UPDATED:
+                summary: Evento de actualización de Autopay
+                value:
+                  type: "AUTOPAY_UPDATED"
+                  site: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                  signature: "Base64(SHA-256(secretKey + data + date))"
+                  date: "2023-01-19 15:57:23"
+                  data:
+                    id: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+              AUTOPAY_FAILED:
+                summary: Evento de fallo en Autopay
+                value:
+                  type: "AUTOPAY_FAILED"
+                  site: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                  signature: "Base64(SHA-256(secretKey + data + date))"
+                  date: "2023-01-19 15:57:23"
+                  data:
+                    id: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+              AUTOPAY_DELETED:
+                summary: Evento de eliminación de Autopay
+                value:
+                  type: "AUTOPAY_DELETED"
+                  site: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                  signature: "Base64(SHA-256(secretKey + data + date))"
+                  date: "2023-01-19 15:57:23"
+                  data:
+                    id: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+      responses:
+        "200":
+          description: Webhook recibido correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: "OK"
+                      reason:
+                        type: string
+                        example: "00"
+                      message:
+                        type: string
+                        example: "Webhook procesado con éxito"
+                      date:
+                        type: string
+                        format: date-time
+                        example: "2025-09-29T17:09:29-05:00"
+        "400":
+          description: Error en la validación del payload o firma incorrecta.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: "FAILED"
+                      reason:
+                        type: string
+                        example: "00"
+                      message:
+                        type: string
+                        example: "Firma inválida o datos incompletos"
+                      date:
+                        type: string
+                        format: date-time
+                        example: "2025-09-29T17:09:29-05:00"
+        "500":
+          description: Error interno al procesar el webhook.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: "FAILED"
+                      reason:
+                        type: string
+                        example: "00"
+                      message:
+                        type: string
+                        example: "Error interno del servidor"
+                      date:
+                        type: string
+                        format: date-time
+                        example: "2025-09-29T17:09:29-05:00"
 components:
   schemas:
+    WebhookEvent:
+      type: object
+      required:
+        - type
+        - site
+        - signature
+        - date
+        - data
+      properties:
+        type:
+          type: string
+          enum:
+            - AUTOPAY_UPDATED
+            - AUTOPAY_FAILED
+            - AUTOPAY_DELETED
+          description: Tipo de evento notificado.
+        site:
+          type: string
+          format: uuid
+          description: Identificador único del sitio o comercio asociado.
+          example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+        signature:
+          type: string
+          description: Firma digital del mensaje en formato Base64.
+          example: "Base64(SHA-256(secretKey + data + date))"
+        date:
+          type: string
+          format: date-time
+          description: Fecha y hora del evento.
+          example: "2023-01-19 15:57:23"
+        data:
+          type: object
+          required:
+            - id
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: Identificador interno del autopay.
+              example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
     Status:
       title: Status
       type: object

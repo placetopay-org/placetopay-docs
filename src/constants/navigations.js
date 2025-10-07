@@ -2101,6 +2101,7 @@ export const TAB_NAVIGATION = {
             title: 'API',
             links: [
               { title: 'Balance', href: '/autopay/api/balance' },
+              { title: 'Webhook', href: '/autopay/api/webhook' },
             ],
           },
         ],
