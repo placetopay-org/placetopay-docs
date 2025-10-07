@@ -2109,6 +2109,7 @@ export const TAB_NAVIGATION = {
             title: 'Servicios',
             links: [
               { title: 'Balance', href: '/autopay/client-api/balance' },
+              { title: 'Settlement', href: '/autopay/client-api/settlement' },
               { title: 'Webhook', href: '/autopay/client-api/webhook' },
             ],
           },
