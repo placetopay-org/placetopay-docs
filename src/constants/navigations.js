@@ -3,7 +3,7 @@ import { Book, MonitorMobbile, Activity, SecurityCard, Link, Calendar, ShieldTic
 
 /**
  * List of options to be displayed in the navigation selector
- * 
+ *
  * title: Title of the option
  * description: Description of the option
  * href: Route to redirect to
@@ -77,6 +77,12 @@ export const NAMESPACES_SELECTOR = {
       href: '/selfdeclarations',
       icon: Courthouse,
     },
+    {
+      title: 'AutoPay',
+      description: 'Gestión de autopagos',
+      href: '/autopay',
+      icon: Courthouse,
+    },
   ],
   [LANGUAGES_CODES.EN]: [
     {
@@ -147,13 +153,19 @@ export const NAMESPACES_SELECTOR = {
       href: '/en/selfdeclarations',
       icon: Courthouse,
     },
+    {
+      title: 'AutoPay',
+      description: 'Gestión de autopagos',
+      href: '/en/autopay',
+      icon: Courthouse,
+    },
   ],
 }
 
-/** 
+/**
  * List of options used to map the URL path to
  * its corresponding path in the routes object
- * 
+ *
  * KEY : URL path
  * VALUE : TAB_NAVIGATION key
  */
@@ -172,25 +184,26 @@ export const NAMESPACE_ROUTES = {
   'account-validator': 'accountValidator',
   'api-scudo': 'apiScudo',
   'selfdeclarations': 'selfdeclarations',
+  'autopay': 'autopay',
 }
 
 /**
  * List of options that will be displayed in
  * the left navigation menu within each page
- * 
+ *
  * KEY : TAB_NAVIGATION key
  * VALUE : List of options
- * 
+ *
  * title: Title of the option
  * identifier: Unique identifier of the option which must be included in the path to identify the object that is active on the page
  * href: Route to redirect to
  * icon: Icon to display
  * links: List of sub-options
- * 
+ *
  * Sub-options (Sections):
  * title: Title of the sub-option
  * links: List of sub-options
- * 
+ *
  * Sub-options (Pages):
  * title: Title of the sub-option
  * href: Route to redirect to
@@ -235,7 +248,7 @@ export const TAB_NAVIGATION = {
                 title: 'Micrositio Abierto', links: [
                   { title: 'Introducción', href: '/payments/microsite-open/introduction' },
                   { title: 'Estructura de Campos', href: '/payments/microsite-open/fields' },
-                  
+
                 ],
               },
               {
@@ -2059,6 +2072,41 @@ export const TAB_NAVIGATION = {
           },
         ],
       },
+    ],
+  },
+  autopay: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'autopay',
+        href: '/autopay',
+        icon: Book,
+        links: [
+          {
+            title: 'Api Scudo',
+            links: [
+              { title: 'Introducción', href: '/autopay' },
+              { title: 'Autenticación', href: '/autopay/authentication' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: '/autopay/api/balance',
+        href: '/autopay/api/balance',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              { title: 'Balance', href: '/autopay/api/balance' },
+            ],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
     ],
   },
   selfdeclarations: {
