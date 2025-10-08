@@ -1,0 +1,305 @@
+openapi: 3.1.0
+info:
+  title: Placetopay Base API
+  version: 1.0.0
+
+components:
+  schemas:
+    Status:
+      title: "Status"
+      type: "object"
+      description: "Estructura que contiene la información sobre una solicitud o pago, informa al estado actual de la misma."
+      properties:
+        status:
+          type: "string"
+          enum:
+            - "OK"
+            - "FAILED"
+            - "APPROVED"
+            - "APPROVED_PARTIAL"
+            - "PARTIAL_EXPIRED"
+            - "REJECTED"
+            - "PENDING"
+            - "PENDING_VALIDATION"
+            - "PENDING_PROCESS"
+            - "REFUNDED"
+            - "REVERSED"
+            - "ERROR"
+            - "UNKNOWN"
+            - "MANUAL"
+            - "DISPUTE"
+        reason:
+          type: "string"
+          minLength: "1"
+          maxLength: "4"
+        message:
+          type: "string"
+        date:
+          type: "string"
+          example: "2021-09-21T09:34:48-05:00"
+    Authentication:
+      required:
+        - login
+        - tranKey
+        - nonce
+        - seed
+      title: "Autenticación"
+      type: "object"
+      properties:
+        login:
+          type: "string"
+          description: Identificador del sitio
+        tranKey:
+          type: "string"
+          description: Credencial **tranKey** generado
+        nonce:
+          type: "string"
+          description: Valor **aleatorio** para cada solicitud codificado en **Base64**.
+        seed:
+          type: "string"
+          description: Fecha **actual**, la cual se genera en formato **ISO 8601**.
+      description: "Estructura que contiene la información de autenticación del sitio generada de acuerdo al WSSE
+        UsernameToken Profile 1.1"
+    Amount:
+      title: "Amount"
+      type: "object"
+      description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
+      required:
+        - "currency"
+        - "total"
+      properties:
+        currency:
+          type: "string"
+          enum:
+            - "USD"
+            - "COP"
+            - "CRC"
+            - "EUR"
+            - "CAD"
+            - "AUD"
+            - "GBP"
+            - "MXN"
+            - "CLP"
+          example: "COP"
+          minLength: 3
+          maxLength: 3
+        total:
+          type: "number"
+        taxes:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/TaxDetail"
+        details:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/AmountDetail"
+    TaxDetail:
+      title: "TaxDetail"
+      type: "object"
+      description: "Estructura para almacenar información sobre un impuesto."
+      properties:
+        kind:
+          type: "string"
+          example: "valueAddedTax"
+          description: "Tipo de impuesto reportado"
+          enum:
+            - valueAddedTax
+            - exciseDuty
+            - ice
+            - airportTax
+            - stateTax
+            - reducedStateTax
+            - municipalTax
+        amount:
+          type: "number"
+        base:
+          type: "number"
+    AmountDetail:
+      title: "AmountDetail"
+      type: "object"
+      description: "Estructura para almacenar información sobre un valor adicional."
+      properties:
+        kind:
+          type: "string"
+        amount:
+          type: "number"
+    AmountConversion:
+      title: "AmountConversion"
+      type: "object"
+      description: "Estructura para definir el factor de conversión y los valores."
+      properties:
+        from:
+          $ref: "#/components/schemas/AmountBase"
+        to:
+          $ref: "#/components/schemas/AmountBase"
+        factor:
+          type: "number"
+    AmountBase:
+      title: "AmountBase"
+      type: "object"
+      description: "Estructura que representa una cantidad que define la moneda y el total."
+      properties:
+        currency:
+          type: "string"
+        total:
+          type: "number"
+    Transaction:
+      description: "Contiene información sobre una transacción"
+      type: "object"
+      title: ""
+      properties:
+        status:
+          $ref: "#/components/schemas/Status"
+        date:
+          type: "string"
+          description: |
+            EJ: `2021-09-20T21:51:59-05:00`
+        transactionDate:
+          type: "string"
+          description: |
+            EJ: `2021-09-20T21:51:59-05:00`
+        internalReference:
+          type: "number"
+        reference:
+          type: "string"
+          minLength: 1
+        paymentMethod:
+          type: "string"
+          minLength: 1
+        franchise:
+          type: "string"
+          minLength: 1
+        franchiseName:
+          type: "string"
+          minLength: 1
+        issuerName:
+          type: "string"
+          minLength: 1
+          nullable: true
+        amount:
+          $ref: "#/components/schemas/Amount"
+        conversion:
+          $ref: "#/components/schemas/AmountConversion"
+        authorization:
+          type: "string"
+          minLength: 1
+          nullable: true
+        receipt:
+          type: "string"
+          maxLength: 16
+          nullable: true
+        type:
+          type: "string"
+          minLength: 1
+        refunded:
+          type: "boolean"
+        lastDigits:
+          type: "string"
+          minLength: 1
+          nullable: true
+        provider:
+          type: "string"
+          enum:
+            - "CREDIBANCO"
+            - "REDEBAN"
+            - "INTERDIN"
+            - "DATAFAST"
+            - "TUYA-DIRECT"
+            - "BRASPAG"
+            - "TRANSERVER"
+            - "SABRE"
+            - "EVERTEC"
+            - "ACH"
+            - "ATH-AVALNET"
+            - "SUPERGIROS"
+            - "TECNICARD"
+            - "MEDIANET"
+            - "AUSTRO"
+            - "COMFANDI"
+            - "PAYSTUDIO"
+            - "FLAMINGO"
+            - "ATH-MOVIL"
+            - "EBUS"
+            - "BANCOLOMBIA"
+        discount:
+          type: "string"
+        processorFields:
+          type: "object"
+          properties:
+            id:
+              type: "string"
+            b24:
+              type: "string"
+        additional:
+          type: "object"
+          description: |
+            Ver más en [Datos adicionales](/gateway/additional-data)
+        preAuthorization:
+          type: "object"
+          items:
+            type: "object"
+            properties:
+              condition:
+                type: "string"
+              internalReference:
+                type: "number"
+              authorization:
+                type: "string"
+                minLength: 1
+                nullable: true
+              receipt:
+                type: "string"
+                minLength: 1
+                nullable: true
+              amount:
+                $ref: "#/components/schemas/Amount"
+              salt:
+                type: "string"
+        dispersion:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              status:
+                $ref: "#/components/schemas/Status"
+              agreement:
+                type: "integer"
+                nullable: true
+              agreementType:
+                type: "string"
+                enum:
+                  - "AIRLINE"
+                  - "MERCHANT"
+              authorization:
+                type: "string"
+                minLength: 1
+                nullable: true
+              receipt:
+                type: "string"
+                minLength: 1
+                nullable: true
+              amount:
+                $ref: "#/components/schemas/Amount"
+              refunded:
+                type: "boolean"
+              paymentMethod:
+                type: "string"
+      required:
+        - "status"
+        - "provider"
+        - "internalReference"
+        - "reference"
+        - "paymentMethod"
+        - "franchise"
+        - "franchiseName"
+        - "issuerName"
+        - "amount"
+        - "conversion"
+        - "authorization"
+        - "receipt"
+        - "type"
+        - "refunded"
+        - "lastDigits"
+        - "discount"
+        - "processorFields"
+        - "additional"
