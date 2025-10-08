@@ -137,7 +137,7 @@ paths:
               $ref: '#/components/schemas/WebhookEvent'
       responses:
         "200":
-          description: Webhook recibido correctamente.
+          description: El webhook fue recibido correctamente.
           content:
             application/json:
               schema:
@@ -146,7 +146,7 @@ paths:
                   status:
                     $ref: '#/components/schemas/Status'
         "4XX":
-          description: Error en la validación del payload o firma incorrecta.
+          description: Ha ocurrido un error al recibir el Webhook.
           content:
             application/json:
               schema:
@@ -192,37 +192,64 @@ components:
             - AUTOPAY_UPDATED
             - AUTOPAY_FAILED
             - AUTOPAY_DELETED
-          description: Tipo de evento notificado.
+          description: "Tipo de evento notificado. Ver más en [Eventos Webhook](/autopay/contracts/webhook-description#event-types)."
         site:
           type: string
           format: uuid
+          minLength: 36
+          maxLength: 36
           description: Identificador único del sitio o comercio asociado.
           example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
         signature:
           type: string
           description: Firma digital del mensaje en formato Base64.
-          example: "Base64(SHA-256(secretKey + data + date))"
+          example: "Base64(SHA-256(secretKey + json_encode(data) + date))"
         date:
           type: string
           format: date-time
-          description: Fecha y hora del evento.
-          example: "2023-01-19 15:57:23"
+          description: Fecha y hora en la que se lanzó por primera vez el evento. En formato ISO 8601.
+          example: "2025-09-29T17:09:29-05:00"
         data:
           type: object
+          description: Objeto que contiene información relevante para identificar el autopago e información del evento.
           required:
             - id
+          x-conditional:
+            transactionId
+            reason
           properties:
             id:
               type: string
               format: uuid
               description: Identificador interno del autopay.
               example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+              minLength: 2
+              maxLength: 2
+            transactionId:
+              type: string
+              format: uuid
+              minLength: 36
+              maxLength: 36
+              description: Identificador del pago ejecutado. Puede venir cuando el evento es AUTOPAY_FAILED.
+              example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+            reason:
+                type: string
+                minLength: 2
+                maxLength: 2
+                description: Código de razón de actualización del autopago. Puede venir cuando el evento es AUTOPAY_FAILED, AUTOPAY_DELETED. Ver más en [Códigos de razón](/autopay/codes).
+                example: "XA"
     Status:
       title: Status
       type: object
       description: Estructura para definir estados de respuestas
       x-internal: false
       properties:
+        status:
+          type: string
+          enum:
+            - OK
+            - FAILED
+          description: Estado de la petición.
         reason:
           type: string
           enum:
@@ -231,23 +258,15 @@ components:
             - 102
             - 103
             - 104
-            - 00
+            - '00'
             - BR
             - X3
             - XH
             - ?-
-            - 05
+            - '05'
             - NF
-          description: Código de los estados. (consulte la columna código en Documentos/Códigos de razón)
+          description: Razón del estado de la petición. (consulte en [Códigos de razón](/autopay/codes))
           example: '00'
-
-        status:
-          type: string
-          enum:
-            - OK
-            - FAILED
-          description: Nombre de los estados. (consulte la columna Significado en Documentos/Códigos de razón)
-          example: "OK"
         message:
           type: string
           description: Mensaje para aclarar el estado
@@ -257,6 +276,10 @@ components:
           format: date-time
           description: Mensaje para aclarar el estado
           example: "2025-09-29T17:09:29-05:00"
+      required:
+        - status
+        - reason
+        - message
     Amount:
       title: "Amount"
       type: "object"
