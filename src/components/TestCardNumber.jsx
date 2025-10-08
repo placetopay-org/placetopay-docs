@@ -12,6 +12,7 @@ import logoAlkosto from '@/images/cards/alkosto.svg'
 import logoExito from '@/images/cards/exito_card.svg'
 import logoAthCard from '@/images/cards/ath_card.svg'
 import logoEBT from '@/images/cards/ebt.svg'
+import logoALIA from '@/images/cards/alia.svg'
 import { Heading } from './Heading'
 import { useLocale } from './LocaleProvider'
 import { CopyContent } from '@/components/CopyContent'
@@ -587,6 +588,34 @@ const groupsByFranchise = [
         behavior: {
           es: 'Aprueba si el monto es inferior a 200USD, de lo contrario rechaza',
           en: 'Approves if the amount is less than 200 USD, otherwise rejects'
+        },
+      },
+    ],
+  },
+  {
+    id: 'alia',
+    logo: logoALIA,
+    franchise: 'ALIA',
+    items: [
+      {
+        number : '5058740200053106',
+        behavior: {
+          es: 'Aprueba',
+          en: 'Approve'
+        },
+      },
+      {
+        number : '5058760305223909',
+        behavior: {
+          es: 'Rechaza',
+          en: 'Denies'
+        },
+      },
+      {
+        number : '5058740900041432',
+        behavior: {
+          es: 'Arroja una excepción en el proceso',
+          en: 'Throws an exception in the process',
         },
       },
     ],

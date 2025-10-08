@@ -1,0 +1,146 @@
+# Orquestador de pagos
+
+Esta funcionalidad permite seleccionar un medio de pago de una lista de medios de pago elegibles, empleando un índice
+asociado a la prioridad configurada en el medio de pago deseado.
+
+## Flujo de selección de medio de pago por índice
+
+<ImageZoom
+    src="/OrchestratorInformation_es.webp"
+    alt="Flujo de Selección de medio de pago por índice"
+    className="w-full max-w-full shadow rounded-md my-0 transition-transform duration-300 ease-in-out"
+/>
+
+## Requisitos para habilitar la funcionalidad
+Para lograr ejecutar la funcionalidad es necesario que se cumplan una serie de requisitos.
+
+### Configuración de orquestador habilitada
+
+El sitio debe tener la integración del orquestador asociada y activa.
+
+### Índice válido presente en la solicitud
+
+En la solicitud ya sea del endpoint `information` o `process`, debe viajar el campo `preferredPaymentMethodIndex`
+ dentro de la propiedad `metadata`.
+
+ <Note>Si el flujo requiere servicios adicionales como autenticación 3DS (lookup, query), proceso OTP
+ (generación, validación), operaciones con PinPad (solicitud, generación de PinBlock) o cálculo de intereses,
+ es necesario incluir el índice `preferredPaymentMethodIndex` en la solicitud del servicio.</Note>
+
+### Franquicia
+Esta funcionalidad sólo soporta transacciones con tarjetas de franquicia **Visa** y **Mastercard**
+
+### Disponibilidad de medios de pago
+
+Debe existir más de un medio de pago elegible
+
+## Procesos que no soportan la selección de medio de pago por índice
+
+* Dispersión, tanto de aerolínea como de comercio
+* Selección manual de proveedor
+* Forwarding
+
+<Note>Procesos que no soportan la selección de medio de pago por índice, emplean el flujo tradicional de selección
+ de medio de pago.</Note>
+
+## ¿Cómo se realiza la selección del medio de pago por medio de índice?
+
+Actualmente, se toma el primer medio de pago dentro de una serie de medios de pago elegibles para procesar mediante
+ la tarjeta ingresada.
+
+Con la integración de la funcionalidad, es posible seleccionar el medio de pago deseado de la lista de medios de pago,
+ esto por medio de un índice suministrado en la solicitud.
+
+### Selección del medio de pago por índice en la solicitud de información
+
+Al realizar una solicitud al endpoint `information`, debe estar presente el campo `preferredPaymentMethodIndex` en
+la propiedad `metadata`.
+
+**Ejemplo de solicitud**
+```json
+// ...
+"metadata": {
+    "preferredPaymentMethodIndex": 2
+}
+// ...
+```
+
+Si se cumplen las condiciones mencionadas, se obtiene una lista de medios de pago elegibles. Esta se
+ ordena de forma ascendente de acuerdo a la prioridad de cada medio de pago.
+
+Con la lista indexada, se selecciona el medio de pago mediante el índice y se toma el número total de medios de pago.
+
+Una vez realizada la selección, en la respuesta de `information`, se agrega la propiedad
+ `availablePaymentMethods`, que indica el total de medios de pago disponibles para procesar una transacción con la tarjeta ingresada.
+
+**Ejemplo de respuesta**
+```json
+// ...
+    "availablePaymentMethods": 5
+// ...
+```
+
+## Flujo de disponibilidad de reintento
+<ImageZoom
+    src="/OrchestratorProcess_es.webp"
+    alt="Flujo de disponibilidad de reintento"
+    className="w-full max-w-full shadow rounded-md my-0 transition-transform duration-300 ease-in-out"
+/>
+
+Al realizar una solicitud al endpoint `process`, esta debe contener el campo `preferredPaymentMethodIndex` en la propiedad `metadata`.
+
+Aquí, se realiza el mismo flujo de selección de medio de pago llevado a cabo durante la solicitud de información.
+
+<Note>Al emplear un índice inválido o que supere el total de medios de pago elegibles, (tanto en la solicitud de información
+como de procesamiento) se obtiene una respuesta de error.</Note>
+
+Si una transacción procesada es **rechazada** o **fallida**, y, si la integración del orquestador en el sitio está activa y se
+cumplen los requisitos ya mencionados para la selección por índice, se valida si la transacción es elegible o no para un nuevo procesamiento
+ con un medio de pago alternativo.
+
+Para indicar si la transacción es elegible, se anexa a la respuesta de `process` el campo `canRetry` en la propiedad `additional`.
+
+Una transacción puede ser elegible si se cumplen tanto los requisitos validados durante el proceso
+ de selección, como con los siguientes:
+
+**Código de respuesta**
+
+El código de respuesta debe estár dentro de la lista de códigos que permiten un nuevo procesamiento.
+
+| Código | Descripción                        |
+|--------|------------------------------------|
+| `96`   | Malfuncionamiento del sistema      |
+| `68`   | Respuesta tardía                   |
+| `R1`   | Autorización revocada              |
+| `R3`   | Todas las autorizaciones revocadas |
+| `13`   | Monto inválido                     |
+| `61`   | Monto Máximo excedido              |
+| `XH`   | Host Inválido                      |
+| `XR`   | Respuesta Inválida                 |
+| `XE`   | Tipo de Tarjeta inválido           |
+| `XX`   | Configuraciones inválidas          |
+
+**Índice**
+
+El índice ingresado en la solicitud es menor al total de medios de pago elegibles para procesar.
+
+En los escenarios en que el código de rechazo se encuentre en la lista de códigos elegibles y el índice sea menor a la
+totalidad de medios de pago, `canRetry` será `true`, de lo contrario, será `false`.
+
+**Ejemplo de respuesta**
+```json
+    // ...
+    "additional": {
+        // ...
+        "canRetry": true
+    }
+    // ...
+```
+
+Para mayor información acerca de ejemplos y propiedades, dirigirse a la sección **api**.
+
+## FAQs
+<details>
+<summary>¿Cómo solicitar la configuración de Orquestador de pagos en un sitio?</summary>
+<p>Se debe realizar una solicitud a nuestro equipo de posventa a través del correo electrónico servicioposventa@placetopay.ec </p>
+</details>
