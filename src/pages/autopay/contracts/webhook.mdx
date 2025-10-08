@@ -1,10 +1,10 @@
 export const apiRefs = ['/autopay/webhook']
 
-## Notificar un evento {{ id: 'webhook', tag: 'POST', label: '/autopay/webhook' }}
-
+## Notificación {{ id: 'webhook', tag: 'POST', label: '{{baseURl}}/autopay/webhook' }}
 <Row>
     <Col>
-        Este endpoint sirve para enviar una notificación al cliente integrado
+        Debe exponer un endpoint conforme al siguiente contrato. Autopay enviará notificaciones a dicho endpoint cada vez que un autopago sea eliminado, actualizado, se haya actualizado el medio de pago o desactivado.
+        Ver [Notificaciones](/autopay/contracts/notifications) para más información.
         <ApiReader
             path="/autopay/webhook"
             method="POST"
@@ -12,23 +12,48 @@ export const apiRefs = ['/autopay/webhook']
         />
     </Col>
     <Col sticky={true}>
-                <CodeGroup title="Solicitud" tag="POST" label="/autopay/webhook">
-                    ```bash {{ title: 'Get balance' }}
-                    curl -X "POST" https://{{your-server}/autopay/balance \
-                    -H "Content-Type: application/json" \
-                    -d '{
-                        "type": "AUTOPAY_FAILED",
-                        "site": "2972c13d-6315-4da3-80d7-64c24eb232ad",
-                        "signature": "Base64(SHA-256(secretKey + data + date))",
-                        "date": "2023-01-19 15:57:23",
-                        "data":  "data": {
-                            "id": "2972c13d-6315-4da3-80d7-64c24eb232ad", // identificador interno del autopay
-                        }
-                    }
-                    '
-                    ```
-                </CodeGroup>
-            </Col>
+        <CodeGroup title="Solicitud" tag="POST" label="{{baseURl}}/autopay/webhook">
+            ```json {{ 'title': 'Actualización del AutoPago' }}
+            {
+                "type": "AUTOPAY_UPDATED",
+                "site": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                "signature": "Base64(SHA-256(secretKey + json_encode(data) + date))",
+                "date": "2023-01-19 15:57:23",
+                "data":  {
+                    "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                }
+            }
+            ```
+
+            ```json {{ 'title': 'Falla al cobrar un Autopago' }}
+            {
+                "type": "AUTOPAY_FAILED",
+                "site": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                "signature": "Base64(SHA-256(secretKey + json_encode(data) + date))",
+                "date": "2023-01-19 15:57:23",
+                "data":  {
+                    "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                    "transactionId": "6ea5c934-2a4d-409a-8bd6-e1568cfc771f",
+                    "reason": "XA"
+                }
+            }
+            ```
+
+            ```json {{ 'title': 'Eliminación de Autopago' }}
+            {
+                "type": "AUTOPAY_DELETED",
+                "site": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                "signature": "Base64(SHA-256(secretKey + json_encode(data) + date))",
+                "date": "2023-01-19 15:57:23",
+                "data": {
+                    "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                    "transactionId": "6ea5c934-2a4d-409a-8bd6-e1568cfc771f",
+                    "reason": "?F"
+                }
+            }
+            ```
+        </CodeGroup>
+    </Col>
 </Row>
 
 <Row>
@@ -44,24 +69,14 @@ export const apiRefs = ['/autopay/webhook']
         <br />
         <CodeGroup title="Respuesta">
             ```json {{ title: '200: Respuesta exitosa' }}
-            {
-              "status": {
-                 "status": "OK",
-                 "reason": "00",
-                 "message": "Respuesta exitosa",
-                 "date": "2025-09-29T17:09:29-05:00"
-              },
-            }
-            ```
-            ```json {{ title: '401: Autenticación invalida' }}
-            {
-              "status": {
-                 "status": "FAILED",
-                 "reason": "103",
-                 "message": "Fecha del seed mayor de 5 minutos.",
-                 "date": "2025-09-29T17:09:29-05:00"
-              },
-            }
+                {
+                  "status": {
+                     "status": "OK",
+                     "reason": "00",
+                     "message": "Respuesta exitosa",
+                     "date": "2025-09-29T17:09:29-05:00"
+                  },
+                }
             ```
         </CodeGroup>
     </Col>

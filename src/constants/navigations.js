@@ -2226,7 +2226,8 @@ export const TAB_NAVIGATION = {
           {
               title: 'Documentos',
               links: [
-                  {title: 'Introducción', href: '/autopay/contracts'}
+                  {title: 'Introducción', href: '/autopay/contracts'},
+                  {title: 'Notificaciones', href: '/autopay/contracts/notifications'}
               ],
           },
           {
