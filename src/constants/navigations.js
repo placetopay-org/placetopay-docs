@@ -3,7 +3,7 @@ import { Book, MonitorMobbile, Activity, SecurityCard, Link, Calendar, ShieldTic
 
 /**
  * List of options to be displayed in the navigation selector
- * 
+ *
  * title: Title of the option
  * description: Description of the option
  * href: Route to redirect to
@@ -77,6 +77,12 @@ export const NAMESPACES_SELECTOR = {
       href: '/selfdeclarations',
       icon: Courthouse,
     },
+    {
+      title: 'Ordenes de pago',
+      description: 'Gestión de ordenes de pago',
+      href: '/invoices',
+      icon: DocumentCode,
+    },
   ],
   [LANGUAGES_CODES.EN]: [
     {
@@ -147,13 +153,19 @@ export const NAMESPACES_SELECTOR = {
       href: '/en/selfdeclarations',
       icon: Courthouse,
     },
+    {
+      title: 'Payment order',
+      description: 'Payment order management',
+      href: '/en/invoices',
+      icon: DocumentCode,
+    },
   ],
 }
 
-/** 
+/**
  * List of options used to map the URL path to
  * its corresponding path in the routes object
- * 
+ *
  * KEY : URL path
  * VALUE : TAB_NAVIGATION key
  */
@@ -172,25 +184,26 @@ export const NAMESPACE_ROUTES = {
   'account-validator': 'accountValidator',
   'api-scudo': 'apiScudo',
   'selfdeclarations': 'selfdeclarations',
+  invoices: 'invoices',
 }
 
 /**
  * List of options that will be displayed in
  * the left navigation menu within each page
- * 
+ *
  * KEY : TAB_NAVIGATION key
  * VALUE : List of options
- * 
+ *
  * title: Title of the option
  * identifier: Unique identifier of the option which must be included in the path to identify the object that is active on the page
  * href: Route to redirect to
  * icon: Icon to display
  * links: List of sub-options
- * 
+ *
  * Sub-options (Sections):
  * title: Title of the sub-option
  * links: List of sub-options
- * 
+ *
  * Sub-options (Pages):
  * title: Title of the sub-option
  * href: Route to redirect to
@@ -209,6 +222,29 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Introducción', href: '/payments'
+              },
+            ],
+          },
+          {
+            title: 'Gestiona tu cuenta en nuestro Dash',
+            links: [
+              { title: 'Introducción', href: '/payments/newpanel/introduction'},
+                { title: 'Ingreso a Dash',
+                links: [
+                  { title: 'Migración de usuario', href: '/payments/newpanel/users/migration' },
+                  { title: 'Creación de usuario', href: '/payments/newpanel/users/createuser' },
+                  
+                ], 
+              },
+              {
+                title: 'Transacciones', links: [
+                  { title: 'Consulta de transacciones', href: '/payments/newpanel/transaction/search' }                                   
+                ],
+              },
+              {
+                title: 'Reportes transaccionales', links: [
+                  { title: 'Exportes y estadísticas', href: '/payments/newpanel/reports/export' }
+                ],
               },
             ],
           },
@@ -235,7 +271,7 @@ export const TAB_NAVIGATION = {
                 title: 'Micrositio Abierto', links: [
                   { title: 'Introducción', href: '/payments/microsite-open/introduction' },
                   { title: 'Estructura de Campos', href: '/payments/microsite-open/fields' },
-                  
+
                 ],
               },
               {
@@ -267,6 +303,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Proceso de pago en WebCheckout', href: '/payments/process-pay' },
               { title: 'Preautorización', href: '/payments/preauthorization' },
+              { title: 'Conciliación', href: '/payments/conciliation' },
             ],
           },
           {
@@ -310,6 +347,13 @@ export const TAB_NAVIGATION = {
               { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },
             ],
           },
+          {
+            title: 'Reportes de conciliación bancaria ',
+            links: [
+              { title: 'Reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr' },
+              { title: 'Ejemplos de reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr-examples' },
+            ],
+          }
         ],
       }
     ],
@@ -326,7 +370,29 @@ export const TAB_NAVIGATION = {
               { title: 'Introduction', href: '/payments' },
             ],
           },
-
+          {
+            title: 'Manage your account on our Dash',
+            links: [
+              { title: 'Introduction', href: '/payments/newpanel/introduction'},
+                { title: 'Access to Dash',
+                links: [
+                  { title: 'User migration', href: '/payments/newpanel/users/migration' },
+                  { title: 'User creation', href: '/payments/newpanel/users/createuser' },
+                  
+                ], 
+              },
+              {
+                title: 'Transactions', links: [
+                  { title: 'Transaction inquiry', href: '/payments/newpanel/transaction/search' }                                   
+                ],
+              },
+              {
+                title: 'Transactional reports', links: [
+                  { title: 'Exports and statistics', href: '/payments/newpanel/reports/export' }
+                ],
+              },
+            ],
+          },
           {
             title: 'Payment Links',
             links: [
@@ -335,7 +401,7 @@ export const TAB_NAVIGATION = {
               { title: 'Manage Payment Links', href: '/payments/payments-links/link-management' }
             ],
           },
-         {
+          {
             title: 'QR code payments',
             links: [
               { title: 'Introduction', href: '/payments/qr/introduction' },
@@ -383,6 +449,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Payment Process in Web Checkout', href: '/payments/process-pay' },
               { title: 'Preauthorization', href: '/payments/preauthorization' },
+              { title: 'Conciliation', href: '/payments/conciliation' },
             ],
           },
           {
@@ -426,6 +493,13 @@ export const TAB_NAVIGATION = {
               { title: 'Transaction Modifiers', href: '/payments/integrations/transaction-modifiers' },
             ],
           },
+          {
+            title: 'Bank reconciliation reports',
+            links: [
+              { title: 'Bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr' },
+              { title: 'Examples of bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr-examples' },
+            ],
+          }
         ],
       },
     ],
@@ -445,14 +519,16 @@ export const TAB_NAVIGATION = {
               { title: 'Cómo Funciona', href: '/checkout/how-checkout-works' },
               { title: 'Plugins', href: '/checkout/plugins' },
               { title: 'Lightbox', href: '/checkout/lightbox' },
+              { title: 'Navegadores soportados', href: '/checkout/browser-support' },
             ],
           },
           {
             title: 'Integración',
             links: [
               { title: 'Autenticación', href: '/checkout/authentication' },
-              { title: 'Crear Sesión', href: '/checkout/create-session' },
+              { title: 'Crear sesión', href: '/checkout/create-session' },
               { title: 'Notificación', href: '/checkout/notification' },
+              { title: 'Cancelar sesión', href: '/checkout/cancel-session' },
               { title: 'Localización', href: '/checkout/localization' },
               { title: 'Tipos de documento', href: '/checkout/document-types' },
               {
@@ -486,6 +562,10 @@ export const TAB_NAVIGATION = {
                 title: 'Metadata',
                 href: '/checkout/metadata',
               },
+              {
+                title: 'Reintentos del proceso',
+                href: '/checkout/attempts-limit',
+              },
             ],
           },
         ],
@@ -512,7 +592,12 @@ export const TAB_NAVIGATION = {
               { title: 'Sesión', href: '/checkout/api/reference/session' },
               { title: 'Pagos', href: '/checkout/api/reference/payment' },
               { title: 'Token', href: '/checkout/api/reference/token' },
-              { title: 'Gateway Information', href: '/checkout/api/reference/gateway-information' },
+              {
+                title: 'Gateway', links: [
+                  { title: 'Information', href: '/checkout/api/reference/gateway/information' },
+                  { title: 'Token', href: '/checkout/api/reference/gateway/token' },
+                ],
+              }
             ],
           },
         ],
@@ -532,25 +617,27 @@ export const TAB_NAVIGATION = {
               { title: 'How it works', href: '/checkout/how-checkout-works' },
               { title: 'Plugins', href: '/checkout/plugins' },
               { title: 'Lightbox', href: '/checkout/lightbox' },
+              { title: 'Browser support', href: '/checkout/browser-support' },
             ],
           },
           {
             title: 'Integration',
             links: [
               { title: 'Authentication', href: '/checkout/authentication' },
-              { title: 'Create Session', href: '/checkout/create-session' },
+              { title: 'Create session', href: '/checkout/create-session' },
               { title: 'Notification', href: '/checkout/notification' },
+              { title: 'Cancel session', href: '/checkout/cancel-session' },
               { title: 'Localization', href: '/checkout/localization' },
-              { title: 'Document Types', href: '/checkout/document-types' },
+              { title: 'Document types', href: '/checkout/document-types' },
               {
-                title: 'Additional Fields',
+                title: 'Additional fields',
                 href: '/checkout/additional-fields',
               },
               {
-                title: 'Amounts and Currencies',
+                title: 'Amounts and currencies',
                 href: '/checkout/tax-details',
               },
-              { title: 'Payment Methods', href: '/checkout/payment-methods' },
+              { title: 'Payment methods', href: '/checkout/payment-methods' },
               {
                 title: 'How to integrate with mobile',
                 href: '/checkout/integration/mobile',
@@ -561,11 +648,11 @@ export const TAB_NAVIGATION = {
               },
               { title: 'Refund', href: '/checkout/refund' },
               {
-                title: 'Processor Fields',
+                title: 'Processor fields',
                 href: '/checkout/processor-fields',
               },
               {
-                title: 'Expiration Date',
+                title: 'Expiration date',
                 href: '/checkout/expiration',
               },
               {
@@ -575,6 +662,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Metadata',
                 href: '/checkout/metadata',
+              },
+              {
+                title: 'Process retries',
+                href: '/checkout/attempts-limit',
               },
             ],
           },
@@ -599,8 +690,13 @@ export const TAB_NAVIGATION = {
               { title: 'Session', href: '/checkout/api/reference/session' },
               { title: 'Payments', href: '/checkout/api/reference/payment' },
               { title: 'Token', href: '/checkout/api/reference/token' },
-              { title: 'Gateway Information', href: '/checkout/api/reference/gateway-information' },
-            ],
+              {
+                title: 'Gateway', links: [
+                  { title: 'Information', href: '/checkout/api/reference/gateway/information' },
+                  { title: 'Token', href: '/checkout/api/reference/gateway/token' },
+                ],
+              }
+            ]
           },
         ],
       },
@@ -671,6 +767,14 @@ export const TAB_NAVIGATION = {
                 title: 'Webhooks',
                 href: '/gateway/webhooks',
               },
+              {
+                title: 'Indicador de iniciador de transacción',
+                href: '/gateway/initiator-indicator',
+              },
+              {
+                title: 'Orquestador de pagos',
+                href: '/gateway/orchestrator',
+              },
             ],
           },
         ],
@@ -707,6 +811,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Operaciones con PinPad',
                 href: '/gateway/api/reference/pinpad',
+              },
+              {
+                title: 'Operaciones con ordenes de pago',
+                href: '/gateway/api/reference/cashorder',
               },
               {
                 title: 'Reporte de operaciones realizadas',
@@ -772,6 +880,14 @@ export const TAB_NAVIGATION = {
                 title: 'Webhooks',
                 href: '/gateway/webhooks',
               },
+              {
+                title: 'Transaction Initiator Indicator',
+                href: '/gateway/initiator-indicator',
+              },
+              {
+                title: 'Payment Orchestrator',
+                href: '/gateway/orchestrator',
+              },
             ],
           },
         ],
@@ -806,6 +922,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'PinPad Operations',
                 href: '/gateway/api/reference/pinpad',
+              },
+              {
+                title: 'Cash orders operations',
+                href: '/gateway/api/reference/cashorder',
               },
               {
                 title: 'Report of operations carried out',
@@ -860,6 +980,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Flujo del servicio de 3DS Server',
                 href: '/three-d-s-server/service-flow',
+              },
+              {
+                title: '¿Qué es 3RI?',
+                href: '/three-d-s-server/information-3ri',
               },
             ],
           },
@@ -1024,6 +1148,10 @@ export const TAB_NAVIGATION = {
                 title: '3DS Server Service Flow',
                 href: '/three-d-s-server/service-flow',
               },
+              {
+                title: 'What is 3RI?',
+                href: '/three-d-s-server/information-3ri',
+              },
             ],
           },
         ],
@@ -1175,6 +1303,10 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/integration/authentication',
               },
               {
+                title: 'Códigos de razón',
+                href: '/token-requestor/integration/reason-codes',
+              },
+              {
                 title: 'Notificaciones',
                 href: '/token-requestor/integration/notifications',
               },
@@ -1203,7 +1335,7 @@ export const TAB_NAVIGATION = {
                 title: 'Enroll card',
                 href: '/token-requestor/api/enroll-card',
               },
-              { title: 'Checkout', href: '/token-requestor/api/checkout' },
+              { title: 'Get cryptogram', href: '/token-requestor/api/checkout' },
               {
                 title: 'Get token status',
                 href: '/token-requestor/api/get-token-status',
@@ -1211,6 +1343,23 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Delete Token',
                 href: '/token-requestor/api/delete-token'
+              },
+            ],
+          },
+          {
+            title: 'Api de administración',
+            links: [
+              {
+                title: 'Administración de Credenciales',
+                href: '/token-requestor/api/admin/credentials',
+              },
+              {
+                title: 'Administración de Sitios',
+                href: '/token-requestor/api/admin/sites',
+              },
+              {
+                title: 'Administración de Comercios',
+                href: '/token-requestor/api/admin/merchant',
               },
             ],
           },
@@ -1245,6 +1394,10 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/integration/authentication',
               },
               {
+                title: 'Reason codes',
+                href: '/token-requestor/integration/reason-codes',
+              },
+              {
                 title: 'Notifications',
                 href: '/token-requestor/integration/notifications',
               },
@@ -1274,7 +1427,7 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/api/enroll-card',
               },
               {
-                title: 'Checkout',
+                title: 'Get cryptogram',
                 href: '/token-requestor/api/checkout'
               },
               {
@@ -1284,6 +1437,23 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Delete Token',
                 href: '/token-requestor/api/delete-token'
+              },
+            ],
+          },
+          {
+            title: 'Management API',
+            links: [
+              {
+                title: 'Credential Management',
+                href: '/token-requestor/api/admin/credentials',
+              },
+              {
+                title: 'Sites Management',
+                href: '/token-requestor/api/admin/sites',
+              },
+              {
+                title: 'Merchant Manegement',
+                href: '/token-requestor/api/admin/merchant',
               },
             ],
           },
@@ -1356,71 +1526,23 @@ export const TAB_NAVIGATION = {
                 title: '¿Cómo configurar ACS?',
                 href: '/acs/a-c-s-general-configuration',
               },
-              { title: 'Gestión de cuenta', href: '/acs/account' },
-              { title: 'Motor de Control de Fraude', href: '/acs/antifraud' },
+
               {
-                title: 'Estados del proceso de autenticación',
-                href: '/acs/authentication-status',
+                title: 'Emisores en ACS',
+                href: '/acs/issuer-configuration'
               },
-              { title: 'Autenticaciones', href: '/acs/authentications' },
-              {
-                title: 'Suscripción por marcas',
-                href: '/acs/brands-subscriptions',
-              },
-              { title: 'Rangos de tarjetas', href: '/acs/card-ranges' },
-              {
-                title: 'Certificados',
-                href: '/acs/certificates-configurations',
-              },
-              { title: 'Configuraciones', href: '/acs/configuration-fields' },
-              { title: 'Países en ACS', href: '/acs/countries-configurations' },
-              {
-                title: 'Monedas utilizadas en ACS',
-                href: '/acs/currencies-configurations',
-              },
-              {
-                title: 'Autenticaciones Desacopladas',
-                href: '/acs/decoupled-authentications',
-              },
-              { title: 'Disputas', href: '/acs/disputes' },
-              { title: 'Códigos de error', href: '/acs/error-codes' },
-              {
-                title: 'Preguntas frecuentes sobre el funcionamiento ACS',
-                href: '/acs/f-a-q',
-              },
-              {
-                title: 'Campos de configuración',
-                href: '/acs/fields-configurations',
-              },
-              { title: 'Marcas en ACS', href: '/acs/franchise-creation' },
-              {
-                title: 'Códigos HTTP en el proceso de autenticación',
-                href: '/acs/http-codes',
-              },
-              { title: 'Importes', href: '/acs/imports-configurations' },
-              { title: 'Invitaciones de usuarios', href: '/acs/invitations' },
-              { title: 'Emisores en ACS', href: '/acs/issuer-configuration' },
-              { title: 'Servicios del emisor', href: '/acs/issuer-services' },
-              {
-                title: 'Gestión de idioma',
-                href: '/acs/language-configurations',
-              },
-              { title: 'Logs de Seguridad', href: '/acs/logs' },
-              {
-                title: 'Códigos de categoría del comercio',
-                href: '/acs/merchant-codes-configurations',
-              },
-              { title: 'Métricas', href: '/acs/metrics' },
-              { title: 'Perfiles', href: '/acs/profiles' },
-              { title: 'Reportes', href: '/acs/reports' },
-              { title: 'Roles', href: '/acs/roles' },
-              { title: 'Alertas del servicio', href: '/acs/service-alerts' },
               {
                 title: 'Términos y Definiciones',
                 href: '/acs/terms-and-definitions',
               },
-              { title: 'Tarjetas de Prueba', href: '/acs/test-cards' },
-              { title: 'Usuarios', href: '/acs/users' },
+              {
+                title: 'Tarjetas de Prueba',
+                href: '/acs/test-cards'
+              },
+              {
+                title: 'Preguntas frecuentes sobre el funcionamiento ACS',
+                href: '/acs/f-a-q',
+              },
             ],
           },
         ],
@@ -1431,7 +1553,7 @@ export const TAB_NAVIGATION = {
         title: 'Documentation',
         identifier: 'acs',
         href: '/en/acs',
-        icon: 'Book',
+        icon: Book,
         links: [
           {
             title: 'ACS',
@@ -1445,71 +1567,22 @@ export const TAB_NAVIGATION = {
                 title: 'How to configure ACS?',
                 href: '/acs/a-c-s-general-configuration',
               },
-              { title: 'Account Management', href: '/acs/account' },
-              { title: 'Fraud Control Engine', href: '/acs/antifraud' },
               {
-                title: 'Authentication Process Status',
-                href: '/acs/authentication-status',
+                title: 'Issuers in ACS',
+                href: '/acs/issuer-configuration'
               },
-              { title: 'Authentications', href: '/acs/authentications' },
-              {
-                title: 'Brand Subscriptions',
-                href: '/acs/brands-subscriptions',
-              },
-              { title: 'Card Ranges', href: '/acs/card-ranges' },
-              {
-                title: 'Certificates',
-                href: '/acs/certificates-configurations',
-              },
-              { title: 'Configurations', href: '/acs/configuration-fields' },
-              {
-                title: 'Countries in ACS',
-                href: '/acs/countries-configurations',
-              },
-              {
-                title: 'Currencies Used in ACS',
-                href: '/acs/currencies-configurations',
-              },
-              {
-                title: 'Decoupled Authentications',
-                href: '/acs/decoupled-authentications',
-              },
-              { title: 'Disputes', href: '/acs/disputes' },
-              { title: 'Error Codes', href: '/acs/error-codes' },
-              { title: 'FAQs about ACS Functionality', href: '/acs/f-a-q' },
-              {
-                title: 'Configuration Fields',
-                href: '/acs/fields-configurations',
-              },
-              { title: 'Brands in ACS', href: '/acs/franchise-creation' },
-              {
-                title: 'HTTP Codes in the Authentication Process',
-                href: '/acs/http-codes',
-              },
-              { title: 'Amounts', href: '/acs/imports-configurations' },
-              { title: 'User Invitations', href: '/acs/invitations' },
-              { title: 'Issuers in ACS', href: '/acs/issuer-configuration' },
-              { title: 'Issuer Services', href: '/acs/issuer-services' },
-              {
-                title: 'Language Management',
-                href: '/acs/language-configurations',
-              },
-              { title: 'Security Logs', href: '/acs/logs' },
-              {
-                title: 'Merchant Category Codes',
-                href: '/acs/merchant-codes-configurations',
-              },
-              { title: 'Metrics', href: '/acs/metrics' },
-              { title: 'Profiles', href: '/acs/profiles' },
-              { title: 'Reports', href: '/acs/reports' },
-              { title: 'Roles', href: '/acs/roles' },
-              { title: 'Service Alerts', href: '/acs/service-alerts' },
               {
                 title: 'Terms and Definitions',
                 href: '/acs/terms-and-definitions',
               },
-              { title: 'Test Cards', href: '/acs/test-cards' },
-              { title: 'Users', href: '/acs/users' },
+              {
+                title: 'Test Cards',
+                href: '/acs/test-cards'
+              },
+              {
+                title: 'FAQs about ACS Functionality',
+                href: '/acs/f-a-q'
+              },
             ],
           },
         ],
@@ -1519,27 +1592,34 @@ export const TAB_NAVIGATION = {
   accountValidator: {
     [LANGUAGES_CODES.ES]: [
       {
-        title: 'API',
+        title: 'Documentación',
         identifier: 'account-validator',
-        href: '/account-validator/api',
-        icon: DocumentCode,
+        href: '/account-validator',
+        icon: Book,
         links: [
           {
-            title: 'Documentación',
+            title: 'Account Validator',
             links: [
-
-              { title: 'Introducción', href: '/account-validator', },
+              { title: 'Introducción', href: '/account-validator' },
               { title: '¿Cómo funciona?', href: '/account-validator/how-to-work' },
               { title: 'Flujo del usuario', href: '/account-validator/user-flow' },
               { title: 'Micro depósitos', href: '/account-validator/micro-deposits' },
               { title: 'Soporte para Lightbox', href: '/account-validator/support' },
-              { title: 'Webhook de Eventos', href: '/account-validator/webhooks' }
-            ]
+              { title: 'Webhook de Eventos', href: '/account-validator/webhooks' },
+            ],
           },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'account-validator/api',
+        href: '/account-validator/api/environment-urls',
+        icon: DocumentCode,
+        links: [
           {
             title: 'API',
             links: [
-              { title: 'Url de ambientes', href: '/account-validator/api/environment-urls', },
+              { title: 'Url de ambientes', href: '/account-validator/api/environment-urls' },
               { title: 'Sesión', href: '/account-validator/api/session' },
               { title: 'Validador de cuenta', href: '/account-validator/api/validate-existing-account' },
             ],
@@ -1549,27 +1629,34 @@ export const TAB_NAVIGATION = {
     ],
     [LANGUAGES_CODES.EN]: [
       {
-        title: 'API',
+        title: 'Documentation',
         identifier: 'account-validator',
-        href: '/account-validator/api',
-        icon: DocumentCode,
+        href: '/en/account-validator',
+        icon: Book,
         links: [
           {
-            title: 'Documentation',
+            title: 'Account Validator',
             links: [
-
-              { title: 'Introduction', href: '/account-validator', },
-              { title: '¿How it works?', href: '/account-validator/how-to-work' },
+              { title: 'Introduction', href: '/account-validator' },
+              { title: 'How it works', href: '/account-validator/how-to-work' },
               { title: 'User flow', href: '/account-validator/user-flow' },
               { title: 'Micro deposits', href: '/account-validator/micro-deposits' },
               { title: 'Lightbox Support', href: '/account-validator/support' },
-              { title: 'Webhooks', href: '/account-validator/webhooks' }
-            ]
+              { title: 'Webhooks', href: '/account-validator/webhooks' },
+            ],
           },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'account-validator/api',
+        href: '/en/account-validator/api/environment-urls',
+        icon: DocumentCode,
+        links: [
           {
             title: 'API',
             links: [
-              { title: 'URL of environments', href: '/account-validator/api/environment-urls', },
+              { title: 'Environment URLs', href: '/account-validator/api/environment-urls' },
               { title: 'Session', href: '/account-validator/api/session' },
               { title: 'Account validator', href: '/account-validator/api/validate-existing-account' },
             ],
@@ -1884,6 +1971,14 @@ export const TAB_NAVIGATION = {
                 title: 'Acciones sobre facturas',
                 href: '/core/reference/invoice'
               },
+              {
+                title: 'Acciones sobre integraciones de comercios',
+                href: '/core/reference/merchant/integrations'
+              },
+              {
+                title: 'Acciones sobre integraciones de sitios',
+                href: '/core/reference/site/integrations'
+              },
             ]
           },
         ],
@@ -1936,8 +2031,16 @@ export const TAB_NAVIGATION = {
                 href: '/core/reference/tools'
               },
               {
-                title: 'Actions on Invoices',
+                title: 'Actions on invoices',
                 href: '/core/reference/invoice'
+              },
+              {
+                title: 'Actions on Merchant Integrations',
+                href: '/core/reference/merchant/integrations'
+              },
+              {
+                title: 'Actions on Site Integrations',
+                href: '/core/reference/site/integrations'
               },
             ]
           },
@@ -2193,6 +2296,163 @@ export const TAB_NAVIGATION = {
               { title: 'Income PDF', href: '/selfdeclarations/api/income-pdf' },
               { title: 'Empresas - Creación/Actualización', href: '/selfdeclarations/api/companies' },
               { title: 'Usuarios - Creación/Actualizacion', href: '/selfdeclarations/api/company-bidders' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  invoices: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'invoices',
+        href: '/invoices',
+        icon: Book,
+        links: [
+          {
+            title: 'Ordenes de pago',
+            links: [
+              {
+                title: 'Introducción',
+                href: '/invoices'
+              },
+            ],
+          },
+          {
+            title: 'Integración',
+            links: [
+              {
+                title: 'Autenticación',
+                href: '/invoices/integration/authentication',
+              },
+              {
+                title: 'Estados de las ordenes de pago',
+                href: '/invoices/integration/status',
+              },
+              {
+                title: 'Definiciones',
+                href: '/invoices/integration/definitions',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'invoices/api',
+        href: '/invoices/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introducción',
+            links: [
+                { title: 'Inicio',
+                  href: '/invoices/api'
+                }
+            ],
+          },
+          {
+            title: 'Gestión de ordenes de pago',
+            links: [
+              {
+                title: 'Creación',
+                href: '/invoices/api/create',
+              },
+              {
+                title: 'Eliminación',
+                href: '/invoices/api/remove'
+              },
+              {
+                title: 'Eliminación masiva',
+                href: '/invoices/api/flush'
+              },
+              {
+                title: 'Bloqueo o liberación',
+                href: '/invoices/api/hold',
+              },
+              {
+                title: 'Búsqueda',
+                href: '/invoices/api/search'
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentation',
+        identifier: 'invoices',
+        href: '/en/invoices',
+        icon: Book,
+        links: [
+          {
+            title: 'Payment orders',
+            links: [
+              {
+                title: 'Introduction',
+                href: '/invoices'
+              },
+            ],
+          },
+          {
+            title: 'Integration',
+            links: [
+              {
+                title: 'Authentication',
+                href: '/invoices/integration/authentication',
+              },
+              {
+                title: 'Payment order statuses',
+                href: '/invoices/integration/status',
+              },
+              {
+                title: 'Definitions',
+                href: '/invoices/integration/definitions',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'invoices/api',
+        href: '/en/invoices/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introduction',
+            links: [
+              {
+                title: 'Home',
+                href: '/invoices/api'
+              }
+            ],
+          },
+          {
+            title: 'Payment order management',
+            links: [
+              {
+                title: 'Creation',
+                href: '/invoices/api/create',
+              },
+              {
+                title: 'Deletion',
+                href: '/invoices/api/remove'
+              },
+              {
+                title: 'Bulk deletion',
+                href: '/invoices/api/flush'
+              },
+              {
+                title: 'Hold or release',
+                href: '/invoices/api/hold',
+              },
+              {
+                title: 'Search',
+                href: '/invoices/api/search'
+              },
             ],
           },
         ],

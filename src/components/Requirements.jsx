@@ -1,12 +1,11 @@
 import { ItemList } from '@/components/ItemsList'
-import { UserOctagonTwoToneIcon } from '@/components/iconsax/UserOctagonTwoToneIcon'
-import { ProgrammingScrollTwoToneIcon } from '@/components/iconsax/ProgrammingScrollTwoToneIcon'
 import { useLocale } from './LocaleProvider'
+import { Scroll, UserOctagon } from 'iconsax-react'
 
 const guides = [
   {
     name: { es: 'Cuenta de Placetopay', en: 'Placetopay account' },
-    icon: UserOctagonTwoToneIcon,
+    icon: () => <UserOctagon variant="TwoTone"/>,
     description: {
       es: 'Debes tener una cuenta activa en PlacetoPay para acceder a tu sitio y tus credenciales API.',
       en: 'You must have an active account in PlacetoPay to access your site and your API credentials.',
@@ -17,7 +16,7 @@ const guides = [
       es: 'Conocimientos básicos en programación',
       en: 'Basic programming knowledge',
     },
-    icon: ProgrammingScrollTwoToneIcon,
+    icon: () => <Scroll variant="TwoTone"/>,
     description: {
       es: 'Es recomendable tener conocimientos  sobre desarrollo web y programación ya que la documentación se enfoca en la integración de la pasarela de pagos en tu sitio web o aplicación.',
       en: 'It is recommended to have knowledge about web development and programming since the documentation focuses on the integration of the payment gateway on your website or application.',

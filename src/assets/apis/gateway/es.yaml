@@ -73,6 +73,14 @@ paths:
                       $ref: "#/components/schemas/Payment"
                     subscription:
                       $ref: "#/components/schemas/Subscription"
+                    metadata:
+                      type: "object"
+                      description: Objeto dinámico que contiene información adicional de interés.
+                      properties:
+                        preferredPaymentMethodIndex:
+                          type: "integer"
+                          description: Índice de medio de pago a seleccionar dentro de una lista de medios de pago disponibles. Este campo es requerido solo cuando se desee emplear el flujo de orquestador de pagos.
+                          example: 2
                 - title: "PSE"
                   type: "object"
                   properties:
@@ -291,8 +299,8 @@ paths:
               Ejemplo:
                 value:
                   auth:
-                    login: "c51ce410c124a10e0db5e4b97fc2af39"
-                    tranKey: "VQOcRcVH2DfL6Y4B4SaK6yhoH/VOUveZ3xT16OQnvxE="
+                    login: "aabbccdd1234567890aabbccdd123456"
+                    tranKey: "ABC123example456trankey+789abc012def3456ABC="
                     nonce: "NjE0OWVkODgwYjNhNw=="
                     seed: "2021-09-21T09:34:48-05:00"
                   payment:
@@ -344,9 +352,9 @@ paths:
                       threeDS:
                         type: "string"
                         enum:
-                        - "optional"
-                        - "required"
-                        - "unsupported"
+                          - "optional"
+                          - "required"
+                          - "unsupported"
                         description: "Indica si es necesario 3DS"
                       credits:
                         type: "array"
@@ -388,6 +396,9 @@ paths:
                       hasForwarding:
                         type: "boolean"
                         description: "Indica si el medio de pago tiene configurado enrutamiento transaccional"
+                      availablePaymentMethods:
+                        type: "integer"
+                        description: "Indica el total de medios de pago disponibles para procesar. Se indicará en la respuesta solo si se trata de selección de servicio por medio de índice."
                     required:
                       - "status"
                       - "provider"
@@ -712,6 +723,10 @@ paths:
                       type: "string"
                       description: "ID del beneficiario. Requerido en transacciones PSE para comercios en la categoría de servicios financieros."
                       example: "12345"
+                    preferredPaymentMethodIndex:
+                      type: "integer"
+                      description: Índice de medio de pago a seleccionar dentro de una lista de medios de pago disponibles. Este campo es requerido solo cuando se desee emplear el flujo de orquestador de pagos.
+                      example: 2
                 notificationURL:
                   type: "string"
                   description: "URL a la que se enviará una notificación HTTP con la información de la transacción una vez que esta haya sido procesada. Ver más en [Notificación](/gateway/notification)"
@@ -745,18 +760,22 @@ paths:
                     type: "string"
                     example: "2021-09-20T21:51:59-05:00"
                   internalReference:
-                    type: "number"
+                    type: "integer"
+                    nullable: true
                   reference:
                     type: "string"
                     minLength: 1
                   paymentMethod:
                     type: "string"
+                    nullable: true
                     minLength: 1
                   franchise:
                     type: "string"
+                    nullable: true
                     minLength: 1
                   franchiseName:
                     type: "string"
+                    nullable: true
                     minLength: 1
                     example: "Botón Aval"
                   issuerName:
@@ -782,14 +801,17 @@ paths:
                     minLength: 1
                     enum:
                       - "AUTH_ONLY"
+                      - "CHECKIN"
                   refunded:
                     type: "boolean"
+                    nullable: true
                   lastDigits:
                     type: "string"
                     minLength: 1
                     nullable: true
                   provider:
                     type: "string"
+                    nullable: true
                     enum:
                       - "ACH"
                       - "ATH-AVALNET"
@@ -814,19 +836,32 @@ paths:
                       - "TRANSERVER"
                       - "TUYA-DIRECT"
                   discount:
-                    type: "string"
+                    type: "object"
                     nullable: true
+                    properties:
+                      code:
+                        type: string
+                      type:
+                        type: string
+                      amount:
+                        type: number
+                      base:
+                        type: number
+                      percentage:
+                        type: number
                   processorFields:
                     type: "object"
                     properties:
                       id:
                         type: "string"
+                        nullable: true
                         example: "e67122e3b9af1f7f72eacd430996d94b"
                       b24:
                         type: "string"
                         example: "?-"
                       paymentURL:
                         type: "string"
+                        nullable: true
                         example: "https://avalpaycenter.labdigbdbstgpb.com/?trazabilityCode=000000437981"
                   additional:
                     type: "object"
@@ -835,9 +870,11 @@ paths:
                     properties:
                       merchantCode:
                         type: "string"
+                        nullable: true
                         description: "Código de entidad"
                       terminalNumber:
                         type: "string"
+                        nullable: true
                         description: "Número de terminal del medio de pago"
                       trazabilyCode:
                         type: "string"
@@ -850,9 +887,12 @@ paths:
                       type: "object"
                       properties:
                         condition:
-                          type: "string"
+                          enum:
+                            - "ACTIVE"
+                            - "PENDING"
+                            - "COMPLETED"
                         internalReference:
-                          type: "number"
+                          type: "integer"
                         authorization:
                           type: "string"
                           minLength: 1
@@ -872,6 +912,11 @@ paths:
                       properties:
                         status:
                           $ref: "#/components/schemas/Status"
+                        type:
+                          type: "string"
+                          minLength: 1
+                          enum:
+                            - "AUTH_ONLY"
                         agreement:
                           type: "integer"
                           nullable: true
@@ -890,6 +935,8 @@ paths:
                           nullable: true
                         amount:
                           $ref: "#/components/schemas/Amount"
+                        conversion:
+                          $ref: "#/components/schemas/AmountConversion"
                         refunded:
                           type: "boolean"
                         paymentMethod:
@@ -934,11 +981,11 @@ paths:
                 userAgent:
                   type: "string"
             examples:
-              Tarjeta de crédito :
+              Tarjeta de crédito:
                 value:
                   auth:
-                    login: "c4ca4238a0b923820dcc509a6f75849b"
-                    tranKey: "ytIEiMHa8W4V09lBjztshdczGcv4SvJh6VclvVa1/hI="
+                    login: "aabbccdd1234567890aabbccdd123456"
+                    tranKey: "ABC123example456trankey+789abc012def3456ABC="
                     nonce: "NjBjYjc3YTYwZGZhYw=="
                     seed: "2021-06-17T11:26:14-05:00"
                   payer:
@@ -950,14 +997,13 @@ paths:
                       number: "5180300000000005"
                       expiration: "12/18"
                       cvv: "123"
-                      installments: "3"
                   ipAddress: "127.0.0.1"
                   userAgent: "Testing"
               Cuenta bancaria:
                 value:
                   auth:
-                    login: "c4ca4238a0b923820dcc509a6f75849b"
-                    tranKey: "ytIEiMHa8W4V09lBjztshdczGcv4SvJh6VclvVa1/hI="
+                    login: "aabbccdd1234567890aabbccdd123456"
+                    tranKey: "ABC123example456trankey+789abc012def3456ABC="
                     nonce: "NjBjYjc3YTYwZGZhYw=="
                     seed: "2021-06-17T11:26:14-05:00"
                   payer:
@@ -975,8 +1021,8 @@ paths:
               Con cobro:
                 value:
                   auth:
-                    login: "c4ca4238a0b923820dcc509a6f75849b"
-                    tranKey: "ytIEiMHa8W4V09lBjztshdczGcv4SvJh6VclvVa1/hI="
+                    login: "aabbccdd1234567890aabbccdd123456"
+                    tranKey: "ABC123example456trankey+789abc012def3456ABC="
                     nonce: "NjBjYjc3YTYwZGZhYw=="
                     seed: "2021-06-17T11:26:14-05:00"
                   payer:
@@ -988,7 +1034,6 @@ paths:
                       number: "5180300000000005"
                       expiration: "12/18"
                       cvv: "123"
-                      installments: "3"
                   payment:
                     reference: "TEST_PAYMENT_12345"
                     amount:
@@ -1068,7 +1113,7 @@ paths:
               Ejemplo:
                 value:
                   auth:
-                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    login: "aabbccdd1234567890aabbccdd123456"
                     tranKey: "/svw0VZ1UML5qEmaPbefQO7OXt098zOdfWsc/vHclGM="
                     nonce: "NjQ0MWFlNGY0MWE1OQ=="
                     seed: "2023-04-20T16:27:43-05:00"
@@ -1114,7 +1159,7 @@ paths:
                       date: "2021-09-20T21:56:29-05:00"
                     date: "2021-09-20T21:56:29-05:00"
                     transactionDate: "2021-09-20T21:56:29-05:00"
-                    internalReference: "455"
+                    internalReference: 455
                     description: |
                       Usuario dueño de la cuenta a validar
                     reference: "1945768"
@@ -1124,19 +1169,19 @@ paths:
                     issuerName: "Testing Bank"
                     amount:
                       taxes:
-                      - kind: "valueAddedTax"
-                        amount: "705.66"
-                        base: "0"
+                        - kind: "valueAddedTax"
+                          amount: 705.66
+                          base: "0"
                       currency: "USD"
-                      total: "3714"
+                      total: 3714
                     conversion:
                       from:
                         currency: "USD"
-                        total: "3714"
+                        total: 3714
                       to:
                         currency: "USD"
-                        total: "3714"
-                      factor: "1"
+                        total: 3714
+                      factor: 1
                     authorization: "000000"
                     receipt: "455"
                     type: "CREDIT"
@@ -1152,7 +1197,7 @@ paths:
                       terminalNumber:
                       bin: "411076"
                       expiration: "1228"
-                      installments: "1"
+                      installments: 1
       description: "Permite realizar un reembolso, re-autorización o checkout sobre una transacción existente"
       tags:
         - "Acciones sobre transacciones"
@@ -1210,11 +1255,11 @@ paths:
                         type: "object"
                         properties:
                           currency:
-                              type: "number"
-                              description: |
-                                Código alfabético de la moneda a usar (ISO 4217 alpha code)
-
-                                EJ: `USD`
+                            type: "number"
+                            description: |
+                              Código alfabético de la moneda a usar (ISO 4217 alpha code)
+                              
+                              EJ: `USD`
                           total:
                             type: "number"
                             description: |
@@ -1229,8 +1274,8 @@ paths:
               Reembolsos:
                 value:
                   auth:
-                    login: "6dd490faf9cb87a9862245da41170ff2"
-                    tranKey: "JUfKi8+W//kX43WZd8FcnNsdl7zkaeAQdmSOudWcVi0="
+                    login: "aabbccdd1234567890aabbccdd123456"
+                    tranKey: "ABC123example456trankey+789abc012def3456ABC="
                     nonce: "MzgwYWYwMjc2ZWUzODA5YmI1MDQ1YmNjYzdlNzY1MTY="
                     seed: "2021-03-02T17:03:50+01:00"
                   internalReference: "1505723583"
@@ -1239,8 +1284,8 @@ paths:
               Checkout:
                 value:
                   auth:
-                    login: "184053a1c192227c2f53964fdb109e00"
-                    tranKey: "JmQcGgEUKPY9NZR9ID4ffH4jmBxLeWkRB6LCPwZp/EY="
+                    login: "aabbccdd1234567890aabbccdd123456"
+                    tranKey: "ABC123example456trankey+789abc012def3456ABC="
                     nonce: "NjE0ZTNiZGEzZTNlNA=="
                     seed: "2021-09-24T15:58:02-05:00"
                   internalReference: "62342"
@@ -1269,14 +1314,14 @@ paths:
                 internalReference:
                   type: "number"
               required:
-              - "auth"
-              - "internalReference"
+                - "auth"
+                - "internalReference"
             examples:
               Ejemplo:
                 value:
                   auth:
-                    login: "6dd490faf9cb87a9862245da41170ff2"
-                    tranKey: "JUfKi8+W//kX43WZd8FcnNsdl7zkaeAQdmSOudWcVi0="
+                    login: "aabbccdd1234567890aabbccdd123456"
+                    tranKey: "ABC123example456trankey+789abc012def3456ABC="
                     nonce: "MzgwYWYwMjc2ZWUzODA5YmI1MDQ1YmNjYzdlNzY1MTY="
                     seed: "2021-03-02T17:03:50+01:00"
                   internalReference: "230364"
@@ -1305,19 +1350,19 @@ paths:
                     issuerName: "Diners"
                     amount:
                       taxes:
-                      - kind: "valueAddedTax"
-                        amount: "0"
-                        base: "0"
+                        - kind: "valueAddedTax"
+                          amount: 0
+                          base: 0
                       currency: "USD"
-                      total: "120"
+                      total: 120
                     conversion:
                       from:
                         currency: "USD"
-                        total: "120"
+                        total: 120
                       to:
                         currency: "USD"
-                        total: "120"
-                      factor: "1"
+                        total: 120
+                      factor: 1
                     authorization: "999999"
                     receipt: "230364"
                     type: "AUTH_ONLY"
@@ -1335,11 +1380,11 @@ paths:
                         code: "1"
                         type: "03"
                         groupCode: "X"
-                        installments: "3"
-                      totalAmount: "120"
-                      interestAmount: "0"
-                      installmentAmount: "40"
-                      iceAmount: "0"
+                        installments: 3
+                      totalAmount: 120
+                      interestAmount: 0
+                      installmentAmount: 40
+                      iceAmount: 0
                       batch:
                       line:
                       bin: "365454"
@@ -1378,111 +1423,109 @@ paths:
                       message: "La petición se ha procesado correctamente"
                       date: "2021-09-20T21:51:59-05:00"
                     transactions:
-                    -
-                      status:
-                        status: "PENDING"
-                        reason: "?-"
-                        message: "Transacción pendiente"
+                      - status:
+                          status: "PENDING"
+                          reason: "?-"
+                          message: "Transacción pendiente"
+                          date: "2021-09-20T21:51:59-05:00"
                         date: "2021-09-20T21:51:59-05:00"
-                      date: "2021-09-20T21:51:59-05:00"
-                      transactionDate: "2021-09-20T21:51:59-05:00"
-                      internalReference: "453"
-                      reference: "TEST_3"
-                      paymentMethod: "ID_VS"
-                      franchise: "visa"
-                      franchiseName: "Visa"
-                      issuerName: "Testing Bank"
-                      amount:
-                        taxes:
-                        - kind: "valueAddedTax"
-                          amount: "3.27"
-                          base: "0"
-                        currency: "USD"
-                        total: "17.2"
-                      conversion:
-                        from:
+                        transactionDate: "2021-09-20T21:51:59-05:00"
+                        internalReference: 453
+                        reference: "TEST_3"
+                        paymentMethod: "ID_VS"
+                        franchise: "visa"
+                        franchiseName: "Visa"
+                        issuerName: "Testing Bank"
+                        amount:
+                          taxes:
+                            - kind: "valueAddedTax"
+                              amount: 3.27
+                              base: 0
                           currency: "USD"
-                          total: "17.2"
-                        to:
-                          currency: "USD"
-                          total: "17.2"
-                        factor: "1"
-                      authorization:
-                      receipt:
-                      type: "AUTH_ONLY"
-                      refunded: "false"
-                      lastDigits: "0008"
-                      provider: "INTERDIN"
-                      discount:
-                      processorFields:
-                        id: "a9cb4b7a7aa03f681a0545ba6807e1fc"
-                        b24: "?-"
-                      additional:
-                        merchantCode: "000468232"
-                        terminalNumber: "00990101"
-                        credit:
-                        totalAmount: "17.2"
-                        interestAmount: "0"
-                        installmentAmount: "0"
-                        iceAmount: "0"
-                        batch:
-                        line:
-                        bin: "411076"
-                        expiration: "1228"
-                    -
-                      status:
-                        status: "PENDING"
-                        reason: "?-"
-                        message: "Transacción pendiente"
+                          total: 17.2
+                        conversion:
+                          from:
+                            currency: "USD"
+                            total: 17.2
+                          to:
+                            currency: "USD"
+                            total: 17.2
+                          factor: 1
+                        authorization:
+                        receipt:
+                        type: "AUTH_ONLY"
+                        refunded: "false"
+                        lastDigits: "0008"
+                        provider: "INTERDIN"
+                        discount:
+                        processorFields:
+                          id: "a9cb4b7a7aa03f681a0545ba6807e1fc"
+                          b24: "?-"
+                        additional:
+                          merchantCode: "000468232"
+                          terminalNumber: "00990101"
+                          credit:
+                          totalAmount: 17.2
+                          interestAmount: 0
+                          installmentAmount: 0
+                          iceAmount: 0
+                          batch:
+                          line:
+                          bin: "411076"
+                          expiration: "1228"
+                      - status:
+                          status: "PENDING"
+                          reason: "?-"
+                          message: "Transacción pendiente"
+                          date: "2021-09-20T21:51:59-05:00"
                         date: "2021-09-20T21:51:59-05:00"
-                      date: "2021-09-20T21:51:59-05:00"
-                      transactionDate: "2021-09-20T21:51:59-05:00"
-                      internalReference: "452"
-                      reference: "TEST_3"
-                      paymentMethod: "ID_VS"
-                      franchise: "visa"
-                      franchiseName: "Visa"
-                      issuerName: "Testing Bank"
-                      amount:
-                        taxes:
-                        - kind: "valueAddedTax"
-                          amount: "3.27"
-                          base: "0"
-                        details:
-                        - kind: "shipping"
-                          amount: "100"
-                        currency: "USD"
-                        total: "17.2"
-                      conversion:
-                        from:
+                        transactionDate: "2021-09-20T21:51:59-05:00"
+                        internalReference: 452
+                        reference: "TEST_3"
+                        paymentMethod: "ID_VS"
+                        franchise: "visa"
+                        franchiseName: "Visa"
+                        issuerName: "Testing Bank"
+                        amount:
+                          taxes:
+                            - kind: "valueAddedTax"
+                              amount: 3.27
+                              base: 0
+                          details:
+                            - kind: "shipping"
+                              amount: 100
                           currency: "USD"
-                          total: "17.2"
-                        to:
-                          currency: "USD"
-                          total: "17.2"
-                        factor: "1"
-                      authorization:
-                      receipt:
-                      type: "AUTH_ONLY"
-                      refunded: "false"
-                      lastDigits: "0008"
-                      provider: "INTERDIN"
-                      discount:
-                      processorFields:
-                        id: "cbc65da9667ca078dc774cad2fd510e4"
-                        b24: "?-"
-                      additional:
-                        merchantCode: "000468232"
-                        terminalNumber: "00990101"
-                        credit:
-                        totalAmount: "17.2"
-                        interestAmount: "0"
-                        installmentAmount: "0"
-                        iceAmount: "0"
-                        batch:
-                        line:
-                        bin: "411076"
-                        expiration: "1228"
+                          total: 17.2
+                        conversion:
+                          from:
+                            currency: "USD"
+                            total: 17.2
+                          to:
+                            currency: "USD"
+                            total: 17.2
+                          factor: 1
+                        authorization:
+                        receipt:
+                        type: "AUTH_ONLY"
+                        refunded: "false"
+                        lastDigits: "0008"
+                        provider: "INTERDIN"
+                        discount:
+                        processorFields:
+                          id: "cbc65da9667ca078dc774cad2fd510e4"
+                          b24: "?-"
+                        additional:
+                          merchantCode: "000468232"
+                          terminalNumber: "00990101"
+                          credit:
+                          totalAmount: 17.2
+                          interestAmount: 0
+                          installmentAmount: 0
+                          iceAmount: 0
+                          batch:
+                          line:
+                          bin: "411076"
+                          expiration: "1228"
       tags:
         - "Consulta de una transacción"
       description: "Este servicio permite la búsqueda de transacciones por referencia y monto, suele utilizarse en caso de pérdida de comunicación al crear una transacción para obtener la referencia interna nuevamente."
@@ -1508,21 +1551,21 @@ paths:
               Ejemplo:
                 value:
                   auth:
-                    login: "6dd490faf9cb87a9862245da41170ff2"
+                    login: "aabbccdd1234567890aabbccdd123456"
                     tranKey: "+FSGHsW3e6WrrHcIdBmqI+j6FFeUN4bidfPL7LeZgvE="
                     nonce: "N2YzMGM1M2QxOTU3YzZmMzVlYmIzZTAyOGMwNjNkMmU="
                     seed: "2021-03-03T19:40:37+01:00"
                   reference: "TEST_20171108_144400"
                   amount:
                     currency: "COP"
-                    total: "1000"
+                    total: 1000
   /gateway/interests:
     post:
       summary: "Cálculo de Intereses (solo Ecuador)"
       operationId: "post-rest-gateway-interests"
       description: "Este servicio se debe consumir si la tarjeta requiere que se muestren los intereses (displayInterest en true) y como ejemplo de esta manera se muestran los valores en el servicio de redirección."
       tags:
-      - "Obtener información"
+        - "Obtener información"
       requestBody:
         content:
           application/json:
@@ -1541,7 +1584,7 @@ paths:
               Consumo:
                 value:
                   auth:
-                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    login: "aabbccdd1234567890aabbccdd123456"
                     tranKey: "E0gHh8C6fceHnbsLlgBq2n7nRNjr8MVPcz0um1ZYCfs="
                     nonce: "NjE0YjUwZGNlYjJiNA=="
                     seed: "2021-09-22T10:50:52-05:00"
@@ -1627,7 +1670,7 @@ paths:
               Ejemplo:
                 value:
                   auth:
-                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    login: "aabbccdd1234567890aabbccdd123456"
                     tranKey: "q/7k0WUshvLEpQ5gqNWqne+ZfWXSXUP/b7T80TuAUSY="
                     nonce: "NjE0YTM3OGIwNjA2NA=="
                     seed: "2021-09-21T14:50:35-05:00"
@@ -1638,7 +1681,7 @@ paths:
                     reference: "1234567890"
                     amount:
                       currency: "USD"
-                      total: "3"
+                      total: 3
                   instrument:
                     card:
                       number: "36545400000008"
@@ -1705,7 +1748,7 @@ paths:
               Ejemplo:
                 value:
                   auth:
-                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    login: "aabbccdd1234567890aabbccdd123456"
                     tranKey: "q/7k0WUshvLEpQ5gqNWqne+ZfWXSXUP/b7T80TuAUSY="
                     nonce: "NjE0YTM3OGIwNjA2NA=="
                     seed: "2021-09-21T14:50:35-05:00"
@@ -1716,7 +1759,7 @@ paths:
                     reference: "1234567890"
                     amount:
                       currency: "USD"
-                      total: "3"
+                      total: 3
                   instrument:
                     card:
                       number: "36545400000008"
@@ -1781,8 +1824,8 @@ paths:
                   id:
                     type: "number"
                 required:
-                - "status"
-                - "id"
+                  - "status"
+                  - "id"
               examples:
                 example:
                   value:
@@ -1843,21 +1886,21 @@ paths:
                         type: "string"
                         example: "['AUTH_ONLY', 'CHARGEBACK']"
                         enum:
-                        - "AUTH_ONLY"
-                        - "CAPTURE_ONLY"
-                        - "CREDIT"
-                        - "REFUND"
-                        - "SETTLE"
-                        - "AUTH_CAPTURE"
-                        - "VOID"
-                        - "DISPUTE"
-                        - "CHARGEBACK"
-                        - "DISPUTE_LOSS"
-                        - "DISPUTE_WIN"
-                        - "PRE_AUTH"
-                        - "CHECKIN"
-                        - "CHECKOUT"
-                        - "RE_AUTH"
+                          - "AUTH_ONLY"
+                          - "CAPTURE_ONLY"
+                          - "CREDIT"
+                          - "REFUND"
+                          - "SETTLE"
+                          - "AUTH_CAPTURE"
+                          - "VOID"
+                          - "DISPUTE"
+                          - "CHARGEBACK"
+                          - "DISPUTE_LOSS"
+                          - "DISPUTE_WIN"
+                          - "PRE_AUTH"
+                          - "CHECKIN"
+                          - "CHECKOUT"
+                          - "RE_AUTH"
                 callbackUrl:
                   type: "string"
                   format: "uri"
@@ -1868,7 +1911,7 @@ paths:
               Básico:
                 value:
                   auth:
-                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    login: "aabbccdd1234567890aabbccdd123456"
                     tranKey: "cV5MJlkUgPq/BLG40M1Cp2mSkJcZg7FPL4FBxKo+t5A="
                     nonce: "NjQ4MjMzMjY0MDIyYw=="
                     seed: "2023-06-08T14:59:34-05:00"
@@ -1879,7 +1922,7 @@ paths:
               Con estado:
                 value:
                   auth:
-                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    login: "aabbccdd1234567890aabbccdd123456"
                     tranKey: "cV5MJlkUgPq/BLG40M1Cp2mSkJcZg7FPL4FBxKo+t5A="
                     nonce: "NjQ4MjMzMjY0MDIyYw=="
                     seed: "2023-06-08T14:59:34-05:00"
@@ -2039,6 +2082,194 @@ paths:
                       nullable: true
                       enum:
                         - AGENT
+                metadata:
+                  type: object
+                  properties:
+                    merchantRiskIndicator:
+                      type: object
+                      description: "Objeto que contiene información relacionada con la evaluación del comerciante respecto al nivel de riesgo de fraude en una autenticación específica.
+                      La inclusión de estos datos adicionales en la solicitud permite realizar una evaluación más precisa, lo que puede mejorar considerablemente la tasa de autenticaciones exitosas."
+                      properties:
+                        deliveryEmailAddress:
+                          type: string
+                          maxLength: 254
+                          description: "Para entrega electrónica, la dirección de correo electrónico a la que se entregó la mercancía."
+                          nullable: true
+                        deliveryTimeframe:
+                          type: string
+                          enum:
+                            - ELECTRONIC_DELIVERY
+                            - SAME_DAY_SHIPPING
+                            - OVERNIGHT_SHIPPING
+                            - TWO_DAYS_OR_MORE_SHIPPING
+                          description: "Indica el plazo de entrega de la mercancía."
+                          nullable: true
+                          example: "ELECTRONIC_DELIVERY"
+                        giftCardAmount:
+                          type: string
+                          maxLength: 15
+                          description: "Para compras con tarjeta de regalo o prepago, es el monto total de la compra de tarjetas de regalo o prepago en unidades principales (por ejemplo, 123,45 USD es 123)."
+                          nullable: true
+                          example: "123"
+                        giftCardCount:
+                          type: string
+                          maxLength: 2
+                          description: "Para compras con tarjeta de regalo o prepago, recuento total de tarjetas, códigos de regalo o prepago individuales comprados."
+                          nullable: true
+                          example: "10"
+                        giftCardCurrency:
+                          type: string
+                          maxLength: 3
+                          description: "Para compras con tarjeta de regalo o prepago, código de moneda de tres dígitos ISO 4217 de la tarjeta de regalo."
+                          nullable: true
+                          example: "021"
+                        preOrderDate:
+                          type: string
+                          format: "YYYY-MM-DD"
+                          description: "Para una compra pre-ordenada, la fecha esperada en que la mercancía estará disponible."
+                          nullable: true
+                          example: "2025-10-08"
+                        preOrderPurchaseIndicator:
+                          type: string
+                          enum:
+                            - MERCHANDISE_AVAILABLE
+                            - FUTURE_AVAILABILITY
+                          description: "Indica si el Titular de la tarjeta está realizando un pedido de mercancía con una disponibilidad futura o una fecha de lanzamiento."
+                          nullable: true
+                          example: "FUTURE_AVAILABILITY"
+                        reOrderItemsIndicator:
+                          type: string
+                          enum:
+                            - REORDERED
+                            - FIRST_TIME_ORDERED
+                          description: "Indica si el Titular de la tarjeta está reordenando mercancía comprada anteriormente."
+                          nullable: true
+                          example: "REORDERED"
+                        shipIndicator:
+                          type: string
+                          enum:
+                            - SHIP_TO_CARDHOLDER_BILLING_ADDR
+                            - SHIP_TO_ANOTHER_VERIFIED_ADDR_ON_FILE
+                            - SHIP_TO_ADDR_DIFF_CARDHOLDER_BILLING_ADDR
+                            - SHIP_TO_STORE
+                            - DIGITAL_GOODS
+                            - TRAVEL_EVENT_TICKETS_NOT_SHIPPED
+                            - OTHER
+                          description: "Indica el método de envío elegido para la transacción."
+                          nullable: true
+                          example: "SHIP_TO_STORE"
+                    cardholderAccountInformation:
+                      type: object
+                      description: "Objeto que contiene información adicional sobre la cuenta del titular de la tarjeta. 
+                      Estos datos adicionales permiten realizar una evaluación más precisa, lo que puede mejorar considerablemente la tasa de autenticaciones exitosas."
+                      properties:
+                        cardholderAccountAgeIndicator:
+                          type: string
+                          description: "Longitud del tiempo en que la cuenta fue creada en el sitio web del comercio."
+                          enum:
+                            - NO_ACCOUNT
+                            - CREATED_DURING_TRANSACTION
+                            - LESS_30_DAYS
+                            - BETWEEN_30_AND_60_DAYS
+                            - MORE_60_DAYS
+                          nullable: true
+                          example: LESS_30_DAYS
+                        cardholderAccountChangeDate:
+                          type: string
+                          format: "YYYY-MM-DD"
+                          description: "Fecha del último cambio efectuado en la cuenta del tarjetahabiente en el sitio web del comercio."
+                          nullable: true
+                          example: "2025-12-29"
+                        cardholderAccountChangeIndicator:
+                          type: string
+                          enum:
+                            - CHANGED_DURING_TRANSACTION
+                            - LESS_30_DAYS
+                            - BETWEEN_30_AND_60_DAYS
+                            - MORE_60_DAYS
+                          description: "Longitud del tiempo desde el último cambio efectuado en la cuenta en el sitio web del comercio."
+                          nullable: true
+                          example: "MORE_60_DAYS"
+                        cardholderAccountDate:
+                          type: string
+                          format: "YYYY-MM-DD"
+                          description: "Fecha en la que se realizó el último cambio o recuperación de contraseña de la cuenta en el sitio web del comercio."
+                          nullable: true
+                          example: "2025-08-01"
+                        cardholderAccountPasswordChangeIndicator:
+                          type: string
+                          enum:
+                            - NO_CHANGE
+                            - CHANGED_DURING_TRANSACTION
+                            - LESS_30_DAYS
+                            - BETWEEN_30_AND_60_DAYS
+                            - MORE_60_DAYS
+                          description: "Longitud de tiempo desde el último cambio o recuperación de contraseña de la cuenta."
+                          nullable: true
+                          example: "MORE_60_DAYS"
+                        cardholderPurchaseCount:
+                          type: string
+                          maxLength: 4
+                          description: "Número de compras durante los últimos 6 meses."
+                          nullable: true
+                          example: "1234"
+                        addCardAttemptsDay:
+                          type: string
+                          description: "Número de intentos de agregar tarjetas en las últimas 24 horas."
+                          maxLength: 3
+                          nullable: true
+                          example: "05"
+                        trxActivityDay:
+                          description: "Número de transacciones (exitosas y abandonadas) para la cuenta en las últimas 24 horas."
+                          type: string
+                          maxLength: 3
+                          nullable: true
+                          example: "05"
+                        trxActivityYear:
+                          description: "Número de transacciones (exitosas y abandonadas) para la cuenta en el último año."
+                          type: string
+                          maxLength: 3
+                          nullable: true
+                          example: "123"
+                        paymentAccountAge:
+                          type: string
+                          format: "YYYY-MM-DD"
+                          description: "Fecha en la que el método de pago se agregó a la cuenta del usuario en el sitio web del comercio."
+                          nullable: true
+                          example: "2025-04-04"
+                        paymentAccountIndicator:
+                          type: string
+                          enum:
+                            - NO_ACCOUNT
+                            - CREATED_DURING_TRANSACTION
+                            - LESS_30_DAYS
+                            - BETWEEN_30_AND_60_DAYS
+                            - MORE_60_DAYS
+                          description: "Longitud de tiempo desde que el método de pago fue enrolado en la cuenta en el sitio web del comercio."
+                          nullable: true
+                          example: "MORE_60_DAYS"
+                        shipAddressUsage:
+                          type: string
+                          format: "YYYY-MM-DD"
+                          description: "Fecha en la que la dirección de entrega fue usada por primera vez en el sitio web del comercio."
+                          nullable: true
+                          example: "2025-04-04"
+                        shipNameIndicator:
+                          type: string
+                          enum:
+                            - ACCOUNT_NAME_IDENTICAL_SHIPPING_NAME
+                            - ACCOUNT_NAME_DIFFERENT_SHIPPING_NAME
+                          description: "Indica si el nombre del titular de la tarjeta es igual al nombre de envío usado en esta transacción."
+                          nullable: true
+                          example: "ACCOUNT_NAME_DIFFERENT_SHIPPING_NAME"
+                        suspiciousAccountActivity:
+                          type: string
+                          enum:
+                            - NO_SUSPICIOUS_ACTIVITY_OBSERVED
+                            - SUSPICIOUS_ACTIVITY_OBSERVED
+                          description: "Indica si el comercio ha experimentado actividad sospechosa (incluido fraude previo) en la cuenta del titular de la tarjeta."
+                          nullable: true
+                          example: "NO_SUSPICIOUS_ACTIVITY_OBSERVED"
       responses:
         200:
           description: "OK"
@@ -2124,7 +2355,7 @@ paths:
               Consumo:
                 value:
                   auth:
-                    login: "c4ca4238a0b923820dcc509a6f75849b"
+                    login: "aabbccdd1234567890aabbccdd123456"
                     tranKey: "E0gHh8C6fceHnbsLlgBq2n7nRNjr8MVPcz0um1ZYCfs="
                     nonce: "NjE0YjUwZGNlYjJiNA=="
                     seed: "2021-09-22T10:50:52-05:00"
@@ -2200,8 +2431,8 @@ paths:
               Solicitud por tarjeta:
                 value:
                   auth:
-                    login: "613822f45568191a8cdf4ad2299f6d23"
-                    tranKey: "bHehjzNcMQVQ1zto0GhmZxjeMhwA+3OlFPbOup16HGc="
+                    login: "aabbccdd1234567890aabbccdd123456"
+                    tranKey: "ABC123example456trankey+789abc012def3456ABC="
                     nonce: "NjE1MWQ4MDE5YWViMw=="
                     seed: "2021-09-27T09:41:05-05:00"
                   instrument:
@@ -2210,8 +2441,8 @@ paths:
               Solicitud por token:
                 value:
                   auth:
-                    login: "613822f45568191a8cdf4ad2299f6d23"
-                    tranKey: "bHehjzNcMQVQ1zto0GhmZxjeMhwA+3OlFPbOup16HGc="
+                    login: "aabbccdd1234567890aabbccdd123456"
+                    tranKey: "ABC123example456trankey+789abc012def3456ABC="
                     nonce: "NjE1MWQ4MDE5YWViMw=="
                     seed: "2021-09-27T09:41:05-05:00"
                   instrument:
@@ -2268,7 +2499,7 @@ paths:
                       message: "El servicio requerido no se encuentra disponible en el sitio"
                       date: "2021-09-27T09:35:03-05:00"
       tags:
-      - "Operaciones con Pinpad"
+        - "Operaciones con Pinpad"
     parameters:
   /security/pinpad/pinblock:
     post:
@@ -2289,8 +2520,8 @@ paths:
               Solicitud de PinBlock por tarjeta:
                 value:
                   auth:
-                    login: "613822f45568191a8cdf4ad2299f6d23"
-                    tranKey: "bHehjzNcMQVQ1zto0GhmZxjeMhwA+3OlFPbOup16HGc="
+                    login: "aabbccdd1234567890aabbccdd123456"
+                    tranKey: "ABC123example456trankey+789abc012def3456ABC="
                     nonce: "NjE1MWQ4MDE5YWViMw=="
                     seed: "2021-09-27T09:41:05-05:00"
                   instrument:
@@ -2302,8 +2533,8 @@ paths:
               Solicitud de Pinblock por token:
                 value:
                   auth:
-                    login: "613822f45568191a8cdf4ad2299f6d23"
-                    tranKey: "bHehjzNcMQVQ1zto0GhmZxjeMhwA+3OlFPbOup16HGc="
+                    login: "aabbccdd1234567890aabbccdd123456"
+                    tranKey: "ABC123example456trankey+789abc012def3456ABC="
                     nonce: "NjE1MWQ4MDE5YWViMw=="
                     seed: "2021-09-27T09:41:05-05:00"
                   instrument:
@@ -2367,6 +2598,225 @@ paths:
                 $ref: "#/components/schemas/Authentication"
       tags:
         - "Operaciones con Pinpad"
+  /cash/orders:
+    post:
+      summary: "Consultar orden de pago"
+      operationId: post-gateway-search-cashorder
+      description: "Este servicio permite consultar ordenes de pago mediante los valores de referencia, total y moneda."
+      tags:
+        - "Operaciones con ordenes de pago"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              required:
+                - "auth"
+                - "payment"
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                payment:
+                  title: "Datos del pago"
+                  type: "object"
+                  properties:
+                    reference:
+                      title: "Referencia de pago"
+                      type: "string"
+                    amount:
+                      $ref: "#/components/schemas/AmountBase"
+                  required:
+                    - "reference"
+                    - "amount"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: "array"
+                    description: "Estructura que contiene las ordenes de pago encontradas. Si no se encontraron registros que coincidan con los filtros proporcionados será un arreglo vacio."
+                    items:
+                      type: "object"
+                      properties:
+                        id:
+                          type: "number"
+                        status:
+                          type: "string"
+                          enum:
+                            - "PAYED"
+                            - "EXPIRED"
+                            - "ACTIVE"
+                        payment:
+                          type: "object"
+                          properties:
+                            reference:
+                              type: "string"
+                            description:
+                              type: "string"
+                            amount:
+                              $ref: "#/components/schemas/Amount"
+                            allowPartial:
+                              type: "boolean"
+                            subscribe:
+                              type: "boolean"
+                        createdAt:
+                          type: "string"
+                        expirationDate:
+                          type: "string"
+                        notificationUrl:
+                          type: "string"
+                        sessionId:
+                          type: "number"
+  /cash/delete:
+    post:
+      summary: "Eliminar orden de pago"
+      operationId: post-gateway-delete-cashorder
+      description: "Este servicio permite eliminar una orden de pago en estado pendiente."
+      tags:
+        - "Operaciones con ordenes de pago"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              required:
+                - "auth"
+                - "id"
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                id:
+                  type: "number"
+                  description: "Id de la orden de pago a eliminar."
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  id:
+                    type: "number"
+                    description: "Id de la orden de pago eliminada."
+  /gateway/token:
+    post:
+      summary: "Consulta de token"
+      operationId: "post-gateway-search-token"
+      description: "Este servicio permite buscar un token mediante el valor del token o subtoken."
+      tags:
+        - "Tokenización de tarjetas"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              required:
+                - "auth"
+                - "instrument"
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                instrument:
+                  title: "Instrument"
+                  type: "object"
+                  properties:
+                    token:
+                      title: "Token"
+                      type: "object"
+                      description: "Estructura que contiene la información de la tokenización a buscar."
+                      properties:
+                        token:
+                          type: "string"
+                          description: "Código generado para identificar la tarjeta en el sistema."
+                        subtoken:
+                          type: "string"
+                          description: "Código alterno generado para identificar la tarjeta."
+                  required:
+                    - "token"
+            examples:
+              Consulta por token:
+                value:
+                  auth:
+                    login: "aabbccdd1234567890aabbccdd123456"
+                    tranKey: "ABC123example456trankey+789abc012def3456ABC="
+                    nonce: "NjE1MWQ4MDE5YWViMw=="
+                    seed: "2021-09-27T09:41:05-05:00"
+                  instrument:
+                    token:
+                      token: faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: "object"
+                    description: "Objeto con la información de la tokenización encontrada."
+                    properties:
+                      id:
+                        type: "number"
+                        description: "Identificador de la tokenización."
+                      type:
+                        type: "string"
+                        description: "Tipo de tokenización."
+                      token:
+                        type: "string"
+                        description: "Código generado para identificar la tarjeta en el sistema"
+                      subtoken:
+                        type: "string"
+                        description: "Código alterno generado para identificar la tarjeta"
+                      franchise:
+                        type: "string"
+                        description: "Franquicia de la tarjeta"
+                      franchiseName:
+                        type: "string"
+                        description: "Nombre de la franquicia de la tarjeta"
+                      issuerName:
+                        type: "string"
+                        description: "Nombre del banco emisor de la tarjeta"
+                      lastDigits:
+                        type: "string"
+                        description: "Últimos dígitos de la tarjeta"
+                      validUntil:
+                        type: "string"
+                        format: "date"
+                        description: "Fecha de expiración de la tarjeta"
+                      owner:
+                        type: "string"
+                        description: "Nombre del propietario de la tarjeta"
+              examples:
+                Ok:
+                  value:
+                    status:
+                      status: "OK"
+                      reason: "00"
+                      message: "La petición se ha procesado correctamente"
+                      date: "2021-06-17T11:29:37-05:00"
+                    data:
+                      id: 1
+                      type: "card"
+                      token: "faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891"
+                      subtoken: "fakesubtoken00005"
+                      franchise: "visa"
+                      franchiseName: "Visa"
+                      issuerName: "TESTING"
+                      lastDigits: "1111"
+                      validUntil: "12/29"
+                      owner: "John Doe"
 components:
   schemas:
     Status:
@@ -2463,7 +2913,8 @@ components:
           description: "Ciudad"
         state:
           type: "string"
-          description: "Estado /provincia /departamento. Código ISO 3166-2"
+          maxLength: "3"
+          description: "Código de la subdivisión del país que representa el estado o provincia. Formato ISO 3166-2"
           example: "CUN"
         postalCode:
           type: "string"
@@ -2528,29 +2979,28 @@ components:
         documentType:
           type: "string"
           description: "[Tipo de documento de identificación](/gateway/document-types)"
-          enum:
-            - "CC"
-            - "NIT"
-            - "RUT"
-            - "TI"
-            - "PNN"
           example: "CC"
-          maxLength: "3"
-        Document:
+          maxLength: "6"
+        document:
           type: "string"
           description: "Número de documento de identificación."
+          maxLength: "25"
         name:
           type: "string"
-          description: "Nombre "
+          description: "Nombre"
+          maxLength: "60"
         surname:
           type: "string"
           description: "Apellidos"
+          maxLength: "60"
         company:
           type: "string"
           description: "Compañia"
+          maxLength: "60"
         email:
           type: "string"
           description: "Correo electrónico."
+          maxLength: "80"
         address:
           $ref: "#/components/schemas/Address"
           description: "Objeto que contiene información de la dirección de una persona."
@@ -2618,8 +3068,6 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           pattern: "^[01]\\d\\/\\d{2}$"
         cvv:
           type: "string"
-        installments:
-          type: "number"
       required:
         - "number"
     Token:
@@ -2898,7 +3346,7 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             date: "2021-09-20T20:10:57-05:00"
           date: "2021-09-20T20:10:56-05:00"
           transactionDate: "2021-09-20T20:10:56-05:00"
-          internalReference: "2"
+          internalReference: 2
           reference: "1234567890"
           paymentMethod: "DF_VS"
           franchise: "visa"
@@ -2906,15 +3354,15 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           issuerName: "Testing Bank"
           amount:
             currency: "USD"
-            total: "1"
+            total: 1
           conversion:
             from:
               currency: "USD"
-              total: "1"
+              total: 1
             to:
               currency: "USD"
-              total: "1"
-            factor: "1"
+              total: 1
+            factor: 1
           authorization: "000000"
           receipt: "2"
           type: "AUTH_ONLY"
@@ -2932,9 +3380,9 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
               code: "0"
               type: "00"
               groupCode: "C"
-              installments: "0"
-            totalAmount: "1"
-            iceAmount: "0"
+              installments: 0
+            totalAmount: 1
+            iceAmount: 0
             batch:
             line:
             bin: "411076"
@@ -3015,7 +3463,19 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             - "EBUS"
             - "BANCOLOMBIA"
         discount:
-          type: "string"
+          type: "object"
+          nullable: true
+          properties:
+            code:
+              type: string
+            type:
+              type: string
+            amount:
+              type: number
+            base:
+              type: number
+            percentage:
+              type: number
         processorFields:
           type: "object"
           properties:

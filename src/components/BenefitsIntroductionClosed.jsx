@@ -1,11 +1,6 @@
-import { DocumentTextTwoToneIcon } from '@/components/iconsax/DocumentTextTwoToneIcon'
-import { PeronalizationTwoToneIcon } from '@/components/iconsax/PeronalizationTwoToneIcon'
-import { ImportTwoToneIcon } from '@/components/iconsax/ImportTwoToneIcon'
-import { TransactionTwoToneIcon } from '@/components/iconsax/TransactionTwoToneIcon'
-import { FlexibilityTwoToneIcon } from '@/components/iconsax/FlexibilityTwoToneIcon'
-import { ErrorTwoToneIcon } from '@/components/iconsax/ErrorTwoToneIcon'
 import { useLocale } from './LocaleProvider'
 import { ResourceCard } from './ResourceCard'
+import { ShieldTick, Hierarchy, MoneyTick } from 'iconsax-react'
 
 const resources = [
  
@@ -15,7 +10,7 @@ const resources = [
       es: 'La herramienta agiliza el proceso de integración y administración de órdenes de pago, reduciendo tiempos operativos.',
       en: 'Payment links can be shared in a variety of ways, such as URL, email, QR code or WhatsApp, adapting to the needs of each user or merchant.',
     },
-    icon: TransactionTwoToneIcon,
+    icon: () => <MoneyTick variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -27,7 +22,7 @@ const resources = [
       es: 'La capacidad de configurar múltiples parámetros y opciones de pago permite a los comercios adaptarse a diversas necesidades y optimizar su flujo de caja.',
       en: 'The system allows the configuration of customized expiration times and approved payment limits, optimizing the control and security of transactions.',
     },
-    icon: FlexibilityTwoToneIcon,
+    icon: () => <Hierarchy variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -39,7 +34,7 @@ const resources = [
       es: 'El uso de cargues masivos y formatos estandarizados minimiza la probabilidad de inconsistencias en los datos ingresados manualmente.',
       en: 'It includes tools such as link history, forwarding capabilities, and related payment queries, making it easy to monitor and manage from a single dashboard.',
     },
-    icon: ErrorTwoToneIcon,
+    icon: () => <ShieldTick variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
