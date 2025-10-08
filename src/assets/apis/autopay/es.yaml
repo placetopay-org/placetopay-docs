@@ -40,12 +40,6 @@ paths:
                 properties:
                   status:
                     $ref: '#/components/schemas/Status'
-              example:
-                status:
-                  status: "FAILED"
-                  reason: "XH"
-                  message: "Respuesta insatisfactoria"
-                  date: "2025-09-29T17:09:29-05:00"
       description: 'Este endpoint devuelve un balance con su información de montos'
       requestBody:
         content:
@@ -59,10 +53,12 @@ paths:
                   type: string
                   description: Referencia del auto pago
                   example: "ACC00012345"
+                  maxLength: 32
                 id:
                   type: string
                   format: uuid
                   description: Identificador único del auto pago
+                  maxLength: 36
                   example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
         description: ''
     parameters: [ ]
@@ -86,37 +82,17 @@ paths:
                 required: [ status, id ]
                 properties:
                   status:
-                    type: object
-                    properties:
-                      status: { type: string, example: "OK" }
-                      reason: { type: string, example: "00" }
-                      message: { type: string, example: "Respuesta satisfactoria" }
-                      date: { type: string, format: date-time, example: "2025-09-29T17:09:29-05:00" }
+                    $ref: '#/components/schemas/Status'
                   id:
                     type: string
                     format: uuid
                     example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-              examples:
-                ejemplo-exitoso:
-                  value:
-                    status:
-                      status: OK
-                      reason: "00"
-                      message: "Respuesta satisfactoria"
-                      date: "2025-09-29T17:09:29-05:00"
-                    id: "2972c13d-6315-4da3-80d7-64c24eb232ad"
         "4XX":
           description: Error en la solicitud.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
-              example:
-                status:
-                  status: "FAILED"
-                  reason: "XH"
-                  message: "Respuesta insatisfactoria"
-                  date: "2025-09-29T17:09:29-05:00"
       description: 'Este endpoint registra y retorna únicamente el estado de la notificación (settlement).'
       requestBody:
         content:
@@ -136,54 +112,6 @@ paths:
                   example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
                 transaction:
                   $ref: "#/components/schemas/Transaction"
-            examples:
-              ejemplo-peticion:
-                value:
-                  reference: "ACC00012345"
-                  id: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-                  transaction:
-                    status:
-                      status: "APPROVED"
-                      reason: "00"
-                      message: "Aprobada"
-                      date: "2021-09-24T11:51:31-05:00"
-                    date: "2021-09-24T11:51:31-05:00"
-                    transactionDate: "2021-09-24T11:51:31-05:00"
-                    internalReference: 41
-                    reference: "ON1434012-PN1433129"
-                    paymentMethod: "CR_VS"
-                    franchise: "visa"
-                    franchiseName: "Visa"
-                    issuerName: "BANCO DE GUAYAQUIL, S.A."
-                    amount:
-                      taxes:
-                        - kind: "airportTax"
-                          amount: 63
-                          base: 0
-                        - kind: "valueAddedTax"
-                          amount: 158.47
-                          base: 0
-                      currency: "USD"
-                      total: 1161.12
-                    conversion:
-                      from: { currency: "USD", total: 1161.12 }
-                      to: { currency: "USD", total: 1161 }
-                      factor: 1
-                    authorization: "739877"
-                    receipt: "713329175945"
-                    type: "DISPERSION"
-                    refunded: false
-                    lastDigits: "0032"
-                    provider: "CREDIBANCO"
-                    discount: null
-                    processorFields:
-                      id: "08c0284b20510c8db8dcb29137374718"
-                      b24: "XX"
-                    additional:
-                      merchantCode: "123456"
-                      terminalNumber: "12345678"
-                      bin: "411076"
-                      expiration: "1220"
   /autopay/webhook:
     post:
       summary: Recepción de notificaciones Autopay
@@ -207,34 +135,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/WebhookEvent'
-            examples:
-              AUTOPAY_UPDATED:
-                summary: Evento de actualización de Autopay
-                value:
-                  type: "AUTOPAY_UPDATED"
-                  site: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-                  signature: "Base64(SHA-256(secretKey + data + date))"
-                  date: "2023-01-19 15:57:23"
-                  data:
-                    id: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-              AUTOPAY_FAILED:
-                summary: Evento de fallo en Autopay
-                value:
-                  type: "AUTOPAY_FAILED"
-                  site: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-                  signature: "Base64(SHA-256(secretKey + data + date))"
-                  date: "2023-01-19 15:57:23"
-                  data:
-                    id: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-              AUTOPAY_DELETED:
-                summary: Evento de eliminación de Autopay
-                value:
-                  type: "AUTOPAY_DELETED"
-                  site: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-                  signature: "Base64(SHA-256(secretKey + data + date))"
-                  date: "2023-01-19 15:57:23"
-                  data:
-                    id: "2972c13d-6315-4da3-80d7-64c24eb232ad"
       responses:
         "200":
           description: Webhook recibido correctamente.
@@ -244,21 +144,7 @@ paths:
                 type: object
                 properties:
                   status:
-                    type: object
-                    properties:
-                      status:
-                        type: string
-                        example: "OK"
-                      reason:
-                        type: string
-                        example: "00"
-                      message:
-                        type: string
-                        example: "Webhook procesado con éxito"
-                      date:
-                        type: string
-                        format: date-time
-                        example: "2025-09-29T17:09:29-05:00"
+                    $ref: '#/components/schemas/Status'
         "4XX":
           description: Error en la validación del payload o firma incorrecta.
           content:
@@ -267,21 +153,7 @@ paths:
                 type: object
                 properties:
                   status:
-                    type: object
-                    properties:
-                      status:
-                        type: string
-                        example: "FAILED"
-                      reason:
-                        type: string
-                        example: "00"
-                      message:
-                        type: string
-                        example: "Firma inválida o datos incompletos"
-                      date:
-                        type: string
-                        format: date-time
-                        example: "2025-09-29T17:09:29-05:00"
+                    $ref: "#/components/schemas/Status"
 components:
   schemas:
     Auth:
@@ -351,7 +223,7 @@ components:
       description: Estructura para definir estados de respuestas
       x-internal: false
       properties:
-        code:
+        reason:
           type: string
           enum:
             - 100
@@ -367,18 +239,24 @@ components:
             - 05
             - NF
           description: Código de los estados. (consulte la columna código en Documentos/Códigos de razón)
-        name:
+          example: '00'
+
+        status:
           type: string
           enum:
             - OK
             - FAILED
           description: Nombre de los estados. (consulte la columna Significado en Documentos/Códigos de razón)
+          example: "OK"
         message:
           type: string
           description: Mensaje para aclarar el estado
-      required:
-        - code
-        - name
+          example: "Respuesta satisfactoria"
+        date:
+          type: string
+          format: date-time
+          description: Mensaje para aclarar el estado
+          example: "2025-09-29T17:09:29-05:00"
     Amount:
       title: "Amount"
       type: "object"
@@ -465,56 +343,6 @@ components:
     Transaction:
       description: "Contiene información sobre una transacción"
       type: "object"
-      x-examples:
-        Ejemplo:
-          status:
-            status: "APPROVED"
-            reason: "00"
-            message: "Aprobada"
-            date: "2021-09-20T20:10:57-05:00"
-          date: "2021-09-20T20:10:56-05:00"
-          transactionDate: "2021-09-20T20:10:56-05:00"
-          internalReference: "2"
-          reference: "1234567890"
-          paymentMethod: "DF_VS"
-          franchise: "visa"
-          franchiseName: "Visa"
-          issuerName: "Testing Bank"
-          amount:
-            currency: "USD"
-            total: "1"
-          conversion:
-            from:
-              currency: "USD"
-              total: "1"
-            to:
-              currency: "USD"
-              total: "1"
-            factor: "1"
-          authorization: "000000"
-          receipt: "2"
-          type: "AUTH_ONLY"
-          refunded: "false"
-          lastDigits: "0008"
-          provider: "DATAFAST"
-          discount:
-          processorFields:
-            id: "de7c331a0f5bebdd1996250296cdaf37"
-            b24: "000"
-          additional:
-            merchantCode: "1000000505"
-            terminalNumber: "PY100404"
-            credit:
-              code: "0"
-              type: "00"
-              groupCode: "C"
-              installments: "0"
-            totalAmount: "1"
-            iceAmount: "0"
-            batch:
-            line:
-            bin: "411076"
-            expiration: "1221"
       title: ""
       properties:
         status:
