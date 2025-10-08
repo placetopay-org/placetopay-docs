@@ -2205,19 +2205,25 @@ export const TAB_NAVIGATION = {
         ],
       },
       {
-        title: 'API',
+        title: 'API Autopagos',
         identifier: '/autopay/api',
         href: '/autopay/api',
         icon: DocumentCode,
         links: [
-          {
-            title: 'Api',
-            links: [
-              { title: 'Crear AutoPago', href: '/autopay/api/create' },
-              { title: 'Actualizar AutoPago', href: '/autopay/api/update' },
-              { title: 'Consultar AutoPago', href: '/autopay/api/query' },
-              { title: 'Eliminar AutoPago', href: '/autopay/api/delete' },
-            ],
+            {
+                title: 'General',
+                links: [
+                    { title: 'Introducción', href: '/autopay/api' },
+                ]
+            },
+            {
+                title: 'API',
+                links: [
+                  { title: 'Crear AutoPago', href: '/autopay/api/create' },
+                  { title: 'Actualizar AutoPago', href: '/autopay/api/update' },
+                  { title: 'Consultar AutoPago', href: '/autopay/api/query' },
+                  { title: 'Eliminar AutoPago', href: '/autopay/api/delete' },
+                ],
           },
         ],
       },
