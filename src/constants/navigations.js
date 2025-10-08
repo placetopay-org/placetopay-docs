@@ -2227,7 +2227,7 @@ export const TAB_NAVIGATION = {
               title: 'Documentos',
               links: [
                   {title: 'Introducción', href: '/autopay/contracts'},
-                  {title: 'Notificaciones', href: '/autopay/contracts/notifications'}
+                  {title: 'Descripción de notificaciones', href: '/autopay/contracts/webhook-description'}
               ],
           },
           {
