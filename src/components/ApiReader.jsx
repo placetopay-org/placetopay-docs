@@ -89,16 +89,17 @@ const ApiPropertyInformation = ({ title, items }) => {
   )
 }
 
-const ChildProperties = ({ properties = [], requireds = [] }) => {
+const ChildProperties = ({ properties = [], requireds = [], conditionals = [] }) => {
   if (properties.length === 0) return null
 
-  return <ApiProperties properties={properties} requireds={requireds} isChild />
+  return <ApiProperties properties={properties} requireds={requireds} conditionals={conditionals} isChild />
 }
 
 const ParentProperty = ({
   name,
   property,
   isRequired = false,
+  isConditional = false,
   isChild = false,
 }) => {
   const { positionRef, preventLayoutShift } = usePreventLayoutShift()
@@ -111,6 +112,7 @@ const ParentProperty = ({
 
   const properties = property.properties ?? property.items?.properties ?? null
   const requireds = property.required ?? property.items?.required ?? []
+  const conditionals = property["x-conditional"] ?? property.items?.["x-conditional"] ?? []
   const title = property.title ?? property.items?.title ?? null
 
   const withChilds = !!properties
@@ -193,6 +195,7 @@ const ParentProperty = ({
               : property.type
           }
           isRequired={isRequired}
+          isConditional={isConditional}
           multiProperties={multiProperties}
           selected={selected}
           onSelected={setSelected}
@@ -245,6 +248,7 @@ const ParentProperty = ({
                       <ChildProperties
                         properties={Object.entries(properties)}
                         requireds={requireds}
+                        conditionals={conditionals}
                       />
                     </div>
                   )}
@@ -261,6 +265,7 @@ const ParentProperty = ({
 const ApiProperties = ({
   properties = [],
   requireds = [],
+  conditionals = [],
   isChild = false,
 }) => {
   if (properties.length === 0) return null
@@ -273,6 +278,7 @@ const ApiProperties = ({
           name={name}
           property={property}
           isRequired={requireds.includes(name)}
+          isConditional={conditionals.includes(name)}
           isChild={isChild}
         />
       ))}
@@ -344,6 +350,9 @@ export const ApiResponses = ({ responses = {} }) => {
         requireds={
           body?.required || []
         }
+        conditionals={
+          body?.['x-conditional'] || []
+        }
       />
     </>
   )
@@ -367,6 +376,7 @@ export const ApiParams = ({ params = [], type = 'params' }) => {
               example: param.schema?.example,
             }}
             isRequired={param.required}
+            isConditional={param.conditional}
           />
         ))}
       </Properties>
@@ -422,6 +432,7 @@ export const ApiRequest = ({ request = {} }) => {
       <ApiProperties
         properties={Object.entries(body?.properties || {})}
         requireds={body?.required || []}
+        conditionals={body?.['x-conditional'] || []}
       />
     </>
   )
