@@ -94,8 +94,8 @@ export const NAMESPACES_SELECTOR = {
       icon: DocumentCode,
     },
     {
-      title: 'AutoPay',
-      description: 'Gestión de autopagos',
+      title: 'AutoPay (BETA)',
+      description: 'Gestión de AutoPagos',
       href: '/autopay',
       icon: Courthouse,
     },
@@ -174,8 +174,8 @@ export const NAMESPACES_SELECTOR = {
       icon: DocumentCode,
     },
     {
-      title: 'AutoPay',
-      description: 'Gestión de autopagos',
+      title: 'AutoPay (BETA)',
+      description: 'AutoPay management',
       href: '/en/autopay',
       icon: Courthouse,
     },
@@ -2198,7 +2198,8 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Introducción', href: '/autopay' },
               { title: 'Autenticación', href: '/autopay/authentication' },
-              { title: 'Tablas de códigos', href: '/autopay/codes' },
+              { title: 'Códigos de respuesta', href: '/autopay/codes' },
+              { title: 'Descripción de notificaciones', href: '/autopay/webhook-description'}
             ],
           },
         ],
@@ -2227,7 +2228,6 @@ export const TAB_NAVIGATION = {
               title: 'Documentos',
               links: [
                   {title: 'Introducción', href: '/autopay/contracts'},
-                  {title: 'Descripción de notificaciones', href: '/autopay/contracts/webhook-description'}
               ],
           },
           {
