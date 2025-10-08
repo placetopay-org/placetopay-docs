@@ -1,11 +1,6 @@
-import { DocumentTextTwoToneIcon } from '@/components/iconsax/DocumentTextTwoToneIcon'
-import { PeronalizationTwoToneIcon } from '@/components/iconsax/PeronalizationTwoToneIcon'
-import { ImportTwoToneIcon } from '@/components/iconsax/ImportTwoToneIcon'
-import { TransactionTwoToneIcon } from '@/components/iconsax/TransactionTwoToneIcon'
-import { FlexibilityTwoToneIcon } from '@/components/iconsax/FlexibilityTwoToneIcon'
-import { ErrorTwoToneIcon } from '@/components/iconsax/ErrorTwoToneIcon'
 import { useLocale } from './LocaleProvider'
 import { ResourceCard } from './ResourceCard'
+import { ShieldTick, Hierarchy, MoneyTick } from 'iconsax-react'
 
 const resources = [
  
@@ -15,7 +10,7 @@ const resources = [
       es: 'Permite buscar facturas por referencia, documento o referencia alterna, facilitando la gestión de pagos y su seguimiento.',
       en: 'Allows you to search invoices by reference, document or alternate reference, facilitating payment management and tracking.',
     },
-    icon: TransactionTwoToneIcon,
+    icon: () => <MoneyTick variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -27,7 +22,7 @@ const resources = [
       es: 'Brinda la opción de bloquear facturas temporalmente para evitar pagos duplicados y liberarlas cuando sea necesario.',
       en: 'Provides the option to temporarily block invoices to avoid duplicate payments and release them when necessary.',
     },
-    icon: FlexibilityTwoToneIcon,
+    icon: () => <Hierarchy variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -39,7 +34,7 @@ const resources = [
       es: 'Registra los pagos realizados en la plataforma, asegurando la correcta actualización del estado de cada factura.',
       en: 'Records the payments made in the platform, ensuring the correct update of the status of each invoice.',
     },
-    icon: ErrorTwoToneIcon,
+    icon: () => <ShieldTick variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -51,7 +46,7 @@ const resources = [
       es: 'Facilita la consulta y validación de facturas, reduciendo tiempos de espera y mejorando la experiencia del usuario.',
       en: 'Facilitates invoice consultation and validation, reducing waiting times and improving the user experience.',
     },
-    icon: TransactionTwoToneIcon,
+    icon: () => <MoneyTick variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -63,7 +58,7 @@ const resources = [
       es: 'Gracias al bloqueo y liberación de facturas, se evitan pagos erróneos y se garantiza una correcta administración financiera.',
       en: 'Thanks to the blocking and release of invoices, erroneous payments are avoided and proper financial management is ensured.',
     },
-    icon: ErrorTwoToneIcon,
+    icon: () => <ShieldTick variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
@@ -75,7 +70,7 @@ const resources = [
       es: 'El uso de cargues masivos y formatos estandarizados minimiza la probabilidad de inconsistencias en los datos ingresados manualmente.',
       en: 'It includes tools such as link history, forwarding capabilities, and related payment queries, making it easy to monitor and manage from a single dashboard.',
     },
-    icon: ErrorTwoToneIcon,
+    icon: () => <ShieldTick variant="TwoTone"/>,
     pattern: {
       y: 22,
       squares: [[0, 1]],
