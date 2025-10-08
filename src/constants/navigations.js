@@ -2205,7 +2205,7 @@ export const TAB_NAVIGATION = {
         ],
       },
       {
-        title: 'API Autopagos',
+        title: 'API',
         identifier: '/autopay/api',
         href: '/autopay/api',
         icon: DocumentCode,
