@@ -1,0 +1,154 @@
+# Autenticación
+
+
+Para interactuar con la ***API de gestión de ordenes de pago*** debe autenticar sus peticiones, de esta forma identificamos y validamos la información para que sus operaciones sean seguras.
+La API utiliza Web Services Security Username Token Profile 1.1.
+
+## Credenciales API
+
+En la integración con esta api usted debe contar con las credenciales login y secretKey de consumidor.
+
+- **login:** Identificador del sitio, puede considerarse público, pues viaja como dato plano en las peticiones API.
+- **secretKey:** Llave secreta del sitio, debe ser privada, a partir de este dato se generará un nuevo tranKey que será enviado en las peticiones.
+
+<Note>
+    Estas credenciales son propias del sitio y deben ser tratadas de forma segura. No
+    comparta sus credenciales en áreas de acceso público como Github, código del lado de
+    cliente u otros lugares de fácil acceso para terceros.
+</Note>
+
+## Objeto Authentication {{ id: 'authentication-object' }}
+
+El parámetro `auth` debe ser enviado en todas la peticiones API y contiene el grupo de propiedades necesarias para verificar la autenticación.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="auth.login" type="string">
+                Identificador del sitio
+            </Property>
+            <Property name="auth.tranKey" type="string">
+                Credencial tranKey generado. A continuación se explica en detalle.
+            </Property>
+            <Property name="auth.nonce" type="string">
+                Valor aleatorio para cada solicitud codificado en Base64.
+            </Property>
+            <Property name="auth.seed" type="string">
+                Fecha actual, la cual se genera en formato ISO 8601.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```json {{ 'title': 'Autenticación de Ejemplo' }}
+        {
+            "auth": {
+                "login":"aabbccdd1234567890aabbccdd123456",
+                "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+                "nonce":"enQ4dXh3YWhkMWM=",
+                "seed":"2023-06-21T09:56:06-05:00"
+            },
+            ...
+        }
+
+        ```
+
+    </Col>
+</Row>
+
+
+## Cómo generar tu autenticación {{ id: 'how-to-generate-your-authentication' }}
+
+Debes conocer y preparar los siguientes datos:
+
+**login:** Credencial `login` provista al inicar tu integración. Identificador del sitio.
+
+**secretKey**: Credencial `secretKey` provista al iniciar tu integración. Llave secreta del sitio.
+
+**seed:** Se trata de la fecha en la que se generó la autenticación. La fecha debe estar en formato ISO 8601.
+Ejemplo: `2023-06-21T09:56:06-05:00`
+
+**nonce:** Valor arbitrario que identifica a una petición cómo única.
+Se genera y se utiliza para otras operaciones.
+Al momento de enviarlo, debe ser codificado en base 64.
+Ejemplo: `base64('927342197')`
+
+**tranKey:** Se genera en cada solicitud de forma programática.
+Se genera con la siguiente fórmula `Base64(SHA-256(nonce + seed + secretKey))` esta fórmula debe ser traducida según el lenguaje de programación utilizado.
+
+
+<CodeGroup title="Generate authentication">
+
+    ```php
+    $login = "siteLogin";
+    $secretKey = "siteSecretKey";
+    $seed = date('c');
+    $rawNonce = rand();
+
+    $tranKey = base64_encode(hash('sha256', $rawNonce.$seed.$secretKey, true));
+    $nonce = base64_encode($rawNonce);
+
+    $body = [
+        "auth" => [
+            "login" => $login,
+            "tranKey" => $tranKey,
+            "nonce" => $nonce,
+            "seed" => $seed,
+        ],
+        // ... other params
+    ];
+    ```
+
+    ```js
+    const crypto = require('crypto');
+
+    const login = "siteLogin";
+    const secretKey = "siteSecretKey";
+    const seed = new Date().toISOString();
+    const rawNonce = Math.floor(Math.random() * 1000000);
+
+    const tranKey = Buffer.from(crypto.createHash('sha256').update(rawNonce + seed + secretKey).digest(), 'binary').toString('base64');
+    const nonce = Buffer.from(rawNonce.toString()).toString('base64');
+
+    const body = {
+        auth: {
+            login: login,
+            tranKey: tranKey,
+            nonce: nonce,
+            seed: seed,
+        },
+        // ... other params
+    };
+    ```
+
+    ```python
+    import base64, hashlib, random, datetime
+
+    login = "siteLogin"
+    secret_key = "siteSecretKey"
+
+    seed = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    raw_nonce = random.getrandbits(128).to_bytes(16, byteorder="big")
+    nonce = base64.b64encode(raw_nonce).decode("utf-8")
+    tran_key = base64.b64encode(hashlib.sha256(raw_nonce + seed.encode() + secret_key.encode()).digest()).decode("utf-8")
+
+    return {
+        "login": login,
+        "tranKey": tran_key,
+        "nonce": nonce,
+        "seed": seed,
+    }
+    ```
+
+</CodeGroup>
+
+## Posibles errores de autenticación
+
+| Código | Causa                                                                       |
+|--------|-----------------------------------------------------------------------------|
+| 100    | UsernameToken no proporcionado (Encabezado de la autorización mal formada). |
+| 101    | El identificador del consumidor no existe.                                  |
+| 102    | El hash de TranKey no coincide, puede ser incorrecto o mal formado.         |
+| 103    | Fecha del seed mayor de 5 minutos.                                          |
+| 104    | Consumidor inactivo                                                         |
+
