@@ -254,12 +254,12 @@ export const TAB_NAVIGATION = {
                 links: [
                   { title: 'Migración de usuario', href: '/payments/newpanel/users/migration' },
                   { title: 'Creación de usuario', href: '/payments/newpanel/users/createuser' },
-                  
-                ], 
+
+                ],
               },
               {
                 title: 'Transacciones', links: [
-                  { title: 'Consulta de transacciones', href: '/payments/newpanel/transaction/search' }                                   
+                  { title: 'Consulta de transacciones', href: '/payments/newpanel/transaction/search' }
                 ],
               },
               {
@@ -399,12 +399,12 @@ export const TAB_NAVIGATION = {
                 links: [
                   { title: 'User migration', href: '/payments/newpanel/users/migration' },
                   { title: 'User creation', href: '/payments/newpanel/users/createuser' },
-                  
-                ], 
+
+                ],
               },
               {
                 title: 'Transactions', links: [
-                  { title: 'Transaction inquiry', href: '/payments/newpanel/transaction/search' }                                   
+                  { title: 'Transaction inquiry', href: '/payments/newpanel/transaction/search' }
                 ],
               },
               {
@@ -2195,37 +2195,37 @@ export const TAB_NAVIGATION = {
         ],
       },
       {
-        title: 'API cliente',
-        identifier: '/autopay/client-api',
-        href: '/autopay/client-api',
-        icon: DocumentCode,
-        links: [
-          {
-              title: 'API cliente',
-              links: [
-                  {title: 'Introducción', href: '/autopay/client-api'}
-              ],
-          },
-          {
-            title: 'Servicios',
-            links: [
-              { title: 'Obtener Balance', href: '/autopay/client-api/balance' },
-              { title: 'Asentamiento', href: '/autopay/client-api/settlement' },
-              { title: 'Notificaciones (Webhook)', href: '/autopay/client-api/webhook' },
-            ],
-          },
-        ],
-      },
-      {
-        title: 'API Autopay',
-        identifier: '/autopay/autopay-api',
-        href: '/autopay/autopay-api',
+        title: 'API',
+        identifier: '/autopay/api',
+        href: '/autopay/api',
         icon: DocumentCode,
         links: [
           {
             title: 'Api',
             links: [
-              { title: 'Crear autopago', href: '/autopay/autopay-api/create' },
+              { title: 'Crear autopago', href: '/autopay/api/create' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'Contratos',
+        identifier: '/autopay/contracts',
+        href: '/autopay/contracts',
+        icon: DocumentCode,
+        links: [
+          {
+              title: 'Documentos',
+              links: [
+                  {title: 'Introducción', href: '/autopay/contracts'}
+              ],
+          },
+          {
+            title: 'Servicios',
+            links: [
+              { title: 'Obtener Balance', href: '/autopay/contracts/balance' },
+              { title: 'Asentamiento', href: '/autopay/contracts/settlement' },
+              { title: 'Notificaciones (Webhook)', href: '/autopay/contracts/webhook' },
             ],
           },
         ],
