@@ -2236,7 +2236,7 @@ export const TAB_NAVIGATION = {
           {
             title: 'Servicios',
             links: [
-              { title: 'Obtener Balance', href: '/autopay/contracts/balance' },
+              { title: 'Consultar monto a cobrar', href: '/autopay/contracts/balance' },
               { title: 'Asentamiento', href: '/autopay/contracts/settlement' },
               { title: 'Notificaciones (Webhook)', href: '/autopay/contracts/webhook' },
             ],
