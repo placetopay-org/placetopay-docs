@@ -178,6 +178,14 @@ const examples = [
           en: "Card number + initialization vector encrypted in base64, learn more at [Card return](/en/gateway/card-return)"
       }
     },
+    {
+        key: "canRetry",
+        example: "true",
+        description: {
+            es: "Indica si una transacción rechazada o fallida es elegible para realizar un nuevo procesamiento con un medio de pago alternativo.",
+            en: "Indicates whether a declined or failed transaction is eligible for reprocessing with an alternative payment method."
+        }
+    },
   ];
 
 export function AdditionalDataExamples({extraExamples}) {
