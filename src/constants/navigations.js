@@ -1,14 +1,14 @@
 import {LANGUAGES_CODES} from '@/components/LocaleProvider'
 import {
-  Book,
-  MonitorMobbile,
   Activity,
-  SecurityCard,
-  Link,
+  Book,
   Calendar,
-  ShieldTick,
+  Courthouse,
   DocumentCode,
-  Courthouse
+  Link,
+  MonitorMobbile,
+  SecurityCard,
+  ShieldTick
 } from 'iconsax-react'
 
 /**
@@ -249,8 +249,9 @@ export const TAB_NAVIGATION = {
           {
             title: 'Gestiona tu cuenta en nuestro Dash',
             links: [
-              { title: 'Introducción', href: '/payments/newpanel/introduction'},
-                { title: 'Ingreso a Dash',
+              { title: 'Introducción', href: '/payments/newpanel/introduction' },
+              {
+                title: 'Ingreso a Dash',
                 links: [
                   { title: 'Migración de usuario', href: '/payments/newpanel/users/migration' },
                   { title: 'Creación de usuario', href: '/payments/newpanel/users/createuser' },
@@ -372,7 +373,10 @@ export const TAB_NAVIGATION = {
             title: 'Reportes de conciliación bancaria ',
             links: [
               { title: 'Reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr' },
-              { title: 'Ejemplos de reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr-examples' },
+              {
+                title: 'Ejemplos de reportes de conciliación bancaria',
+                href: '/payments/bank-reports/bank-reports-pr-examples'
+              },
             ],
           }
         ],
@@ -394,8 +398,9 @@ export const TAB_NAVIGATION = {
           {
             title: 'Manage your account on our Dash',
             links: [
-              { title: 'Introduction', href: '/payments/newpanel/introduction'},
-                { title: 'Access to Dash',
+              { title: 'Introduction', href: '/payments/newpanel/introduction' },
+              {
+                title: 'Access to Dash',
                 links: [
                   { title: 'User migration', href: '/payments/newpanel/users/migration' },
                   { title: 'User creation', href: '/payments/newpanel/users/createuser' },
@@ -518,7 +523,10 @@ export const TAB_NAVIGATION = {
             title: 'Bank reconciliation reports',
             links: [
               { title: 'Bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr' },
-              { title: 'Examples of bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr-examples' },
+              {
+                title: 'Examples of bank reconciliation reports',
+                href: '/payments/bank-reports/bank-reports-pr-examples'
+              },
             ],
           }
         ],
@@ -2186,10 +2194,11 @@ export const TAB_NAVIGATION = {
         icon: Book,
         links: [
           {
-            title: 'Documentos',
+            title: '',
             links: [
               { title: 'Introducción', href: '/autopay' },
               { title: 'Autenticación', href: '/autopay/authentication' },
+              { title: 'Tablas de códigos', href: '/autopay/codes' },
             ],
           },
         ],
@@ -2446,9 +2455,10 @@ export const TAB_NAVIGATION = {
           {
             title: 'Introducción',
             links: [
-                { title: 'Inicio',
-                  href: '/invoices/api'
-                }
+              {
+                title: 'Inicio',
+                href: '/invoices/api'
+              }
             ],
           },
           {

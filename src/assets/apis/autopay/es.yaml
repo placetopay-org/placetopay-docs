@@ -2,14 +2,11 @@ openapi: 3.0.0
 info:
   title: BETA - API de Autopay - Solicitud de Balance
   version: 1.0.0
-  description: |
-    Endpoint para consultar el balance de una cuenta en el sistema Autopay.
-
 paths:
   /autopay/balance:
     post:
       summary: Obtener balance
-      operationId: post-balancena
+      operationId: post-balance
       parameters:
         - schema:
             type: string
@@ -25,73 +22,24 @@ paths:
                 type: object
                 properties:
                   status:
-                    type: object
-                    properties:
-                      status:
-                        type: string
-                        example: "OK"
-                      reason:
-                        type: string
-                        example: "00"
-                      message:
-                        type: string
-                        example: "Respuesta satisfactoria"
-                      date:
-                        type: string
-                        format: date-time
-                        example: "2025-09-29T17:09:29-05:00"
+                    $ref: '#/components/schemas/Status'
                   id:
                     type: string
                     format: uuid
                     example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
                   amount:
-                    type: object
-                    properties:
-                      currency:
-                        type: string
-                        example: "USD"
-                      total:
-                        type: number
-                        example: 10
+                    $ref: "#/components/schemas/Amount"
                   min_amount:
-                    type: object
-                    properties:
-                      currency:
-                        type: string
-                        example: "USD"
-                      total:
-                        type: number
-                        example: 5
-        "400":
+                    $ref: "#/components/schemas/Amount"
+        "4XX":
           description: Error en la solicitud.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Status'
-              example:
-                status:
-                  status: "FAILED"
-                  reason: "XH"
-                  message: "Respuesta insatisfactoria"
-                  date: "2025-09-29T17:09:29-05:00"
-        "401":
-          description: No autorizado.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Status'
-              example:
-                status:
-                  status: "FAILED"
-                  reason: "UNAUTHORIZED"
-                  message: "Token inválido o expirado"
-                  date: "2025-09-29T17:09:29-05:00"
-        "404":
-          description: Recurso no encontrado o referencia inexistente.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Status'
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
               example:
                 status:
                   status: "FAILED"
@@ -106,33 +54,15 @@ paths:
               type: object
               properties:
                 auth:
-                  type: object
-                  description: Autenticación
-                  properties:
-                    login:
-                      type: string
-                      description: |
-                        Identificador del sitio
-                    tranKey:
-                      type: string
-                      description: |
-                        Credencial **tranKey** generado
-                    nonce:
-                      type: string
-                      description: |
-                        Valor **aleatorio** para cada solicitud codificado en **Base64**.
-                    seed:
-                      type: string
-                      description: |
-                        Fecha **actual**, la cual se genera en formato **ISO 8601**.
+                  $ref: '#/components/schemas/Auth'
                 reference:
                   type: string
-                  description: Referencia de la cuenta o transacción.
+                  description: Referencia del auto pago
                   example: "ACC00012345"
                 id:
                   type: string
                   format: uuid
-                  description: Identificador único de la solicitud.
+                  description: Identificador único del auto pago
                   example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
         description: ''
     parameters: [ ]
@@ -160,7 +90,7 @@ paths:
                     properties:
                       status: { type: string, example: "OK" }
                       reason: { type: string, example: "00" }
-                      message: { type: string, example: "Respuesta sactisfactoria" }
+                      message: { type: string, example: "Respuesta satisfactoria" }
                       date: { type: string, format: date-time, example: "2025-09-29T17:09:29-05:00" }
                   id:
                     type: string
@@ -172,35 +102,11 @@ paths:
                     status:
                       status: OK
                       reason: "00"
-                      message: "Respuesta sactisfactoria"
+                      message: "Respuesta satisfactoria"
                       date: "2025-09-29T17:09:29-05:00"
                     id: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-        "400":
+        "4XX":
           description: Error en la solicitud.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Status'
-              example:
-                status:
-                  status: "FAILED"
-                  reason: "XH"
-                  message: "Respuesta insatisfactoria"
-                  date: "2025-09-29T17:09:29-05:00"
-        "401":
-          description: No autorizado.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Status'
-              example:
-                status:
-                  status: "FAILED"
-                  reason: "UNAUTHORIZED"
-                  message: "Token inválido o expirado"
-                  date: "2025-09-29T17:09:29-05:00"
-        "404":
-          description: Recurso no encontrado o referencia inexistente.
           content:
             application/json:
               schema:
@@ -219,6 +125,8 @@ paths:
               type: object
               required: [ reference, id, transaction ]
               properties:
+                auth:
+                  $ref: '#/components/schemas/Auth'
                 reference:
                   type: string
                   example: "ACC-00012345"
@@ -231,7 +139,7 @@ paths:
             examples:
               ejemplo-peticion:
                 value:
-                  reference: "ACC-00012345"
+                  reference: "ACC00012345"
                   id: "2972c13d-6315-4da3-80d7-64c24eb232ad"
                   transaction:
                     status:
@@ -351,7 +259,7 @@ paths:
                         type: string
                         format: date-time
                         example: "2025-09-29T17:09:29-05:00"
-        "400":
+        "4XX":
           description: Error en la validación del payload o firma incorrecta.
           content:
             application/json:
@@ -374,31 +282,29 @@ paths:
                         type: string
                         format: date-time
                         example: "2025-09-29T17:09:29-05:00"
-        "500":
-          description: Error interno al procesar el webhook.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: object
-                    properties:
-                      status:
-                        type: string
-                        example: "FAILED"
-                      reason:
-                        type: string
-                        example: "00"
-                      message:
-                        type: string
-                        example: "Error interno del servidor"
-                      date:
-                        type: string
-                        format: date-time
-                        example: "2025-09-29T17:09:29-05:00"
 components:
   schemas:
+    Auth:
+      title: Autenticación
+      type: object
+      description: Autenticación
+      properties:
+        login:
+          type: string
+          description: |
+            Identificador del sitio
+        tranKey:
+          type: string
+          description: |
+            Credencial **tranKey** generado
+        nonce:
+          type: string
+          description: |
+            Valor **aleatorio** para cada solicitud codificado en **Base64**.
+        seed:
+          type: string
+          description: |
+            Fecha **actual**, la cual se genera en formato **ISO 8601**.
     WebhookEvent:
       type: object
       required:
@@ -446,21 +352,27 @@ components:
       x-internal: false
       properties:
         code:
-          type: integer
-          format: int32
+          type: string
           enum:
             - 100
             - 101
             - 102
             - 103
             - 104
-          description: Código de los estados. (consulte la columna código en Documentos/Elementos de datos Tabla 1)
+            - 00
+            - BR
+            - X3
+            - XH
+            - ?-
+            - 05
+            - NF
+          description: Código de los estados. (consulte la columna código en Documentos/Códigos de razón)
         name:
           type: string
           enum:
             - OK
             - FAILED
-          description: Nombre de los estados. (consulte la columna Significado en Documentos/Elementos de datos Tabla 1)
+          description: Nombre de los estados. (consulte la columna Significado en Documentos/Códigos de razón)
         message:
           type: string
           description: Mensaje para aclarar el estado
