@@ -2213,7 +2213,10 @@ export const TAB_NAVIGATION = {
           {
             title: 'Api',
             links: [
-              { title: 'Crear autopago', href: '/autopay/api/create' },
+              { title: 'Crear AutoPago', href: '/autopay/api/create' },
+              { title: 'Actualizar AutoPago', href: '/autopay/api/update' },
+              { title: 'Consultar AutoPago', href: '/autopay/api/query' },
+              { title: 'Eliminar AutoPago', href: '/autopay/api/delete' },
             ],
           },
         ],
