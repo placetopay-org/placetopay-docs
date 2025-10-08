@@ -800,6 +800,10 @@ export const TAB_NAVIGATION = {
                 title: 'Indicador de iniciador de transacción',
                 href: '/gateway/initiator-indicator',
               },
+              {
+                title: 'Orquestador de pagos',
+                href: '/gateway/orchestrator',
+              },
             ],
           },
         ],
@@ -908,6 +912,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Transaction Initiator Indicator',
                 href: '/gateway/initiator-indicator',
+              },
+              {
+                title: 'Payment Orchestrator',
+                href: '/gateway/orchestrator',
               },
             ],
           },
@@ -2210,14 +2218,20 @@ export const TAB_NAVIGATION = {
         href: '/autopay/api',
         icon: DocumentCode,
         links: [
-          {
-            title: 'Api',
-            links: [
-              { title: 'Crear AutoPago', href: '/autopay/api/create' },
-              { title: 'Actualizar AutoPago', href: '/autopay/api/update' },
-              { title: 'Consultar AutoPago', href: '/autopay/api/query' },
-              { title: 'Eliminar AutoPago', href: '/autopay/api/delete' },
-            ],
+            {
+                title: 'General',
+                links: [
+                    { title: 'Introducción', href: '/autopay/api' },
+                ]
+            },
+            {
+                title: 'API',
+                links: [
+                  { title: 'Crear AutoPago', href: '/autopay/api/create' },
+                  { title: 'Actualizar AutoPago', href: '/autopay/api/update' },
+                  { title: 'Consultar AutoPago', href: '/autopay/api/query' },
+                  { title: 'Eliminar AutoPago', href: '/autopay/api/delete' },
+                ],
           },
         ],
       },

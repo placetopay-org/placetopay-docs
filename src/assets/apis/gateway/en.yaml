@@ -73,6 +73,14 @@ paths:
                       $ref: "#/components/schemas/Payment"
                     subscription:
                       $ref: "#/components/schemas/Subscription"
+                    metadata:
+                      type: "object"
+                      description: Dynamic object that contains additional information.
+                      properties:
+                        preferredPaymentMethodIndex:
+                          type: "integer"
+                          description: Index of the Payment method to select from a list of available payment methods. This field is only required when using the Payment Orchestrator flow.
+                          example: 2
                 - title: "PSE"
                   type: "object"
                   properties:
@@ -388,6 +396,9 @@ paths:
                       hasForwarding:
                         type: "boolean"
                         description: "Indicates if the payment method has configured transaction forwarding"
+                      availablePaymentMethods:
+                        type: "integer"
+                        description: "Indicates the total payment methods available for processing. This will only be indicated in the response if the service is selected by index."
                     required:
                       - "status"
                       - "provider"
@@ -712,9 +723,18 @@ paths:
                       type: "string"
                       description: "Beneficiary ID. Required in PSE transactions for merchants in the financial services category."
                       example: "12345"
+                    preferredPaymentMethodIndex:
+                      type: "integer"
+                      description: Index of the Payment method to select from a list of available payment methods. This field is only required when using the Payment Orchestrator flow.
+                      example: 2
+                idempotenceKey:
+                  type: "string"
+                  description: "Unique key to identify the transaction. See more at [Idempotency control](/en/gateway/idempotency)"
+                  example: "ABCD1234"
+                  maxLength: 32
                 notificationURL:
                   type: "string"
-                  description: "URL to which an HTTP notification with transaction information will be sent once the transaction has been processed. See more at [Notification](/gateway/notification)"
+                  description: "URL to which an HTTP notification with transaction information will be sent once the transaction has been processed. See more at [Notification](/en/gateway/notification)"
                   example: "https://your-site.com/your-notification-path"
                 ipAddress:
                   type: "string"
@@ -745,18 +765,22 @@ paths:
                     type: "string"
                     example: "2021-09-20T21:51:59-05:00"
                   internalReference:
-                    type: "number"
+                    type: "integer"
+                    nullable: true
                   reference:
                     type: "string"
                     minLength: 1
                   paymentMethod:
                     type: "string"
+                    nullable: true
                     minLength: 1
                   franchise:
                     type: "string"
+                    nullable: true
                     minLength: 1
                   franchiseName:
                     type: "string"
+                    nullable: true
                     minLength: 1
                     example: "Botón Aval"
                   issuerName:
@@ -782,14 +806,17 @@ paths:
                     minLength: 1
                     enum:
                       - "AUTH_ONLY"
+                      - "CHECKIN"
                   refunded:
                     type: "boolean"
+                    nullable: true
                   lastDigits:
                     type: "string"
                     minLength: 1
                     nullable: true
                   provider:
                     type: "string"
+                    nullable: true
                     enum:
                       - "ACH"
                       - "ATH-AVALNET"
@@ -832,12 +859,14 @@ paths:
                     properties:
                       id:
                         type: "string"
+                        nullable: true
                         example: "e67122e3b9af1f7f72eacd430996d94b"
                       b24:
                         type: "string"
                         example: "?-"
                       paymentURL:
                         type: "string"
+                        nullable: true
                         example: "https://avalpaycenter.labdigbdbstgpb.com/?trazabilityCode=000000437981"
                   additional:
                     type: "object"
@@ -846,9 +875,11 @@ paths:
                     properties:
                       merchantCode:
                         type: "string"
+                        nullable: true
                         description: "Entity code"
                       terminalNumber:
                         type: "string"
+                        nullable: true
                         description: "Payment method terminal number"
                       trazabilyCode:
                         type: "string"
@@ -861,9 +892,12 @@ paths:
                       type: "object"
                       properties:
                         condition:
-                          type: "string"
+                          enum:
+                            - "ACTIVE"
+                            - "PENDING"
+                            - "COMPLETED"
                         internalReference:
-                          type: "number"
+                          type: "integer"
                         authorization:
                           type: "string"
                           minLength: 1
@@ -883,6 +917,11 @@ paths:
                       properties:
                         status:
                           $ref: "../base/en.yaml#/components/schemas/Status"
+                        type:
+                          type: "string"
+                          minLength: 1
+                          enum:
+                            - "AUTH_ONLY"
                         agreement:
                           type: "integer"
                           nullable: true
@@ -901,6 +940,8 @@ paths:
                           nullable: true
                         amount:
                           $ref: "../base/en.yaml#/components/schemas/Amount"
+                        conversion:
+                          $ref: "#/components/schemas/AmountConversion"
                         refunded:
                           type: "boolean"
                         paymentMethod:
@@ -3076,12 +3117,12 @@ components:
       properties:
         documentType:
           type: "string"
-          description: "[Type of identification document](/gateway/document-types)"
+          description: "[Type of identification document](/en/gateway/document-types)"
           example: "CC"
           maxLength: "6"
         document:
           type: "string"
-          description: "Identification document number."
+          description: "Identification document number. Must be a valid number according to the document type. See more at [Identification Document Types](/en/gateway/document-types)"
           maxLength: "25"
         name:
           type: "string"
@@ -3538,12 +3579,19 @@ components:
       properties:
         transactionId:
           type: "string"
+          description: "Identifier of the transaction in the PinPad service"
         positions:
           type: "string"
+          description: "Positions of the PinPad"
         pinBlock:
           type: "string"
+          description: "PIN encrypted in PinBlock format"
         length:
           type: "integer"
+          description: "Length of the PIN"
+        format:
+          type: "integer"
+          description: "PIN encryption format"
     Redirection:
       title: "Redirection"
       type: "object"
@@ -3554,8 +3602,11 @@ components:
           enum:
             - "_PSE_"
             - "BTNBC"
-            - "BTNBC"
             - "PGEFT"
+            - "BTNAV"
+            - "BB_CP"
+            - "BDILO"
+            - "TR_TC"
         returnURL:
           type: "string"
           format: "uri"
@@ -3569,15 +3620,43 @@ components:
           description: "URL to which the client must be sent to continue the process, it is provided by the service"
         additional:
           type: "object"
-          description: "Estructura para relacionar datos adicionales en el proceso."
+          description: "Structure to relate additional data in the process."
           properties:
             bankCode:
               type: "string"
-              description: "Código que identifica al banco en la red."
+              description: "Code that identifies the bank on the network."
               example: "1007"
             userType:
               type: "string"
-              example: "person"
+              description: "Indicates whether the payer is a natural person or a legal entity"
+              enum:
+                - "person"
+                - "company"
+            skipRegister:
+              type: "boolean"
+              description: "Indicates whether the user wants to skip enrollment in Tarjeta Clave"
+              default: true
+            dispersion:
+              type: "array"
+              description: "List of dispersions to be made in the transaction"
+              items:
+                type: "object"
+                properties:
+                  serviceCode:
+                    type: "string"
+                    description: "Code of the service"
+                  entityCode:
+                    type: "string"
+                    description: "Code of the entity"
+                  amountValue:
+                    type: "number"
+                    description: "Value of the amount to be paid"
+                  taxValue:
+                    type: "number"
+                    description: "Value of the tax applied"
+                  description:
+                    type: "string"
+                    description: "Description of the dispersion"
     Kount:
       title: "Kount"
       x-stoplight:
