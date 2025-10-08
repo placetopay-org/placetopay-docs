@@ -2195,31 +2195,37 @@ export const TAB_NAVIGATION = {
         ],
       },
       {
-        title: 'Api cliente',
+        title: 'API cliente',
         identifier: '/autopay/client-api',
         href: '/autopay/client-api',
         icon: DocumentCode,
         links: [
           {
+              title: 'API cliente',
+              links: [
+                  {title: 'Introducción', href: '/autopay/client-api'}
+              ],
+          },
+          {
             title: 'Servicios',
             links: [
-              { title: 'Balance', href: '/autopay/client-api/balance' },
-              { title: 'Settlement', href: '/autopay/client-api/settlement' },
-              { title: 'Webhook', href: '/autopay/client-api/webhook' },
+              { title: 'Obtener Balance', href: '/autopay/client-api/balance' },
+              { title: 'Asentamiento', href: '/autopay/client-api/settlement' },
+              { title: 'Notificaciones (Webhook)', href: '/autopay/client-api/webhook' },
             ],
           },
         ],
       },
       {
-        title: 'Placetopay api',
-        identifier: '/autopay/placetopay-api',
-        href: '/autopay/placetopay-api',
+        title: 'API Autopay',
+        identifier: '/autopay/autopay-api',
+        href: '/autopay/autopay-api',
         icon: DocumentCode,
         links: [
           {
             title: 'Api',
             links: [
-              { title: 'Crear autopago', href: '/autopay/placetopay-api/create' },
+              { title: 'Crear autopago', href: '/autopay/autopay-api/create' },
             ],
           },
         ],
