@@ -158,13 +158,23 @@ components:
   schemas:
     WebhookEvent:
       type: object
-      required:
-        - type
-        - site
-        - signature
-        - date
-        - data
+      required: [ auth, reference, id, type, date ]
+      x-conditional: [ data ]
       properties:
+        auth:
+          $ref: '../base/es.yaml#/components/schemas/Authentication'
+        reference:
+          type: string
+          description: Referencia del AutoPago proporcionada por el cliente/comercio.
+          example: "ACC00012345"
+          maxLength: 32
+        id:
+          type: string
+          format: uuid
+          description: Identificador único del AutoPago
+          minLength: 36
+          maxLength: 36
+          example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
         type:
           type: string
           enum:
@@ -172,17 +182,6 @@ components:
             - AUTOPAY_FAILED
             - AUTOPAY_DELETED
           description: "Tipo de evento notificado. Ver más en [Eventos Webhook](/autopay/webhook-description#event-types)."
-        site:
-          type: string
-          format: uuid
-          minLength: 36
-          maxLength: 36
-          description: Identificador único del sitio o comercio asociado.
-          example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-        signature:
-          type: string
-          description: Firma digital del mensaje en formato Base64.
-          example: "Base64(SHA-256(secretKey + json_encode(data) + date))"
         date:
           type: string
           format: date-time
@@ -191,19 +190,10 @@ components:
         data:
           type: object
           description: Objeto que contiene información relevante para identificar el autopago e información del evento.
-          required:
-            - id
           x-conditional:
             transactionId
             reason
           properties:
-            id:
-              type: string
-              format: uuid
-              description: Identificador interno del autopay.
-              example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-              minLength: 36
-              maxLength: 36
             transactionId:
               type: string
               format: uuid
