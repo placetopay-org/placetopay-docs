@@ -14,7 +14,11 @@ export default $config({
     };
   },
   async run() {
-    const site = new sst.aws.Nextjs("site", {
+    const site = new sst.aws.StaticSite("site", {
+      build: {
+        command: "npm run build",
+        output: "out",
+      },
       domain: process.env.APP_DOMAIN_NAME ? {
         name: process.env.APP_DOMAIN_NAME,
         cert: process.env.AWS_CERT_ARN,
