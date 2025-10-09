@@ -1,0 +1,422 @@
+openapi: 3.1.0
+info:
+  title: Placetopay Base API
+  version: 1.0.0
+
+components:
+  schemas:
+    Status:
+      title: "Status"
+      type: "object"
+      description: "Estructura que contiene la información sobre una solicitud o pago, informa al estado actual de la misma."
+      properties:
+        status:
+          type: "string"
+          enum:
+            - "OK"
+            - "FAILED"
+            - "APPROVED"
+            - "APPROVED_PARTIAL"
+            - "PARTIAL_EXPIRED"
+            - "REJECTED"
+            - "PENDING"
+            - "PENDING_VALIDATION"
+            - "PENDING_PROCESS"
+            - "REFUNDED"
+            - "REVERSED"
+            - "ERROR"
+            - "UNKNOWN"
+            - "MANUAL"
+            - "DISPUTE"
+        reason:
+          type: "string"
+          minLength: "1"
+          maxLength: "4"
+        message:
+          type: "string"
+        date:
+          type: "string"
+          example: "2021-09-21T09:34:48-05:00"
+    Authentication:
+      required:
+        - login
+        - tranKey
+        - nonce
+        - seed
+      title: "Autenticación"
+      type: "object"
+      properties:
+        login:
+          type: "string"
+          description: Identificador del sitio
+        tranKey:
+          type: "string"
+          description: Credencial **tranKey** generado
+        nonce:
+          type: "string"
+          description: Valor **aleatorio** para cada solicitud codificado en **Base64**.
+        seed:
+          type: "string"
+          description: Fecha **actual**, la cual se genera en formato **ISO 8601**.
+      description: "Estructura que contiene la información de autenticación del sitio generada de acuerdo al WSSE
+        UsernameToken Profile 1.1"
+    Amount:
+      title: "Amount"
+      type: "object"
+      description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
+      required:
+        - "currency"
+        - "total"
+      properties:
+        currency:
+          type: "string"
+          description: |
+            Código alfabético de la moneda a usar (ISO 4217 alpha code)
+          enum:
+            - "USD"
+            - "COP"
+            - "CRC"
+            - "EUR"
+            - "CAD"
+            - "AUD"
+            - "GBP"
+            - "MXN"
+            - "CLP"
+          example: "COP"
+          minLength: 3
+          maxLength: 3
+        total:
+          type: "number"
+          example: 2000
+          description: |
+            Valor total en la moneda base indicada
+        taxes:
+          type: "array"
+          description: |
+            Estructura para definir impuestos en el proceso de pago.
+          items:
+            $ref: "#/components/schemas/TaxDetail"
+        details:
+          type: "array"
+          description: |
+            Estructura para definir detalles adicionales del monto en el proceso de pago.
+          items:
+            $ref: "#/components/schemas/AmountDetail"
+    TaxDetail:
+      title: "TaxDetail"
+      type: "object"
+      description: "Estructura para almacenar información sobre un impuesto."
+      properties:
+        kind:
+          type: "string"
+          example: "valueAddedTax"
+          description: "Tipo de impuesto reportado"
+          enum:
+            - valueAddedTax
+            - exciseDuty
+            - ice
+            - airportTax
+            - stateTax
+            - reducedStateTax
+            - municipalTax
+        amount:
+          type: "number"
+          description: |
+            Monto total del impuesto
+        base:
+          description: |
+            Monto base sobre el cual se calcula el impuesto
+          type: "number"
+    AmountDetail:
+      title: "AmountDetail"
+      type: "object"
+      description: "Estructura para almacenar información sobre un valor adicional."
+      properties:
+        kind:
+          type: "string"
+          description: |
+            Identificador del tipo de detalle.
+        amount:
+          type: "number"
+          description: |
+            Monto total del detalle
+    AmountConversion:
+      title: "AmountConversion"
+      type: "object"
+      description: "Estructura para definir el factor de conversión y los valores."
+      properties:
+        from:
+          $ref: "#/components/schemas/AmountBase"
+        to:
+          $ref: "#/components/schemas/AmountBase"
+        factor:
+          type: "number"
+          example: 1
+          description: Factor de conversión
+    AmountBase:
+      title: "AmountBase"
+      type: "object"
+      description: "Estructura que representa una cantidad que define la moneda y el total."
+      properties:
+        currency:
+          type: "string"
+          description: |
+            Moneda acorde al ISO 4217 (alphabetic code).
+        total:
+          type: "number"
+          description: |
+            Valor total.
+    Transaction:
+      description: "Datos de la transacción"
+      type: "object"
+      title: ""
+      properties:
+        status:
+          $ref: "#/components/schemas/Status"
+        date:
+          type: "string"
+          format: date-time
+          description: "Fecha de creación (ISO 8601 con zona). Ej: `2021-09-20T21:51:59-05:00`."
+        transactionDate:
+          type: "string"
+          format: date-time
+          description: "Fecha de procesamiento en el proveedor (puede diferir de date)."
+        internalReference:
+          type: "number"
+          description: "Referencia interna."
+          minimum: 1
+        reference:
+          type: "string"
+          description: "Referencia del comercio."
+          minLength: 1
+          maxLength: 64
+        paymentMethod:
+          type: "string"
+          description: "Formato convencional: procesador_franquicia (ej: `ID_VS` para Interdin Visa, `DF_MS` para Datafast Mastercard), pueden existir excepciones."
+          minLength: 5
+          maxLength: 5
+        franchise:
+          type: "string"
+          description: "Franquicia / marca."
+          enum:
+            - "visa"
+            - "visa_electron"
+            - "amex"
+            - "master"
+            - "codensa"
+            - "diners"
+            - "jbc"
+            - "discover"
+            - "ris"
+            - "credencial"
+            - "comfama"
+            - "colsubsidio"
+            - "falabella"
+            - "elo"
+            - "somos"
+            - "tuya"
+            - "exito"
+            - "alkosto"
+            - "maestro"
+            - "mefia"
+            - "ath_card"
+            - "ath"
+            - "athmv"
+            - "bancolombia"
+            - "cooperativa"
+            - "debito"
+            - "pagoefectivo"
+            - "cafam"
+            - "efecty"
+            - "gana"
+            - "masterpass"
+            - "ppd"
+            - "pse"
+            - "safetypay"
+            - "supergiros"
+            - "visa_checkout"
+            - "procesa"
+            - "comfandi"
+            - "ach"
+            - "telered"
+            - "aval"
+            - "dilo"
+            - "banco_bogota"
+            - "ebt"
+            - "alia"
+        franchiseName:
+          type: "string"
+          description: "Nombre mostrado de la franquicia."
+          minLength: 1
+        issuerName:
+          type: "string"
+          description: "Nombre del emisor."
+          minLength: 1
+          nullable: true
+        amount:
+          $ref: "#/components/schemas/Amount"
+        conversion:
+          $ref: "#/components/schemas/AmountConversion"
+        authorization:
+          type: "string"
+          description: "Código de autorización."
+          minLength: 1
+          nullable: true
+        receipt:
+          type: "string"
+          description: "Recibo / comprobante."
+          maxLength: 16
+          nullable: true
+        type:
+          type: "string"
+          description: "Tipo de operación."
+          minLength: 1
+          enum:
+            - 'AUTH_ONLY'
+            - 'AUTH_CAPTURE'
+            - 'CAPTURE_ONLY'
+            - 'CREDIT'
+            - 'SETTLE'
+            - 'VOID'
+            - 'CHARGEBACK'
+            - 'DISPUTE'
+            - 'DISPUTE_LOSS'
+            - 'DISPUTE_WIN'
+            - 'DISPERSION'
+            - 'REFUND'
+            - 'PRE_AUTH'
+            - 'CHECKIN'
+            - 'CHECKOUT'
+            - 'RE_AUTH'
+            - 'DISPERSION_CAPTURE'
+            - 'DISPERSION_SETTLE'
+            - 'DISPERSION_CREDIT'
+        refunded:
+          type: "boolean"
+          description: "Indicador reembolsada."
+        lastDigits:
+          type: "string"
+          description: "Últimos dígitos de cuenta."
+          minLength: 2
+          nullable: true
+        provider:
+          type: "string"
+          description: "Código del procesador/proveedor."
+          enum:
+            - "CREDIBANCO"
+            - "REDEBAN"
+            - "INTERDIN"
+            - "DATAFAST"
+            - "TUYA-DIRECT"
+            - "BRASPAG"
+            - "TRANSERVER"
+            - "SABRE"
+            - "EVERTEC"
+            - "ACH"
+            - "ATH-AVALNET"
+            - "SUPERGIROS"
+            - "TECNICARD"
+            - "MEDIANET"
+            - "AUSTRO"
+            - "COMFANDI"
+            - "PAYSTUDIO"
+            - "FLAMINGO"
+            - "ATH-MOVIL"
+            - "EBUS"
+            - "BANCOLOMBIA"
+        discount:
+          type: "string"
+          description: "Información de descuento aplicada (si existe)."
+        processorFields:
+          type: "object"
+          description: "Campos crudos del procesador."
+          properties:
+            id:
+              type: "string"
+              description: "Id procesador."
+              maxLength: 64
+            b24:
+              type: "string"
+              description: "Campo extra."
+              maxLength: 64
+        additional:
+          type: "object"
+          description: |
+            Ver más en [Datos adicionales](/gateway/additional-data)
+        preAuthorization:
+          type: "object"
+          description: "Segmentos de preautorización."
+          items:
+            type: "object"
+            properties:
+              condition:
+                type: "string"
+                description: "Condición."
+              internalReference:
+                type: "number"
+                description: "Ref. segmento."
+              authorization:
+                type: "string"
+                description: "Auth segmento."
+                minLength: 1
+                nullable: true
+              receipt:
+                type: "string"
+                description: "Recibo segmento."
+                minLength: 1
+                nullable: true
+              amount:
+                $ref: "#/components/schemas/Amount"
+              salt:
+                type: "string"
+                description: "Salt segmento."
+        dispersion:
+          type: "array"
+          description: "Lista de dispersiones."
+          items:
+            type: "object"
+            properties:
+              status:
+                $ref: "#/components/schemas/Status"
+              agreement:
+                type: "integer"
+                description: "Id acuerdo."
+                nullable: true
+              agreementType:
+                type: "string"
+                description: "Tipo acuerdo."
+                enum:
+                  - "AIRLINE"
+                  - "MERCHANT"
+              authorization:
+                type: "string"
+                description: "Auth. dispersión."
+                minLength: 1
+                nullable: true
+              receipt:
+                type: "string"
+                description: "Recibo dispersión."
+                minLength: 1
+                nullable: true
+              amount:
+                $ref: "#/components/schemas/Amount"
+              refunded:
+                type: "boolean"
+                description: "Dispersión reembolsada."
+              paymentMethod:
+                type: "string"
+                description: "Código del método de pago."
+      required:
+        - "status"
+        - "provider"
+        - "internalReference"
+        - "reference"
+        - "paymentMethod"
+        - "franchise"
+        - "franchiseName"
+        - "amount"
+        - "authorization"
+        - "receipt"
+        - "type"
+        - "refunded"
+        - "processorFields"
