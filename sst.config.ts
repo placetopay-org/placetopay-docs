@@ -4,7 +4,7 @@ export default $config({
   app(input) {
     return {
       name: "placetopay-docs",
-      removal: input?.stage === "prod" ? "retain" : "remove",
+      removal: input?.stage === "production" ? "retain" : "remove",
       home: "aws",
       providers: {
         aws: {
