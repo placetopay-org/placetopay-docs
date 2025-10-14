@@ -18,6 +18,7 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
+  trailingSlash: true,
   output: 'export',
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'mdx'],
