@@ -32,6 +32,8 @@ export default $config({
 
     return {
       SiteUrl: site.url,
+      SiteAssets: site.nodes.assets,
+      siteCDN: site.nodes.cdn,
     };
   },
 });
