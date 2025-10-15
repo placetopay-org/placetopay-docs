@@ -1130,6 +1130,10 @@ export const TAB_NAVIGATION = {
                 title: 'Suscribir Modelos',
                 href: '/three-d-s-server/api/merchants/enrolment',
               },
+              {
+                title: 'API Suscripciones',
+                href: '/three-d-s-server/api/subscriptions/show',
+              },
             ],
           },
         ],
