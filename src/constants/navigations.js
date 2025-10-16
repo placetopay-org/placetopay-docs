@@ -1134,6 +1134,10 @@ export const TAB_NAVIGATION = {
                 title: 'API Suscripciones',
                 href: '/three-d-s-server/api/subscriptions/show',
               },
+              {
+                title: 'API Tokens',
+                href: '/three-d-s-server/api/tokens/show',
+              },
             ],
           },
         ],
