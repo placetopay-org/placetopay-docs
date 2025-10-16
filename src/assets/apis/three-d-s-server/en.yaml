@@ -937,7 +937,7 @@ paths:
                   mcc: 742
                   isicClass: 111
                   branch:
-                    name: Oficina principal
+                    name: Main Office
                     brand: placetopay uno
                     country: COL
                     currency: COP
@@ -994,7 +994,7 @@ paths:
             schema:
               type: object
               properties: { }
-        description: Envíe los campos necesarios para que la API agregue las sucursales a un comercio.
+        description: Send the required fields for the API to add branches to a merchant.
       responses:
         '200':
           description: |-
@@ -1158,18 +1158,18 @@ paths:
                   - status
                   - data
               examples:
-                Sucursal creada con éxito:
+                Branch created successfully:
                   value:
                     status:
                       code: 1000
                     data:
                       - id: 1
-                        name: Oficina Ciudad A
-                        brand: Compañía Ciudad A
+                        name: City A Office
+                        brand: City A Company
                         url: 'https://company-a.com'
                       - id: 2
-                        name: Oficina Ciudad B
-                        brand: Compañía Ciudad B
+                        name: City B Office
+                        brand: City B Company
                         url: 'https://company-b.com'
         '401':
           description: |
@@ -1458,6 +1458,240 @@ paths:
           required: true
       tags:
         - Merchants
+  /api/v2/subscriptions/{merchantCode}/{acquirerBIN}:
+    get:
+      summary: Query a subscription
+      operationId: get-subscription
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                merchantCode:
+                  type: string
+                  maxLength: 30
+                  description: Merchant acquirer code
+                acquirerBIN:
+                  type: string
+                  maxLength: 11
+                  description: Acquirer BIN
+              required:
+                - merchantCode
+                - acquirerBIN
+          application/xml:
+            schema:
+              type: object
+              properties: { }
+        description: Send the required fields for the API to query subscriptions for a merchant and branch.
+      responses:
+        '200':
+          description: |-
+            Response received: 200 Ok
+                This is a successful response for the merchant
+                query service.
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                  merchant:
+                    type: object
+                  branch:
+                    type: object
+                required:
+                  - status
+              examples:
+                Branch created successfully:
+                  value:
+                    status:
+        '401':
+          description: |
+            Response received: 401 Unauthorized
+                This error message may appear when in the request,
+                the provided token does not allow successful authentication:
+                - Missing, expired, or invalid token
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+        '404':
+          description: |-
+            Response received: 404 Not Found
+             This error message may appear when the parameters {merchantCode} and {acquirerBIN}
+             in the endpoint are not found in the
+             database and therefore the resource is not available.
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                required:
+                  - status
+        '412':
+          description: |-
+            Response received: 412 Precondition Failed
+             This error message may appear when the parameters {merchantCode} and {acquirerBIN}
+             in the endpoint are registered in more than one merchant or branch in the
+             database.
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                  merchants:
+                    type: array
+                required:
+                  - status
+      description: Add branches to a merchant
+      parameters:
+        - schema:
+            type: string
+          in: header
+          name: Accept
+          description: application/json
+          required: true
+        - schema:
+            type: string
+          in: header
+          name: Authorization
+          description: Bearer ACCESS_TOKEN
+          required: true
+      tags:
+        - Merchants
+  /api/v2/token/information:
+    post:
+      summary: Query a token
+      operationId: show-token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                id:
+                  type: numeric
+                  description: Merchant or branch ID.
+                type:
+                  type: string
+                  description: Token type.
+                  enum:
+                    - merchant
+                    - branch
+                token:
+                  type: string
+                  description: Token to query.
+              required:
+                - token
+          application/xml:
+            schema:
+              type: object
+              properties: { }
+        description: Send the required fields for the API to query a token.
+      responses:
+        '200':
+          description: |-
+            Response received: 200 Ok
+                This is a successful response for the token
+                query service.
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                  name:
+                    type: string
+                    description: Token name.
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: Token expiration date and time.
+                  revoked:
+                    type: boolean
+                    description: Indicates if the token has been revoked.
+  /api/v2/token:
+    post:
+      summary: Create a token
+      operationId: create-token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                id:
+                  type: numeric
+                  description: Merchant or branch ID.
+                type:
+                  type: string
+                  description: Token type.
+                  enum:
+                    - merchant
+                    - branch
+                name:
+                  type: string
+                  description: Token name.
+                expiresIn:
+                  type: numeric
+                  description: Token expiration time in seconds.
+                  enum:
+                    - 31536000
+                    - 63072000
+                    - 94608000
+              required:
+                - id
+                - type
+                - name
+          application/xml:
+            schema:
+              type: object
+              properties: { }
+        description: Send the required fields for the API to create a token.
+      responses:
+        '200':
+          description: |-
+            Response received: 200 Ok
+                This is a successful response for the token
+                creation service.
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                  name:
+                    type: string
+                    description: Token name.
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: Token expiration date and time.
+                  revoked:
+                    type: boolean
+                    description: Indicates if the token has been revoked.
 components:
   schemas:
     PhoneProperties:
@@ -2030,3 +2264,4 @@ security:
 tags:
   - name: Sessions
   - name: 'Transactions '
+  - name: Merchants
