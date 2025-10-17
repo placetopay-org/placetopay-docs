@@ -150,6 +150,7 @@ When creating or reviewing examples, ensure all data follows these patterns:
 - **Login credentials**: Use clearly artificial tokens
   - ✅ `123example456token789abc012def345` (32 alphanumeric characters, obviously fake)
   - ✅ `aabbccdd1234567890aabbccdd123456` (patterned to show it's an example)
+  - ✅ `Bearer test123abc123abc123abc123abc123abc123abc123abc123abc123abc` (token to show it's an example)
   - ❌ Tokens that could be mistaken for real credentials
 
 - **Card numbers**: Use industry-standard test numbers
