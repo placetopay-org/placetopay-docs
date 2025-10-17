@@ -167,6 +167,7 @@ paths:
         - Cuando una orden de pago es **bloqueada**, su estado de pago aparece como `"en proceso"` en el panel administrativo y no puede editarse ni eliminarse.  
         - Para desbloquearla, se debe usar el campo `revoke: true`.  
         - La operación requiere el **id único de la orden de pago**, generado por el sistema.
+        - Se puede enviar una o múltiples ordenes de pago.
       tags:
         - Facturas
       requestBody:
@@ -174,28 +175,53 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                auth:
-                  $ref: '#/components/schemas/Authentication'
-                invoice:
-                  type: integer
-                  description: Número de identificación único de la orden de pago (id generado por el sistema).
-                  example: 675983
-                site:
-                  type: integer
-                  description: Identificador del sitio
-                  example: 3
-                revoke:
-                  type: boolean
-                  description: |
-                    - `false`: la orden de pago será bloqueada.  
-                    - `true`: la orden de pago será liberada.
-                  example: false
-              required:
-                - auth
-                - invoice
-                - revoke
+              oneOf:
+                - title: 'Uńica'
+                  type: object
+                  properties:
+                    auth:
+                      $ref: '#/components/schemas/Authentication'
+                    invoice:
+                      type: integer
+                      description: Número de identificación único de la orden de pago (id generado por el sistema).
+                      example: 675983
+                    site:
+                      type: integer
+                      description: Identificador del sitio
+                      example: 3
+                    revoke:
+                      type: boolean
+                      description: |
+                        - `false`: la orden de pago será bloqueada.  
+                        - `true`: la orden de pago será liberada.
+                      example: false
+                  required:
+                    - auth
+                    - invoice
+                    - revoke
+                - title: 'Múltiple'
+                  type: object
+                  properties:
+                    auth:
+                      $ref: '#/components/schemas/Authentication'
+                    invoices:
+                      type: array
+                      description: Arreglo que contiene los números de identificación únicos de las ordenes de pago (id generado por el sistema).
+                      example: '[675983, 675984, 675985]'
+                    site:
+                      type: integer
+                      description: Identificador del sitio
+                      example: 3
+                    revoke:
+                      type: boolean
+                      description: |
+                        - `false`: la orden de pago será bloqueada.  
+                        - `true`: la orden de pago será liberada.
+                      example: false
+                  required:
+                    - auth
+                    - invoices
+                    - revoke
       responses:
         '200':
           description: Respuesta exitosa con información de la orden de pago.
@@ -245,10 +271,62 @@ paths:
                   expirationDate: "2021-03-25 10:14:24"
                   finalDate: "2021-04-30 23:59:59"
                   siteId: 40
-        '400':
-          description: Error en la solicitud (parámetros inválidos o datos faltantes).
-        '401':
-          description: Error de autenticación.
+        '200 - Múltiple':
+          description: Respuesta exitosa con información de las ordenes de pago.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  count:
+                    type: integer
+                    description: Número de ordenes de pago bloqueadas o liberadas.
+                    example: 3
+              example:
+                status:
+                  status: "OK"
+                  reason: "00"
+                  message: "La petición se ha procesado correctamente"
+                  date: "2020-07-29T08:09:35-05:00"
+                count: 3
+        "400":
+          description: Bad request (invalid or missing parameters).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Respuesta fallida:
+                  value:
+                    Status:
+                      status: FAILED
+                      reason: BR
+                      message: El campo invoice es obligatorio.
+                      date: "2021-09-21T09:34:48-05:00"
+        "401":
+          description:  Authentication error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Auntenticación fallida:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "401"
+                      message:
+                        la autenticación no contiene todos los parámetros requeridos
+                        (login, tranKey, seed, nonce)
+                      date: "2021-09-21T09:34:48-05:00"
         '500':
           description: Error interno del servidor.
 
@@ -547,6 +625,13 @@ components:
         - finalDate
         - serviceCode
         - siteId
+
+    Invoices:
+      title: "Invoices"
+      type: "array"
+      description: "Estructura que contiene la información sobre las ordenes de pago."
+      items:
+        $ref: "#/components/schemas/Invoice"
 
     Debtor:
       title: "Debtor"
