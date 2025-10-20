@@ -10649,9 +10649,9 @@ paths:
     parameters: []
   "/core/invoice/settle":
     post:
-      summary: Marcar factura como pagada
+      summary: Mark invoices as paid
       operationId: post-core-invoice-settle
-      description: Este servicio permite marcar una factura como pagada. Esto significa que se han recibido los pagos correspondientes y la factura se ha cerrado.
+      description: This service allows you to mark one or more invoices as paid. This means that the corresponding payments have been received and the invoices have been closed.
       responses:
         "200":
           description: OK
@@ -10664,7 +10664,7 @@ paths:
                     "$ref": "#/components/schemas/Status"
                   data:
                     type: object
-                    description: Objeto con la información de la factura.
+                    description: Object with the invoice information
                     "$ref": "#/components/schemas/Invoice"
               examples:
                 Respuesta exitosa:
@@ -10672,7 +10672,7 @@ paths:
                     status:
                       status: OK
                       reason: "00"
-                      message: La petición se ha procesado correctamente.
+                      message: The request has been processed successfully.
                       date: "2021-09-21T09:34:48-05:00"
                     data: {
                       id: 33,
@@ -10717,6 +10717,26 @@ paths:
                         paymentDate: "2025-02-17 10:46:49"
                       }
                     }
+        '200 - Multiple':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  count:
+                    type: integer
+                    example: 3
+                    description: Number of invoices marked as paid.
+              example:
+                status:
+                  status: "OK"
+                  reason: "00"
+                  message: "The request has been processed successfully."
+                  date: "2020-07-29T08:09:35-05:00"
+                count: 3
         "400":
           description: Bad Request
           content:
@@ -10750,49 +10770,104 @@ paths:
                       status: FAILED
                       reason: "401"
                       message:
-                        la autenticación no contiene todos los parámetros requeridos
-                        (login, tranKey, seed, nonce)
+                        The authentication does not contain all the required parameters
+                        (login, tranKey, seed, nonce).
                       date: "2021-09-21T09:34:48-05:00"
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                auth:
-                  "$ref": "#/components/schemas/Autentication"
-                site:
-                  type: integer
-                  example: 1
-                  description: Id del sitio al cual pertenece la factura.
-                invoice:
-                  type: integer
-                  example: 1
-                  description: Número de identificación de la factura.
-                amount:
-                  type: number
-                  description: Monto total de la factura.
-                  format: decimal
-                  minimum: 0
-                authorization:
-                  type: alpha_dash
-                  description: Código de autorización del pago.
-                  maxLength: 40
-                receipt:
-                  type: alpha_num
-                  description: Recibo del pago.
-                  maxLength: 16
-                bankName:
-                  type: string
-                  description: Nombre del banco.
-                  maxLength: 80
-              required:
-                - auth
-                - site
-                - invoice
-                - amount
-                - authorization
-                - receipt
+              oneOf:
+                - title: 'Single'
+                  type: object
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    site:
+                      type: integer
+                      example: 1
+                      description: ID of the site to which the invoice belongs.
+                    invoice:
+                      type: integer
+                      example: 1
+                      description: Invoice identification number.
+                    amount:
+                      type: number
+                      description: Total amount of the invoice.
+                      format: decimal
+                      minimum: 0
+                    authorization:
+                      type: alpha_dash
+                      description: Payment authorization code.
+                      maxLength: 40
+                    receipt:
+                      type: alpha_num
+                      description: Payment receipt.
+                      maxLength: 16
+                    bankName:
+                      type: string
+                      description: Name of the bank.
+                      maxLength: 80
+                    date:
+                      type: string
+                      description: Invoice payment date.
+                      format: date
+                      example: 2025-01-01
+                  required:
+                    - auth
+                    - site
+                    - invoice
+                    - amount
+                    - authorization
+                    - receipt
+                - title: 'Multiple'
+                  type: object
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    site:
+                      type: integer
+                      example: 1
+                      description: ID of the site to which the invoice belongs.
+                    invoices:
+                      type: array
+                      description: Array containing the invoices.
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                          description: Invoice identification number.
+                        amount:
+                          type: number
+                          description: Total amount of the invoice.
+                          format: decimal
+                          minimum: 0
+                        authorization:
+                          type: alpha_dash
+                          description: Payment authorization code.
+                          maxLength: 40
+                        receipt:
+                          type: alpha_num
+                          description: Payment receipt.
+                          maxLength: 16
+                        bankName:
+                          type: string
+                          description: Name of the bank.
+                          maxLength: 80
+                        date:
+                          type: string
+                          description: Invoice payment date.
+                          format: date
+                          example: 2025-01-01
+                      required:
+                        - id
+                        - amount
+                        - authorization
+                        - receipt
+                  required:
+                    - auth
+                    - site
+                    - invoices
             examples:
               Marcar factura como pagada:
                 value:
