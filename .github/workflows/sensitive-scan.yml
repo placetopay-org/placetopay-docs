@@ -1,0 +1,37 @@
+name: Sensitive Data Scan
+
+on:
+  pull_request:
+    paths:
+      - 'src/pages/**'
+      - 'src/assets/**'
+  push:
+    branches: ['main']
+    paths:
+      - 'src/pages/**'
+      - 'src/assets/**'
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run blocklist sensitive scan (default)
+        run: npm run scan:sensitive
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ "$GITHUB_JOB" = "scan" ]; then
+            echo "Sensitive scan completed (mode(s) executed based on branch)." >> $GITHUB_STEP_SUMMARY
+          fi
