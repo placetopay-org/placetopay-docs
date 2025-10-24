@@ -420,3 +420,143 @@ components:
         - "type"
         - "refunded"
         - "processorFields"
+    Dispersion:
+      title: "Dispersion"
+      type: "object"
+      description: "Estructura que contiene la información requerida para un pago de dispersión"
+      properties:
+        agreement:
+          type: "number"
+          description: "Identificador de destinatario de la transacción. Para el sitio principal de la transacción, el valor debe ser null."
+          nullable: true
+        agreementType:
+          type: "string"
+          enum:
+            - "AIRLINE"
+            - "MERCHANT"
+        amount:
+          $ref: "#/components/schemas/Amount"
+    PaymentModifier:
+      title: "PaymentModifier"
+      type: "object"
+      description: "Estructura para almacenar información sobre un modificador de pago.
+  
+        NOTA: Si se envia un modificador que aplica descuento, no se tomará los descuentos configurados por promociones en el sítio."
+      x-examples:
+        law-discount:
+          type: "FEDERAL_GOVERNMENT"
+          code: "17934"
+          additional:
+            invoice: "123456"
+      properties:
+        type:
+          type: "string"
+          enum:
+            - "FEDERAL_GOVERNMENT"
+          description: "Tipo de modificador"
+        code:
+          type: "string"
+          example: "17934"
+          description: "Código del modificador. Cuando el tipo es FEDERAL_GOVERMENT, representa el número de ley para descuento."
+        additional:
+          type: "object"
+          description: "Informaciones adicionales del modificador"
+          properties:
+            invoice:
+              type: "string"
+              description: "Número de factura. Requerido cuando tipo es FEDERAL_GOVERMENT."
+    Payment:
+      title: "Payment"
+      type: "object"
+      description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
+      properties:
+        reference:
+          type: "string"
+          minLength: 1
+          maxLength: 32
+        description:
+          type: "string"
+          maxLength: 250
+        amount:
+          $ref: "#/components/schemas/Amount"
+        dispersion:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Dispersion"
+        modifiers:
+          type: "array"
+          description: "Estructura que contiene modificadores de pago"
+          items:
+            $ref: "#/components/schemas/PaymentModifier"
+        shipping:
+          $ref: "#/components/schemas/Person"
+          description: "Estructura para relacionar información de envío."
+    Person:
+      title: "Person"
+      type: "object"
+      description: "Estructura que refleja la información de una persona involucrada en una transacción."
+      properties:
+        documentType:
+          type: "string"
+          description: "[Tipo de documento de identificación](/gateway/document-types)"
+          example: "CC"
+          maxLength: "6"
+        document:
+          type: "string"
+          description: "Número de documento de identificación. Debe ser un número válido de acuerdo al tipo de documento. Ver más en [Tipos de documento de identificación](/gateway/document-types)"
+          maxLength: "25"
+        name:
+          type: "string"
+          description: "Nombre"
+          maxLength: "60"
+        surname:
+          type: "string"
+          description: "Apellidos"
+          maxLength: "60"
+        company:
+          type: "string"
+          description: "Compañia"
+          maxLength: "60"
+        email:
+          type: "string"
+          description: "Correo electrónico."
+          maxLength: "80"
+        address:
+          $ref: "#/components/schemas/Address"
+          description: "Objeto que contiene información de la dirección de una persona."
+        mobile:
+          type: "string"
+          description: "Teléfono movil"
+    Address:
+      title: "Address"
+      type: "object"
+      description: "Estructura que contiene la información sobre una dirección física"
+      properties:
+        street:
+          type: "string"
+          maxLength: "128"
+          description: "Calle"
+        city:
+          type: "string"
+          maxLength: "30"
+          description: "Ciudad"
+        state:
+          type: "string"
+          maxLength: "3"
+          description: "Código de la subdivisión del país que representa el estado o provincia. Formato ISO 3166-2"
+          example: "CUN"
+        postalCode:
+          type: "string"
+          maxLength: "10"
+          description: "Código postal"
+          example: "110111"
+        country:
+          type: "string"
+          maxLength: "2"
+          example: "CO"
+          description: "País. Código ISO 3166-1 alpha-2"
+        phone:
+          type: "string"
+          maxLength: "20"
+          description: "Teléfono"
+          example: "3003003000"

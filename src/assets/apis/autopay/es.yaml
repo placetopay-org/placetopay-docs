@@ -20,17 +20,12 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [status, id, amount]
+                required: [ status, id, amount ]
                 properties:
                   status:
                     $ref: '#/components/schemas/Status'
                   id:
-                    description: Identificador único del auto pago
-                    type: string
-                    format: uuid
-                    minLength: 36
-                    maxLength: 36
-                    example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                    $ref: '#/components/schemas/AutoPayId'
                   amount:
                     $ref: "../base/es.yaml#/components/schemas/Amount"
                   min_amount:
@@ -50,7 +45,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [auth, reference, id]
+              required: [ auth, reference, id ]
               properties:
                 auth:
                   $ref: '../base/es.yaml#/components/schemas/Authentication'
@@ -60,12 +55,7 @@ paths:
                   example: "ACC00012345"
                   maxLength: 32
                 id:
-                  type: string
-                  format: uuid
-                  description: Identificador único del AutoPago
-                  minLength: 36
-                  maxLength: 36
-                  example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                  $ref: '#/components/schemas/AutoPayId'
         description: ''
   /autopay/settlement:
     post:
@@ -89,12 +79,7 @@ paths:
                   status:
                     $ref: '#/components/schemas/Status'
                   id:
-                    type: string
-                    format: uuid
-                    description: Identificador único del autopago confirmado en el registro de la notificación.
-                    minLength: 36
-                    maxLength: 36
-                    example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                    $ref: '#/components/schemas/AutoPayId'
         "4XX":
           description: Error en la solicitud.
           content:
@@ -118,12 +103,7 @@ paths:
                   maxLength: 32
                   example: "ACC00012345"
                 id:
-                  type: string
-                  format: uuid
-                  description: Identificador único del autopago confirmado en el registro de la notificación.
-                  minLength: 36
-                  maxLength: 36
-                  example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                  $ref: '#/components/schemas/AutoPayId'
                 transaction:
                   $ref: "../base/es.yaml#/components/schemas/Transaction"
   /autopay/webhook:
@@ -154,8 +134,85 @@ paths:
                 properties:
                   status:
                     $ref: "#/components/schemas/Status"
+  /search:
+    post:
+      summary: Buscar autopagos
+      operationId: post-search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - filters
+              properties:
+                auth:
+                  $ref: '../base/es.yaml#/components/schemas/Authentication'
+                filters:
+                  type: object
+                  properties:
+                    reference:
+                      type: string
+                      description: Referencia del AutoPago proporcionada por el cliente/comercio.
+                      example: "ACC00012345"
+                      maxLength: 32
+                    date:
+                      type: object
+                      properties:
+                        from:
+                          type: string
+                          example: 2025-09-01
+                        to:
+                          type: string
+                          example: 2025-09-30
+      responses:
+        "200":
+          description: Solicitud exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  id:
+                    $ref: '#/components/schemas/AutoPayId'
+                  chargeType:
+                    $ref: '#/components/schemas/ChargeType'
+                  createdAt:
+                    type: string
+                    description: Fecha en la que se creo el auto pago
+                    example: 2025-09-25T10:02:17-05:00
+                  registeredAt:
+                    type: string
+                    description: Fecha en la que el usuario se registro al auto pago
+                    example: 2025-09-25T10:02:17-05:00
+                  canceledAt:
+                    type: string
+                    description: Fecha en la que se canceló el auto pago
+                    example: 2025-09-25T10:02:17-05:00
+                  payment:
+                    $ref: '../base/es.yaml#/components/schemas/Payment'
+
 components:
   schemas:
+    ChargeType:
+      type: string
+      enum:
+        - STATEMENT_BALANCE
+        - FIXED_MINIMUM
+        - FIXED_AMOUNT
+        - MINIMUM_PAYMENT
+      description: "Tipo de cargo del autopago"
+    AutoPayId:
+      type: string
+      format: uuid
+      description: Identificador único del autopago confirmado en el registro de la notificación.
+      minLength: 36
+      maxLength: 36
+      example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
     WebhookEvent:
       type: object
       required: [ auth, reference, id, type, date ]
