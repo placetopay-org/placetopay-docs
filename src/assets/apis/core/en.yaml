@@ -10383,9 +10383,9 @@ paths:
     parameters: []
   "/core/invoice/hold":
     post:
-      summary: Bloquear o liberar una factura
+      summary: Block or release an invoice
       operationId: post-core-invoice-hold
-      description: Este servicio permite realizar el bloqueo o la liberación de una factura.
+      description: This service allows you to block or release an invoice.
       responses:
         "200":
           description: OK
@@ -10398,7 +10398,7 @@ paths:
                     "$ref": "#/components/schemas/Status"
                   data:
                     type: object
-                    description: Objeto con la información de la factura a bloquear o liberar.
+                    description: Object with the invoice information to be blocked or released.
                     "$ref": "#/components/schemas/Invoice"
               examples:
                 Respuesta exitosa:
@@ -10406,7 +10406,7 @@ paths:
                     status:
                       status: OK
                       reason: "00"
-                      message: La petición se ha procesado correctamente.
+                      message: The request has been processed successfully.
                       date: "2021-09-21T09:34:48-05:00"
                     data: {
                       id: 33,
@@ -10444,6 +10444,26 @@ paths:
                       finalDate: "2025-02-25 23:59:59",
                       siteId: 3
                     }
+        '200 - Múltiple':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  count:
+                    type: integer
+                    example: 3
+                    description: Number of invoices blocked or released.
+              example:
+                status:
+                  status: "OK"
+                  reason: "00"
+                  message: "The request has been processed successfully."
+                  date: "2020-07-29T08:09:35-05:00"
+                count: 3
         "400":
           description: Bad Request
           content:
@@ -10477,33 +10497,56 @@ paths:
                       status: FAILED
                       reason: "401"
                       message:
-                        la autenticación no contiene todos los parámetros requeridos
-                        (login, tranKey, seed, nonce)
+                        The authentication does not contain all the required parameters
+                        (login, tranKey, seed, nonce).
                       date: "2021-09-21T09:34:48-05:00"
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                auth:
-                  "$ref": "#/components/schemas/Autentication"
-                site:
-                  type: integer
-                  example: 1
-                  description: Id del sitio al cual pertenece la factura.
-                invoice:
-                  type: integer
-                  example: 1
-                  description: Número de identificación de la factura.
-                revoke:
-                  type: boolean
-                  example: true
-                  default: false
-                  description: Si el valor es "false" la factura será bloqueada, si es "true" la factura será liberada.
-              required:
-                - auth
-                - invoice
+              oneOf:
+                - title: 'Single'
+                  type: object
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    site:
+                      type: integer
+                      example: 1
+                      description: ID of the site to which the invoice belongs.
+                    invoice:
+                      type: integer
+                      example: 1
+                      description: Invoice identification number.
+                    revoke:
+                      type: boolean
+                      example: true
+                      default: false
+                      description: If the value is “false,” the invoice will be blocked; if it is “true,” the invoice will be released.
+                  required:
+                    - auth
+                    - invoice
+                - title: 'Multiple'
+                  type: object
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    site:
+                      type: integer
+                      example: 1
+                      description: ID of the site to which the invoice belongs.
+                    invoices:
+                      type: array
+                      example: '[675983, 675984, 675985]'
+                      description: Arrangement containing the identification numbers of the invoices.
+                    revoke:
+                      type: boolean
+                      example: true
+                      default: false
+                      description: If the value is “false,” the invoice will be blocked; if it is “true,” the invoice will be released.
+                  required:
+                    - auth
+                    - invoices
             examples:
               Bloqueo o liberación de una factura:
                 value:
@@ -10606,9 +10649,9 @@ paths:
     parameters: []
   "/core/invoice/settle":
     post:
-      summary: Marcar factura como pagada
+      summary: Mark invoices as paid
       operationId: post-core-invoice-settle
-      description: Este servicio permite marcar una factura como pagada. Esto significa que se han recibido los pagos correspondientes y la factura se ha cerrado.
+      description: This service allows you to mark one or more invoices as paid. This means that the corresponding payments have been received and the invoices have been closed.
       responses:
         "200":
           description: OK
@@ -10621,7 +10664,7 @@ paths:
                     "$ref": "#/components/schemas/Status"
                   data:
                     type: object
-                    description: Objeto con la información de la factura.
+                    description: Object with the invoice information
                     "$ref": "#/components/schemas/Invoice"
               examples:
                 Respuesta exitosa:
@@ -10629,7 +10672,7 @@ paths:
                     status:
                       status: OK
                       reason: "00"
-                      message: La petición se ha procesado correctamente.
+                      message: The request has been processed successfully.
                       date: "2021-09-21T09:34:48-05:00"
                     data: {
                       id: 33,
@@ -10674,6 +10717,26 @@ paths:
                         paymentDate: "2025-02-17 10:46:49"
                       }
                     }
+        '200 - Multiple':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  count:
+                    type: integer
+                    example: 3
+                    description: Number of invoices marked as paid.
+              example:
+                status:
+                  status: "OK"
+                  reason: "00"
+                  message: "The request has been processed successfully."
+                  date: "2020-07-29T08:09:35-05:00"
+                count: 3
         "400":
           description: Bad Request
           content:
@@ -10707,49 +10770,104 @@ paths:
                       status: FAILED
                       reason: "401"
                       message:
-                        la autenticación no contiene todos los parámetros requeridos
-                        (login, tranKey, seed, nonce)
+                        The authentication does not contain all the required parameters
+                        (login, tranKey, seed, nonce).
                       date: "2021-09-21T09:34:48-05:00"
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                auth:
-                  "$ref": "#/components/schemas/Autentication"
-                site:
-                  type: integer
-                  example: 1
-                  description: Id del sitio al cual pertenece la factura.
-                invoice:
-                  type: integer
-                  example: 1
-                  description: Número de identificación de la factura.
-                amount:
-                  type: number
-                  description: Monto total de la factura.
-                  format: decimal
-                  minimum: 0
-                authorization:
-                  type: alpha_dash
-                  description: Código de autorización del pago.
-                  maxLength: 40
-                receipt:
-                  type: alpha_num
-                  description: Recibo del pago.
-                  maxLength: 16
-                bankName:
-                  type: string
-                  description: Nombre del banco.
-                  maxLength: 80
-              required:
-                - auth
-                - site
-                - invoice
-                - amount
-                - authorization
-                - receipt
+              oneOf:
+                - title: 'Single'
+                  type: object
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    site:
+                      type: integer
+                      example: 1
+                      description: ID of the site to which the invoice belongs.
+                    invoice:
+                      type: integer
+                      example: 1
+                      description: Invoice identification number.
+                    amount:
+                      type: number
+                      description: Total amount of the invoice.
+                      format: decimal
+                      minimum: 0
+                    authorization:
+                      type: alpha_dash
+                      description: Payment authorization code.
+                      maxLength: 40
+                    receipt:
+                      type: alpha_num
+                      description: Payment receipt.
+                      maxLength: 16
+                    bankName:
+                      type: string
+                      description: Name of the bank.
+                      maxLength: 80
+                    date:
+                      type: string
+                      description: Invoice payment date.
+                      format: date
+                      example: 2025-01-01
+                  required:
+                    - auth
+                    - site
+                    - invoice
+                    - amount
+                    - authorization
+                    - receipt
+                - title: 'Multiple'
+                  type: object
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    site:
+                      type: integer
+                      example: 1
+                      description: ID of the site to which the invoice belongs.
+                    invoices:
+                      type: array
+                      description: Array containing the invoices.
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                          description: Invoice identification number.
+                        amount:
+                          type: number
+                          description: Total amount of the invoice.
+                          format: decimal
+                          minimum: 0
+                        authorization:
+                          type: alpha_dash
+                          description: Payment authorization code.
+                          maxLength: 40
+                        receipt:
+                          type: alpha_num
+                          description: Payment receipt.
+                          maxLength: 16
+                        bankName:
+                          type: string
+                          description: Name of the bank.
+                          maxLength: 80
+                        date:
+                          type: string
+                          description: Invoice payment date.
+                          format: date
+                          example: 2025-01-01
+                      required:
+                        - id
+                        - amount
+                        - authorization
+                        - receipt
+                  required:
+                    - auth
+                    - site
+                    - invoices
             examples:
               Marcar factura como pagada:
                 value:
@@ -13664,53 +13782,72 @@ components:
               UsernameToken Profile 1.1
             examples: []
     Autentication:
-      title: Autentication
-      type: object
+      title: "Authentication"
+      type: "object"
+      description: "Authentication object. See more in **[Authentication](/token-requestor/integration/authentication)**. 
+        Structure containing the site’s authentication information generated according to the WSSE UsernameToken Profile 1.1."
       properties:
         login:
-          type: string
+          type: "string"
+          description: "Login used for authentication."
+          minLength: "1"
+          example: "1441d14df19ec88431e513bb990326e1"
         tranKey:
-          type: string
+          type: "string"
+          description: "Transaction key."
+          minLength: "1"
+          example: "DGYymv6ohpYwtLWon/iADE/COoo9JXt4jqyk6D006PY="
         nonce:
-          type: string
+          type: "string"
+          description: "Random value for each request, encoded in Base64."
+          minLength: "1"
+          example: "enQ4dXh3YWhkMWM="
         seed:
-          type: string
-      description: |-
-        Estructura que contiene la información de autenticación del sitio generada de acuerdo al WSSE
-        UsernameToken Profile 1.1
-      examples: []
+          type: "string"
+          description: "Current date, generated in ISO 8601 format."
+          minLength: "1"
+          example: "2023-06-21T09:56:06-05:00"
+      required:
+        - "login"
+        - "tranKey"
+        - "nonce"
+        - "seed"
     Status:
-      title: Status
-      type: object
-      description: 'Estructura que contiene la información sobre una solicitud o pago, informa al estado actual de la misma.'
+      title: "Status"
+      type: "object"
+      description: "Structure that contains information about a request, indicating its current state."
       properties:
         status:
-          type: string
+          type: "string"
+          description: "Operation status."
           enum:
             - OK
             - FAILED
             - APPROVED
-            - APPROVED_PARTIAL
-            - PARTIAL_EXPIRED
             - REJECTED
             - PENDING
-            - PENDING_VALIDATION
-            - PENDING_PROCESS
-            - REFUNDED
-            - REVERSED
-            - ERROR
-            - UNKNOWN
             - MANUAL
-            - DISPUTE
+            - REFUNDED
+          example: "OK"
         reason:
-          type: string
-          minLength: 1
-          maxLength: 4
+          type: "string"
+          description: "Reason for the operation status."
+          maxLength: "2"
+          example: "00"
         message:
-          type: string
+          type: "string"
+          description: "Description of the status."
+          example: "The request has been successfully processed"
         date:
-          type: string
-          example: '2021-09-21T09:34:48-05:00'
+          type: "string"
+          description: "Date and time when the operation was executed."
+          format: "date-time"
+          example: '2025-03-17T22:45:27+00:00'
+      required:
+        - "status"
+        - "reason"
+        - "message"
+        - "date"
     Customer-create:
       title: Customer create
       type: object
@@ -16576,156 +16713,263 @@ components:
         - serviceCode
         - expiration
     Invoice:
-      title: Invoice
-      type: object
-      description: Estructura que contiene información de la factura.
+      title: "Invoice"
+      type: "object"
+      description: "Structure that contains information about a payment order."
       properties:
         id:
           type: integer
-          example: 1
-          description: Id de la factura
+          description: "Unique identifier of the payment order generated by the system."
+          example: 675978
         status:
-          type: integer
+          type: string
+          description: "Status of the payment order."
           enum:
             - PAYED
             - EXPIRED
             - ACTIVE
             - INACTIVE
             - HOLD
-          example: ACTIVE
-          description: Estado de la factura.
-        serviceCode:
-          type: integer
-          example: 1
-          description: Id del plan
-        payment:
-          type: object
-          description: Información sobre el pago de la factura.
-          properties:
-            reference:
-              type: string
-              description: Referencia de la factura.
-              minLength: 1
-              maxLength: 30
-            description:
-              type: string
-              description: Descripción del pago.
-              maxLength: 255
-            amount:
-              type: object
-              description: Estructura que contiene la información sobre el valor de la factura.
-              properties:
-                total:
-                  type: number
-                  description: Monto total de la factura.
-                  format: decimal
-                  maximum: 9999999999.99
-                currency:
-                  type: string
-                  description: Moneda acorde al ISO 4217 (alphabetic code).
-                  maxLength: 3
-                  example: COP
-                taxes:
-                  type: object
-                  description: Estructura que contiene la información sobre impuestos de la factura.
-                  properties:
-                    kind:
-                      type: string
-                      description: Tipo de clasificación de impuesto.
-                    amount:
-                      type: number
-                      description: Valor del impuesto.
-                      format: decimal
-                    base:
-                      type: number
-                      description: Valor base para calcular el impuesto.
-                      format: decimal
-            modifiers:
-              type: object
-              description: Estructura que contiene la información sobre los modificadores de pago de la factura.
-              properties:
-                type:
-                  type: string
-                  description: Tipo de modificador.
-                  enum:
-                    - FEDERAL_GOVERNMENT
-                code:
-                  type: string
-                  description: Código del modificador.
-                  enum:
-                    - 17934
-                    - 18083
-                    - 18910
-                    - 18999
-                    - 19210
-                additional:
-                  type: object
-                  description: Información adicional del modificador.
+          example: "EXPIRED"
         debtor:
-          type: object
-          description: Información del deudor de la factura.
-          properties:
-            document:
-              type: string
-              description: Número de documento del deudor.
-              maxLength: 16
-            documentType:
-              type: string
-              description: Tipo de documento del deudor.
-            name:
-              type: string
-              description: Nombre del deudor.
-            surname:
-              type: string
-              description: Apellidos del deudor.
+          $ref: "#/components/schemas/Debtor"
+        payment:
+          $ref: "#/components/schemas/Payment"
         altReference:
           type: string
-          description: Referencia alterna de la factura.
-          minLength: 1
+          description: "Alternate code of the payment order."
           maxLength: 30
+          example: "02019039"
+          pattern: '^[0-9A-Za-z_\-\s]+$'
         createdAt:
           type: string
-          description: Fecha de creación de la factura.
-          format: date
-          example: 2025-01-01
+          format: date-time
+          description: "Date and time when the payment order was created."
+          example: "2020-07-28T08:00:47-05:00"
         expirationDate:
           type: string
-          description: Fecha y hora de expiración de la factura.
           format: date-time
+          description: "Date and time when the payment order expires in the system."
+          example: "2021-03-25T10:14:24-05:00"
         finalDate:
           type: string
-          description: Fecha y hora de finalización de plazo para pago. Es generada basada en la fecha de expiración pero con hora igual a 23:59:59.
           format: date-time
+          description: "Final date and time allowed for payment."
+          example: "2020-07-28T23:59:59-05:00"
+        dueType:
+          type: integer
+          enum:
+            - 0
+            - 1
+            - 2
+          description: |
+            Type of increment after due date
+
+            1 = fixed
+
+            0 = daily. 
+
+            The way the surcharge will be applied.
+            If daily, it is calculated according to the number of days after the due date;
+            if fixed, the same amount is applied regardless of the number of days overdue.
+          example: 1
+        dueRate:
+          type: number
+          format: float
+          description: "Amount added to the overdue payment order."
+          example: 5.5
+        dueDate:
+          type: string
+          format: date-time
+          description: "Due date and time of the payment order."
+          example: "2021-03-25T10:14:24-05:00"
+        expiration:
+          type: string
+          format: date-time
+          description: "Expiration date and time of the payment order."
+          example: "2021-03-25T10:14:24-05:00"
+        serviceCode:
+          type: integer
+          description: "Code of the billed service or product."
+          example: 999
+          minLength: 1
+          maxLength: 13
         siteId:
           type: integer
-          example: 1
-          description: Identificador del sitio.
-        settlement:
-          type: object
-          description: Información sobre el pago de la factura.
-          properties:
-            authorization:
-              type: alpha_dash
-              description: Código de autorización del pago.
-              maxLength: 40
-            receipt:
-              type: alpha_num
-              description: Recibo del pago.
-              maxLength: 16
-            bankName:
-              type: string
-              description: Nombre del banco.
-              maxLength: 80
-            amount:
-              type: number
-              description: Monto total de la factura.
-              format: decimal
-              minimum: 0
-            paymentDate:
-              type: number
-              description: Monto total de la factura.
-              format: decimal
-              minimum: 0
+          description: "Site identifier."
+          example: 40
+      required:
+        - id
+        - status
+        - debtor
+        - payment
+        - createdAt
+        - expirationDate
+        - finalDate
+        - serviceCode
+        - siteId
+    Invoices:
+      title: "Invoices"
+      type: "array"
+      description: "Structure that contains information about a payment orders."
+      items:
+        $ref: "#/components/schemas/Invoice"
+    Debtor:
+      title: "Debtor"
+      type: "object"
+      description: "Structure containing information about the debtor of the payment order."
+      properties:
+        document:
+          type: string
+          description: "Debtor’s document number."
+          maxLength: 16
+          example: "1234567899"
+        documentType:
+          type: string
+          description: "Type of debtor document."
+          enum:
+            - "CC"
+            - "CE"
+            - "TI"
+            - "NIT"
+            - "RUT"
+            - "PPN"
+            - "TAX"
+            - "LIC"
+            - "SSN"
+            - "CIP"
+            - "CPF"
+            - "CI"
+            - "RUC"
+            - "DNI"
+            - "CLRUT"
+          example: "CC"
+        name:
+          type: string
+          description: "Debtor’s first name."
+          example: "ANDREA"
+        surname:
+          type: string
+          description: "Debtor’s last name."
+          example: "VIDAL FERNANDEZ"
+        email:
+          type: string
+          description: "Debtor’s email address."
+          example: "example@mail.com"
+      required:
+        - document
+        - documentType
+        - name
+
+    Payment:
+      title: "Payment"
+      type: "object"
+      description: "Structure containing payment information."
+      properties:
+        reference:
+          type: string
+          description: "Reference number."
+          maxLength: 32
+          example: "1234567890129"
+          pattern: '^[0-9A-Za-z_\-\s]+$'
+        description:
+          type: string
+          description: "Description of the payment."
+          maxLength: 255
+          example: "E993"
+        amount:
+          $ref: "#/components/schemas/Amount"
+        allowPartial:
+          type: boolean
+          description: "Indicates whether partial payments are allowed."
+          example: false
+        subscribe:
+          type: boolean
+          description: "Indicates whether subscription is allowed."
+          example: false
+      required:
+        - reference
+        - amount
+    Amount:
+      title: "Amount"
+      type: "object"
+      description: "Structure that contains information about the payment order amount."
+      properties:
+        taxes:
+          type: array
+          description: "Details of the applied taxes."
+          items:
+            $ref: "#/components/schemas/Tax"
+        details:
+          type: array
+          description: "Additional details of the payment order."
+          items:
+            $ref: "#/components/schemas/AmountDetail"
+        currency:
+          type: string
+          description: "Transaction currency (ISO 4217)."
+          example: "USD"
+        total:
+          type: number
+          format: float
+          description: "Total amount of the payment order (maximum 9,999,999,999.99)."
+          example: 30.12
+      required:
+        - currency
+        - total
+    Tax:
+      title: "Tax"
+      type: "object"
+      description: "Structure containing information about an applied tax."
+      properties:
+        kind:
+          type: string
+          description: "Tax classification type."
+          example: "valueAddedTax"
+        amount:
+          type: number
+          format: float
+          description: "Tax amount."
+          example: 0
+        base:
+          type: number
+          format: float
+          description: "Base amount used to calculate the tax."
+          example: 0
+      required:
+        - kind
+        - amount
+        - base
+
+    AmountDetail:
+      title: "AmountDetail"
+      type: "object"
+      description: "Structure for storing information about an additional value."
+      properties:
+        kind:
+          type: string
+          description: "Type of additional value."
+          enum:
+            - discount
+            - additional
+            - vatDevolutionBase
+            - shipping
+            - handlingFee
+            - insurance
+            - giftWrap
+            - subtotal
+            - fee
+            - tip
+          example: "subtotal"
+        amount:
+          type: number
+          format: float
+          description: "Monetary value corresponding to the type of additional value."
+          example: 30.12
+      required:
+        - kind
+        - amount
+
   securitySchemes:
   responses:
   requestBodies:

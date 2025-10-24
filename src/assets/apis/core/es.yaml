@@ -10440,6 +10440,26 @@ paths:
                       finalDate: "2025-02-25 23:59:59",
                       siteId: 3
                     }
+        '200 - Múltiple':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  count:
+                    type: integer
+                    example: 3
+                    description: Cantidad de facturas bloqueadas o liberadas.
+              example:
+                status:
+                  status: "OK"
+                  reason: "00"
+                  message: "La petición se ha procesado correctamente"
+                  date: "2020-07-29T08:09:35-05:00"
+                count: 3
         "400":
           description: Bad Request
           content:
@@ -10480,26 +10500,49 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                auth:
-                  "$ref": "#/components/schemas/Autentication"
-                site:
-                  type: integer
-                  example: 1
-                  description: Id del sitio al cual pertenece la factura.
-                invoice:
-                  type: integer
-                  example: 1
-                  description: Número de identificación de la factura.
-                revoke:
-                  type: boolean
-                  example: true
-                  default: false
-                  description: Si el valor es "false" la factura será bloqueada, si es "true" la factura será liberada.
-              required:
-                - auth
-                - invoice
+              oneOf:
+                - title: 'Uńica'
+                  type: object
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    site:
+                      type: integer
+                      example: 1
+                      description: Id del sitio al cual pertenece la factura.
+                    invoice:
+                      type: integer
+                      example: 1
+                      description: Número de identificación de la factura.
+                    revoke:
+                      type: boolean
+                      example: true
+                      default: false
+                      description: Si el valor es "false" la factura será bloqueada, si es "true" la factura será liberada.
+                  required:
+                    - auth
+                    - invoice
+                - title: 'Múltiple'
+                  type: object
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    site:
+                      type: integer
+                      example: 1
+                      description: Id del sitio al cual pertenece la factura.
+                    invoices:
+                      type: array
+                      description: Arreglo que contiene los números de identificación de las facturas.
+                      example: '[675983, 675984, 675985]'
+                    revoke:
+                      type: boolean
+                      example: true
+                      default: false
+                      description: Si el valor es "false" la factura será bloqueada, si es "true" la factura será liberada.
+                  required:
+                    - auth
+                    - invoices
             examples:
               Bloqueo o liberación de una factura:
                 value:
@@ -10602,9 +10645,9 @@ paths:
     parameters: []
   "/core/invoice/settle":
     post:
-      summary: Marcar factura como pagada
+      summary: Marcar facturas como pagadas
       operationId: post-core-invoice-settle
-      description: Este servicio permite marcar una factura como pagada. Esto significa que se han recibido los pagos correspondientes y la factura se ha cerrado.
+      description: Este servicio permite marcar una o múltiples facturas como pagadas. Esto significa que se han recibido los pagos correspondientes y las facturas se han cerrado.
       responses:
         "200":
           description: OK
@@ -10670,6 +10713,26 @@ paths:
                         paymentDate: "2025-02-17 10:46:49"
                       }
                     }
+        '200 - Múltiple':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  count:
+                    type: integer
+                    example: 3
+                    description: Cantidad de facturas marcadas como pagadas.
+              example:
+                status:
+                  status: "OK"
+                  reason: "00"
+                  message: "La petición se ha procesado correctamente"
+                  date: "2020-07-29T08:09:35-05:00"
+                count: 3
         "400":
           description: Bad Request
           content:
@@ -10710,42 +10773,93 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                auth:
-                  "$ref": "#/components/schemas/Autentication"
-                site:
-                  type: integer
-                  example: 1
-                  description: Id del sitio al cual pertenece la factura.
-                invoice:
-                  type: integer
-                  example: 1
-                  description: Número de identificación de la factura.
-                amount:
-                  type: number
-                  description: Monto total de la factura.
-                  format: decimal
-                  minimum: 0
-                authorization:
-                  type: alpha_dash
-                  description: Código de autorización del pago.
-                  maxLength: 40
-                receipt:
-                  type: alpha_num
-                  description: Recibo del pago.
-                  maxLength: 16
-                bankName:
-                  type: string
-                  description: Nombre del banco.
-                  maxLength: 80
-              required:
-                - auth
-                - site
-                - invoice
-                - amount
-                - authorization
-                - receipt
+              oneOf:
+                - title: 'Única'
+                  type: object
+                  properties:
+                    site:
+                      type: integer
+                      example: 1
+                      description: Id del sitio al cual pertenece la factura.
+                    invoice:
+                      type: integer
+                      example: 1
+                      description: Número de identificación de la factura.
+                    amount:
+                      type: number
+                      description: Monto total de la factura.
+                      format: decimal
+                      minimum: 0
+                    authorization:
+                      type: alpha_dash
+                      description: Código de autorización del pago.
+                      maxLength: 40
+                    receipt:
+                      type: alpha_num
+                      description: Recibo del pago.
+                      maxLength: 16
+                    bankName:
+                      type: string
+                      description: Nombre del banco.
+                      maxLength: 80
+                    date:
+                      type: string
+                      description: Fecha de pago de la factura.
+                      format: date
+                      example: 2025-01-01
+                  required:
+                    - auth
+                    - site
+                    - invoice
+                    - amount
+                    - authorization
+                    - receipt
+                - title: 'Múltiple'
+                  type: object
+                  properties:
+                    site:
+                      type: integer
+                      example: 1
+                      description: Id del sitio al cual pertenece la factura.
+                    invoices:
+                      type: array
+                      description: Arreglo que contiene las facturas.
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                          description: Número de identificación de la factura.
+                        amount:
+                          type: number
+                          description: Monto total de la factura.
+                          format: decimal
+                          minimum: 0
+                        authorization:
+                          type: alpha_dash
+                          description: Código de autorización del pago.
+                          maxLength: 40
+                        receipt:
+                          type: alpha_num
+                          description: Recibo del pago.
+                          maxLength: 16
+                        bankName:
+                          type: string
+                          description: Nombre del banco.
+                          maxLength: 80
+                        date:
+                          type: string
+                          description: Fecha de pago de la factura.
+                          format: date
+                          example: 2025-01-01
+                      required:
+                        - id
+                        - amount
+                        - authorization
+                        - receipt
+                  required:
+                    - auth
+                    - site
+                    - invoices
             examples:
               Marcar factura como pagada:
                 value:
@@ -16722,6 +16836,12 @@ components:
               description: Monto total de la factura.
               format: decimal
               minimum: 0
+    Invoices:
+      title: "Invoices"
+      type: "array"
+      description: "Estructura que contiene la información sobre las facturas."
+      items:
+        $ref: "#/components/schemas/Invoice"
   securitySchemes:
   responses:
   requestBodies:
