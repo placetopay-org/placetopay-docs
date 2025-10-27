@@ -1,3 +1,5 @@
+export const apiRefs = ['/merchant-api/notification-url'];
+
 export const description =
     'Aprende a controlar la notificación (Webhook) que Checkout envia a tu sitio cuando una sesión es finalizada.';
 
@@ -7,63 +9,129 @@ Cuando una sesión es finalizada, una notificación HTTP (Webhook) es enviada al
 
 Para recibir notificaciones debes configurar en tu aplicación una URL de notificación. Cada vez que una sesión finalice se hará una petición HTTP a ese endpoint con información útil sobre el estado de la sesión.
 
+## Estructura de la notificación `MerchantNotificationRequest` {{ id: 'notification-structure'}}
+
+Esta es la estructura del objeto que recibirás en la notificación:
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/merchant-api/notification-url"
+      method="POST"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="MerchantNotificationRequest" tag="POST" label="/{merchant-notification-url}">
+      ```json {{ 'title': 'Notificación' }}
+      {
+        "status": {
+          "status": "APPROVED",
+          "reason": "00",
+          "message": "Transacción aprobada",
+          "date": "2019-01-01T12:00:00-05:00"
+        },
+        "requestId": 1234,
+        "reference": "TEST_123424",
+        "signature": "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
+      }
+      ```
+      ```json {{ 'title': 'Notificación Pago Recurrente' }}
+      {
+        "status": {
+          "status": "APPROVED",
+          "reason": "00",
+          "message": "Transacción aprobada",
+          "date": "2019-01-01T12:00:00-05:00"
+        },
+        "internalReference": 1598634446,
+        "reference": "564555",
+        "signature": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s",
+        "recurring": {
+          "tries": 2,
+          "enabled": 0
+        }
+      }
+      ```
+      ```json {{ 'title': 'Notificación - sha1' }}
+      {
+        "status": {
+          "status": "APPROVED",
+          "reason": "00",
+          "message": "Transacción aprobada",
+          "date": "2019-01-01T12:00:00-05:00"
+        },
+        "requestId": 1234,
+        "reference": "TEST_123424",
+        "signature": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
+      }
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+
 ## Recepción de Notificación {{ id: 'notification-reception'}}
 
-Para aprovechar esta notificación, en tu aplicación debes:
+Para una correcta integración y para asegurar que tu sistema conozca el estado correcto de la sesión debes:
 
-**Identificar la sesión:** Con el `requestId` y `reference` buscar el pago en tu sistema, debe coincidir con una sesión que hayas creado previamente.
+### Disponibilizar tu endpoint de notificaciones.
 
-**Validar firma del mensaje:** Puedes validar que se trate de un mensaje confiable de Placetopay generando y comparando el `signature`.
+En tu servidor configura el endpoint que va a recibir la notificación.
 
-El signature se genera con la siguiente fórmula: `SHA-1(requestId + status.status + status.date + secretKey)`
+Este endpoint debe ser accesible por los servicios de Placetopay y debe aceptar comunicación HTTPS con TLS 1.2 o 1.3.
 
-Si el `signature` generado es igual al `signature` que llegó en el mensaje, entonces la notificación es auténtica.
+### Identificar la sesión de pagos
+
+En la notificación recibida encontrarás los siguientes campos que te ayudarán a identificar la sesión de pagos:
+
+- `requestId`: Identificador único de la sesión en Webcheckout.
+- `reference`: Referencia de la transacción.
+
+Con el `requestId` y `reference` buscar el pago en tu sistema, debe coincidir con una sesión que hayas creado previamente.
+
+### Validar Firma del mensaje
+
+Debido a que la notificación llega desde un sistema externo a tus servidores, es importante validar que el mensaje es autentico y viene de un origen confiable. Para esto se hace uso de una firma incluida en el mensaje y que fue generada usando el `secretKey` que solo conocen los sistemas involucrados. Para conocer más de tu `secretKey`, consulta la documentación de [Autenticación](/checkout/authentication/)
+
+<Note>
+  En versiones más recientes de nuestra API, se ha marcado como obsoleta la generación de firmas utilizando el algoritmo SHA-1. Asegurate de actualizar tu integración para utilizar SHA-256, que es el método recomendado y seguro en la actualidad. Ver más en [Proceso de migración de SHA-1 a SHA-256](/checkout/migration-sha256)
+</Note>
+
+Para iniciar tu validación debes tener disponible el `secretKey` asociado con tu comercio.
+
+**Identificar el algoritmo** para identificar el algoritmo usado en la firma, ten en cuenta lo siguiente:
+
+- Si el campo `signature` comienza con el prefijo `sha256:`, entonces la firma fue generada usando SHA-256.
+- Si el campo `signature` no tiene ningún prefijo, entonces la firma fue generada usando SHA-1. Te recomendamos actualizar tu integración para utilizar SHA-256. Contacta a soporte si necesitas ayuda con este proceso.
+
+**Extraer la firma plana**: Una vez identificado el algoritmo, identifica el campo `signature`. 
+
+- Si el prefijo `sha256:` está presente, debes eliminarlo y con esto obtendrás la firma plana que debes comparar, llamaremos a esta `receivedSignature`.
+- Si no hay prefijo, entonces la firma plana es igual al valor del campo `signature`, esta será tu `receivedSignature`.
+
+**Generar tu propia firma** Una vez identificado el algoritmo, debes generar tu propia firma usando la siguiente fórmula:
+
+- Para SHA-256: `SHA-256(requestId + status.status + status.date + secretKey)`
+- Para SHA-1: `SHA-1(requestId + status.status + status.date + secretKey)`
+
+Con esto obtrendrás la firma generada por tu sistema, llamaremos a esta `generatedSignature`.
+
+**Comparar firmas**: Finalmente, compara la firma que generaste (`generatedSignature`) con la firma que recibiste en el mensaje (`receivedSignature`). Si ambas firmas son iguales, entonces la notificación es auténtica y puedes proceder a actualizar el estado de la sesión en tu sistema.
 
 **Actualizar Información** Si todo lo que necesitas es el estado final de la sesión, entonces puedes actualizar el estado en tu sistema y eso sería todo.
 
 Además, si deseas obtener más información sobre la sesión y las transacciones relacionadas, debes consultar la sesión y obtener todos los detalles de esta.
 
-## Campos adicionales
+## Para Pago Recurrente
 
-### Pago Recurrente:
+Los pagos recurrentes ocurren despues de que la sesión inicial se completó, y generan notificaciones similares a las de una sesión normal, con algunas exepciones:
 
-**Información de la sesión:** En el campo `internalReference` puedes identificar la refencia de la transacción desde nuestra plataforma.
-
-**Información de la recurrencia del pago:**  El campo `tries` indica la cantidad de veces que se va a realizar el cobro y el campo `enabled` si éste cobro está habilitado o deshabilitado.
-
-## Ejemplos de respuestas
-
-```json {{ 'title': 'Notificación Pago Básico' }}
-{
-  "status": {
-    "status": "APPROVED",
-    "reason": "00",
-    "message": "Transacción aprobada",
-    "date": "2019-01-01T12:00:00-05:00"
-  },
-  "requestId": 1234,
-  "reference": "TEST_123424",
-  "signature": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
-}
-```
-
-```json {{ 'title': 'Notificación Pago Recurrente' }}
-{
-  "status": {
-    "status": "APPROVED",
-    "reason": "00",
-    "message": "Transacción aprobada",
-    "date": "2019-01-01T12:00:00-05:00"
-  },
-  "internalReference": 1598634446,
-  "reference": "564555",
-  "signature": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s",
-  "recurring": {
-     "tries": 2,
-     "enabled": 0
-  }
-}
-```
+- El campo `requestId` NO está presente. Pues este pago se genera automáticamente y no está asociado a una sesión creada por el comercio. Se trata de una transacción independiente
+- El campo `internalReference` está presente. Este campo contiene el identificador único del pago recurrente en nuestra plataforma.
+- El nuevo objeto `recurring` está presente. Este campo contiene información adicional sobre la recurrencia del pago.
+  - El campo `recurring.tries` indica la cantidad de veces que se va a realizar el cobro
+  - El campo `recurring.enabled` indica si el cobro recurrente está habilitado o deshabilitado.
 
 ## Mejora tu integración
 
@@ -88,4 +156,9 @@ La URL de notificación debe ser segura y debe usar HTTPS en internet. Asegúrat
 
 ### Verificación de la Firma
 
-La firma del mensaje se envía en la propiedad `signature` y debe ser verificada para asegurar la integridad y autenticidad de la notificación. Usa la siguiente fórmula para verificar la firma: `SHA-1(requestId + status.status + status.date + secretKey)`. Asegúrate de reemplazar `secretKey` con tu clave secreta real. Este paso de verificación es crucial para asegurar que la notificación no haya sido manipulada.
+La firma del mensaje se envía en la propiedad `signature` y debe ser verificada para asegurar la integridad y autenticidad de la notificación. Usa la siguiente fórmula para verificar la firma: `SHA-256(requestId + status.status + status.date + secretKey)`. Asegúrate de reemplazar `secretKey` con tu clave secreta real. Este paso de verificación es crucial para asegurar que la notificación no haya sido manipulada.
+
+
+## Proceso de migración de SHA-1 a SHA-256
+
+Si actualmente estás utilizando SHA-1 para la generación de firmas en tus notificaciones, es altamente recomendable que migres a SHA-256 para mejorar la seguridad de tu integración. Dirigete a nuestra guía de [Migración de notificaciones a SHA-256](/checkout/migration-sha256/) para obtener instrucciones detalladas sobre cómo realizar esta transición de manera efectiva.
