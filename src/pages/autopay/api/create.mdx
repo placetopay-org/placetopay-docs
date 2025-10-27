@@ -1,4 +1,155 @@
-export const apiRefs = ['/autopay/api/create']
+export const apiRefs = ['/api/create']
 
-## Crear un AutoPago {{ id: 'create-autopay', tag: 'POST', label: '/autopay/api/create' }}
-<Note type="warning"> Esta API se encuentra en construcción </Note>
+# Crear un AutoPago
+
+El flujo de creación de un autopago comienza con esta solicitud que genera un registro en estado pendiente. Este proceso permite configurar pagos programados y/o recurrentes de forma automatizada.
+
+## Flujo de creación
+
+1. **Solicitud inicial**: Al realizar la petición de creación, el sistema genera un autopago en estado `PENDING` y retorna una URL de redirección.
+
+2. **Interfaz de AutoPago**: La URL dirige al usuario a una interfaz gráfica donde debe:
+   - Seleccionar su medio de pago preferido
+   - Completar el proceso de suscripción del medio de pago
+   - Aceptar los términos y condiciones del autopago
+   - Pasar las validaciones de seguridad necesarias
+
+3. **Activación**: Una vez completado el proceso, recibirá una notificación mediante webhook indicando la actualización del estado del autopago. Alternativamente, puede consultar el estado usando el endpoint de consulta para verificar si el autopago ya está activo.
+
+----
+
+## Tipos de cargo {{id: 'charge-types'}}
+Un cargo en AutoPay se refiere al monto que se intenta cobrar en cada fecha programada del autopago. Existen varias formas en las que se puede definir el monto a cobrar, conocidas como "Tipos de cargo".
+
+El tipo de cargo define qué valor intentará cobrar el autopago (por ejemplo, saldo total, pago mínimo, etc.). A continuación se definen los tipos de cargo disponibles en el sistema de AutoPay y cómo operan dentro del flujo general.
+
+| Tipo de cargo       | Qué cobra                                                                   | Fuente del monto en ejecución                                                                                                                                                                                                                |
+|---------------------|-----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `STATEMENT_BALANCE` | El **saldo total** requerido del período (total a pagar segun recurrencia). | Se consulta el [**balance**](/autopay/contracts/balance) de la obligación vía API del comercio si está está habilitada en cada pago a realizar.                                                                                              |
+| `MINIMUM_PAYMENT`   | El **pago mínimo** requerido del período.                                   | Se consulta el [**balance**](/autopay/contracts/balance) para obtener el mínimo del período en cada pago a realizar.                                                                                                                         |
+| `FIXED_MINIMUM`     | **Pago mínimo + un valor fijo adicional**.                                  | El **mínimo** proviene del [**balance**](/autopay/contracts/balance) y se consulta en cada pago a realizar y el **fijo** se define en la creación o en su defecto será elegido por el usuario en el momento de la confirmación del autopago. |
+| `FIXED_AMOUNT`      | Un **monto fijo** especificado por el comercio/usuario.                     | El monto lo provee la solicitud o en su defecto será elegido por el usuario en el momento de la confirmación del autopago.                                                                                                                   |
+
+----
+
+## Crear un AutoPago {{ id: 'create-autopay', tag: 'POST', label: '/api/create' }}
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/api/create"
+            method="POST"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <br />
+        <CodeGroup title="Solicitud" tag="POST" label="/api/create">
+            ```bash {{ title: 'Crear orden de pago' }}
+            curl -X "POST" {{baseURl}}/api/create \
+            -H "Content-Type: application/json" \
+            -d '{
+                "auth": {
+                    "login":"aabbccdd1234567890aabbccdd123456",
+                    "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+                    "nonce":"enQ4dXh3YWhkMWM=",
+                    "seed":"2023-06-21T09:56:06-05:00"
+                },
+                "locale": "es_CO",
+                "reference": "RF-12345",
+                "description": "Plan de suscripción mensual",
+                "chargeType": ["STATEMENT_BALANCE", "MINIMUM_PAYMENT", "FIXED_MINIMUM", "FIXED_AMOUNT"],
+                "recurring": {
+                    "periodicity": "M",
+                    "interval": "1",
+                    "paymentDate": "2025-12-15T00:00:00-05:00"
+                },
+                "expiration": "2022-12-15T00:00:00-05:00",
+                "returnUrl": "https://dnetix.co/p2p/client",
+                "ipAddress": "127.0.0.1",
+                "userAgent": "PlacetoPay Sandbox"
+        }'
+            ```
+            ```bash {{ title: 'Cargo Fijo' }}
+            curl -X "POST" {{baseURl}}/api/create \
+            -H "Content-Type: application/json" \
+            -d '{
+                "auth": {
+                    "login":"aabbccdd1234567890aabbccdd123456",
+                    "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+                    "nonce":"enQ4dXh3YWhkMWM=",
+                    "seed":"2025-07-14T09:56:06-05:00"
+                },
+                "locale": "es_CO",
+                "reference": "RF-12345",
+                "description": "Plan de suscripción mensual",
+                "chargeType": ["FIXED_AMOUNT"],
+                "amount": {
+                    "currency": "USD",
+                    "total": 100
+                },
+                "recurring": {
+                    "periodicity": "M",
+                    "interval": "1",
+                    "paymentDate": "2025-12-15T00:00:00-05:00"
+                },
+                "expiration": "2025-07-15T00:00:00-05:00",
+                "returnUrl": "https://dnetix.co/p2p/client",
+                "ipAddress": "127.0.0.1",
+                "userAgent": "PlacetoPay Sandbox"
+        }'
+            ```
+        </CodeGroup>
+    </Col>
+</Row>
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/api/create"
+            method="POST"
+            type="response"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <br />
+        <CodeGroup title="Respuesta">
+            ```json {{ title: '200' }}
+            {
+                "status": {
+                    "status": "OK",
+                    "reason": "00",
+                    "description": "La petición se ha procesado correctamente",
+                    "date":"2023-06-21T09:56:06-05:00"
+               },
+                "id": "ac1cc9ce-83fe-42d7-9708-f6dd5461c89e",
+                "reference": "RF-12345",
+                "processUrl": "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a",
+            }
+            ```
+            ```json {{ title: '400: Respuesta fallida' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": "BR",
+                    "message": "El campo reference es obligatorio.",
+                    "date":"2023-06-21T09:56:06-05:00"
+                }
+            }
+            ```
+
+            ```json {{ title: '401: Autenticación fallida' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": "401",
+                    "message": "la autenticación no contiene todos los parámetros requeridos (login, tranKey, seed, nonce)",
+                    "date": "2021-09-21T09:34:48-05:00"
+             }
+            }
+            ```
+        </CodeGroup>
+    </Col>
+</Row>
+
