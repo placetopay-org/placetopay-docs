@@ -442,6 +442,7 @@ export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
   let data = api?.[path]
   if (type !== 'params') data = data?.[method.toLowerCase()]
 
+    console.log(api, path, '________________')
   if (!data) {
     throw new Error(
       `Method ${method} not found in API definition for path ${path}`
