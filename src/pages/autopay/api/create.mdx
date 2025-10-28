@@ -1,6 +1,6 @@
 export const apiRefs = ['/api/create']
 
-# Crear un AutoPago
+# Registrar un AutoPago
 
 El flujo de creación de un autopago comienza con esta solicitud que genera un registro en estado pendiente. Este proceso permite configurar pagos programados y/o recurrentes de forma automatizada.
 
@@ -18,21 +18,7 @@ El flujo de creación de un autopago comienza con esta solicitud que genera un r
 
 ----
 
-## Tipos de cargo {{id: 'charge-types'}}
-Un cargo en AutoPay se refiere al monto que se intenta cobrar en cada fecha programada del autopago. Existen varias formas en las que se puede definir el monto a cobrar, conocidas como "Tipos de cargo".
-
-El tipo de cargo define qué valor intentará cobrar el autopago (por ejemplo, saldo total, pago mínimo, etc.). A continuación se definen los tipos de cargo disponibles en el sistema de AutoPay y cómo operan dentro del flujo general.
-
-| Tipo de cargo       | Qué cobra                                                                   | Fuente del monto en ejecución                                                                                                                                                                                                                |
-|---------------------|-----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `STATEMENT_BALANCE` | El **saldo total** requerido del período (total a pagar segun recurrencia). | Se consulta el [**balance**](/autopay/contracts/balance) de la obligación vía API del comercio si está está habilitada en cada pago a realizar.                                                                                              |
-| `MINIMUM_PAYMENT`   | El **pago mínimo** requerido del período.                                   | Se consulta el [**balance**](/autopay/contracts/balance) para obtener el mínimo del período en cada pago a realizar.                                                                                                                         |
-| `FIXED_MINIMUM`     | **Pago mínimo + un valor fijo adicional**.                                  | El **mínimo** proviene del [**balance**](/autopay/contracts/balance) y se consulta en cada pago a realizar y el **fijo** se define en la creación o en su defecto será elegido por el usuario en el momento de la confirmación del autopago. |
-| `FIXED_AMOUNT`      | Un **monto fijo** especificado por el comercio/usuario.                     | El monto lo provee la solicitud o en su defecto será elegido por el usuario en el momento de la confirmación del autopago.                                                                                                                   |
-
-----
-
-## Crear un AutoPago {{ id: 'create-autopay', tag: 'POST', label: '/api/create' }}
+## Registrar un AutoPago {{ id: 'create-autopay', tag: 'POST', label: '/api/create' }}
 
 <Row>
     <Col>
@@ -45,7 +31,7 @@ El tipo de cargo define qué valor intentará cobrar el autopago (por ejemplo, s
     <Col sticky>
         <br />
         <CodeGroup title="Solicitud" tag="POST" label="/api/create">
-            ```bash {{ title: 'Crear orden de pago' }}
+            ```bash {{ title: 'General' }}
             curl -X "POST" {{baseURl}}/api/create \
             -H "Content-Type: application/json" \
             -d '{
@@ -93,6 +79,55 @@ El tipo de cargo define qué valor intentará cobrar el autopago (por ejemplo, s
                     "interval": "1",
                     "paymentDate": "2025-12-15T00:00:00-05:00"
                 },
+                "expiration": "2025-07-15T00:00:00-05:00",
+                "returnUrl": "https://dnetix.co/p2p/client",
+                "ipAddress": "127.0.0.1",
+                "userAgent": "PlacetoPay Sandbox"
+        }'
+            ```
+            ```bash {{ title: 'Monto minimo fijo' }}
+            curl -X "POST" {{baseURl}}/api/create \
+            -H "Content-Type: application/json" \
+            -d '{
+                "auth": {
+                    "login":"aabbccdd1234567890aabbccdd123456",
+                    "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+                    "nonce":"enQ4dXh3YWhkMWM=",
+                    "seed":"2025-07-14T09:56:06-05:00"
+                },
+                "locale": "es_CO",
+                "reference": "RF-12345",
+                "description": "Plan de suscripción mensual",
+                "chargeType": ["FIXED_MINIMUM"],
+                "amount": {
+                    "currency": "USD",
+                    "total": 1 # En este caso se cobra el monto minimo de la factura + el monto indicado en este punto
+                },
+                "recurring": {
+                    "periodicity": "M",
+                    "interval": "1",
+                    "paymentDate": "2025-12-15T00:00:00-05:00"
+                },
+                "expiration": "2025-07-15T00:00:00-05:00",
+                "returnUrl": "https://dnetix.co/p2p/client",
+                "ipAddress": "127.0.0.1",
+                "userAgent": "PlacetoPay Sandbox"
+        }'
+            ```
+            ```bash {{ title: 'Libertad para el usuario' }}
+            curl -X "POST" {{baseURl}}/api/create \
+            -H "Content-Type: application/json" \
+            -d '{
+                "auth": {
+                    "login":"aabbccdd1234567890aabbccdd123456",
+                    "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+                    "nonce":"enQ4dXh3YWhkMWM=",
+                    "seed":"2025-07-14T09:56:06-05:00"
+                },
+                "locale": "es_CO",
+                "reference": "RF-12345",
+                "description": "Plan de suscripción mensual",
+                "chargeType": ["STATEMENT_BALANCE", "MINIMUM_PAYMENT", "FIXED_MINIMUM", "FIXED_AMOUNT"],
                 "expiration": "2025-07-15T00:00:00-05:00",
                 "returnUrl": "https://dnetix.co/p2p/client",
                 "ipAddress": "127.0.0.1",

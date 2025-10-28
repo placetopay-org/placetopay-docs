@@ -2223,6 +2223,7 @@ export const TAB_NAVIGATION = {
               { title: 'Introducción', href: '/autopay' },
               { title: 'Autenticación', href: '/autopay/authentication' },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
+              { title: 'Tipos de cargo', href: '/autopay/charge-types'},
               { title: 'Descripción de notificaciones', href: '/autopay/webhook-description'}
             ],
           },
@@ -2243,7 +2244,7 @@ export const TAB_NAVIGATION = {
             {
                 title: 'API',
                 links: [
-                  { title: 'Crear AutoPago', href: '/autopay/api/create' },
+                  { title: 'Registrar AutoPago', href: '/autopay/api/create' },
                   { title: 'Actualizar AutoPago', href: '/autopay/api/update' },
                   { title: 'Consultar AutoPago', href: '/autopay/api/query' },
                   { title: 'Cancelar un AutoPago', href: '/autopay/api/cancel' },

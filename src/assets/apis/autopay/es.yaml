@@ -246,6 +246,9 @@ paths:
               type: object
               required:
                 - auth
+                - reference
+                - description
+                - chargeTypes
               properties:
                 auth:
                   $ref: '../base/es.yaml#/components/schemas/Authentication'
@@ -253,7 +256,122 @@ paths:
                   type: "string"
                   description: "Idioma de la respuesta."
                   example: "es_ES"
-
+                reference:
+                  type: string
+                  description: Referencia unica del AutoPago proporcionada por el cliente/comercio.
+                  example: "ACC00012345"
+                  maxLength: 32
+                description:
+                  type: string
+                  description: Descripción visible para el pagador del propósito del AutoPago.
+                  maxLength: 255
+                  example: Suscripción mensual Plan Básico
+                chargeTypes:
+                  type: array
+                  description: Tipos de cargo permitidos dentro del autopago. Debe incluir al menos un tipo. En el caso de existir un solo tipo, este se tomará por defecto y se aplicará la lógica correspondiente al monto y configuración del comercio; si por el contrario existen varios tipos, en la redirección a la interfaz gráfica se le solicitará al usuario (pagador) escoger un tipo de cargo de los seleccionados por el cliente. Ver más en [Tipos de cargo](/autopay/charge-types).
+                  minItems: 1
+                  enum:
+                    - STATEMENT_BALANCE
+                    - MINIMUM_PAYMENT
+                    - FIXED_MINIMUM
+                    - FIXED_AMOUNT
+                  example:
+                    - [ STATEMENT_BALANCE, MINIMUM_PAYMENT ]
+                amount:
+                    type: "object"
+                    description: |
+                      Estructura que define la información asociada al pago recurrente dentro del proceso de autopago. El valor y comportamiento de este campo dependen del tipo de cargo seleccionado por el usuario (chargeType) y de la configuración del comercio:
+                      - Si el tipo de cargo es FIXED_AMOUNT, el valor definido en este campo representará el monto que se cobrará de forma recurrente.
+                      - Si el tipo de cargo es STATEMENT_BALANCE o MINIMUM_PAYMENT, este valor será ignorado, ya que el monto será determinado automáticamente con base en el estado de cuenta del usuario ([Balance](/autopay/contracts/balance)).
+                      - Si el tipo de cargo es FIXED_MINIMUM, este valor será interpretado como un monto adicional al pago mínimo calculado a partir del [Balance](/autopay/contracts/balance)
+                      En caso de no enviarse este campo y el tipo de cargo seleccionado lo requiera, el sistema solicitará al usuario completar la información correspondiente a través de la interfaz gráfica.
+                    x-conditional:
+                      - "currency"
+                      - "total"
+                    properties:
+                      currency:
+                        type: "string"
+                        description: |
+                          Código alfabético de la moneda a usar (ISO 4217 alpha code)
+                        enum:
+                          - "USD"
+                          - "COP"
+                          - "CRC"
+                          - "EUR"
+                          - "CAD"
+                          - "AUD"
+                          - "GBP"
+                          - "MXN"
+                          - "CLP"
+                        example: "COP"
+                        minLength: 3
+                        maxLength: 3
+                      total:
+                        type: "number"
+                        example: 2000
+                        description: |
+                          Valor total en la moneda base indicada
+                      taxes:
+                        type: "array"
+                        description: |
+                          Estructura para definir impuestos en el proceso de pago.
+                        items:
+                          $ref: "../base/es.yaml#/components/schemas/TaxDetail"
+                      details:
+                        type: "array"
+                        description: |
+                          Estructura para definir detalles adicionales del monto en el proceso de pago.
+                        items:
+                          $ref: "../base/es.yaml#/components/schemas/AmountDetail"
+                recurring:
+                  type: object
+                  description: Parámetros de recurrencia. Si no se envía, el sistema podrá solicitarlos al usuario en el momento de la redirección.
+                  properties:
+                    periodicity:
+                      type: string
+                      description: Periodicidad del cobro. D=Diario, W=Semanal, M=Mensual, Y=Anual.
+                      enum: [ D, W, M, Y ]
+                      example: M
+                    interval:
+                      type: string
+                      description: Cada cuántos períodos se realiza el cobro (ej. "1" = cada mes si periodicidad=M).
+                      pattern: '^[1-9][0-9]*$'
+                      example: "1"
+                    maxPeriods:
+                      type: integer
+                      description: Número máximo de períodos a cobrar.
+                      minimum: 1
+                      example: 12
+                    dueDay:
+                      type: integer
+                      description: Día de corte o vencimiento (1–28 para evitar meses cortos).
+                      minimum: 1
+                      maximum: 28
+                      example: 15
+                    paymentDate:
+                      type: string
+                      format: date-time
+                      description: Fecha a partir de la cual inicia el cobro.
+                      example: "2025-11-30T00:00:00-05:00"
+                expiration:
+                    type: string
+                    format: date-time
+                    description: Fecha de expiración de la sesión/solicitud.
+                    example: "2025-12-15T00:00:00-05:00"
+                returnUrl:
+                    type: string
+                    format: uri
+                    maxLength: 255
+                    description: URL de retorno post-proceso (longitud máxima actual 255).
+                    example: "https://dnetix.co/p2p/client"
+                ipAddress:
+                    type: string
+                    description: Dirección IP del pagador.
+                    example: "127.0.0.1"
+                userAgent:
+                    type: string
+                    description: Agente de usuario del navegador/cliente.
+                    example: "PlacetoPay Sandbox"
       responses:
         "200":
           description: Solicitud exitosa
@@ -284,7 +402,7 @@ components:
         - FIXED_MINIMUM
         - FIXED_AMOUNT
         - MINIMUM_PAYMENT
-      description: "Tipo de cargo del autopago"
+      description: Tipo de cargo del autopago. Ver más en [Tipos de cargo](/autopay/charge-types).
     AutoPayId:
       type: string
       format: uuid
