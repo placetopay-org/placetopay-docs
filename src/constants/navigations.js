@@ -2253,8 +2253,8 @@ export const TAB_NAVIGATION = {
                 title: 'API',
                 links: [
                   { title: 'Registrar AutoPago', href: '/autopay/api/create' },
-                  { title: 'Actualizar AutoPago', href: '/autopay/api/update' },
                   { title: 'Consultar AutoPago', href: '/autopay/api/query' },
+                  { title: 'Actualizar AutoPago', href: '/autopay/api/update' },
                   { title: 'Cancelar un AutoPago', href: '/autopay/api/cancel' },
                   { title: 'Búsqueda de AutoPagos', href: '/autopay/api/search' },
                 ],
