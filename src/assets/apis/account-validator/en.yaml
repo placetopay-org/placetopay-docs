@@ -28,23 +28,8 @@ paths:
                 - returnUrl
                 - locale
               properties:
-                auth:
-                  type: object
-                  description: Structure containing the site's authentication information generated according to the WSSE UsernameToken Profile 1.1.
-                  required:
-                    - login
-                    - tranKey
-                    - nonce
-                    - seed
-                  properties:
-                    login:
-                      type: string
-                    tranKey:
-                      type: string
-                    nonce:
-                      type: string
-                    seed:
-                      type: string
+                auth: 
+                  $ref: "../base/en.yaml#/components/schemas/Authentication"
                 user:
                   type: object
                   description: |
@@ -57,48 +42,43 @@ paths:
                       type: string
                       description: |
                         First name(s) of the account owner
-                        
-                        `>= 1 characters` `<= 50 characters`
-                        
-                        EX: `John`
+                      maxLength: 50
+                      example: John
                     surname:
                       type: string
                       description: |
                         Last name(s) of the account owner
-                        
-                        `<= 50 characters`
-
-                        EX: `Doe`
+                      maxLength: 50
+                      example: Doe
                     email:
                       type: email
                       description: |
                         Email address of the account owner
-                        
-                        `<= 80 characters`
-
-                        EX: `John.doe@test.com`
+                      maxLength: 80
+                      example: John.doe@test.com
                 returnUrl:
                   type: string
                   description: |
                     Return URL once the account validation process is completed
-                    
-                    `<= 255 characters`
-                    
-                    EX: `https://www.placetopay.com/return`
+                  maxLength: 255
+                  example: https://www.placetopay.com/return
                 locale:
                   type: string
                   description: |
                     Determines the response language
-                    
-                    `<= 5 characters`
-                    
-                    EX: `es_CO`
+                  maxLength: 5
+                  example: es_CO
                 isAuthenticated:
                   type: boolean
                   description: |
                     Indicates if an external authentication process has already been performed. The intention is not to validate the user's email twice. Default is false, meaning an OTP will be sent to validate the user if they have already validated accounts with micro-deposits in the system.
                     
-                    EX: `false`
+                  example: true
+                site:
+                  type: string
+                  description: |
+                    If use api credentials, this field is required to identificate the site
+                  example: aabbccdd1234567890aabbccdd123456
       responses:
         "200":
           description: "Session created successfully"
@@ -115,56 +95,24 @@ paths:
                         type: string
                         description: |
                           Unique identifier of the session to be queried.
-                          
-                          `<= 36 characters`
-                          
-                          EX: `9bd89c8d-6097-4d69-8ce9-d9b5ec35d8ea`
-                          
-                          Match pattern:
-                          `[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`
+                        format: regex
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                        maxLength: 36                          
+                        example: 9bd89c8d-6097-4d69-8ce9-d9b5ec35d8ea
                       redirectUrl:
                         type: string <url>
                         description: |
                           Response code
                           
-                          EX: `https://dev-account-validator.placetopay.ws/verification/redirect/9bd89c8d-6097-4d69-8ce9-d9b5ec35d8ea`
+                        example: https://dev-account-validator.placetopay.ws/verification/redirect/9bd89c8d-6097-4d69-8ce9-d9b5ec35d8ea
                       expiresAt:
                         type: string
                         description: |
                           Session expiration date
                           
-                          EX: `2024-04-19 17:36:57`
+                        example: 2024-04-19 17:36:57
                   status:
-                    type: object
-                    description: Structure containing information about the request status.
-                    properties:
-                      status:
-                        type: string
-                        description: |
-                          Request status
-                          
-                          Allowed values: `OK` `FAILED` `APPROVED` `APPROVED_PARTIAL` `PARTIAL_EXPIRED` `REJECTED` `PENDING` `PENDING_VALIDATION` `PENDING_PROCESS` `REFUNDED` `REVERSED` `ERROR` `UNKNOWN` `MANUAL` `DISPUTE`
-                      reason:
-                        type: integer
-                        description: |
-                          Response code
-                          
-                          `>= 1 characters` `<= 4 characters`
-                      message:
-                        type: string
-                        description: |
-                          Response message
-                      date:
-                        type: string
-                        description: |
-                          Response date and time
-                          
-                           EX: `2021-09-21T09:34:48-05:00`
-                    required:
-                      - status
-                      - reason
-                      - message
-                      - date
+                    $ref: "../base/en.yaml#/components/schemas/Status"
         "400":
           description: |
             Invalid request.
@@ -174,38 +122,9 @@ paths:
                 type: object
                 properties:
                   status:
-                    type: object
-                    description: Structure containing information about the request status.
-                    properties:
-                      status:
-                        type: string
-                        description: |
-                          Request status
-                          
-                          Allowed values: `OK` `FAILED` `APPROVED` `APPROVED_PARTIAL` `PARTIAL_EXPIRED` `REJECTED` `PENDING` `PENDING_VALIDATION` `PENDING_PROCESS` `REFUNDED` `REVERSED` `ERROR` `UNKNOWN` `MANUAL` `DISPUTE`
-                      reason:
-                        type: integer
-                        description: |
-                          Response code
-                          
-                          `>= 1 characters` `<= 4 characters`
-                      message:
-                        type: string
-                        description: |
-                          Response message
-                      date:
-                        type: string
-                        description: |
-                          Response date and time
-                          
-                           EX: `2021-09-21T09:34:48-05:00`
-                    required:
-                      - status
-                      - reason
-                      - message
-                      - date
+                    $ref: "../base/en.yaml#/components/schemas/Status"
                 required:
-                  - Status
+                  - status
   /api/check-session-status:
     post:
       summary: "Check Session Status"
@@ -218,35 +137,18 @@ paths:
             schema:
               type: object
               properties:
-                auth:
-                  type: object
-                  description: |
-                    Structure containing the site's authentication information generated according to the WSSE UsernameToken Profile 1.1"
-                  properties:
-                    login:
-                      type: string
-                      description: |
-                        Site identifier
-                    tranKey:
-                      type: string
-                      description: |
-                        **tranKey** credential generated
-                    nonce:
-                      type: string
-                      description: |
-                        **Random** value for each request encoded in **Base64**.
-                    seed:
-                      type: string
-                      description: |
-                        **Current** date, generated in **ISO 8601** format.
+                auth: 
+                  $ref: "../base/en.yaml#/components/schemas/Authentication"
                 requestId:
                   type: string
                   description: |
                     Unique identifier of the session to be queried.
-                    
-                     `<= 36 characters`
-                    
-                     EX: `1f630ff7-9c02-4da4-82d4-d676709acb21`
+                  maxLength: 36
+                  example: 1f630ff7-9c02-4da4-82d4-d676709acb21
+                site:
+                  type: string
+                  description: If use api credentials, this field is required to identificate the site                    
+                  example: aabbccdd1234567890aabbccdd123456
               required:
                 - auth
                 - requestId
@@ -259,126 +161,65 @@ paths:
                 type: object
                 properties:
                   status:
-                    type: object
-                    description: Structure containing information about a request or payment, reporting its current status.
-                    properties:
-                      status:
-                        type: string
-                        description: |
-                          Request status
-                          
-                          Allowed values: `OK` `FAILED` `APPROVED` `APPROVED_PARTIAL` `PARTIAL_EXPIRED` `REJECTED` `PENDING` `PENDING_VALIDATION` `PENDING_PROCESS` `REFUNDED` `REVERSED` `ERROR` `UNKNOWN` `MANUAL` `DISPUTE`
-                      reason:
-                        type: integer
-                        description: |
-                          Response code
-                          
-                          `>= 1 characters` `<= 4 characters`
-                      message:
-                        type: string
-                        description: |
-                          Response message
-                      date:
-                        type: string
-                        description: |
-                          Response date and time
-                          
-                           EX: `2021-09-21T09:34:48-05:00`
-                    required:
-                      - status
-                      - reason
-                      - message
-                      - date
+                    $ref: "../base/en.yaml#/components/schemas/Status"
                   data:
                     type: object
                     description: Structure containing the response to the request if the status is successful
                     properties:
                       requestId:
                         type: string
-                        description: |
-                          Unique identifier of the session to be queried.
-                          
-                           EX: `1f630ff7-9c02-4da4-82d4-d676709acb21`
+                        description: Unique identifier of the session to be queried.
+                        example: 1f630ff7-9c02-4da4-82d4-d676709acb21
                       expiresAt:
                         type: string
-                        description: |
-                          Session expiration date
-                          
-                           EX: `2022-08-30 15:19:33`
+                        description: Session expiration date                          
+                        example: 2022-08-30 15:19:33
                       account:
                         type: object
                         description: Information about the verified account (this field is available only if the verification was Approved and can only be viewed for the first 10 minutes)
                         properties:
                           bankName:
                             type: string
-                            description: |
-                              Name of the bank of the account to be processed
-                              
-                              `<= 30 characters`
+                            description: Name of the bank of the account to be processed                            
+                            maxLength: 30
+                            example: Banco de la Republica
                           bankCode:
                             type: string
-                            description: |
-                              Code identifying the bank in the network
-                              
-                              `<= 17 characters`
+                            description: Code identifying the bank in the network                            
+                            maxLength: 17
+                            example: 001
                           accountType:
                             type: string
-                            description: |
-                              Account type
-                              
-                              Allowed values: `SAV` `DDA`
+                            description: Account type
+                            enum:
+                              - SAV
+                              - DDA
+                            example: SAV
                           accountNumber:
                             type: string
-                            description: |
-                              Account number
-                              
-                              `<= 17 characters`
+                            description: Account number                            
+                            maxLength: 17
+                            example: 12345678901234567
                           franchise:
                             type: string
-                            description: |
-                              `<= 17 characters`
+                            description: Franchise                            
+                            maxLength: 17
+                            example: VISA
                           verificationCode:
                             type: string
-                            description: |
-                              The verificationCode is a JSON Web Signature (JWS). It is used as the instrument to verify the account status.
-                              
-                               EX:`eyJhbGciOiJSUzI1NiJ9.eyJhY2NvdW50SGFzaCI6ImM5YWM2ZjFhZDhjNDA3Y2ZjNzMyNDljNTE2MTJjNTdmMWQxZGNiNTA4YjE4ZGJlYWE1MWQ0NDI5NjBjMjUwNDUyMzY4ZTg2YmUzMWQ3MDMxMDY4ZDM2MjM2NzVjYzhkYTUzNzhhODNmMTUwZjg5OTczOTBiZTEyMGU1ZmExN2RhIiwib25UZXN0Ijp0cnVlLCJzZXJ2aWNlIjoibW9jayIsImlkIjo0MDB9.dFMY4EwCrWq9EBmERFkKCoLHExPH4vgaCgnZaqB_mf8n3Sv6Qnu6Pb79onluX1OZecmYmBuHqZ_ykKXWSD4RMZSpckYFCiO3mlcJKI4qb91COhl_c2qXxYJuLEdbLfGlzf0k8-oJgFcO9gAS1Xm0hpTP4iiXF6st1hFwlfR3fpX4rr-bTsKgMvRSReMuxa0Vs92DykfqUR_3udlc0DFCPB9ZTaSqeRNHFAPAWNniUPWURQlW5c9J9xcyKTgKGzfI1_7h2I4ALQeRifptE2nC-HZtEMwtcToNh7hn0oL9lNFXnXGK9sWKORcyWKVfpEChS8z30UfX6kOhU6fp_qUwmA`
+                            description: The verificationCode is a JSON Web Signature (JWS). It is used as the instrument to verify the account status.                            
+                            example: eyJhbGciOiJSUzI1NiJ9.eyJhY2NvdW50SGFzaCI6ImM5YWM2ZjFhZDhjNDA3Y2ZjNzMyNDljNTE2MTJjNTdmMWQxZGNiNTA4YjE4ZGJlYWE1MWQ0NDI5NjBjMjUwNDUyMzY4ZTg2YmUzMWQ3MDMxMDY4ZDM2MjM2NzVjYzhkYTUzNzhhODNmMTUwZjg5OTczOTBiZTEyMGU1ZmExN2RhIiwib25UZXN0Ijp0cnVlLCJzZXJ2aWNlIjoibW9jayIsImlkIjo0MDB9.dFMY4EwCrWq9EBmERFkKCoLHExPH4vgaCgnZaqB_mf8n3Sv6Qnu6Pb79onluX1OZecmYmBuHqZ_ykKXWSD4RMZSpckYFCiO3mlcJKI4qb91COhl_c2qXxYJuLEdbLfGlzf0k8-oJgFcO9gAS1Xm0hpTP4iiXF6st1hFwlfR3fpX4rr-bTsKgMvRSReMuxa0Vs92DykfqUR_3udlc0DFCPB9ZTaSqeRNHFAPAWNniUPWURQlW5c9J9xcyKTgKGzfI1_7h2I4ALQeRifptE2nC-HZtEMwtcToNh7hn0oL9lNFXnXGK9sWKORcyWKVfpEChS8z30UfX6kOhU6fp_qUwmA
         "400":
-          description: |
-            Invalid request.
+          description: Invalid request.
           content:
             application/json:
               schema:
                 type: object
                 properties:
                   status:
-                    type: object
-                    description: Structure containing information about a request or payment, reporting its current status.
-                    properties:
-                      status:
-                        type: string
-                        description: |
-                          Request status
-
-                          Allowed values: `OK` `FAILED` `APPROVED` `APPROVED_PARTIAL` `PARTIAL_EXPIRED` `REJECTED` `PENDING` `PENDING_VALIDATION` `PENDING_PROCESS` `REFUNDED` `REVERSED` `ERROR` `UNKNOWN` `MANUAL` `DISPUTE`
-                      reason:
-                        type: integer
-                        description: |
-                          Response code
-
-                          `>= 1 characters` `<= 4 characters`
-                      message:
-                        type: string
-                        description: |
-                          Response message
-                      date:
-                        type: string
-                        description: |
-                          Response date and time
-                          
-                           EX: `2024-09-21T09:34:48-05:00`
+                    $ref: "../base/en.yaml#/components/schemas/Status"
                 required:
-                  - Status
+                  - status
   /api/validate-existing-account:
     post:
       summary: "Validate Existing Account"
@@ -392,102 +233,76 @@ paths:
               type: object
               required:
                 - auth
-                - user
+                - account
               properties:
-                auth:
-                  type: object
-                  description: Site authentication.
-                  required:
-                    - login
-                    - tranKey
-                    - nonce
-                    - seed
-                  properties:
-                    login:
-                      type: string
-                      examples:
-                        - "aabbccdd1234567890aabbccdd123456"
-                    tranKey:
-                      type: string
-                      examples:
-                        - "ABC123example456trankey+789abc012def3456ABC="
-                    nonce:
-                      type: string
-                      examples:
-                        - "enQ4dXh3YWhkMWM="
-                    seed:
-                      type: string
-                      examples:
-                        - "2023-06-21T09:56:06-05:00"
+                auth: 
+                  $ref: "../base/en.yaml#/components/schemas/Authentication"
                 account:
                   type: object
-                  description: |
-                    Account to be validated. The verification code is required.
+                  description: Account to be validated. The verification code is required.
                   required:
                     - name
                     - email
                   properties:
                     bankName:
                       type: string
-                      description: |
-                        Name of the bank of the account to be processed
-                        
-                        `<= 30 characters`
+                      description: Name of the bank of the account to be processed
+                      maxLength: 30
+                      example: Banco de la Republica
                     bankCode:
                       type: string
-                      description: |
-                        Code identifying the bank in the network
-                        
-                         `<= 17 characters`
+                      description: Code identifying the bank in the network
+                      maxLength: 17
+                      example: 001
                     accountType:
                       type: string
-                      description: |
-                        Account type
-                        
-                        Allowed values: `SAV` `DDA` `CCD`
+                      description: Account type
+                      enum:
+                        - SAV
+                        - DDA
+                        - CCD
+                      example: SAV
                     accountNumber:
                       type: string
-                      description: |
-                        Account number
-                        
-                         `<= 17 characters`
+                      description: Account number
+                      maxLength: 17
+                      example: 12345678901234567
                     franchise:
                       type: string
-                      description: |
-                        `<= 20 characters`
+                      description: Franchise
+                      maxLength: 20
+                      example: VISA
                     verificationCode:
                       type: string
-                      description: |
-                        The verificationCode is a JSON Web Signature (JWS). It is used as the instrument to verify the account status.
-                        
-                        EX:`eyJhbGciOiJSUzI1NiJ9.eyJhY2NvdW50SGFzaCI6ImM5YWM2ZjFhZDhjNDA3Y2ZjNzMyNDljNTE2MTJjNTdmMWQxZGNiNTA4YjE4ZGJlYWE1MWQ0NDI5NjBjMjUwNDUyMzY4ZTg2YmUzMWQ3MDMxMDY4ZDM2MjM2NzVjYzhkYTUzNzhhODNmMTUwZjg5OTczOTBiZTEyMGU1ZmExN2RhIiwib25UZXN0Ijp0cnVlLCJzZXJ2aWNlIjoibW9jayIsImlkIjo0MDB9.dFMY4EwCrWq9EBmERFkKCoLHExPH4vgaCgnZaqB_mf8n3Sv6Qnu6Pb79onluX1OZecmYmBuHqZ_ykKXWSD4RMZSpckYFCiO3mlcJKI4qb91COhl_c2qXxYJuLEdbLfGlzf0k8-oJgFcO9gAS1Xm0hpTP4iiXF6st1hFwlfR3fpX4rr-bTsKgMvRSReMuxa0Vs92DykfqUR_3udlc0DFCPB9ZTaSqeRNHFAPAWNniUPWURQlW5c9J9xcyKTgKGzfI1_7h2I4ALQeRifptE2nC-HZtEMwtcToNh7hn0oL9lNFXnXGK9sWKORcyWKVfpEChS8z30UfX6kOhU6fp_qUwmA`
+                      description: The verificationCode is a JSON Web Signature (JWS). It is used as the instrument to verify the account status.
+                      example: eyJhbGciOiJSUzI1NiJ9.eyJhY2NvdW50SGFzaCI6ImM5YWM2ZjFhZDhjNDA3Y2ZjNzMyNDljNTE2MTJjNTdmMWQxZGNiNTA4YjE4ZGJlYWE1MWQ0NDI5NjBjMjUwNDUyMzY4ZTg2YmUzMWQ3MDMxMDY4ZDM2MjM2NzVjYzhkYTUzNzhhODNmMTUwZjg5OTczOTBiZTEyMGU1ZmExN2RhIiwib25UZXN0Ijp0cnVlLCJzZXJ2aWNlIjoibW9jayIsImlkIjo0MDB9.dFMY4EwCrWq9EBmERFkKCoLHExPH4vgaCgnZaqB_mf8n3Sv6Qnu6Pb79onluX1OZecmYmBuHqZ_ykKXWSD4RMZSpckYFCiO3mlcJKI4qb91COhl_c2qXxYJuLEdbLfGlzf0k8-oJgFcO9gAS1Xm0hpTP4iiXF6st1hFwlfR3fpX4rr-bTsKgMvRSReMuxa0Vs92DykfqUR_3udlc0DFCPB9ZTaSqeRNHFAPAWNniUPWURQlW5c9J9xcyKTgKGzfI1_7h2I4ALQeRifptE2nC-HZtEMwtcToNh7hn0oL9lNFXnXGK9sWKORcyWKVfpEChS8z30UfX6kOhU6fp_qUwmA
                 payment:
                   type: object
-                  description: |
-                    Structure containing information about the transaction payment.
+                  description: Structure containing information about the transaction payment.
                   required:
                     - name
                     - email
                   properties:
                     amount:
                       type: object
-                      description: |
-                        Structure containing information about the transaction payment.
+                      description: Structure containing information about the transaction payment.
                       properties:
                         currency:
                           type: string
-                          description: |
-                            `>= 3 characters` `<= 3 characters`
-                            
-                             EX : `USD`
+                          description: Currency code
+                          minLength: 3
+                          maxLength: 3
+                          example: USD
                         total:
                           type: number
                 locale:
                   type: string
-                  description: |
-                    Default: `en`
-                    
-                    EX: `es_CO`
+                  default: en
+                  example: es_CO
+                site:
+                  type: string
+                  description: If use api credentials, this field is required to identificate the site
+                  example: aabbccdd1234567890aabbccdd123456
 
       responses:
         "200":
@@ -498,31 +313,9 @@ paths:
                 type: object
                 properties:
                   status:
-                    type: object
-                    description: Structure containing information about a request or payment, reporting its current status.
-                    properties:
-                      status:
-                        type: string
-                        description: |
-                          Request status
-                          
-                          Allowed values: `OK` `FAILED` `APPROVED` `APPROVED_PARTIAL` `PARTIAL_EXPIRED` `REJECTED` `PENDING` `PENDING_VALIDATION` `PENDING_PROCESS` `REFUNDED` `REVERSED` `ERROR` `UNKNOWN` `MANUAL` `DISPUTE`
-                      reason:
-                        type: integer
-                        description: |
-                          Response code
-                          
-                          `>= 1 characters` `<= 4 characters`
-                      message:
-                        type: string
-                        description: |
-                          Response message
-                      date:
-                        type: string
-                        description: |
-                          Response date and time
-                          
-                           EX: `2021-09-21T09:34:48-05:00`
+                    $ref: "../base/en.yaml#/components/schemas/Status"
+                required:
+                  - status
         "400":
           description: |
             Invalid request.
@@ -532,28 +325,6 @@ paths:
                 type: object
                 properties:
                   status:
-                    type: object
-                    description: Structure containing information about a request or payment, reporting its current status.
-                    properties:
-                      status:
-                        type: string
-                        description: |
-                          Request status
-
-                          Allowed values: `OK` `FAILED` `APPROVED` `APPROVED_PARTIAL` `PARTIAL_EXPIRED` `REJECTED` `PENDING` `PENDING_VALIDATION` `PENDING_PROCESS` `REFUNDED` `REVERSED` `ERROR` `UNKNOWN` `MANUAL` `DISPUTE`
-                      reason:
-                        type: integer
-                        description: |
-                          Response code
-
-                          `>= 1 characters` `<= 4 characters`
-                      message:
-                        type: string
-                        description: |
-                          Response message
-                      date:
-                        type: string
-                        description: |
-                          Response date and time
-
-                           EX: `2021-09-21T09:34:48-05:00`
+                    $ref: "../base/en.yaml#/components/schemas/Status"
+                required:
+                  - status

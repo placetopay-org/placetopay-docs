@@ -1,0 +1,314 @@
+import {ApiReader, CodeGroup, Col, Row} from "../../../../../components/mdx";
+export const sectionMode = 'nav';
+export const apiRefs = ['/gateway/account-validator/session', '/gateway/account-validator/query', '/gateway/account-validator/validate']
+
+## Introduction {{ id: 'introduction' }}
+
+This service allows you to use [Account Validator](/en/account-validator) to get tokenized accounts, ensuring a higher level of security in the handling of sensitive information.
+
+- [Create Session](/en/account-validator/api/session#create-a-session)
+- [Check Session Status](/en/account-validator/api/session#check-session-status)
+- [Validate Existing Account](/en/account-validator/api/validate-existing-account)
+
+---
+
+## Create Session {{ id: 'create-session', tag: 'POST', label: '/gateway/account-validator/session' }}
+
+This endpoint allows you to create a session for account verification.
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/gateway/account-validator/session"
+            method="post"
+            api={props.refs}
+        />
+    </Col> <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/api/session">
+    ```bash {{ title: 'cURL' }}
+    curl -X "POST" https://api-co-dev.placetopay.ws/gateway/account-validator/session \
+      -H "Content-Type: application/json" \
+      -d '{
+          "locale": "es_CO",
+          "auth": {
+            "login":"aabbccdd1234567890aabbccdd123456",
+            "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+            "nonce":"NjE0OWVkODgwYjNhNw==",
+            "seed": "2024-04-19T12:06:56-05:00"
+          },
+          "user": {
+            "name": "John",
+            "surname": "Doe",
+            "email": "john_doe@mail.com"
+          },
+          "returnUrl": "https://www.placetopay.com",
+          "locale": "es_PR"
+      }'
+    ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/gateway/account-validator/session"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Respuesta">
+    ```json {{ title: '200' }}
+    {
+      "status": {
+        "status": "OK",
+        "reason": "00",
+        "message": "string",
+        "date": "2021-09-21T09:34:48-05:00"
+      },
+      "data": {
+        "requestId": "9bd89c8d-6097-4d69-8ce9-d9b5ec35d8ea",
+        "redirectUrl": "https://account-validator.placetopay.com/verification/redirect/9bd89c8d-6097-4d69-8ce9-d9b5ec35d8ea",
+        "expiresAt": "2024-04-19 17:36:57"
+      }
+    }
+    ```
+    ```json {{ title: '400' }}
+    {
+      "status": {
+        "status": "FAILED",
+        "reason": "BR",
+        "message": "El campo user.email es obligatorio.",
+        "date": "2024-04-19T20:15:04+00:00"
+      },
+    }
+    ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+---
+
+
+## Check Session Status {{ id: 'check-session-status', tag: 'POST', label: '/gateway/account-validator/query' }}
+
+This endpoint allows you to consult the status of the created session.
+
+ ### Possible statuses
+
+ Name | Description
+ ---------|----------
+  APPROVED | La cuenta fue verificada exitosamente.
+  REJECTED | La verificación de cuenta fue rechazada.
+  FAILED | Ha ocurrido un error en el sistema.
+  PENDING | La verificación de cuenta está en proceso.
+
+
+  ### Status reasons
+
+  Code | Description
+  ---------|----------
+   ?C | The verification has been canceled by the user.
+   05 | The verification has been rejected for general reasons.
+   BR | The data of the request is incorrect.
+   00 | The verification has been successfully completed.
+   ?- | The verification is in the process of validation.
+   38 | Number of attempts exhausted.
+   HX | An error has occurred in the service.
+   X3 | The information provided is invalid.
+   X5 | Invalid social security number.
+   XN | Invalid account number.
+   ?* | Pending validation by microdeposit.
+
+
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/gateway/account-validator/query"
+            method="post"
+            api={props.refs}
+        />
+    </Col> <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/api/query">
+    ```bash {{ title: 'cURL' }}
+    curl -X "POST" https://api-co-dev.placetopay.ws/gateway/account-validator/query \
+      -H "Content-Type: application/json" \
+      -d '{
+          "locale": "es_CO",
+          "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "NjE0OWVkODgwYjNhNw==",
+            "seed": "2024-04-19T12:06:56-05:00"
+          },
+          "requestId": "9bd89c8d-6097-4d69-8ce9-d9b5ec35d8ea"
+      }'
+    ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/gateway/account-validator/query"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Respuesta">
+    ```json {{ title: '200' }}
+    {
+      "status": {
+        "status": "OK",
+        "reason": "00",
+        "message": "string",
+        "date": "2021-09-21T09:34:48-05:00"
+      },
+      "data": {
+        "requestId": "9bd89c8d-6097-4d69-8ce9-d9b5ec35d8ea",
+        "isAuthenticated": false,
+        "token": {
+            "token": "faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891",
+            "subtoken": "fakesubtoken00005",
+            "franchise": "fakeFranchise",
+            "franchiseName": "fakeFranchiseName",
+            "issuerName": "fakeIssuerName",
+            "lastDigits": "1111",
+            "validUntil": "2026-07-31"
+        }
+      }
+    }
+    ```
+    ```json {{ title: '400' }}
+    {
+      "status": {
+        "status": "FAILED",
+        "reason": "BR",
+        "message": "El campo user.email es obligatorio.",
+        "date": "2024-04-19T20:15:04+00:00"
+      },
+    }
+    ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+---
+
+## Validate Existing Account {{ id: 'validate-existing-account', tag: 'POST', label: '/gateway/account-validator/validate' }}
+
+ Once the initial session creation is successfully completed, you can perform validations to the account as many times as you consider necessary, you only need to have the account information and the verification code delivered in the previous process.
+
+    **Validations performed:**
+
+    Currently, the result of the validations is based on the following rules:
+
+    1. **Account validation:** It is verified that the account exists and has passed through a session creation process from the account verifier interface and additionally the generated token belongs to the merchant with which authentication is being made.
+    2. **Account validation:** It is verified that the account exists and is active in the account verification provider, (PLAID, VaulPopular, Cuentas Comerciales, or the MOCK according to the case).
+    3. **Account validation:** It is verified that the account to validate has a balance greater than or equal to the amount sent in the request.
+
+### Status reasons
+
+Code | Description
+---------|----------
+ 05 | The verification has been rejected for general reasons.
+ BR | The data of the request is incorrect.
+ 00 | The verification has been successfully completed.
+ XA | The amount is not available for this account.
+ HX | An error has occurred in the service.
+ X3 | The information provided is invalid.
+ X5 | Invalid social security number.
+ XN | Invalid account number.
+
+
+ ### Possible statuses
+
+ Name | Description
+ ---------|----------
+  APPROVED | The account was successfully verified.
+  REJECTED | The account verification was rejected.
+  FAILED | An error has occurred in the system.
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/gateway/account-validator/validate"
+      method="post"
+      api={props.refs}
+    />
+  </Col>
+
+   <Col sticky>
+      <CodeGroup title="Solicitud" tag="POST" label="api/verification/validate">
+      ```bash {{ title: 'cURL' }}
+      curl -X "POST" https://api-co-dev.placetopay.ws/gateway/account-validator/validate \
+        -H "Content-Type: application/json" \
+        -d '{
+              "auth": {
+                "login": "aabbccdd1234567890aabbccdd123456",
+                "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+                "nonce": "NjE0OWVkODgwYjNhNw==",
+                "seed": "2024-04-19T12:06:56-05:00"
+              },
+              "intrument": {
+                "token": {
+                    "token": "faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891",
+                    "subtoken": "fakesubtoken00005"
+                }
+              },
+              "payment": {
+                "amount": {
+                  "currency": "USD",
+                  "total": 100
+                }
+              },
+              "locale": "es_ES"
+        }'
+      ```
+      </CodeGroup>
+    </Col>
+</Row>
+<Row>
+  <Col>
+    <ApiReader
+      path="/gateway/account-validator/validate"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Respuesta">
+    ```json {{ title: '200' }}
+    {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "The verification has been successfully completed",
+        "date": "2024-04-19T20:51:52+00:00"
+    }
+    ```
+    ```json {{ title: '400' }}
+    {
+      "status": {
+        "status": "FAILED",
+        "reason": "BR",
+        "message": "The payment.amount.currency selected is not valid.",
+        "date": "2024-04-19T21:33:00+00:00"
+      }
+    }
+    ```
+    </CodeGroup>
+  </Col>
+</Row>
