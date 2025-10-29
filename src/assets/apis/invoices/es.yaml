@@ -1,0 +1,950 @@
+openapi: 3.0.0
+info:
+  title: 'invoices search API'
+  version: 1.0.0
+paths:
+  /search:
+    post:
+      summary: Buscar orden de pago
+      description: |
+        Este endpoint permite consultar la información completa de las ordenes de pago
+        utilizando el documento del deudor, la referencia o la referencia alterna.  
+        **Se deben enviar al menos 2 de los 3 parámetros siguientes:**
+        - `document`
+        - `reference`
+        - `altReference`
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - site
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                document:
+                  type: string
+                  description: "Número del documento del deudor de la orden de pago."
+                  example: "1234567813"
+                  pattern: '^[0-9A-Za-z\-.]{1,16}$'
+                reference:
+                  type: string
+                  description: "Número de referencia de la orden de pago."
+                  example: "2024ABC"
+                altReference:
+                  type: string
+                  description: "Número de referencia alterno de la orden de pago."
+                  example: "02019003"
+                  pattern: '^[0-9A-Za-z_\-\s]+$'
+                site:
+                  type: integer
+                  description: "Identificador del sitio."
+                  example: 3
+                status:
+                  type: array
+                  description: "Lista de valores a filtrar"
+                  example: "[ ACTIVE, PAYED, EXPIRED, HOLD ]"
+                orderByCreatedDate:
+                  type: string
+                  description: "Ordenar por fecha de creación."
+                  enum: [ asc, desc ]
+                  example: asc
+              example:
+                auth:
+                  login: "aabbccdd1234567890aabbccdd123456"
+                  tranKey: "ABC123example456trankey+789abc012def3456ABC="
+                  nonce: "MTIzNDU2Nzg="
+                  seed: "2024-07-31T17:02:49-05:00"
+                document: "1234567813"
+                altReference: "02019003"
+                reference: "2024ABC"
+                site: "3"
+      responses:
+        '200':
+          description: Respuesta exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    $ref: "#/components/schemas/Invoice"
+
+
+  /create:
+    post:
+      summary: Crear ordenes de pago
+      description: |
+        Este endpoint permite realizar la carga masiva de ordenes de pago.
+        - Si una orden de pago es creada con la misma referencia de una orden de pago ya existente, será sustituida si no está pagada.
+        - Se pueden enviar múltiples ordenes de pago en un solo request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - invoices
+              x-conditional:
+                - site
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                invoices:
+                  type: array
+                  description: Lista de ordenes de pago a crear.
+                  items:
+                    $ref: "#/components/schemas/InvoiceCash"
+                site:
+                  type: integer
+                  description: Identificador del sitio, Requerido si `invoices.*.siteId` no esta presente.
+                  example: 3
+              example:
+                auth:
+                  login: "aabbccdd1234567890aabbccdd123456"
+                  tranKey: "ABC123example456trankey+789abc012def3456ABC="
+                  nonce: "NWYyMTZmMjAzNWU5MA=="
+                  seed: "2020-07-29T12:44:16+00:00"
+                invoices:
+                  - payment:
+                      reference: "1234567890129"
+                      amount:
+                        total: 1.11
+                    debtor:
+                      document: "1234567899"
+                      documentType: "CC"
+                    expiration: "2021-03-25T10:14:24-05:00"
+                    serviceCode: 1234567890123
+                  - payment:
+                      reference: "1234567890126"
+                      description: "E999"
+                      amount:
+                        currency: "USD"
+                        total: 2.22
+                    altReference: "02019035"
+                    debtor:
+                      document: "123456"
+                      documentType: "CE"
+                      name: "DAVID JIMENEZ ARBOLEDA"
+                    expiration: "2021-03-25T10:14:24-05:00"
+                    dueType: 1
+                    dueDate: "2021-03-25T10:14:24-05:00"
+                    serviceCode: 999
+      responses:
+        '200':
+          description: Respuesta exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  count:
+                    type: integer
+                    description: Número de ordenes de pago creadas.
+                    example: 2
+                example:
+                  status:
+                    status: "OK"
+                    reason: "00"
+                    message: "Facturas creadas exitosamente"
+                    date: "2025-03-17T22:45:27+00:00"
+                  count: 2
+
+
+  /hold:
+    post:
+      summary: Bloquear o liberar orden de pago
+      description: |
+        Este endpoint permite **bloquear** o **liberar** una orden de pago.  
+        - Cuando una orden de pago es **bloqueada**, su estado de pago aparece como `"en proceso"` en el panel administrativo y no puede editarse ni eliminarse.  
+        - Para desbloquearla, se debe usar el campo `revoke: true`.  
+        - La operación requiere el **id único de la orden de pago**, generado por el sistema.
+        - Se puede enviar una o múltiples ordenes de pago.
+      tags:
+        - Facturas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - title: 'Uńica'
+                  type: object
+                  properties:
+                    auth:
+                      $ref: '#/components/schemas/Authentication'
+                    invoice:
+                      type: integer
+                      description: Número de identificación único de la orden de pago (id generado por el sistema).
+                      example: 675983
+                    site:
+                      type: integer
+                      description: Identificador del sitio
+                      example: 3
+                    revoke:
+                      type: boolean
+                      description: |
+                        - `false`: la orden de pago será bloqueada.  
+                        - `true`: la orden de pago será liberada.
+                      example: false
+                  required:
+                    - auth
+                    - invoice
+                    - revoke
+                - title: 'Múltiple'
+                  type: object
+                  properties:
+                    auth:
+                      $ref: '#/components/schemas/Authentication'
+                    invoices:
+                      type: array
+                      description: Arreglo que contiene los números de identificación únicos de las ordenes de pago (id generado por el sistema).
+                      example: '[675983, 675984, 675985]'
+                    site:
+                      type: integer
+                      description: Identificador del sitio
+                      example: 3
+                    revoke:
+                      type: boolean
+                      description: |
+                        - `false`: la orden de pago será bloqueada.  
+                        - `true`: la orden de pago será liberada.
+                      example: false
+                  required:
+                    - auth
+                    - invoices
+                    - revoke
+      responses:
+        '200':
+          description: Respuesta exitosa con información de la orden de pago.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  data:
+                    $ref: '#/components/schemas/Invoice'
+              example:
+                status:
+                  status: "OK"
+                  reason: "00"
+                  message: "La petición se ha procesado correctamente"
+                  date: "2020-07-29T08:09:35-05:00"
+                data:
+                  id: 675983
+                  status: "ACTIVE"
+                  debtor:
+                    document: "1234567813"
+                    documentType: "CI"
+                    name: "ANDREA"
+                    surname: "VIDAL FERNANDEZ"
+                  payment:
+                    reference: "1234889"
+                    description: "E955"
+                    amount:
+                      taxes:
+                        - kind: "valueAddedTax"
+                          amount: 0
+                          base: 0
+                        - kind: "airportTax"
+                          amount: 0
+                          base: 0
+                      details:
+                        - kind: "subtotal"
+                          amount: 30.12
+                      currency: "USD"
+                      total: 30.12
+                    allowPartial: false
+                    subscribe: false
+                  altReference: "054"
+                  createdAt: "2020-07-28"
+                  expirationDate: "2021-03-25 10:14:24"
+                  finalDate: "2021-04-30 23:59:59"
+                  siteId: 40
+        '200 - Múltiple':
+          description: Respuesta exitosa con información de las ordenes de pago.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  count:
+                    type: integer
+                    description: Número de ordenes de pago bloqueadas o liberadas.
+                    example: 3
+              example:
+                status:
+                  status: "OK"
+                  reason: "00"
+                  message: "La petición se ha procesado correctamente"
+                  date: "2020-07-29T08:09:35-05:00"
+                count: 3
+        "400":
+          description: Bad request (invalid or missing parameters).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Respuesta fallida:
+                  value:
+                    Status:
+                      status: FAILED
+                      reason: BR
+                      message: El campo invoice es obligatorio.
+                      date: "2021-09-21T09:34:48-05:00"
+        "401":
+          description:  Authentication error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Auntenticación fallida:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "401"
+                      message:
+                        la autenticación no contiene todos los parámetros requeridos
+                        (login, tranKey, seed, nonce)
+                      date: "2021-09-21T09:34:48-05:00"
+        '500':
+          description: Error interno del servidor.
+
+
+  /remove:
+    post:
+      summary: Remover orden de pago
+      description: |
+        Este endpoint permite **eliminar definitivamente** una orden de pago.  
+        La eliminación **no puede ser revertida**.  
+        La respuesta devuelve la información completa de la orden de pago tal como estaba registrada antes de ser eliminada.
+      tags:
+        - Facturas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                invoice:
+                  type: integer
+                  description: Número de identificación único de la orden de pago (id generado por el sistema).
+                  example: 675967
+                site:
+                  type: integer
+                  description: Identificador del sitio
+                  example: 3
+              required:
+                - auth
+                - invoice
+                - site
+      responses:
+        '200':
+          description: Respuesta exitosa con la información de la orden de pago eliminada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  data:
+                    $ref: '#/components/schemas/Invoice'
+              example:
+                status:
+                  status: "OK"
+                  reason: "00"
+                  message: "La petición se ha procesado correctamente"
+                  date: "2020-07-29T08:26:29-05:00"
+                data:
+                  id: 675967
+                  status: "ACTIVE"
+                  debtor:
+                    document: "1234567899"
+                    documentType: "CI"
+                    name: "ANDREA"
+                    surname: "VIDAL FERNANDEZ"
+                  payment:
+                    reference: "1234567890129"
+                    description: "E993"
+                    amount:
+                      taxes:
+                        - kind: "valueAddedTax"
+                          amount: 0
+                          base: 0
+                        - kind: "airportTax"
+                          amount: 0
+                          base: 0
+                      details:
+                        - kind: "subtotal"
+                          amount: 1.11
+                      currency: "USD"
+                      total: 1.11
+                    allowPartial: false
+                    subscribe: false
+                  altReference: "02019039"
+                  createdAt: "2020-07-26"
+                  expirationDate: "2020-03-25 10:14:24"
+                  finalDate: "2021-03-25 23:59:59"
+                  siteId: 40
+        '400':
+          description: Error en la solicitud (parámetros inválidos o datos faltantes).
+        '401':
+          description: Error de autenticación.
+        '500':
+          description: Error interno del servidor.
+
+  /flush:
+    post:
+      summary: Eliminar ordenes de pago
+      description: La operación es irreversible.
+      tags:
+        - Facturas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                site:
+                  type: integer
+                  description: Identificador del sitio
+                  example: 3
+                removePending:
+                  nullable: true
+                  type: boolean
+                  description: "Indica si se deben eliminar las transacciones en estado pendiente."
+              required:
+                - auth
+                - site
+      responses:
+        '200':
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+              example:
+                status:
+                  status: "OK"
+                  reason: "00"
+                  message: "La petición se ha procesado correctamente"
+                  date: "2020-07-26T20:01:15-05:00"
+
+components:
+  schemas:
+    Status:
+      title: "Status"
+      type: "object"
+      description: "Estructura que contiene la información sobre una solicitud, informa al estado actual de la misma."
+      properties:
+        status:
+          type: "string"
+          description: "Estado de la operación."
+          enum:
+            - OK
+            - FAILED
+            - APPROVED
+            - REJECTED
+            - PENDING
+            - MANUAL
+            - REFUNDED
+          example: "OK"
+        reason:
+          type: "string"
+          description: "Razón del estado de la operación."
+          maxLength: "2"
+          example: "00"
+        message:
+          type: "string"
+          description: "Descripción del estado."
+          example: "The request has been successfully processed"
+        date:
+          type: "string"
+          description: "Fecha en la que se ejecutó la operación."
+          format: "date-time"
+          example: '2025-03-17T22:45:27+00:00'
+      required:
+        - "status"
+        - "reason"
+        - "message"
+        - "date"
+    Authentication:
+      title: "Autenticación"
+      type: "object"
+      description: "Objeto de autenticación. Ver más en **[Autenticación](/token-requestor/integration/authentication)**. 
+        Estructura que contiene la información de autenticación del sitio generada de acuerdo al WSSE UsernameToken Profile 1.1."
+      properties:
+        login:
+          type: "string"
+          description: "Login para autenticación."
+          minLength: "1"
+          example: "aabbccdd1234567890aabbccdd123456"
+        tranKey:
+          type: "string"
+          description: "Clave de transacción."
+          minLength: "1"
+          example: "ABC123example456trankey+789abc012def3456ABC="
+        nonce:
+          type: "string"
+          description: "Valor aleatorio para cada solicitud codificado en Base64."
+          minLength: "1"
+          example: "enQ4dXh3YWhkMWM="
+        seed:
+          type: "string"
+          description: "Fecha actual, la cual se genera en formato ISO 8601."
+          minLength: "1"
+          example: "2023-06-21T09:56:06-05:00"
+      required:
+        - "login"
+        - "tranKey"
+        - "nonce"
+        - "seed"
+    Invoice:
+      title: "Invoice"
+      type: "object"
+      description: "Estructura que contiene la información sobre una orden de pago."
+      properties:
+        id:
+          type: integer
+          description: "Identificador único de la orden de pago generado por el sistema."
+          example: 675978
+        status:
+          type: string
+          description: "Estado de la orden de pago."
+          enum:
+            - PAYED
+            - EXPIRED
+            - ACTIVE
+            - INACTIVE
+            - HOLD
+          example: "EXPIRED"
+        debtor:
+          $ref: "#/components/schemas/Debtor"
+        payment:
+          $ref: "#/components/schemas/Payment"
+        altReference:
+          type: string
+          description: "Código alterno de la orden de pago."
+          maxLength: 30
+          example: "02019039"
+          pattern: '^[0-9A-Za-z_\-\s]+$'
+        createdAt:
+          type: string
+          format: date-time
+          description: "Fecha y hora de creación de la orden de pago."
+          example: "2020-07-28T08:00:47-05:00"
+        expirationDate:
+          type: string
+          format: date-time
+          description: "Fecha y hora de expiración de la orden de pago en el sistema."
+          example: "2021-03-25T10:14:24-05:00"
+        finalDate:
+          type: string
+          format: date-time
+          description: "Fecha y hora de finalización de plazo para pago."
+          example: "2020-07-28T23:59:59-05:00"
+        dueType:
+          type: integer
+          enum:
+            - 0
+            - 1
+            - 2
+          description: |
+            Tipo de incremento al vencimiento
+            
+            1 = fijo 
+            
+            0 = diario. 
+            
+            La forma como se cobrará el recargo.
+            Si es diario, entonces se calcula acorde a cada día después del vencimiento;
+            si es fijo es el mismo valor independiente de los días de vencimiento.
+          example: 1
+        dueRate:
+          type: number
+          format: float
+          description: "Valor a acrecentar a la orden de pago vencida."
+          example: 5.5
+        dueDate:
+          type: string
+          format: date-time
+          description: "Fecha y hora de vencimiento de la orden de pago."
+          example: "2021-03-25T10:14:24-05:00"
+        expiration:
+          type: string
+          format: date-time
+          description: "Fecha y hora de expiración de la orden de pago."
+          example: "2021-03-25T10:14:24-05:00"
+        serviceCode:
+          type: integer
+          description: "Código del servicio o producto facturado."
+          example: 999
+          minLength: 1
+          maxLength: 13
+        siteId:
+          type: integer
+          description: "Identificador del sitio."
+          example: 40
+      required:
+        - id
+        - status
+        - debtor
+        - payment
+        - createdAt
+        - expirationDate
+        - finalDate
+        - serviceCode
+        - siteId
+
+    Invoices:
+      title: "Invoices"
+      type: "array"
+      description: "Estructura que contiene la información sobre las ordenes de pago."
+      items:
+        $ref: "#/components/schemas/Invoice"
+
+    Debtor:
+      title: "Debtor"
+      type: "object"
+      description: "Estructura que contiene la información sobre el deudor de la orden de pago."
+      properties:
+        document:
+          type: string
+          description: "Número de documento del deudor."
+          maxLength: 16
+          example: "1234567899"
+        documentType:
+          type: string
+          description: "Tipo de documento del deudor."
+          enum:
+            - "CC"
+            - "CE"
+            - "TI"
+            - "NIT"
+            - "RUT"
+            - "PPN"
+            - "TAX"
+            - "LIC"
+            - "SSN"
+            - "CIP"
+            - "CPF"
+            - "CI"
+            - "RUC"
+            - "DNI"
+            - "CLRUT"
+          example: "CC"
+        name:
+          type: string
+          description: "Nombre del deudor."
+          example: "ANDREA"
+        surname:
+          type: string
+          description: "Apellidos del deudor."
+          example: "VIDAL FERNANDEZ"
+        email:
+          type: string
+          description: "Correo electrónico del deudor."
+          example: "example@mail.com"
+      required:
+        - document
+        - documentType
+        - name
+
+    Payment:
+      title: "Payment"
+      type: "object"
+      description: "Estructura que contiene la información de pago."
+      properties:
+        reference:
+          type: string
+          description: "Número de referencia."
+          maxLength: 32
+          example: "1234567890129"
+          pattern: '^[0-9A-Za-z_\-\s]+$'
+        description:
+          type: string
+          description: "Descripción del pago."
+          maxLength: 255
+          example: "E993"
+        amount:
+          $ref: "#/components/schemas/Amount"
+        allowPartial:
+          type: boolean
+          description: "Indica si se permiten pagos parciales."
+          example: false
+        subscribe:
+          type: boolean
+          description: "Indica si se permite la suscripción."
+          example: false
+      required:
+        - reference
+        - amount
+
+    Amount:
+      title: "Amount"
+      type: "object"
+      description: "Estructura que contiene la información del valor de la orden de pago."
+      properties:
+        taxes:
+          type: array
+          description: "Detalle de impuestos aplicados."
+          items:
+            $ref: "#/components/schemas/Tax"
+        details:
+          type: array
+          description: "Detalles adicionales de la orden de pago."
+          items:
+            $ref: "#/components/schemas/AmountDetail"
+        currency:
+          type: string
+          description: "Moneda de la transacción (ISO 4217)."
+          example: "USD"
+        total:
+          type: number
+          format: float
+          description: "Valor total de la orden de pago (máximo 9,999,999,999.99)."
+          example: 30.12
+      required:
+        - currency
+        - total
+
+    Tax:
+      title: "Tax"
+      type: "object"
+      description: "Estructura que contiene la información sobre un impuesto aplicado."
+      properties:
+        kind:
+          type: string
+          description: "Tipo de clasificación de impuesto."
+          example: "valueAddedTax"
+        amount:
+          type: number
+          format: float
+          description: "Valor del impuesto."
+          example: 0
+        base:
+          type: number
+          format: float
+          description: "Valor base para calcular el impuesto."
+          example: 0
+      required:
+        - kind
+        - amount
+        - base
+
+    AmountDetail:
+      title: "AmountDetail"
+      type: "object"
+      description: "Estructura para almacenar información sobre un valor adicional."
+      properties:
+        kind:
+          type: string
+          description: "Tipo de valor adicional."
+          enum:
+            - discount
+            - additional
+            - vatDevolutionBase
+            - shipping
+            - handlingFee
+            - insurance
+            - giftWrap
+            - subtotal
+            - fee
+            - tip
+          example: "subtotal"
+        amount:
+          type: number
+          format: float
+          description: "Valor monetario correspondiente al tipo de valor adicional."
+          example: 30.12
+      required:
+        - kind
+        - amount
+    InvoiceCash:
+      title: "InvoiceCash"
+      type: object
+      description: "Orden de pago a crear en el sistema."
+      properties:
+        payment:
+          $ref: "#/components/schemas/PaymentCreate"
+        debtor:
+          $ref: "#/components/schemas/DebtorCreate"
+        altReference:
+          type: string
+          maxLength: 30
+          description: "Código alterno de la orden de pago."
+          minLength: 1
+          pattern: '^[0-9A-Za-z_\-\s]+$'
+        siteId:
+          type: integer
+          description:  requerido si `site` no está presente
+        expiration:
+          type: string
+          format: date-time
+          description: "Fecha y hora de expiración de la orden de pago."
+        dueType:
+          type: integer
+          enum:
+            - 0
+            - 1
+            - 2
+          description: |
+            Tipo de incremento al vencimiento 
+            
+            1 = fijo
+            
+            0 = diario.
+            
+            La forma como se cobrará el recargo.
+            Si es diario, entonces se calcula acorde a cada día después del vencimiento;
+            si es fijo es el mismo valor independiente de los días de vencimiento.
+        serviceCode:
+          type: integer
+          description: "Código del servicio."
+        dueDate:
+          type: string
+          format: date-time
+          description: "Fecha y hora de vencimiento de la orden de pago."
+        dueRate:
+          format: numeric
+          description: "Recargo."
+        secondDueDate:
+          type: string
+          format: date-time
+          description: "Fecha y hora de vencimiento de la orden de pago."
+        secondDueRate:
+          format: numeric
+          description: "Recargo segundario."
+      required:
+        - payment
+        - debtor
+        - expiration
+        - serviceCode
+      x-conditional:
+        - siteId
+
+    PaymentCreate:
+      description: "Estructura que contiene la información de pago."
+      type: object
+      properties:
+        reference:
+          type: string
+          description: "Número de referencia único de la orden de pago."
+          example: "1234567890129"
+          minLength: 1
+          maxLength: 30
+        description:
+          type: string
+          description: "Descripción de la orden de pago."
+          example: "E999"
+        amount:
+          description: "Estructura que contiene la información del valor de la orden de pago."
+          type: object
+          properties:
+            currency:
+              type: string
+              example: "USD"
+              description: "Moneda en la que se realiza el pago"
+            total:
+              type: number
+              description: "Valor total de la orden de pago."
+              format: double
+              example: 2.22
+          required:
+            - total
+        modifiers:
+          type: object
+          description: "Objeto que contiene los modificadores aplicados a la transacción."
+          properties:
+            type:
+              type: string
+              description: "Tipo de modificador aplicado. En este caso corresponde al gobierno federal."
+              enum:
+                - FEDERAL_GOVERNMENT
+              example: FEDERAL_GOVERNMENT
+            code:
+              type: string
+              description: "Código de la ley que habilita el descuento aplicado."
+              enum:
+                - 17934
+                - 18083
+                - 18910
+                - 18999
+                - 19210
+              example: 17934
+            additional:
+              type: array
+              description: "Datos adicionales asociados al modificador, que pueden variar según el tipo de descuento."
+              example:
+                - invoice: "1234"
+      required:
+        - reference
+        - amount
+
+    DebtorCreate:
+      type: object
+      description: "Información del deudor de la orden de pago."
+      properties:
+        document:
+          type: string
+          example: "1234567899"
+          maxLength: 16
+          minLength: 0
+          description: "Número del documento del deudor de la orden de pago."
+        documentType:
+          type: string
+          example: "CC"
+          enum:
+            - "CC"
+            - "CE"
+            - "TI"
+            - "NIT"
+            - "RUT"
+            - "PPN"
+            - "TAX"
+            - "LIC"
+            - "SSN"
+            - "CIP"
+            - "CPF"
+            - "CI"
+            - "RUC"
+            - "DNI"
+            - "CLRUT"
+          description: "Tipo del documento del deudor de la orden de pago."
+        name:
+          type: string
+          example: "DAVID JIMENEZ"
+          description: "Nombre del deudor."
+      required:
+        - document
+        - documentType

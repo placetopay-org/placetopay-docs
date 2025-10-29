@@ -14,7 +14,10 @@ import { useLocale } from './LocaleProvider'
 
 const plugins = [
   {
-    href: 'https://placetopay.dev/plugins/woocommerce',
+    href: {
+      es: 'https://placetopay.dev/plugins/woocommerce',
+      en: 'https://placetopay.dev/en/plugins/woocommerce',
+    },
     name: 'WooCommerce',
     description: {
       es: 'Plugin para WordPress. Diseñado para tiendas y comercios en linea que usan WordPress.',
@@ -24,7 +27,10 @@ const plugins = [
     action: { es: 'Ver más', en: 'See more' },
   },
   {
-    href: 'https://placetopay.dev/plugins/magento',
+    href: {
+      es: 'https://placetopay.dev/plugins/magento',
+      en: 'https://placetopay.dev/en/plugins/magento',
+    },
     name: 'Magento',
     description: {
       es: 'Plataforma de código abierto para comercio electrónico escrita en PHP.',
@@ -34,7 +40,10 @@ const plugins = [
     action: { es: 'Ver más', en: 'See more' },
   },
   {
-    href: 'https://placetopay.dev/plugins/prestashop',
+    href: {
+      es: 'https://placetopay.dev/plugins/prestashop',
+      en: 'https://placetopay.dev/en/plugins/prestashop',
+    },
     name: 'PrestaShop',
     description: {
       es: 'Plataforma especializada en la creación y gestión de tiendas online.',
@@ -44,7 +53,10 @@ const plugins = [
     action: { es: 'Ver más', en: 'See more' },
   },
   {
-    href: 'https://placetopay.dev/plugins/jumpseller',
+    href: {
+      es: 'https://placetopay.dev/plugins/jumpseller',
+      en: 'https://placetopay.dev/en/plugins/jumpseller',
+    },
     name: 'Jumpseller',
     description: {
       es: 'Plataforma de comercio electrónico para crear tu tienda en línea.',
@@ -54,7 +66,10 @@ const plugins = [
     action: { es: 'Ver más', en: 'See more' },
   },
   {
-    'href': 'https://placetopay.dev/plugins/vtex',
+    href: {
+      es: 'https://placetopay.dev/plugins/vtex',
+      en: 'https://placetopay.dev/en/plugins/vtex',
+    },
     name: 'Vtex',
     description: {
       es: 'Plataforma de comercio digital para grandes empresas.',
@@ -64,7 +79,10 @@ const plugins = [
     action: { es: 'Ver más', en: 'See more' },
   },
   {
-    'href': 'https://placetopay.dev/plugins/shopify',
+    href: {
+      es: 'https://placetopay.dev/plugins/shopify',
+      en: 'https://placetopay.dev/en/plugins/shopify',
+    },
     name: 'Shopify',
     description: { 
       es: 'Plataforma de comercio electrónico para crear tu tienda en línea.',
@@ -128,6 +146,7 @@ export function Libraries() {
       <ItemsList
         items={plugins.map((plugin) => ({
           ...plugin,
+          href: plugin.href[locale],
           description: plugin.description[locale],
           action: plugin.action ? plugin.action[locale] : undefined,
         }))}

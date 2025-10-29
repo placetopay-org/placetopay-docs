@@ -1,0 +1,252 @@
+openapi: 3.0.0
+info:
+  title: BETA - API de AutoPay - Solicitud de Balance
+  version: 1.0.0
+paths:
+  /autopay/balance:
+    post:
+      summary: Obtener balance
+      operationId: post-balance
+      parameters:
+        - schema:
+            type: string
+            example: application/json;charset=UTF-8
+          in: header
+          name: Content-Type
+      responses:
+        "200":
+          description: Respuesta satisfactoria con el monto a cobrar al usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, id, amount]
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  id:
+                    description: Identificador único del auto pago
+                    type: string
+                    format: uuid
+                    minLength: 36
+                    maxLength: 36
+                    example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                  amount:
+                    $ref: "../base/es.yaml#/components/schemas/Amount"
+                  min_amount:
+                    $ref: "../base/es.yaml#/components/schemas/Amount"
+        "4XX":
+          description: Error en la solicitud.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+      description: 'Este endpoint devuelve un monto pendiente de cobro y el monto mínimo requerido para ejecutar el auto pago.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [auth, reference, id]
+              properties:
+                auth:
+                  $ref: '../base/es.yaml#/components/schemas/Authentication'
+                reference:
+                  type: string
+                  description: Referencia del AutoPago proporcionada por el cliente/comercio.
+                  example: "ACC00012345"
+                  maxLength: 32
+                id:
+                  type: string
+                  format: uuid
+                  description: Identificador único del AutoPago
+                  minLength: 36
+                  maxLength: 36
+                  example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+        description: ''
+  /autopay/settlement:
+    post:
+      summary: Asentar un AutoPago
+      operationId: post-settlement
+      parameters:
+        - schema:
+            type: string
+            example: application/json;charset=UTF-8
+          in: header
+          name: Content-Type
+      responses:
+        "200":
+          description: Autopago registrado correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ status, id ]
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  id:
+                    type: string
+                    format: uuid
+                    description: Identificador único del autopago confirmado en el registro de la notificación.
+                    minLength: 36
+                    maxLength: 36
+                    example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+        "4XX":
+          description: Error en la solicitud.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+      description: 'Este endpoint registra y retorna únicamente el estado de la notificación (settlement).'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ reference, id, transaction ]
+              properties:
+                auth:
+                  $ref: '../base/es.yaml#/components/schemas/Authentication'
+                reference:
+                  type: string
+                  description: Referencia del AutoPago proporcionada por el cliente/comercio.
+                  minLength: 32
+                  maxLength: 32
+                  example: "ACC00012345"
+                id:
+                  type: string
+                  format: uuid
+                  description: Identificador único del autopago confirmado en el registro de la notificación.
+                  minLength: 36
+                  maxLength: 36
+                  example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                transaction:
+                  $ref: "../base/es.yaml#/components/schemas/Transaction"
+  /autopay/webhook:
+    post:
+      summary: Recepción de notificaciones AutoPay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEvent'
+      responses:
+        "200":
+          description: El webhook fue recibido correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+        "4XX":
+          description: Ha ocurrido un error al recibir el Webhook.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+components:
+  schemas:
+    WebhookEvent:
+      type: object
+      required: [ auth, reference, id, type, date ]
+      x-conditional: [ data ]
+      properties:
+        auth:
+          $ref: '../base/es.yaml#/components/schemas/Authentication'
+        reference:
+          type: string
+          description: Referencia del AutoPago proporcionada por el cliente/comercio.
+          example: "ACC00012345"
+          maxLength: 32
+        id:
+          type: string
+          format: uuid
+          description: Identificador único del AutoPago
+          minLength: 36
+          maxLength: 36
+          example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+        type:
+          type: string
+          enum:
+            - AUTOPAY_UPDATED
+            - AUTOPAY_FAILED
+            - AUTOPAY_DELETED
+          description: "Tipo de evento notificado. Ver más en [Eventos Webhook](/autopay/webhook-description#event-types)."
+        date:
+          type: string
+          format: date-time
+          description: Fecha y hora en la que se lanzó por primera vez el evento. En formato ISO 8601.
+          example: "2025-09-29T17:09:29-05:00"
+        data:
+          type: object
+          description: Objeto que contiene información relevante para identificar el autopago e información del evento.
+          x-conditional:
+            transactionId
+            reason
+          properties:
+            transactionId:
+              type: string
+              format: uuid
+              minLength: 36
+              maxLength: 36
+              description: Identificador del pago ejecutado. Puede venir cuando el evento es AUTOPAY_FAILED.
+              example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+            reason:
+              type: string
+              minLength: 2
+              maxLength: 2
+              description: Código de razón de actualización del autopago. Puede venir cuando el evento es AUTOPAY_FAILED, AUTOPAY_DELETED. Ver más en [Códigos de razón](/autopay/codes).
+              example: "XA"
+    Status:
+      title: Status
+      type: object
+      description: Estructura para definir estados de respuestas
+      x-internal: false
+      properties:
+        status:
+          type: string
+          enum:
+            - OK
+            - FAILED
+            - APPROVED
+          description: Estado de la petición.
+        reason:
+          type: string
+          enum:
+            - 100
+            - 101
+            - 102
+            - 103
+            - 104
+            - '00'
+            - BR
+            - X3
+            - XH
+            - ?-
+            - '05'
+            - NF
+          description: Razón del estado de la petición. (consulte en [Códigos de razón](/autopay/codes))
+          example: '00'
+        message:
+          type: string
+          description: Mensaje para aclarar el estado.
+          example: "Respuesta satisfactoria"
+        date:
+          type: string
+          format: date-time
+          description: Fecha y hora en la que se generó la respuesta.
+          example: "2025-09-29T17:09:29-05:00"
+      required:
+        - status
+        - reason
+        - message

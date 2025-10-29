@@ -1,0 +1,948 @@
+openapi: 3.0.0
+info:
+  title: 'Invoices Search API'
+  version: 1.0.0
+paths:
+  /search:
+    post:
+      summary: Search payment order
+      description: |
+        This endpoint allows querying complete information about payment orders
+        using the debtor’s document, the reference, or the alternate reference.  
+        **At least 2 of the following 3 parameters must be sent:**
+        - `document`
+        - `reference`
+        - `altReference`
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - site
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                document:
+                  type: string
+                  description: "Debtor’s document number for the payment order."
+                  example: "1234567813"
+                  pattern: '^[0-9A-Za-z\-.]{1,16}$'
+                reference:
+                  type: string
+                  description: "Reference number of the payment order."
+                  example: "2024ABC"
+                altReference:
+                  type: string
+                  description: "Alternate reference number of the payment order."
+                  example: "02019003"
+                  pattern: '^[0-9A-Za-z_\-\s]+$'
+                site:
+                  type: integer
+                  description: "Site identifier."
+                  example: 3
+                status:
+                  type: array
+                  description: "List of status values to filter by."
+                  example: "[ ACTIVE, PAYED, EXPIRED, HOLD ]"
+                orderByCreatedDate:
+                  type: string
+                  description: "Sort by creation date."
+                  enum: [ asc, desc ]
+                  example: asc
+              example:
+                auth:
+                  login: "aabbccdd1234567890aabbccdd123456"
+                  tranKey: "ABC123example456trankey+789abc012def3456ABC="
+                  nonce: "MTIzNDU2Nzg="
+                  seed: "2024-07-31T17:02:49-05:00"
+                document: "1234567813"
+                altReference: "02019003"
+                reference: "2024ABC"
+                site: "3"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    $ref: "#/components/schemas/Invoice"
+
+  /create:
+    post:
+      summary: Create payment orders
+      description: |
+        This endpoint allows bulk creation of payment orders.
+        - If a payment order is created with the same reference as an existing one, it will be replaced if it is not already paid.
+        - Multiple payment orders can be sent in a single request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - invoices
+              x-conditional:
+                - site
+              properties:
+                auth:
+                  $ref: "#/components/schemas/Authentication"
+                invoices:
+                  type: array
+                  description: List of payment orders to be created.
+                  items:
+                    $ref: "#/components/schemas/InvoiceCash"
+                site:
+                  type: integer
+                  description: "Site identifier. Required if `invoices.*.siteId` is not present."
+                  example: 3
+              example:
+                auth:
+                  login: "aabbccdd1234567890aabbccdd123456"
+                  tranKey: "ABC123example456trankey+789abc012def3456ABC="
+                  nonce: "NWYyMTZmMjAzNWU5MA=="
+                  seed: "2020-07-29T12:44:16+00:00"
+                invoices:
+                  - payment:
+                      reference: "1234567890129"
+                      amount:
+                        total: 1.11
+                    debtor:
+                      document: "1234567899"
+                      documentType: "CC"
+                    expiration: "2021-03-25T10:14:24-05:00"
+                    serviceCode: 1234567890123
+                  - payment:
+                      reference: "1234567890126"
+                      description: "E999"
+                      amount:
+                        currency: "USD"
+                        total: 2.22
+                    altReference: "02019035"
+                    debtor:
+                      document: "123456"
+                      documentType: "CE"
+                      name: "DAVID JIMENEZ ARBOLEDA"
+                    expiration: "2021-03-25T10:14:24-05:00"
+                    dueType: 1
+                    dueDate: "2021-03-25T10:14:24-05:00"
+                    serviceCode: 999
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  count:
+                    type: integer
+                    description: Number of payment orders created.
+                    example: 2
+                example:
+                  status:
+                    status: "OK"
+                    reason: "00"
+                    message: "Invoices created successfully"
+                    date: "2025-03-17T22:45:27+00:00"
+                  count: 2
+
+  /hold:
+    post:
+      summary: Lock or unlock payment order
+      description: |
+        This endpoint allows **locking** or **unlocking** a payment order.  
+        - When a payment order is **locked**, its payment status appears as `"in process"` in the admin panel and cannot be edited or deleted.  
+        - To unlock it, use the `revoke: true` field.  
+        - The operation requires the **unique ID of the payment order** generated by the system.
+        - You can send one or multiple payment orders.
+      tags:
+        - Invoices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - title: 'Single'
+                  type: object
+                  properties:
+                    auth:
+                      $ref: '#/components/schemas/Authentication'
+                    invoice:
+                      type: integer
+                      description: Unique identifier number of the payment order (system-generated ID).
+                      example: 675983
+                    site:
+                      type: integer
+                      description: Site identifier.
+                      example: 3
+                    revoke:
+                      type: boolean
+                      description: |
+                        - `false`: the payment order will be locked.  
+                        - `true`: the payment order will be unlocked.
+                      example: false
+                  required:
+                    - auth
+                    - invoice
+                    - revoke
+                - title: 'Multiple'
+                  type: object
+                  properties:
+                    auth:
+                      $ref: '#/components/schemas/Authentication'
+                    invoices:
+                      type: array
+                      description: Array containing the unique identification numbers of the payment orders (system-generated ID).
+                      example: '[675983, 675984, 675985]'
+                    site:
+                      type: integer
+                      description: Site identifier.
+                      example: 3
+                    revoke:
+                      type: boolean
+                      description: |
+                        - `false`: the payment order will be locked.  
+                        - `true`: the payment order will be unlocked.
+                      example: false
+                  required:
+                    - auth
+                    - invoices
+                    - revoke
+      responses:
+        '200':
+          description: Successful response with payment order information.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  data:
+                    $ref: '#/components/schemas/Invoice'
+              example:
+                status:
+                  status: "OK"
+                  reason: "00"
+                  message: "The request has been successfully processed"
+                  date: "2020-07-29T08:09:35-05:00"
+                data:
+                  id: 675983
+                  status: "ACTIVE"
+                  debtor:
+                    document: "1234567813"
+                    documentType: "CI"
+                    name: "ANDREA"
+                    surname: "VIDAL FERNANDEZ"
+                  payment:
+                    reference: "1234889"
+                    description: "E955"
+                    amount:
+                      taxes:
+                        - kind: "valueAddedTax"
+                          amount: 0
+                          base: 0
+                        - kind: "airportTax"
+                          amount: 0
+                          base: 0
+                      details:
+                        - kind: "subtotal"
+                          amount: 30.12
+                      currency: "USD"
+                      total: 30.12
+                    allowPartial: false
+                    subscribe: false
+                  altReference: "054"
+                  createdAt: "2020-07-28"
+                  expirationDate: "2021-03-25 10:14:24"
+                  finalDate: "2021-04-30 23:59:59"
+                  siteId: 40
+        '200 - Multiple':
+          description: Successful response with payment orders information.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  count:
+                    type: integer
+                    description: Number of payment orders blocked or released.
+                    example: 3
+              example:
+                status:
+                  status: "OK"
+                  reason: "00"
+                  message: "The request has been successfully processed"
+                  date: "2020-07-29T08:09:35-05:00"
+                count: 3
+        "400":
+          description: Bad request (invalid or missing parameters).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Respuesta fallida:
+                  value:
+                    Status:
+                      status: FAILED
+                      reason: BR
+                      message: El campo invoice es obligatorio.
+                      date: "2021-09-21T09:34:48-05:00"
+        "401":
+          description: Authentication error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Auntenticación fallida:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "401"
+                      message:
+                        The authentication does not contain all the required parameters
+                        (login, tranKey, seed, nonce).
+                      date: "2021-09-21T09:34:48-05:00"
+        '500':
+          description: Internal server error.
+
+  /remove:
+    post:
+      summary: Remove payment order
+      description: |
+        This endpoint **permanently deletes** a payment order.  
+        The deletion **cannot be undone**.  
+        The response returns the complete information of the payment order as it was before deletion.
+      tags:
+        - Invoices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                invoice:
+                  type: integer
+                  description: Unique identifier number of the payment order (system-generated ID).
+                  example: 675967
+                site:
+                  type: integer
+                  description: Site identifier.
+                  example: 3
+              required:
+                - auth
+                - invoice
+                - site
+      responses:
+        '200':
+          description: Successful response with deleted payment order information.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  data:
+                    $ref: '#/components/schemas/Invoice'
+              example:
+                status:
+                  status: "OK"
+                  reason: "00"
+                  message: "The request has been successfully processed"
+                  date: "2020-07-29T08:26:29-05:00"
+                data:
+                  id: 675967
+                  status: "ACTIVE"
+                  debtor:
+                    document: "1234567899"
+                    documentType: "CI"
+                    name: "ANDREA"
+                    surname: "VIDAL FERNANDEZ"
+                  payment:
+                    reference: "1234567890129"
+                    description: "E993"
+                    amount:
+                      taxes:
+                        - kind: "valueAddedTax"
+                          amount: 0
+                          base: 0
+                        - kind: "airportTax"
+                          amount: 0
+                          base: 0
+                      details:
+                        - kind: "subtotal"
+                          amount: 1.11
+                      currency: "USD"
+                      total: 1.11
+                    allowPartial: false
+                    subscribe: false
+                  altReference: "02019039"
+                  createdAt: "2020-07-26"
+                  expirationDate: "2020-03-25 10:14:24"
+                  finalDate: "2021-03-25 23:59:59"
+                  siteId: 40
+        '400':
+          description: Bad request (invalid or missing parameters).
+        '401':
+          description: Authentication error.
+        '500':
+          description: Internal server error.
+
+  /flush:
+    post:
+      summary: Delete payment orders
+      description: The operation is irreversible.
+      tags:
+        - Invoices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                site:
+                  type: integer
+                  description: Site identifier
+                  example: 3
+                removePending:
+                  nullable: true
+                  type: boolean
+                  description: "Indicates whether pending transactions should also be deleted."
+              required:
+                - auth
+                - site
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+              example:
+                status:
+                  status: "OK"
+                  reason: "00"
+                  message: "The request has been successfully processed"
+                  date: "2020-07-26T20:01:15-05:00"
+
+components:
+  schemas:
+    Status:
+      title: "Status"
+      type: "object"
+      description: "Structure that contains information about a request, indicating its current state."
+      properties:
+        status:
+          type: "string"
+          description: "Operation status."
+          enum:
+            - OK
+            - FAILED
+            - APPROVED
+            - REJECTED
+            - PENDING
+            - MANUAL
+            - REFUNDED
+          example: "OK"
+        reason:
+          type: "string"
+          description: "Reason for the operation status."
+          maxLength: "2"
+          example: "00"
+        message:
+          type: "string"
+          description: "Description of the status."
+          example: "The request has been successfully processed"
+        date:
+          type: "string"
+          description: "Date and time when the operation was executed."
+          format: "date-time"
+          example: '2025-03-17T22:45:27+00:00'
+      required:
+        - "status"
+        - "reason"
+        - "message"
+        - "date"
+    Authentication:
+      title: "Authentication"
+      type: "object"
+      description: "Authentication object. See more in **[Authentication](/token-requestor/integration/authentication)**. 
+        Structure containing the site’s authentication information generated according to the WSSE UsernameToken Profile 1.1."
+      properties:
+        login:
+          type: "string"
+          description: "Login used for authentication."
+          minLength: "1"
+          example: "aabbccdd1234567890aabbccdd123456"
+        tranKey:
+          type: "string"
+          description: "Transaction key."
+          minLength: "1"
+          example: "ABC123example456trankey+789abc012def3456ABC="
+        nonce:
+          type: "string"
+          description: "Random value for each request, encoded in Base64."
+          minLength: "1"
+          example: "enQ4dXh3YWhkMWM="
+        seed:
+          type: "string"
+          description: "Current date, generated in ISO 8601 format."
+          minLength: "1"
+          example: "2023-06-21T09:56:06-05:00"
+      required:
+        - "login"
+        - "tranKey"
+        - "nonce"
+        - "seed"
+    Invoice:
+      title: "Invoice"
+      type: "object"
+      description: "Structure that contains information about a payment order."
+      properties:
+        id:
+          type: integer
+          description: "Unique identifier of the payment order generated by the system."
+          example: 675978
+        status:
+          type: string
+          description: "Status of the payment order."
+          enum:
+            - PAYED
+            - EXPIRED
+            - ACTIVE
+            - INACTIVE
+            - HOLD
+          example: "EXPIRED"
+        debtor:
+          $ref: "#/components/schemas/Debtor"
+        payment:
+          $ref: "#/components/schemas/Payment"
+        altReference:
+          type: string
+          description: "Alternate code of the payment order."
+          maxLength: 30
+          example: "02019039"
+          pattern: '^[0-9A-Za-z_\-\s]+$'
+        createdAt:
+          type: string
+          format: date-time
+          description: "Date and time when the payment order was created."
+          example: "2020-07-28T08:00:47-05:00"
+        expirationDate:
+          type: string
+          format: date-time
+          description: "Date and time when the payment order expires in the system."
+          example: "2021-03-25T10:14:24-05:00"
+        finalDate:
+          type: string
+          format: date-time
+          description: "Final date and time allowed for payment."
+          example: "2020-07-28T23:59:59-05:00"
+        dueType:
+          type: integer
+          enum:
+            - 0
+            - 1
+            - 2
+          description: |
+            Type of increment after due date
+            
+            1 = fixed
+            
+            0 = daily. 
+            
+            The way the surcharge will be applied.
+            If daily, it is calculated according to the number of days after the due date;
+            if fixed, the same amount is applied regardless of the number of days overdue.
+          example: 1
+        dueRate:
+          type: number
+          format: float
+          description: "Amount added to the overdue payment order."
+          example: 5.5
+        dueDate:
+          type: string
+          format: date-time
+          description: "Due date and time of the payment order."
+          example: "2021-03-25T10:14:24-05:00"
+        expiration:
+          type: string
+          format: date-time
+          description: "Expiration date and time of the payment order."
+          example: "2021-03-25T10:14:24-05:00"
+        serviceCode:
+          type: integer
+          description: "Code of the billed service or product."
+          example: 999
+          minLength: 1
+          maxLength: 13
+        siteId:
+          type: integer
+          description: "Site identifier."
+          example: 40
+      required:
+        - id
+        - status
+        - debtor
+        - payment
+        - createdAt
+        - expirationDate
+        - finalDate
+        - serviceCode
+        - siteId
+
+    Invoices:
+      title: "Invoices"
+      type: "array"
+      description: "Structure that contains information about a payment orders."
+      items:
+        $ref: "#/components/schemas/Invoice"
+
+    Debtor:
+      title: "Debtor"
+      type: "object"
+      description: "Structure containing information about the debtor of the payment order."
+      properties:
+        document:
+          type: string
+          description: "Debtor’s document number."
+          maxLength: 16
+          example: "1234567899"
+        documentType:
+          type: string
+          description: "Type of debtor document."
+          enum:
+            - "CC"
+            - "CE"
+            - "TI"
+            - "NIT"
+            - "RUT"
+            - "PPN"
+            - "TAX"
+            - "LIC"
+            - "SSN"
+            - "CIP"
+            - "CPF"
+            - "CI"
+            - "RUC"
+            - "DNI"
+            - "CLRUT"
+          example: "CC"
+        name:
+          type: string
+          description: "Debtor’s first name."
+          example: "ANDREA"
+        surname:
+          type: string
+          description: "Debtor’s last name."
+          example: "VIDAL FERNANDEZ"
+        email:
+          type: string
+          description: "Debtor’s email address."
+          example: "example@mail.com"
+      required:
+        - document
+        - documentType
+        - name
+
+    Payment:
+      title: "Payment"
+      type: "object"
+      description: "Structure containing payment information."
+      properties:
+        reference:
+          type: string
+          description: "Reference number."
+          maxLength: 32
+          example: "1234567890129"
+          pattern: '^[0-9A-Za-z_\-\s]+$'
+        description:
+          type: string
+          description: "Description of the payment."
+          maxLength: 255
+          example: "E993"
+        amount:
+          $ref: "#/components/schemas/Amount"
+        allowPartial:
+          type: boolean
+          description: "Indicates whether partial payments are allowed."
+          example: false
+        subscribe:
+          type: boolean
+          description: "Indicates whether subscription is allowed."
+          example: false
+      required:
+        - reference
+        - amount
+
+    Amount:
+      title: "Amount"
+      type: "object"
+      description: "Structure that contains information about the payment order amount."
+      properties:
+        taxes:
+          type: array
+          description: "Details of the applied taxes."
+          items:
+            $ref: "#/components/schemas/Tax"
+        details:
+          type: array
+          description: "Additional details of the payment order."
+          items:
+            $ref: "#/components/schemas/AmountDetail"
+        currency:
+          type: string
+          description: "Transaction currency (ISO 4217)."
+          example: "USD"
+        total:
+          type: number
+          format: float
+          description: "Total amount of the payment order (maximum 9,999,999,999.99)."
+          example: 30.12
+      required:
+        - currency
+        - total
+
+    Tax:
+      title: "Tax"
+      type: "object"
+      description: "Structure containing information about an applied tax."
+      properties:
+        kind:
+          type: string
+          description: "Tax classification type."
+          example: "valueAddedTax"
+        amount:
+          type: number
+          format: float
+          description: "Tax amount."
+          example: 0
+        base:
+          type: number
+          format: float
+          description: "Base amount used to calculate the tax."
+          example: 0
+      required:
+        - kind
+        - amount
+        - base
+
+    AmountDetail:
+      title: "AmountDetail"
+      type: "object"
+      description: "Structure for storing information about an additional value."
+      properties:
+        kind:
+          type: string
+          description: "Type of additional value."
+          enum:
+            - discount
+            - additional
+            - vatDevolutionBase
+            - shipping
+            - handlingFee
+            - insurance
+            - giftWrap
+            - subtotal
+            - fee
+            - tip
+          example: "subtotal"
+        amount:
+          type: number
+          format: float
+          description: "Monetary value corresponding to the type of additional value."
+          example: 30.12
+      required:
+        - kind
+        - amount
+
+    InvoiceCash:
+      title: "InvoiceCash"
+      type: object
+      description: "Payment order to be created in the system."
+      properties:
+        payment:
+          $ref: "#/components/schemas/PaymentCreate"
+        debtor:
+          $ref: "#/components/schemas/DebtorCreate"
+        altReference:
+          type: string
+          maxLength: 30
+          description: "Alternate code of the payment order."
+          minLength: 1
+          pattern: '^[0-9A-Za-z_\-\s]+$'
+        siteId:
+          type: integer
+          description: "Required if `site` is not present."
+        expiration:
+          type: string
+          format: date-time
+          description: "Expiration date and time of the payment order."
+        dueType:
+          type: integer
+          enum:
+            - 0
+            - 1
+            - 2
+          description: |
+            Type of increment after due date 
+            
+            1 = fixed
+            
+            0 = daily.
+            
+            The way the surcharge will be applied.
+            If daily, it is calculated according to the number of days after the due date;
+            if fixed, the same amount is applied regardless of the number of days overdue.
+        serviceCode:
+          type: integer
+          description: "Service code."
+        dueDate:
+          type: string
+          format: date-time
+          description: "Due date and time of the payment order."
+        dueRate:
+          format: numeric
+          description: "Surcharge."
+        secondDueDate:
+          type: string
+          format: date-time
+          description: "Second due date and time of the payment order."
+        secondDueRate:
+          format: numeric
+          description: "Secondary surcharge."
+      required:
+        - payment
+        - debtor
+        - expiration
+        - serviceCode
+      x-conditional:
+        - siteId
+
+    PaymentCreate:
+      description: "Structure that contains payment information."
+      type: object
+      properties:
+        reference:
+          type: string
+          description: "Unique reference number of the payment order."
+          example: "1234567890129"
+          minLength: 1
+          maxLength: 30
+        description:
+          type: string
+          description: "Description of the payment order."
+          example: "E999"
+        amount:
+          description: "Structure containing information about the payment order amount."
+          type: object
+          properties:
+            currency:
+              type: string
+              example: "USD"
+              description: "Currency in which the payment is made."
+            total:
+              type: number
+              description: "Total amount of the payment order."
+              format: double
+              example: 2.22
+          required:
+            - total
+        modifiers:
+          type: object
+          description: "Object containing the modifiers applied to the transaction."
+          properties:
+            type:
+              type: string
+              description: "Type of modifier applied. In this case, corresponds to the federal government."
+              enum:
+                - FEDERAL_GOVERNMENT
+              example: FEDERAL_GOVERNMENT
+            code:
+              type: string
+              description: "Code of the law that enables the applied discount."
+              enum:
+                - 17934
+                - 18083
+                - 18910
+                - 18999
+                - 19210
+              example: 17934
+            additional:
+              type: array
+              description: "Additional data associated with the modifier, which may vary depending on the discount type."
+              example:
+                - invoice: "1234"
+      required:
+        - reference
+        - amount
+
+    DebtorCreate:
+      type: object
+      description: "Information about the debtor of the payment order."
+      properties:
+        document:
+          type: string
+          example: "1234567899"
+          maxLength: 16
+          minLength: 0
+          description: "Debtor’s document number."
+        documentType:
+          type: string
+          example: "CC"
+          enum:
+            - "CC"
+            - "CE"
+            - "TI"
+            - "NIT"
+            - "RUT"
+            - "PPN"
+            - "TAX"
+            - "LIC"
+            - "SSN"
+            - "CIP"
+            - "CPF"
+            - "CI"
+            - "RUC"
+            - "DNI"
+            - "CLRUT"
+          description: "Type of debtor’s document."
+        name:
+          type: string
+          example: "DAVID JIMENEZ"
+          description: "Debtor’s name."
+      required:
+        - document
+        - documentType
