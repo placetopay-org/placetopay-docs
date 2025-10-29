@@ -1,9 +1,12 @@
 
 import { useLocale } from './LocaleProvider'
 import { CL } from '@/components/icons/flagpack/CL';
+import { UY } from '@/components/icons/flagpack/UY';
 import { CO } from '@/components/icons/flagpack/CO';
+import { EC } from '@/components/icons/flagpack/EC';
 import { CR } from '@/components/icons/flagpack/CR';
 import { PR } from '@/components/icons/flagpack/PR';
+import { PA } from '@/components/icons/flagpack/PA';
 import { HN } from '@/components/icons/flagpack/HN';
 import { US } from '@/components/icons/flagpack/US';
 import { MX } from '@/components/icons/flagpack/MX';
@@ -11,6 +14,9 @@ import { MX } from '@/components/icons/flagpack/MX';
 const countryFlags = {
     'CL': { 'es': 'Chile', icon: CL},
     'CO': { 'es': 'Colombia', icon: CO },
+    'UY': { 'es': 'Uruguay', icon: UY },
+    'EC': { 'es': 'Ecuador', icon: EC },
+    'PA': { 'es': 'Panamá' ,  'en': 'Panama', icon: PA },
     'CR': { 'es': 'Costa Rica', icon: CR }, 
     'PR': { 'es': 'Puerto Rico', icon: PR },
     'HN': { 'es': 'Honduras', icon: HN }, 

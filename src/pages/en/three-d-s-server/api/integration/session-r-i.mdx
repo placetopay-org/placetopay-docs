@@ -1,43 +1,219 @@
 export const sectionMode = 'nav';
 
-<MissingTranslationBanner />
+This document compiles **general information** about the 3RI (Merchant Initiated Transaction) flow in EMV 3DS, followed by **specific considerations** for Visa and Mastercard.
 
-En este apartado, se presentarán diversos casos de uso que ilustran la aplicabilidad de 3RI en distintos escenarios,
-abarcando desde pagos en línea hasta la autenticación y gestión de la tarjeta.
+## 1. Definitions and Mandates
 
-Cada caso de uso destacará cómo 3RI puede abordar desafíos específicos de seguridad y eficiencia.
-A través de ejemplos concretos, dando asi una comprensión más profunda de cómo implementar este servicio y de como puede contribuir a una mayor protección contra fraudes y a la construcción de un entorno de confianza en el ámbito digital.
+**Definition:** 3RI refers to merchant-initiated transactions without the active presence of the cardholder, reusing a previous authentication (CIT) to obtain new CAVV/ECI values.
 
-Ver más detalle en [Tipos de mensajes 3RI admitidos](/en/three-d-s-server/api/terms-and-definitions#tipos-de-mensajes-3-ri-admitidos)
+**Device Channel (deviceChannel):** must always be `03` (RI) for 3RI flows.
 
-<Note>
-    El DAF no es un requisito obligatorio para el procesamiento con 3RI; sin embargo, su uso es opcional y recomendado para mejorar la tasa de autenticación.
-</Note>
+**Key field:** `threeRIInd` in the AReq defines the type of flow.
 
-## Pagos recurrentes
-
-Una transacción recurrente es aquella en la que se realiza un cargo periódico al titular de la tarjeta de forma programada.
-Estas transacciones son comunes en servicios de suscripción, como membresías, suscripciones a servicios de streaming, pagos de facturas recurrentes, etc.
-
-`POST` https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
-
-***Casos de uso:***
-
-* **Suscripciones a servicios digitales:** Por ejemplo, una suscripción mensual a una plataforma de streaming de video.
-* **Pagos de facturas recurrentes:** Como el pago mensual de servicios públicos, pagos de seguros, o pagos de préstamos.
-* **Renovaciones de membresía:** Por ejemplo, renovación automática de membresía en gimnasios o clubs.
+**3RI Indicator (threeRIInd):** defines the type of 3RI transaction in the AReq authentication request. (See section 3 for allowed values)
 
 <Note>
-    Para VISA está disponible el flujo de pago recurrente a través del [DAF](/en/three-d-s-server/api/integration/session-d-a-f), el cual es opcional
+    Not all 3RI indicator values documented in the EMV 3DS specification are currently supported by the card brands.
 </Note>
 
-**Primera Autenticación**
+**Support mandates:**
+**Visa:** PA since Sep 1, 2019; NPA since Apr 14, 2021.
+**Mastercard:** EMV 3DS 2.2 and 2.3, mandatory since 2024.
 
-Antes de realizar una solicitud 3RI, debe haberse realizado una autenticación EMV 3DS donde el titular de la tarjeta esté disponible para autenticarse.
+---
 
-### MASTERCARD
+## 2. Common Considerations
 
-***Request Lookup***
+**Frequent DS errors**
+* Error 201: missing required field.
+* Error 203: invalid format (e.g., the threeDSRequestorPriorAuthenticationInfo object was not sent).
+
+Attempts Server: if the DS does not route to the ACS, it returns transStatus=N, reason=87. The merchant must retry or go direct-to-auth without shift.
+
+Prohibited challenges: in 3RI, transStatus=C is not accepted; the DS transforms it to N/87 (non-MIT) or stand-in (MIT) and sends error 203 to the ACS.
+
+Expected ACS response (PA): transStatus=Y (authenticated, shift), eci=07 (MIT) or eci=05 (recurring), with CAVV; or A in UCOF fallback.
+
+NPA: ACS responds with transStatus=Y|A, without ECI/CAVV. No liability shift.
+
+Decoupled Fallback: optional; the ACS sends an RReq with transStatus=D, then the 3DS Server sends a new AReq with indicator 19 and PriorAuthInfo.
+
+---
+
+## 3. Allowed Values
+
+| 3RI Indicator (threeRIInd)                   | Brands                    | Payment (PA) | No Payment (NPA) |
+|----------------------------------------------|---------------------------|--------------|------------------|
+| **RECURRING_TRANSACTION** (01)               | Visa with DAF, Mastercard | YES          | NO               |
+| **INSTALMENT_TRANSACTION** (02)              | Visa with DAF, Mastercard | YES          | NO               |
+| **SPLIT_OR_DELAYED_SHIPMENT** (06)           | Visa, Mastercard with BME | YES          | NO               |
+| **MAIL_ORDER** (08)                          | Visa                      | YES          | YES              |
+| **TELEPHONE_ORDER** (09)                     | Visa, Mastercard          | YES          | YES              |
+| **WHITELIST_STATUS_CHECK** (10)              | Visa, Mastercard          | NO           | YES              |
+| **OTHER_PAYMENT** (11)                       | Visa, Mastercard          | YES          | NO               |
+| **DELAYED_SHIPMENT** (15)                    | Visa, Mastercard with BME | YES          | NO               |
+| **SPLIT_PAYMENT** (16)                       | Visa, Mastercard with BME | YES          | NO               |
+| **VISA_UNSCHEDULED_CREDENTIAL_ON_FILE** (81) | Visa con DAF              | YES          | NO               |
+
+---
+
+## 4. Field Requirements in AReq
+
+| Field                                   | PA (03)     | NPA (02)  | Description                                                                       |
+|-----------------------------------------|-------------|-----------|-----------------------------------------------------------------------------------|
+| purchaseAmount                          | Required    | N/A       | Amount as **integer** (cents)                                                     |
+| purchaseCurrency                        | Required    | N/A       | ISO currency code                                                                 |
+| purchaseDate                            | Required    | Optional  | Date/time in UTC                                                                  |
+| mcc, merchantCountryCode                | Required    | Optional  | Merchant category code and country code                                           |
+| threeDSRequestorPriorAuthenticationInfo | Required    | N/A       | `threeDSReqPriorRef`, `threeDSReqPriorAuthTimestamp`, `threeDSReqPriorAuthMethod` |
+
+> **Note:** If missing or mismatched, the DS returns error 201 or 203.
+
+---
+
+## 5. Prerequisites
+
+* Initial EMV 3DS authentication must be completed via a challenge.
+* (Visa DAF) VMID and card ranges must be enabled.
+
+---
+
+## 6. Visa Directory Server Behavior
+
+* **Excluded from Attempts:** All non-DAF/MIT 3RI return `transStatus = N`, `reason = 87` if not routed to the ACS; the merchant must retry or authorize without CAVV.
+* **Prohibited challenge:** ACS never sends `C` in 3RI; if it does, DS returns:
+
+  * Non-MIT: `transStatus=N`, `reason=87`, error 203 to ACS.
+  * MIT: regional stand-in + error 203.
+
+---
+
+## 7. Respuestas Stand‑In para MIT (threeRIInd=01,02,81)
+
+| Region                     | Response | ECI | CAVV    |
+|----------------------------|----------|-----|---------|
+| AP, Canada, CEMEA, EU, LAC | Y        | 05  | Present |
+| Canada, EU, LAC            | I        | 07  | Present |
+| AP, CEMEA, LAC             | A        | 06  | Present |
+| AP, CEMEA, LAC             | N        | 07  | *No*    |
+| AP, CEMEA, LAC             | R        | 07  | *No*    |
+
+## Frequently Asked Questions
+
+### **Is it possible to add a card (`threeDSAuthenticationInd: ADD_CARD (04)`) and authenticate a payment (PA) at the same time?**
+
+No, it is not possible.
+
+The **Add Card** process in a merchant aims to validate the identity of the cardholder. During this flow, a verification amount may be sent, which will be deducted to check for available funds and **must be refunded later by the merchant.**
+
+This **does not constitute a Payment Authentication (PA)** by itself.
+If payment authentication is required, an **additional authentication process** must be performed after completing the Add Card flow.
+
+---
+
+### **Can a CIT NPA be used as `PriorInformation` for a MIT PA?**
+
+Yes, but **only in the case of a one-time payment.**
+
+In this scenario, a **CIT NPA** of type *Add Card* can be used.
+
+The **MIT** transaction must be sent with the indicator `threeRIInd = 81` _(Unscheduled Credential-on-File – UCOF)._
+
+This type of transaction does not require recurrence values (`recurringExpiry`, `recurringFrequency`), only the **payment amount.**
+
+> This is the only confirmed valid use case. Other scenarios may eventually be added in future protocol versions. This exception applies **exclusively to VISA** using the **DAF** extension.
+
+#### Key differences between these transaction categories
+
+1. **MIT (Merchant Initiated Transaction):**
+Initiated by the **merchant**, usually for recurring payments (monthly, annual subscriptions, etc.). The cardholder has previously given consent for the merchant to charge their card periodically. It does not require active interaction from the cardholder at the time of the charge.
+
+2. **CIT NPA (Customer Initiated Transaction – Non Payment Authentication):**
+Initiated by the **cardholder**, but it does not involve a direct payment. It is used for validations, such as verifying the card or checking available balance. Authentication can occur, but without transferring funds.
+
+Since a **MIT involves a payment** and a **CIT NPA does not**, under normal circumstances it would not make sense to combine them. The only valid exception is the one described above (one-time payment with VISA + DAF).
+
+In summary: **a CIT NPA can be used as `PriorInformation` in a MIT PA only if it is a one-time (non-recurring) payment.**
+
+---
+
+### **What is Visa Digital Authentication Framework (DAF)?**
+
+**Visa DAF** is an extension of the **3D Secure** protocol that allows Visa to identify cardholders who have successfully completed a challenge authentication flow at a specific merchant–acquirer.
+
+Once the customer is authenticated, Visa designates the credential as an **Authenticated Credential Payment (ACP).**
+
+This grants a trusted status so that the **subsequent transactions** made by the same cardholder at that merchant can be authenticated **immediately**, without requiring another challenge.
+
+---
+
+## 9. Specific Flows
+
+# Recurring Payments
+
+**Objective:** Allow subsequent automatic charges without additional cardholder interaction, following a successful initial authentication.
+
+## Glossary
+
+* **3DS:** Three-Domain Secure.
+* **3RI:** 3-D Secure Recurring Initiation.
+* **MIT:** Merchant Initiated Transaction.
+* **BRW:** Browser Authentication (channel 02).
+* **RI:** Recurring Initiation (channel 03).
+
+## Definitions
+A recurring payment with 3DS (3RI) is a scheduled, periodic automatic charge that reuses the initial authentication for future debits without requiring additional cardholder interaction.
+
+### Use Cases
+
+* **Digital subscriptions:** streaming, SaaS.
+* **Bill payments:** utilities, insurance, loans.
+* **Membership renewals:** gyms, clubs.
+
+### General Flow Diagram
+
+```plaintext
+ 1. Initial Authentication (3RI)
+ 2. Save threeDSRequestorPriorAuthenticationInfo and CAVV
+ 3. Subsequent charges (RI) using previous data (threeDSRequestorPriorAuthenticationInfo)
+```
+
+## Integration
+
+### Base Endpoint
+
+```
+POST https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
+```
+
+### Common Parameters
+
+| Parameter                  | Type   | Allowed Values / Example             | Description                                       |
+|----------------------------|--------|--------------------------------------|---------------------------------------------------|
+| `deviceChannel`            | string | `BRW`, `RI`                          | Authentication channel.                           |
+| `threeDSAuthenticationInd` | string | `RECURRING_TRANSACTION`              | Reason for the initial authentication.            |
+| `threeDSChallengeInd`      | string | `CHALLENGE_REQUESTED_MANDATE`        | Challenge mode in the initial authentication.     |
+| `recurringExpiry`          | string | `YYYYMMDD`                           | Expiration date for the recurrence.               |
+| `recurringFrequency`       | string | e.g., "31"                           | Charge frequency in days.                         |
+| `purchaseAmount`           | string | e.g., 12345                          | Transaction amount in the smallest currency unit. |
+| `purchaseCurrency`         | string | ISO4217 alpha code, e.g., USD        | Transaction currency.                             |
+| `reference`                | string | e.g., January 2024                     | Internal operation reference.                     |
+| `redirectURI`              | string | e.g., https://www.placetopay.com/web | Return URL after authentication flow.             |
+| `messageVersion`           | string | `2.2.0`, `2.3.1`                     | 3DS protocol version.                             |
+
+#### DAF Fields (Visa Digital Authentication Framework)
+
+These additional fields are required if the merchant participates in DAF:
+
+>`billAddrCity`, `billAddrCountry`, `billAddrLine1`, `billAddrPostCode`, `billAddrState`
+`email`, `mobilePhone`
+
+More DAF requirements details at:
+[https://docs.placetopay.com/three-d-s-server/api/integration/session-d-a-f](https://docs.placetopay.com/three-d-s-server/api/integration/session-d-a-f)
+
+### Brand Examples
+
+#### Mastercard – Initial Authentication
 
 ```json
 {
@@ -46,67 +222,17 @@ Antes de realizar una solicitud 3RI, debe haberse realizado una autenticación E
   "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
   "recurringExpiry": "20250101",
   "recurringFrequency": "2",
-  "purchaseInstalData": "2",
   "acctNumber": "5107000000010018",
   "cardExpiryDate": "2902",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseAmount": "10",
   "purchaseCurrency": "USD",
-  "reference": "Enero 2024",
+  "reference": "Subscription January 2025",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** BRW (02)
-
-**threeDSAuthenticationInd:** RECURRING_TRANSACTION (02), indica que la transacción es una recurrencia
-
-**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04), el desafío es obligatorio
-
-**recurringExpiry:** fecha final de la suscripción
-
-**recurringFrequency:** indica el número de días entre autorizaciones
-
-**purchaseInstalData:** Indica el número máximo de autorizaciones permitidas para pagos fraccionados.
-
-***Response  Lookup***
-
-```json
-{
-    "action": "redirect",
-    "sessionToken": "398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86036/398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
-    "transactionID": 248002
-}
-```
-
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
-
-
-### VISA
-
-<Note>
-    Para Visa está disponible el flujo de pago dividido a través del [DAF](/en/three-d-s-server/api/integration/session-d-a-f) a partir de Abríl de 2024. Consultar para más detalle sobre VISA [DAF](/en/three-d-s-server/api/integration/session-d-a-f), el cual es opcional para los flujos de 3RI
-</Note>
-
-**Prerrequisitos:**
-
-1. El identificador de comercio de **Visa Merchant ID VMID** deberá estar disponible en la subscripción.
-2. El rango de tarjetas debe soportar el procesamiento con [DAF](/en/three-d-s-server/api/integration/session-d-a-f)
-
-Datos requeridos en la petición API
-
-**Datos [DAF](/en/three-d-s-server/api/integration/session-d-a-f):** las llaves adicionales que se deberán enviar para que se aplique el [DAF](/en/three-d-s-server/api/integration/session-d-a-f) con VISA son los siguientes
-
-* billAddrCity
-* billAddrCountry
-* billAddrLine1
-* billAddrPostCode
-* billAddrState
-* email
-* mobilePhone
-
-***Request Lookup***
+#### Visa – Initial Authentication with DAF
 
 ```json
 {
@@ -117,65 +243,45 @@ Datos requeridos en la petición API
   "recurringFrequency": "2",
   "acctNumber": "4931119220729333",
   "cardExpiryDate": "2902",
-  "purchaseAmount": "1.02",
   "redirectURI": "https://www.placetopay.com/web",
+  "purchaseAmount": "102",
   "purchaseCurrency": "USD",
-  "reference": "Enero 2024",
+  "reference": "Subscription January 2025",
+  "messageVersion": "2.2.0",
   "billAddrCity": "Medellín",
   "billAddrCountry": "COL",
-  "billAddrLine1": "Carrera 65 # 45 - 20",
+  "billAddrLine1": "Carrera 65 #45-20",
   "billAddrPostCode": "050004",
   "billAddrState": "ANT",
-  "email": "john.doe@evertecinc.com",
-  "mobilePhone": {
-      "cc": "57",
-      "subscriber": "30011122333"
-  },
-  "messageVersion": "2.2.0"
+  "email": "email@example.com",
+  "mobilePhone": { "cc": "57", "subscriber": "3111111111" }
 }
 ```
 
-**deviceChannel:** BRW (02)
+### Response
+For both Visa and Mastercard, initial authentications return the following parameters:
 
-**threeDSAuthenticationInd:** RECURRING_TRANSACTION (02), indica que la transacción es recurrente
-
-**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04), el desafío es obligatorio
-
-**recurringExpiry:** fecha final de la suscripción
-
-**recurringFrequency:** indica el número de días entre autorizaciones
-
-**Datos [DAF](/en/three-d-s-server/api/integration/session-d-a-f):** las llaves adicionales que se deberán enviar para que se aplique el [DAF](/en/three-d-s-server/api/integration/session-d-a-f) con VISA son los siguientes
-
-* billAddrCity
-* billAddrCountry
-* billAddrLine1
-* billAddrPostCode
-* billAddrState
-* email
-* mobilePhone
-
-
-***Response  Lookup***
+| Parameter              | Description                                                                       |
+|------------------------|-----------------------------------------------------------------------------------|
+| action                 | `redirect` indicates that the `redirectURL` must be accessed to continue the flow |
+| sessionToken           | Session token                                                                     |
+| redirectURL            | URL to continue the flow                                                          |
+| transactionID          | Internal transaction ID                                                           |
 
 ```json
 {
-    "action": "redirect",
-    "sessionToken": "c56d238b35d23b8cf564f2b6b641ed0e8a3056fb639d9df245d4bec825e4b74a",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86039/c56d238b35d23b8cf564f2b6b641ed0e8a3056fb639d9df245d4bec825e4b74a",
-    "transactionID": 248005
+  "action": "redirect",
+  "sessionToken": "398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86036/398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "transactionID": 248002
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+### Subsequent Authentications (RI)
 
-**Autenticaciones posteriores**
+In the recurring phase, use `deviceChannel`: `RI`.
 
-Envíe una solicitud 3RI por el valor de la recurrencia
-
-### MASTERCARD
-
-***Request Lookup***
+#### Mastercard – Example Request for Subsequent Authentications
 
 ```json
 {
@@ -189,84 +295,40 @@ Envíe una solicitud 3RI por el valor de la recurrencia
   "acctNumber": "5107000000010018",
   "cardExpiryDate": "2902",
   "purchaseAmount": "5",
-  "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Febrero 2024",
+  "reference": "February 2024",
+  "redirectURI": "https://www.placetopay.com/web",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03), indica que el canal es RI
-
-**threeRIInd:** RECURRING_TRANSACTION (01) indica que la transacción es recurrente
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-
-- FRICTIONLESS_AUTHENTICATION (01), sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED(02), con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C,
-consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa ***primera autenticación***,
-consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa ***primera autenticación***,
-si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
+#### Mastercard - example RI Response
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "2e6bd601-7a61-4fa5-accc-10a30e0d66db",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
-    "acsTransID": "80fb86d5-35e7-4249-b6df-6905d9c6ba4f",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "3a961497-8ac7-447d-9926-06bf4c1fa1a9",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
-    "authenticationValue": "xgQiqOYmAAAAAAAAAAAAAAAAAAA=",
-    "eci": "07",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "FRICTIONLESS_AUTHENTICATION",
-    "authTimestamp": "2024-09-09T19:52:20+00:00",
-    "transactionID": 248003
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "2e6bd601-7a61-4fa5-accc-10a30e0d66db",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
+  "acsTransID": "80fb86d5-35e7-4249-b6df-6905d9c6ba4f",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "3a961497-8ac7-447d-9926-06bf4c1fa1a9",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
+  "authenticationValue": "xgQiqOYmAAAAAAAAAAAAAAAAAAA=",
+  "eci": "07",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "FRICTIONLESS_AUTHENTICATION",
+  "authTimestamp": "2024-09-09T19:52:20+00:00",
+  "transactionID": 248003
 }
 ```
 
-**Actión:** continue indica que la API retornara la información de la autenticación,y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
-
-
-### VISA
-
-<Note>
-    Para Visa está disponible el flujo de pago dividido a través del [DAF](/en/three-d-s-server/api/integration/session-d-a-f) a partir de Abríl de 2024. Consultar para más detalle sobre VISA [DAF](/three-d-s-server/api/integration/session-d-a-f), el cual es opcional para los flujos de 3RI
-</Note>
-
-**Prerrequisitos:**
-
-1. El identificador de comercio de **Visa Merchant ID VMID** deberá estar disponible en la subscripción.
-2. El rango de tarjetas debe soportar el procesamiento con [DAF](/en/three-d-s-server/api/integration/session-d-a-f)
-
-Datos requeridos en la petición API
-
-**Datos [DAF](/en/three-d-s-server/api/integration/session-d-a-f):** las llaves adicionales que se deberán enviar para que se aplique el [DAF](/en/three-d-s-server/api/integration/session-d-a-f) con VISA son los siguientes
-
-* billAddrCity
-* billAddrCountry
-* billAddrLine1
-* billAddrPostCode
-* billAddrState
-* email
-* mobilePhone
-
-***Request Lookup***
+#### Visa – Example Request for Subsequent Authentications with DAF
 
 ```json
 {
@@ -279,123 +341,151 @@ Datos requeridos en la petición API
   },
   "acctNumber": "4931119220729333",
   "cardExpiryDate": "2902",
-  "purchaseAmount": "1.00",
-  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseAmount": "1",
   "purchaseCurrency": "USD",
-  "reference": "Febrero 2024",
+  "reference": "February 2024",
+  "redirectURI": "https://www.placetopay.com/web",
   "billAddrCity": "Medellín",
   "billAddrCountry": "COL",
   "billAddrLine1": "Carrera 65 # 45 - 20",
   "billAddrPostCode": "050004",
   "billAddrState": "ANT",
-  "email": "john.doe@evertecinc.com",
+  "email": "email@example.com",
   "mobilePhone": {
-      "cc": "57",
-      "subscriber": "30011122333"
+    "cc": "57",
+    "subscriber": "3111111111"
   },
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es RI
-
-**threeRIInd:** RECURRING_TRANSACTION (01) indica que la transacción es recurrente
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-
-- FRICTIONLESS_AUTHENTICATION (01), sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED (02), con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa **primera autenticación**, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa ***primera autenticación***, si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**Datos [DAF](/en/three-d-s-server/api/integration/session-d-a-f):** las llaves adicionales que se deberán enviar para que se aplique el [DAF](/en/three-d-s-server/api/integration/session-d-a-f) con VISA son los siguientes
-
-* billAddrCity
-* billAddrCountry
-* billAddrLine1
-* billAddrPostCode
-* billAddrState
-* email
-* mobilePhone
-
-
-***Response  Lookup***
+#### Visa - example RI Response
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "0e0ee43c-9601-4e29-9c8d-32b893ded4db",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
-    "acsTransID": "ab8b1aec-2cf9-4d60-a45f-8d499894dae5",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "072b329b-ca7f-47ff-a6b0-ff5a3d6321cb",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "10078025",
-    "authenticationValue": "BpkCBIU4VgAAAABkhAJTdYknEmE=",
-    "eci": "05",
-    "messageExtension": [
-        {
-            "name": "DAF Extension",
-            "id": "A000000003-003",
-            "criticalityIndicator": false,
-            "data": {
-                "chAccReqID": "MUHZx0nojuVVAZJwPD4CWps0RuxUPxepI8sk57Yd/s4=",
-                "authPayProcessReqInd": "01",
-                "version": "1.0",
-                "authPayCredStatus": "Y",
-                "dafAdvice": "01"
-            }
-        }
-    ],
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "FRICTIONLESS_AUTHENTICATION",
-    "authTimestamp": "2024-09-09T20:52:36+00:00",
-    "transactionID": 248013
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "0e0ee43c-9601-4e29-9c8d-32b893ded4db",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+  "acsTransID": "ab8b1aec-2cf9-4d60-a45f-8d499894dae5",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "072b329b-ca7f-47ff-a6b0-ff5a3d6321cb",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "10078025",
+  "authenticationValue": "BpkCBIU4VgAAAABkhAJTdYknEmE=",
+  "eci": "05",
+  "messageExtension": [
+    {
+      "name": "DAF Extension",
+      "id": "A000000003-003",
+      "criticalityIndicator": false,
+      "data": {
+        "chAccReqID": "MUHZx0nojuVVAZJwPD4CWps0RuxUPxepI8sk57Yd/s4=",
+        "authPayProcessReqInd": "01",
+        "version": "1.0",
+        "authPayCredStatus": "Y",
+        "dafAdvice": "01"
+      }
+    }
+  ],
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "FRICTIONLESS_AUTHENTICATION",
+  "authTimestamp": "2024-09-09T20:52:36+00:00",
+  "transactionID": 248013
 }
 ```
 
-**Actión:** continue indica que la API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
-
 ---
 
-## Pagos a Plazos
+# Installment Payments
 
-Una transacción a plazos es aquella en la que el monto total de la compra se divide en pagos periódicos más pequeños a lo largo de un período de tiempo determinado. Estos pagos pueden incluir intereses u otras tarifas asociadas con la financiación de la compra.
+**Objective:** Allow merchants to split the payment of a single purchase into several fixed installments, storing the initial authorization to issue subsequent charges without further interaction.
 
-A diferencia de una transacción recurrente, en una transacción a plazos, el titular de la tarjeta realiza una única compra que se divide en varios pagos, en lugar de autorizar múltiples cargos separados. Cada pago puede requerir una autorización individual, pero el titular de la tarjeta no necesita autorizar los pagos futuros al realizar la compra inicial. Adicionalmente, la compra a plazos tiene límite en cantidad de autorizaciones ***purchaseInstalData*** y ***recurringExpiry*** y los montos son acumulados, la recurrencia tiene límite la fecha recurringExpiry y el monto es siempre el mismo, o al menos ese es el máximo
+## Glossary
 
-<Note>
-    Cuando se hace una autenticación con recurrencia/pago a plazos, se entiende que el titular de la tarjeta acepta que se almacene su número de tarjeta
-</Note>
+* **3DS**: Three-Domain Secure.
+* **3RI**: 3‑D Secure Recurrent Initiation.
+* **CAVV**: Cardholder Authentication Verification Value.
+* **BRW:** Browser Authentication (channel 02).
+* **RI:** Recurring Initiation (channel 03).
 
-`POST` https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
+## Definiciones
+An installment transaction is one in which the total purchase amount is divided into smaller periodic payments over a set period of time. These payments may include interest or other fees associated with financing the purchase.
 
-***Casos de uso:***
+Unlike a recurring transaction, in an installment transaction the cardholder makes a single purchase that is split into several payments, rather than authorizing multiple separate charges. Each payment may require an individual authorization, but the cardholder does not need to approve future payments at the time of the initial purchase.
 
-* **Compras a plazos en línea:** Por ejemplo, comprar un artículo como una computadora y dividir el pago en cuotas mensuales.
-* **Financiación de productos o servicios:** Como la compra de muebles para el hogar, equipos electrónicos, o servicios médicos que ofrecen opciones de financiación a plazos.
-* **Planes de pago de vacaciones:** Agencias de viajes que ofrecen la opción de pagar las vacaciones en varios pagos antes de la fecha del viaje
+Additionally, an installment purchase has limits on the number of authorizations **purchaseInstalData** and **recurringExpiry** date, and amounts are cumulative. A recurring transaction is limited only by the recurringExpiry date and the amount is always the same (or at least that amount is the maximum).
 
-<Note>
-    Para VISA está disponible el flujo de pagos a plazo a través del [DAF](/en/three-d-s-server/api/integration/session-d-a-f)
-</Note>
+**Key differences:**
 
-**Primera Autenticación**
+* **Recurring:** same amount, same frequency until `recurringExpiry`.
+* **Installments:** cumulative amounts, limit on number of authorizations (`purchaseInstalData`) y fecha (`recurringExpiry`).
 
-Antes de realizar una solicitud 3RI, debe haberse realizado una autenticación EMV 3DS donde el titular de la tarjeta esté disponible para autenticarse.
+<note>
+    Note: For Mastercard, this value is only available in version 2.3.1 of the standard and with Bridging Message Extension.
+</note>
 
-### MASTERCARD
+### Use Cases
 
-***Request Lookup***
+* **Online installment purchases:** e.g., buying a computer and splitting the payment into monthly installments.
+* **Financing products or services:** such as furniture, electronics, or medical services with installment financing options.
+* **Vacation payment plans:** travel agencies that offer customers the option to pay for a trip in multiple installments before the travel date.
+
+### Prerequisites
+* Initial EMV 3DS authentication must be completed through a challenge.
+* (Visa DAF) VMID and card ranges enabled.
+
+### General Flow Diagram
+
+```plaintext
+ 1. Initial Authentication (installment payment 1)
+ 2. Save threeDSRequestorPriorAuthenticationInfo and CAVV
+ 3. For each subsequent installment:
+    a. RI request (`INSTALMENT_TRANSACTION`)
+    b. Charge the installment with previous data
+```
+
+## Integration
+
+### Endpoint Base
+
+```
+POST https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
+```
+
+### Common Parameters
+
+| Parameter                  | Type   | Accepted Values / Example             | Description                                      |
+|----------------------------|--------|---------------------------------------|--------------------------------------------------|
+| `deviceChannel`            | string | `BRW`, `RI`                           | Authentication channel.                          |
+| `threeDSAuthenticationInd` | string | `INSTALMENT_TRANSACTION`              | Reason for the initial authentication.           |
+| `threeDSChallengeInd`      | string | `CHALLENGE_REQUESTED_MANDATE`         | Challenge mode for the first authentication.     |
+| `recurringExpiry`          | string | `YYYYMMDD`                            | Recurrence end date.                             |
+| `purchaseInstalData`       | string | &gt; 1 y &lt;= number of installments | Total number of installments in the plan.        |
+| `recurringFrequency`       | string | e.g., "31"                            | Payment frequency.                               |
+| `purchaseAmount`           | string | e.g., 12345                           | Amount of each installment in the smallest unit. |
+| `purchaseCurrency`         | string | ISO4217 alpha code. e.g., USD         | Transaction currency.                            |
+| `reference`                | string | e.g., January 2024                    | Internal reference for the operation.            |
+| `redirectURI`              | string | e.g., https://www.placetopay.com/web  | Return URL after authentication flow.            |
+| `messageVersion`           | string | `2.2.0`, `2.3.1`                      | 3DS protocol version.                            |
+
+#### Campos DAF (Visa Digital Authentication Framework)
+
+These additional fields are required if the merchant participates in DAF:
+
+>`billAddrCity`, `billAddrCountry`, `billAddrLine1`, `billAddrPostCode`, `billAddrState`
+`email`, `mobilePhone`
+
+More details on DAF requirements:
+[https://docs.placetopay.com/three-d-s-server/api/integration/session-d-a-f](https://docs.placetopay.com/three-d-s-server/api/integration/session-d-a-f)
+
+### Brand Examples
+
+#### Mastercard – Initial Authentication (Installment 1)
 
 ```json
 {
@@ -410,41 +500,12 @@ Antes de realizar una solicitud 3RI, debe haberse realizado una autenticación E
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseAmount": "1000",
   "purchaseCurrency": "USD",
-  "reference": "Enero 2024",
+  "reference": "6-installment plan - Product X",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** BRW (02)
-
-**threeDSAuthenticationInd:** INSTALMENT_TRANSACTION (03) indica que la transacción es a plazos
-
-**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04), el desafío es obligatorio
-
-**recurringExpiry:** fecha final de la suscripción
-
-**recurringFrequency:** indica el número de días entre autorizaciones
-
-**purchaseInstalData:** Indica el número máximo de autorizaciones permitidas para pagos fraccionados.
-
-***Response  Lookup***
-
-
-```json
-{
-    "action": "redirect",
-    "sessionToken": "d6aa0439b5f0e29e6a9413321962cf962593130717098cbcde322b6bb50808fb",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86048/d6aa0439b5f0e29e6a9413321962cf962593130717098cbcde322b6bb50808fb",
-    "transactionID": 248014
-}
-```
-
-**Actión:** redirect indica que LA API retornara un redirectURL que deberá ser consumido para continuar con el flujo
-
-
-### VISA
-
-***Request Lookup***
+#### Visa – Initial Authentication with DAF
 
 ```json
 {
@@ -459,63 +520,45 @@ Antes de realizar una solicitud 3RI, debe haberse realizado una autenticación E
   "purchaseAmount": "1000",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Enero 2024",
+  "reference": "6-installment plan - Product X",
   "billAddrCity": "Medellín",
   "billAddrCountry": "COL",
   "billAddrLine1": "Carrera 65 # 45 - 20",
   "billAddrPostCode": "050004",
   "billAddrState": "ANT",
-  "email": "john.doe@evertecinc.com",
+  "email": "email@example.com",
   "mobilePhone": {
-      "cc": "57",
-      "subscriber": "30011122333"
+    "cc": "57",
+    "subscriber": "3111111111"
   },
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** BRW (02)
+### Response
+For both Visa and Mastercard, initial authentications return the following parameters:
 
-**threeDSAuthenticationInd:** INSTALMENT_TRANSACTION (03) indica que la transacción es a plazos
-
-**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04), el desafío es obligatorio
-
-**recurringExpiry:** fecha final de la suscripción
-
-**recurringFrequency:** indica el número de días entre autorizaciones
-
-**Datos [DAF](/en/three-d-s-server/api/integration/session-d-a-f):** las llaves adicionales que se deberán enviar para que se aplique el [DAF](/en/three-d-s-server/api/integration/session-d-a-f) con VISA son los siguientes
-
-* billAddrCity
-* billAddrCountry
-* billAddrLine1
-* billAddrPostCode
-* billAddrState
-* email
-* mobilePhone
-
-***Response  Lookup***
-
+| Parameter              | Description                                                                       |
+|------------------------|-----------------------------------------------------------------------------------|
+| action                 | `redirect` indicates that the `redirectURL` must be accessed to continue the flow |
+| sessionToken           | Session token                                                                     |
+| redirectURL            | URL to continue the flow                                                          |
+| transactionID          | Internal transaction ID                                                           |
 
 ```json
 {
-    "action": "redirect",
-    "sessionToken": "96c03fe78346d11024057dfccbc8eed58b736de36631c8ff25e5c154386ade1f",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86104/96c03fe78346d11024057dfccbc8eed58b736de36631c8ff25e5c154386ade1f",
-    "transactionID": 248070
+  "action": "redirect",
+  "sessionToken": "398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86036/398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "transactionID": 248002
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+### Subsequent Authentications (RI)
 
+In the recurring phase, use `deviceChannel`: `RI`.
 
-**Autenticaciones posteriores**
-
-Envíe una solicitud 3RI por el valor del pago a plazos
-
-### MASTERCARD
-
-***Request Lookup***
+#### Mastercard – example request for subsequent authentications
 
 ```json
 {
@@ -534,78 +577,38 @@ Envíe una solicitud 3RI por el valor del pago a plazos
   "purchaseAmount": "500",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Febrero 2024",
+  "reference": "6-installment plan - Installment 2",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03), indica que el canal es RI
-
-**threeRIInd:** INSTALMENT_TRANSACTION (02), indica que la transacción es a plazos
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-- FRICTIONLESS_AUTHENTICATION (01) sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED (02), con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa ***primera autenticación***, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa ***primera autenticación***, si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
-
+#### Mastercard - Sample 3RI response
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "f5e8b9c4-5cfd-461d-9115-e51fe7d5c42a",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
-    "acsTransID": "98d5739a-c623-4512-9f87-a48368848d44",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "def67c44-653a-4879-b500-935d8429b4a4",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
-    "authenticationValue": "xgRKM8pzAAAAAAAAAAAAAAAAAAA=",
-    "eci": "07",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "FRICTIONLESS_AUTHENTICATION",
-    "authTimestamp": "2024-09-10T16:16:19+00:00",
-    "transactionID": 248067
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "f5e8b9c4-5cfd-461d-9115-e51fe7d5c42a",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
+  "acsTransID": "98d5739a-c623-4512-9f87-a48368848d44",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "def67c44-653a-4879-b500-935d8429b4a4",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
+  "authenticationValue": "xgRKM8pzAAAAAAAAAAAAAAAAAAA=",
+  "eci": "07",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "FRICTIONLESS_AUTHENTICATION",
+  "authTimestamp": "2024-09-10T16:16:19+00:00",
+  "transactionID": 248067
 }
 ```
 
-**Actión:** continue indica que la API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
-
-### VISA
-
-<Note>
-    Para Visa está disponible el flujo de pago dividido a través del [DAF](/en/three-d-s-server/api/integration/session-d-a-f) a partir de Abríl de 2024. Consultar para más detalle sobre VISA [DAF](/en/three-d-s-server/api/integration/session-d-a-f), el cual es opcional para los flujos de 3RI
-</Note>
-
-**Prerrequisitos:**
-
-1. El identificador de comercio de **Visa Merchant ID VMID** deberá estar disponible en la subscripción.
-2. El rango de tarjetas debe soportar el procesamiento con [DAF](/en/three-d-s-server/api/integration/session-d-a-f)
-
-Datos requeridos en la petición API
-
-**Datos [DAF](/en/three-d-s-server/api/integration/session-d-a-f):** las llaves adicionales que se deberán enviar para que se aplique el [DAF](/en/three-d-s-server/api/integration/session-d-a-f) con VISA son los siguientes
-
-* billAddrCity
-* billAddrCountry
-* billAddrLine1
-* billAddrPostCode
-* billAddrState
-* email
-* mobilePhone
-
-***Request Lookup***
+#### Visa – sample request for subsequent authentications with DAF
 
 ```json
 {
@@ -621,138 +624,140 @@ Datos requeridos en la petición API
   "purchaseAmount": "500",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Febrero 2024",
+  "reference": "6-installment plan - Installment 2",
   "billAddrCity": "Medellín",
   "billAddrCountry": "COL",
   "billAddrLine1": "Carrera 65 # 45 - 20",
   "billAddrPostCode": "050004",
   "billAddrState": "ANT",
-  "email": "john.doe@evertecinc.com",
+  "email": "email@example.com",
   "mobilePhone": {
-      "cc": "57",
-      "subscriber": "30011122333"
+    "cc": "57",
+    "subscriber": "3111111111"
   },
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es RI
-
-**threeRIInd:** INSTALMENT_TRANSACTION (02) indica que la transacción es a plazos
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-
-- FRICTIONLESS_AUTHENTICATION (01), sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED (02), con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa ***primera autenticación***, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa **primera autenticación**, si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**Datos [DAF](/en/three-d-s-server/api/integration/session-d-a-f):** las llaves adicionales que se deberán enviar para que se aplique el [DAF](/en/three-d-s-server/api/integration/session-d-a-f) con VISA son los siguientes
-
-* billAddrCity
-* billAddrCountry
-* billAddrLine1
-* billAddrPostCode
-* billAddrState
-* email
-* mobilePhone
-
-***Response  Lookup***
-
+#### Visa - 3RI response example
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "50709e2a-4dad-4c60-acaa-c5d3e1ede924",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
-    "acsTransID": "3cdfa009-4018-4230-a72b-658587a5794c",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "72455b8f-5a57-4716-93fe-b72d3878805b",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "10078025",
-    "authenticationValue": "BpkCBSMnAAAAAMNQhAJUdYknEmE=",
-    "eci": "05",
-    "messageExtension": [
-        {
-            "name": "DAF Extension",
-            "id": "A000000003-003",
-            "criticalityIndicator": false,
-            "data": {
-                "chAccReqID": "MUHZx0nojuVVAZJwPD4CWps0RuxUPxepI8sk57Yd/s4=",
-                "authPayProcessReqInd": "01",
-                "version": "1.0",
-                "authPayCredStatus": "Y",
-                "dafAdvice": "01"
-            }
-        }
-    ],
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "FRICTIONLESS_AUTHENTICATION",
-    "authTimestamp": "2024-09-10T19:45:25+00:00",
-    "transactionID": 248109
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "50709e2a-4dad-4c60-acaa-c5d3e1ede924",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+  "acsTransID": "3cdfa009-4018-4230-a72b-658587a5794c",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "72455b8f-5a57-4716-93fe-b72d3878805b",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "10078025",
+  "authenticationValue": "BpkCBSMnAAAAAMNQhAJUdYknEmE=",
+  "eci": "05",
+  "messageExtension": [
+    {
+      "name": "DAF Extension",
+      "id": "A000000003-003",
+      "criticalityIndicator": false,
+      "data": {
+        "chAccReqID": "MUHZx0nojuVVAZJwPD4CWps0RuxUPxepI8sk57Yd/s4=",
+        "authPayProcessReqInd": "01",
+        "version": "1.0",
+        "authPayCredStatus": "Y",
+        "dafAdvice": "01"
+      }
+    }
+  ],
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "FRICTIONLESS_AUTHENTICATION",
+  "authTimestamp": "2024-09-10T19:45:25+00:00",
+  "transactionID": 248109
 }
 ```
 
-**Actión:** continue indica que la API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
-
-
 ---
 
+# Split Shipment
 
+**Objective:**
+Allow separate charges associated with a single order when delivery is made in multiple shipments, reusing the initial authentication without additional interaction.
 
-## Envío dividido
+## Glossary
 
-Este tipo de transacción se utiliza para indicar que la transacción corresponde a un envío dividido ***Split Shipment***. En un escenario de Split Shipment, un pedido o reserva se paga en varias transacciones porque los servicios o productos se proporcionan en momentos diferentes. Aunque el pedido inicial es único, la entrega de sus componentes se divide, y cada parte puede ser cobrada cuando esté lista o confirmada.
+* **3DS**: Three-Domain Secure.
+* **3RI**: 3‑D Secure Recurrent Initiation.
+* **CAVV**: Cardholder Authentication Verification Value.
+* **BRW:** Browser Authentication (channel 02).
+* **RI:** Recurring Initiation (channel 03).
 
-Los Envíos divididos permiten a los comerciantes solicitar un nuevo CAVV para obtener protección de responsabilidad en autorizaciones posteriores que puedan ser necesarias debido a múltiples autorizaciones relacionadas con un solo pedido. Este tipo de solicitudes pueden ser realizadas por cualquier comerciante que deba procesar varias autorizaciones asociadas a una única autenticación.
+## Definition
 
-***Datos a considerar al procesar envíos divididos:***
+This transaction type is used to indicate that the transaction corresponds to a Split Shipment. In a **Split Shipment** scenario, an order or booking is paid in several transactions because the services or products are provided at different times. Although the initial order is unique, delivery of its components is split, and each part can be charged when it is ready or confirmed.
 
-* El nombre del solicitante 3DS **threeDSRequestorName** y el nombre del comerciante **merchantName** deben ser los mismos en la solicitud de autenticación inicial y en cada una de las solicitudes 3RI asociadas.
-* El valor total de todas las solicitudes 3RI no debe superar la suma del monto de la solicitud inicial de autenticación y del total de los montos ya autorizados. Los emisores deben realizar un seguimiento del valor total utilizando los datos de transacción tanto de la autorización directa como de la autenticación **EMV 3DS**
+Split Shipments allow merchants to request a new CAVV to obtain liability protection in subsequent authorizations that may be necessary due to multiple authorizations related to a single order. This type of request can be made by any merchant that needs to process multiple authorizations associated with a single authentication.
 
-`POST` https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
+**_Data to consider when processing split shipments:_**
 
+The 3DS requestor name **threeDSRequestorName** and the merchant name **merchantName** must be the same in the initial authentication request and in each of the associated 3RI requests.
+The total value of all 3RI requests must not exceed the sum of the amount of the initial authentication request and the total of the amounts already authorized. Issuers must track the total value using transaction data from both the direct authorization and the **EMV 3DS** authentication.
 
-***Casos de Uso:***
+### Use Cases
 
-* **Pedidos con múltiples artículos:** un cliente realiza un pedido de varios productos que no están todos disponibles en el almacén al mismo tiempo.
-Por lo tanto, el comerciante decide enviar los artículos en varias entregas, dependiendo de la disponibilidad.
+* **Orders with multiple items:** a customer places an order for several products that are not all available in the warehouse at the same time. Therefore, the merchant decides to ship the items in several deliveries, depending on availability.
 
+| Event                                                                           | Amount | Description                                                                                     |
+|---------------------------------------------------------------------------------|--------|-------------------------------------------------------------------------------------------------|
+| Initial authentication                                                          | $167   | Initial authentication for the total order amount.                                              |
+| Initial authorization for the first good/service                                | $25    | Authorization for the first good/service using CAVV from the previous initial authentication.   |
+| 3RI request for the second good/service                                         | $12    | Send a 3RI request for the amount of the second good/service.                                   |
+| Authorization as MIT reauthorization for the second good/service                | $12    | Authorization for the second good/service using the CAVV from the previous 3RI request.         |
+| 3RI request for the third and last good/service                                 | $130   | Send a 3RI request for the amount of the third and last good/service.                           |
+| Authorization as MIT reauthorization for the third and last good/service        | $130   | Authorization for the third and last good/service using the CAVV from the previous 3RI request. |
 
-| Evento                                                                          | Valor | Descripción                                                                                                            |
-|---------------------------------------------------------------------------------|-------|------------------------------------------------------------------------------------------------------------------------|
-| Autenticación inicial                                                           | $167  | Autenticación inicial por el importe total del pedido.                                                                 |
-| Autorización Inicial del primer bien/servicio.                                  | $25   | Se realiza la autorización para el primer bien/servicio utilizando CAVV a partir de la autenticación inicial anterior. |
-| 3RI Solicitud de segundo bien/servicio.                                         | $12   | Envíe una solicitud 3RI por el valor del segundo bien/servicio.                                                        |
-| Autorización como reautorización MIT para un segundo bien/servicio.             | $12   | Se realiza la autorización del segundo bien/servicio utilizando el CAVV de la solicitud 3RI anterior.                  |
-| 3RI Solicitud de tercer y último bien/servicio.                                 | $130  | Enviar una solicitud 3RI por el valor del tercer y último bien/servicio.                                               |
-| Autorización como reautorización del MIT para el tercer y último bien/servicio. | $130  | Realizar la autorización del tercer y último bien/servicio utilizando el CAVV de la solicitud 3RI anterior.            |
+### Prerequisites
 
+* Initial EMV 3DS authentication must be completed through a challenge.
+* (Visa DAF) VMID and card range enabled.
 
-<Note>
-    Para Visa está disponible el flujo de envío dividido a través del [DAF](/en/three-d-s-server/api/integration/session-d-a-f), el cual es opcional para el flujo de 3RI
-</Note>
+### General Flow Diagram
 
+```plaintext
+1. Initial authentication (total order amount)
+2. Save threeDSRequestorPriorAuthenticationInfo and CAVV
+3. For each partial shipment:
+    a. RI request (SPLIT_OR_DELAYED_SHIPMENT)
+    b. Send charge with obtained CAVV
+```
 
-**Primera Autenticación**
+## Integration
 
-***Autenticación inicial por el importe total de la orden.***
+### Endpoint Base
 
-Antes de realizar una solicitud 3RI, debe haberse realizado una autenticación EMV 3DS donde el titular de la tarjeta esté disponible para autenticarse por el valor total del pedido. Esta autenticación inicial puede utilizarse para la autorización asociada a la primera entrega de los bienes/servicios.
+```
+POST https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
+```
 
-### MASTERCARD
+### Common Parameters
 
-***Request Lookup***
+| Parameter                  | Type   | Accepted Values / Example            | Description                                        |
+|----------------------------|--------|--------------------------------------|----------------------------------------------------|
+| `deviceChannel`            | string | `BRW`, `RI`                          | Authentication channel.                            |
+| `threeDSAuthenticationInd` | string | `PAYMENT_TRANSACTION`                | Initial payment transaction.                       |
+| `threeDSChallengeInd`      | string | `CHALLENGE_REQUESTED_MANDATE`        | Mandatory challenge in the initial authentication. |
+| `threeRIInd`               | string | `SPLIT_OR_DELAYED_SHIPMENT`          | Indicates Split Shipment in RI requests.           |
+| `purchaseAmount`           | string | e.g., 12345                          | Amount of each installment in minor unit.          |
+| `purchaseCurrency`         | string | ISO4217 alpha code e.g., USD         | Transaction currency.                              |
+| `reference`                | string | e.g., January 2024                   | Internal operation reference.                      |
+| `redirectURI`              | string | e.g., https://www.placetopay.com/web | Return URL after authentication flow.              |
+| `messageVersion`           | string | `2.2.0`, `2.3.1`                     | 3DS protocol version.                              |
+
+### Brand Examples
+
+#### Mastercard – Initial Authentication (for the total amount of the order)
 
 ```json
 {
@@ -764,35 +769,12 @@ Antes de realizar una solicitud 3RI, debe haberse realizado una autenticación E
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseAmount": "167",
   "purchaseCurrency": "USD",
-  "reference": "Enero 2024",
+  "reference": "Order #1234 - Total",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** BRW (02)
-
-**threeDSAuthenticationInd:** PAYMENT_TRANSACTION (01) indica que la transacción es de pago
-
-**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04) el desafío es obligatorio
-
-
-***Response  Lookup***
-
-
-```json
-{
-    "action": "redirect",
-    "sessionToken": "dc6c2a30c763d7ce640dcf0a98b5d172e3f86c62c3dea3ea1175469d0e6befae",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86152/dc6c2a30c763d7ce640dcf0a98b5d172e3f86c62c3dea3ea1175469d0e6befae",
-    "transactionID": 248118
-}
-```
-
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
-
-### VISA
-
-***Request Lookup***
+#### Visa – First Authentication (for the total amount of the order)
 
 ```json
 {
@@ -804,37 +786,35 @@ Antes de realizar una solicitud 3RI, debe haberse realizado una autenticación E
   "purchaseAmount": "167",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Enero 2024",
+  "reference": "Order #1234 - Total",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** BRW (02) - Navegador
+### Response
+For both Visa and Mastercard, initial authentications are responded to with the following parameters:
 
-**threeDSAuthenticationInd:** PAYMENT_TRANSACTION (01) indica que la transacción es de pago
-
-**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04), el desafío es obligatorio
-
-***Response  Lookup***
-
+| Parameter              | Description                                                                       |
+|------------------------|-----------------------------------------------------------------------------------|
+| action                 | `redirect` indicates that the `redirectURL` must be accessed to continue the flow |
+| sessionToken           | Session token                                                                     |
+| redirectURL            | URL to continue the flow                                                          |
+| transactionID          | Internal transaction ID                                                           |
 
 ```json
 {
-    "action": "redirect",
-    "sessionToken": "1e7c2e6f2516a07020f30f8e5ef63bca7de42e16ac9498b61f2a8efd5ba52968",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86160/1e7c2e6f2516a07020f30f8e5ef63bca7de42e16ac9498b61f2a8efd5ba52968",
-    "transactionID": 248126
+  "action": "redirect",
+  "sessionToken": "1e7c2e6f2516a07020f30f8e5ef63bca7de42e16ac9498b61f2a8efd5ba52968",
+  "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86160/1e7c2e6f2516a07020f30f8e5ef63bca7de42e16ac9498b61f2a8efd5ba52968",
+  "transactionID": 248126
 }
 ```
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
 
-**3RI Solicitud de segundo bien/servicio.**
+### Subsequent Authentications (RI)
 
-Envíe una solicitud 3RI por el valor del segundo bien/servicio.
+In the recurring phase, use `deviceChannel`: `RI`.
 
-### MASTERCARD
-
-***Request Lookup***
+#### Mastercard – sample request for second good/service
 
 ```json
 {
@@ -850,57 +830,38 @@ Envíe una solicitud 3RI por el valor del segundo bien/servicio.
   "purchaseAmount": "12",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Febrero 2024",
+  "reference": "Order #1234 - Shipment 2",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es RI
-
-**threeRIInd:** SPLIT_OR_DELAYED_SHIPMENT (06) indica que la transacción es un envío dividido o retrasado
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-- FRICTIONLESS_AUTHENTICATION (01), sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED (02), con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa ***primera autenticación***, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa ***primera autenticación***, si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
-
+#### Mastercard - Sample 3RI response
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "4159591c-bb88-4321-a295-0e6397377d3b",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
-    "acsTransID": "b4ec2f82-106b-469b-897d-f2aa37bbf25f",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "dc477252-ff8d-433d-b44a-4f8edbb0cae8",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
-    "authenticationValue": "xgTkbC8MAAAAAAAAAAAAAAAAAAA=",
-    "eci": "07",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "FRICTIONLESS_AUTHENTICATION",
-    "authTimestamp": "2024-09-10T20:19:30+00:00",
-    "transactionID": 248121
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "4159591c-bb88-4321-a295-0e6397377d3b",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
+  "acsTransID": "b4ec2f82-106b-469b-897d-f2aa37bbf25f",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "dc477252-ff8d-433d-b44a-4f8edbb0cae8",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
+  "authenticationValue": "xgTkbC8MAAAAAAAAAAAAAAAAAAA=",
+  "eci": "07",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "FRICTIONLESS_AUTHENTICATION",
+  "authTimestamp": "2024-09-10T20:19:30+00:00",
+  "transactionID": 248121
 }
 ```
 
-**Actión:** continue indica que la API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
-
-### VISA
-
-***Request Lookup***
+#### Visa – request example for a second good/service
 
 ```json
 {
@@ -916,61 +877,38 @@ Envíe una solicitud 3RI por el valor del segundo bien/servicio.
   "purchaseAmount": "12",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Febrero 2024",
+  "reference": "Order #1234 - Shipment 2",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es RI
-
-**threeRIInd:** SPLIT_OR_DELAYED_SHIPMENT (06), indica que la transacción es un envío dividido o retrasado
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-- FRICTIONLESS_AUTHENTICATION (01) sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED (02) con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa ***primera autenticación***, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa ***primera autenticación***, si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
-
+#### Visa - 3RI response example
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "87b8930d-8523-4083-8780-67adf3aeca96",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
-    "acsTransID": "b02b97b8-6748-4ecb-9f42-441b7d83d9cd",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "26281147-cee2-4683-a538-c70fad690a08",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "10078025",
-    "authenticationValue": "AJkCBxaRcQAAAASwhAJUdYknEmE=",
-    "eci": "05",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "FRICTIONLESS_AUTHENTICATION",
-    "authTimestamp": "2024-09-10T20:35:17+00:00",
-    "transactionID": 248127
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "87b8930d-8523-4083-8780-67adf3aeca96",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+  "acsTransID": "b02b97b8-6748-4ecb-9f42-441b7d83d9cd",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "26281147-cee2-4683-a538-c70fad690a08",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "10078025",
+  "authenticationValue": "AJkCBxaRcQAAAASwhAJUdYknEmE=",
+  "eci": "05",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "FRICTIONLESS_AUTHENTICATION",
+  "authTimestamp": "2024-09-10T20:35:17+00:00",
+  "transactionID": 248127
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
-
-**3RI Solicitud de tercer y último bien/servicio**
-
-Enviar una solicitud 3RI por el valor del tercer y último bien/servicio.
-
-### MASTERCARD
-
-***Request Lookup***
+#### Mastercard – sample request for third and final good/service
 
 ```json
 {
@@ -986,59 +924,38 @@ Enviar una solicitud 3RI por el valor del tercer y último bien/servicio.
   "purchaseAmount": "130",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Febrero 2024",
+  "reference": "Order #1234 - Shipment 3",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es RI
-
-**threeRIInd:** SPLIT_OR_DELAYED_SHIPMENT (06), indica que la transacción es un envío dividido o retrasado
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-- FRICTIONLESS_AUTHENTICATION (01) sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED (02) con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa ***primera autenticación***, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa ***primera autenticación***, si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
-
+#### Mastercard - Sample 3RI response
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "bc925646-c654-4ba2-9e0a-9afaaa5684cc",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
-    "acsTransID": "187648b7-ae15-4da6-a5df-f7298db768d9",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "a0a446cd-0767-4fa7-942b-e94571f1f37c",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
-    "authenticationValue": "xgSlHx+5AAAAAAAAAAAAAAAAAAA=",
-    "eci": "07",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "FRICTIONLESS_AUTHENTICATION",
-    "authTimestamp": "2024-09-10T20:23:36+00:00",
-    "transactionID": 248122
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "bc925646-c654-4ba2-9e0a-9afaaa5684cc",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
+  "acsTransID": "187648b7-ae15-4da6-a5df-f7298db768d9",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "a0a446cd-0767-4fa7-942b-e94571f1f37c",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
+  "authenticationValue": "xgSlHx+5AAAAAAAAAAAAAAAAAAA=",
+  "eci": "07",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "FRICTIONLESS_AUTHENTICATION",
+  "authTimestamp": "2024-09-10T20:23:36+00:00",
+  "transactionID": 248122
 }
-
 ```
 
-**Actión:** continue indica que la API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
-
-### VISA
-
-
-***Request Lookup***
+#### Visa – request example for a second good/service
 
 ```json
 {
@@ -1054,98 +971,113 @@ Enviar una solicitud 3RI por el valor del tercer y último bien/servicio.
   "purchaseAmount": "130",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Febrero 2024",
+  "reference": "Order #1234 - Shipment 3",
   "messageVersion": "2.2.0"
 }
-
 ```
 
-**deviceChannel:** BRW (02)
-
-**threeDSAuthenticationInd:** PAYMENT_TRANSACTION (01) indica que la transacción es de pago
-
-**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04) el desafío es obligatorio
-
-***Response  Lookup***
-
+#### Visa - 3RI response example
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "2f9f285a-f876-4744-adaa-9c1cedf97271",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
-    "acsTransID": "14f3123b-d769-4a14-afea-d6bd5719d332",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "f1ca5639-b587-4cd1-894e-fa14b97b9fdf",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "10078025",
-    "authenticationValue": "AJkCAWCXJgAAADLIhAJUdYknEmE=",
-    "eci": "05",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "FRICTIONLESS_AUTHENTICATION",
-    "authTimestamp": "2024-09-10T20:38:23+00:00",
-    "transactionID": 248129
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "2f9f285a-f876-4744-adaa-9c1cedf97271",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+  "acsTransID": "14f3123b-d769-4a14-afea-d6bd5719d332",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "f1ca5639-b587-4cd1-894e-fa14b97b9fdf",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "10078025",
+  "authenticationValue": "AJkCAWCXJgAAADLIhAJUdYknEmE=",
+  "eci": "05",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "FRICTIONLESS_AUTHENTICATION",
+  "authTimestamp": "2024-09-10T20:38:23+00:00",
+  "transactionID": 248129
 }
 ```
 
-**Actión:** continue indica que la API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
-
 ---
 
+# Delayed Shipment
 
-## Envío retrasado
+**Objective:** Provide merchants with an extension of liability protection beyond 90 days after the initial authentication, issuing a new CAVV through 3RI for shipments or services that are delayed.
 
-Permite a los comerciantes mantener la protección de responsabilidad más allá de los 90 días después de una autenticación inicial.
-Los comerciantes pueden utilizar esta funcionalidad cuando, por ejemplo, un envío/servicio se retrasa más de 90 días.
-Si la solicitud 3RI tiene éxito, se generará un nuevo CAVV para el comerciante, otorgando otros 90 días de protección de responsabilidad.
+## Glossary
 
-Cuando los comerciantes soliciten un nuevo CAVV a través de una autenticación de 3RI, deben hacerlo dentro de los 90
-días posteriores a la fecha de la autenticación inicial. Los comerciantes solo deben enviar este tipo de solicitudes si necesitan protección
-de responsabilidad más allá de los 90 días desde la autenticación inicial. Deberían retrasar la solicitud de un nuevo CAVV tanto como sea posible
-dentro del período de 90 días. Si el CAVV inicial ha expirado, aunque ya no proporciona protección de responsabilidad, los emisores deben considerar
-que aún puede ser utilizado por el comerciante como prueba de que se realizó la autenticación.
+* **3DS**: Three-Domain Secure.
+* **3RI**: 3‑D Secure Recurrent Initiation.
+* **CAVV**: Cardholder Authentication Verification Value.
+* **BRW:** Browser Authentication (channel 02).
+* **RI:** Recurring Initiation (channel 03).
 
-***Datos a considerar al procesar envíos divididos:***
+## Definitions
 
-* El nombre del solicitante 3DS **threeDSRequestorName** y el nombre del comerciante **merchantName** deben ser los mismos en la solicitud de autenticación inicial y en cada una de las solicitudes 3RI asociadas
-* El valor total de todas las solicitudes 3RI no debe sumar un monto mayor que el monto de la solicitud de autenticación inicial y del total de los montos ya autorizados
+Allows merchants to maintain liability protection beyond 90 days after an initial authentication. Merchants can use this functionality when, for example, a shipment/service is delayed for more than 90 days. If the 3RI request is successful, a new CAVV will be generated for the merchant, granting another 90 days of liability protection.
 
-`POST` https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
+When merchants request a new CAVV through a 3RI authentication, they must do so within 90 days of the date of the initial authentication. Merchants should only send this type of request if they need liability protection beyond the 90 days from the initial authentication. They should delay the request for a new CAVV as much as possible within the 90-day period. If the initial CAVV has expired, although it no longer provides liability protection, issuers should consider that it may still be used by the merchant as proof that authentication took place.
 
+**Data to consider when processing split shipments:**
 
-***Casos de Uso:***
+* The 3DS requestor name **threeDSRequestorName** and the merchant name **merchantName** must be the same in the initial authentication request and in each associated 3RI request.
+* The total value of all 3RI requests must not exceed the amount of the initial authentication request and the total of the amounts already authorized.
 
-* **Preventa de productos:** un cliente compra un producto en preventa, como un libro o un dispositivo electrónico que aún no está disponible. La tarjeta se carga cuando se realiza la compra, pero el producto se enviará semanas o meses después cuando esté disponible.
-* **Productos fuera de stock:** un cliente compra un producto que no está en stock en ese momento, pero que será enviado una vez que esté disponible. La tarjeta se carga al hacer el pedido, y el producto se envía cuando el inventario se repone.
-* **Pedidos con envíos programados:** un cliente compra varios productos, pero solicita que el envío se realice en una fecha futura específica. El pago se procesa de inmediato, pero el envío se retrasa hasta la fecha solicitada.
+### Use Cases
 
+* **Product pre-orders:** A customer purchases a product in pre-order, such as a book or an electronic device that is not yet available. The card is charged at the time of purchase, but the product will be shipped weeks or months later when it becomes available.
+* **Out-of-stock products:** A customer buys a product that is not in stock at the time, but which will be shipped once it becomes available. The card is charged when the order is placed, and the product is shipped when inventory is replenished.
+* **Orders with scheduled shipments:** A customer purchases several products but requests that the shipment be made on a specific future date. The payment is processed immediately, but the shipment is delayed until the requested date.
 
-| Evento                                                      | Valor | Descripción                                                                                                                                               |
-|-------------------------------------------------------------|-------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Autenticación inicial                                       | $112  | Autenticación inicial por el importe total del pedido.                                                                                                    |
-| Autorización Inicial del primer bien/servicio.              | $0    | Realice la autorización $0 para configurar el MIT futuro utilizando el CAVV de la autenticación inicial anterior.                                         |
-| Solicitud 3RI de un bien o servicio retrasado.              | $112  | Envíe una solicitud 3RI por el valor del bien o servicio retrasado. (p. ej., el día 85 después de la autenticación inicial)                               |
-| Autorización como reautorización MIT para el bien/servicio. | $112  | Realice la autorización para el bien o servicio utilizando el CAVV de la solicitud 3RI anterior. (p. ej., el día 120 después de la autenticación inicial) |
+| Event                                                     | Amount | Description                                                                                                                                      |
+|-----------------------------------------------------------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| Initial authentication                                    | $112   | Initial authentication for the total order amount.                                                                                               |
+| Initial authorization of the first good/service           | $0     | Perform a $0 authorization to set up the future MIT using the CAVV from the previous initial authentication.                                     |
+| 3RI request for a delayed good or service                 | $112   | Send a 3RI request for the value of the delayed good or service (e.g., day 85 after the initial authentication).                                 |
+| Authorization as MIT reauthorization for the good/service | $112   | Perform the authorization for the good or service using the CAVV from the previous 3RI request (e.g., day 120 after the initial authentication). |
 
-<Note>
-    Para Visa está disponible el flujo de envío dividido a través del [DAF](/en/three-d-s-server/api/integration/session-d-a-f), El cual es opcional para el flujo de 3RI
-</Note>
+### Prerequisites
 
-**Primera Autenticación**
+* Initial EMV 3DS authentication must be completed through a challenge.
+* (Visa DAF) VMID and card range enabled.
 
-Autenticación inicial por el importe total de la orden.
+### General Flow Diagram
 
-Antes de realizar una solicitud 3RI, debe haberse realizado una autenticación EMV 3DS donde el titular de la tarjeta esté disponible para autenticarse por el valor total del pedido. Esta autenticación inicial puede utilizarse para la autorización asociada a la primera entrega de los bienes/servicios.
+```plaintext
+ 1. Initial authentication (total order amount)
+ 2. Store threeDSRequestorPriorAuthenticationInfo and initial CAVV
+ 3. Before 90 days, send 3RI (`SPLIT_OR_DELAYED_SHIPMENT`) for new CAVV
+```
 
+## Integration
 
-### MASTERCARD
+### Endpoint Base
 
-***Request Lookup***
+```
+POST https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
+```
+
+### Parámetros Comunes
+
+| Parameter                  | Type   | Accepted Values / Example                                              | Description                                        |
+|----------------------------|--------|------------------------------------------------------------------------|----------------------------------------------------|
+| `deviceChannel`            | string | `BRW`, `RI`                                                            | Authentication channel.                            |
+| `threeDSAuthenticationInd` | string | `PAYMENT_TRANSACTION`                                                  | Initial payment transaction.                       |
+| `threeDSChallengeInd`      | string | `CHALLENGE_REQUESTED_MANDATE`                                          | Mandatory challenge in the initial authentication. |
+| `threeRIInd`               | string | `SPLIT_OR_DELAYED_SHIPMENT`                                            | Indicates Split Shipment in RI requests.           |
+| `purchaseAmount`           | string | e.g., 12345                                                            | Amount of the delayed good or service.             |
+| `purchaseCurrency`         | string | ISO4217 alpha code, e.g., USD                                          | Transaction currency.                              |
+| `reference`                | string | e.g., January 2024                                                     | Internal operation reference.                      |
+| `redirectURI`              | string | e.g., [https://www.placetopay.com/web](https://www.placetopay.com/web) | Return URL after authentication flow.              |
+| `messageVersion`           | string | `2.2.0`, `2.3.1`                                                       | 3DS protocol version.                              |
+
+### Brand Examples
+
+#### Mastercard – Initial Authentication
 
 ```json
 {
@@ -1157,35 +1089,12 @@ Antes de realizar una solicitud 3RI, debe haberse realizado una autenticación E
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseAmount": "112",
   "purchaseCurrency": "USD",
-  "reference": "Enero 2024",
+  "reference": "Product X",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** BRW (02)
-
-**threeDSAuthenticationInd:** PAYMENT_TRANSACTION (01) indica que la transacción es de pago
-
-**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04) el desafío es obligatorio
-
-***Response  Lookup***
-
-
-```json
-{
-    "action": "redirect",
-    "sessionToken": "c793365493edc34b17a7097ea8a33fdb5853d8e0da62d39ca9e49e6c021a641f",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86167/c793365493edc34b17a7097ea8a33fdb5853d8e0da62d39ca9e49e6c021a641f",
-    "transactionID": 248133
-}
-```
-
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
-
-
-### VISA
-
-***Request Lookup***
+#### Visa – First Authentication
 
 ```json
 {
@@ -1197,39 +1106,36 @@ Antes de realizar una solicitud 3RI, debe haberse realizado una autenticación E
   "purchaseAmount": "112",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Enero 2024",
+  "reference": "Product X",
   "messageVersion": "2.2.0"
 }
+
 ```
 
-**deviceChannel:** BRW (02) - Navegador
+### Response
+For both Visa and Mastercard, initial authentications are responded to with the following parameters:
 
-**threeDSAuthenticationInd:** PAYMENT_TRANSACTION (01) indica que la transacción es de pago
-
-**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04) el desafío es obligatorio
-
-***Response  Lookup***
-
+| Parameter              | Description                                                                       |
+|------------------------|-----------------------------------------------------------------------------------|
+| action                 | `redirect` indicates that the `redirectURL` must be accessed to continue the flow |
+| sessionToken           | Session token                                                                     |
+| redirectURL            | URL to continue the flow                                                          |
+| transactionID          | Internal transaction ID                                                           |
 
 ```json
 {
-    "action": "redirect",
-    "sessionToken": "3dcdb5b0d1403b0b1e14348037a3c74f202bf18d73233597a07a38963721b18e",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86170/3dcdb5b0d1403b0b1e14348037a3c74f202bf18d73233597a07a38963721b18e",
-    "transactionID": 248136
+  "action": "redirect",
+  "sessionToken": "398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86036/398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "transactionID": 248002
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+### Subsequent authentications
 
+In the recurring phase, use `deviceChannel`: `RI`.
 
-**Solicitud 3RI de un bien/servicio retrasado.**
-
-Envíe una solicitud 3RI por el valor del segundo bien/servicio
-
-### MASTERCARD
-
-***Request Lookup***
+#### Mastercard – Example of a 3RI request for a delayed good/service
 
 ```json
 {
@@ -1245,57 +1151,38 @@ Envíe una solicitud 3RI por el valor del segundo bien/servicio
   "purchaseAmount": "112",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Febrero 2024",
+  "reference": "Product X",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es RI
-
-**threeRIInd:** SPLIT_OR_DELAYED_SHIPMENT (06), indica que la transacción es un envío dividido o retrasado
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-- FRICTIONLESS_AUTHENTICATION (01) sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED (02) con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa ***primera autenticación***, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa ***primera autenticación***, si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
-
+#### Mastercard - Sample 3RI response
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "f91b89a9-7924-48de-97ab-8cc58bc5fcc2",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
-    "acsTransID": "cc3b5ff3-9dd7-44ae-bfa0-472de466f449",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "a730d64c-ddb1-4f99-8f2c-4591d00021e3",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
-    "authenticationValue": "xgQkuJ5tAAAAAAAAAAAAAAAAAAA=",
-    "eci": "07",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "FRICTIONLESS_AUTHENTICATION",
-    "authTimestamp": "2024-09-10T21:07:09+00:00",
-    "transactionID": 248135
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "f91b89a9-7924-48de-97ab-8cc58bc5fcc2",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
+  "acsTransID": "cc3b5ff3-9dd7-44ae-bfa0-472de466f449",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "a730d64c-ddb1-4f99-8f2c-4591d00021e3",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
+  "authenticationValue": "xgQkuJ5tAAAAAAAAAAAAAAAAAAA=",
+  "eci": "07",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "FRICTIONLESS_AUTHENTICATION",
+  "authTimestamp": "2024-09-10T21:07:09+00:00",
+  "transactionID": 248135
 }
 ```
 
-**Actión:** continue indica que la API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
-
-### VISA
-
-***Request Lookup***
+#### Visa – example of a 3RI request for a delayed good/service
 
 ```json
 {
@@ -1311,91 +1198,114 @@ Envíe una solicitud 3RI por el valor del segundo bien/servicio
   "purchaseAmount": "112",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Febrero 2024",
+  "reference": "Product X",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es RI
-
-**threeRIInd:** SPLIT_OR_DELAYED_SHIPMENT (06), indica que la transacción es un envío dividido o retrasado
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-- FRICTIONLESS_AUTHENTICATION (01) sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED (02) con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa ***primera autenticación***, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa **primera autenticación**, si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
-
+#### Visa - 3RI response example
 
 ```json
  {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "0ec3a36a-3c91-4864-bfc0-730300027805",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
-    "acsTransID": "4483ff06-0f36-45a2-aa13-b7f88564910b",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "8360727e-22ff-4c23-bef8-ba2510eaf59b",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "10078025",
-    "authenticationValue": "AJkCAREXeQAAACvAhAJUdYknEmE=",
-    "eci": "05",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "FRICTIONLESS_AUTHENTICATION",
-    "authTimestamp": "2024-09-10T21:12:29+00:00",
-    "transactionID": 248138
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "0ec3a36a-3c91-4864-bfc0-730300027805",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+  "acsTransID": "4483ff06-0f36-45a2-aa13-b7f88564910b",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "8360727e-22ff-4c23-bef8-ba2510eaf59b",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "10078025",
+  "authenticationValue": "AJkCAREXeQAAACvAhAJUdYknEmE=",
+  "eci": "05",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "FRICTIONLESS_AUTHENTICATION",
+  "authTimestamp": "2024-09-10T21:12:29+00:00",
+  "transactionID": 248138
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
-
 ---
 
-## Otros pagos/comercio entre múltiples partes
+# Other Payments / Multi-Party Commerce
 
-**Otros pagos** es la categoría reservada para los escenarios de **comercio entre múltiples partes** que pueden tener lugar cuando varias partes están involucradas en el procesamiento de múltiples autorizaciones asociadas con una única reserva de viaje o cuando varias partes en sectores distintos al de viajes están involucradas en el procesamiento de múltiples autorizaciones asociadas con un único pago desde el punto de vista del titular de la tarjeta.
+**Objective:** Provide support for scenarios in which multiple parties (agents, suppliers, merchants) participate in a single authentication flow and multiple authorizations under the same booking or payment.
 
-En la solicitud de autenticación inicial y las solicitudes 3RI asociadas, los agentes de reservas/proveedores de servicios comerciales también deben usar las convenciones de nomenclatura y los identificadores apropiados para el caso de uso para el que están autenticando:
+## Glossary
 
-* Autenticación solo en nombre de un solo comerciante
-* Autenticación en nombre de varios comerciantes
-* Autenticarse a sí mismos y en nombre de otro comerciante
+* **3DS:** Three-Domain Secure
+* **3RI:** 3-D Secure Recurrent Initiation
+* **CAVV:** Cardholder Authentication Verification Value
+* **BRW:** Browser Authentication (channel 02)
+* **RI:** Recurring Initiation (channel 03)
 
+## Definitions
 
-De manera similar a los envíos divididos, los emisores deben realizar un seguimiento del valor total utilizando los datos de transacción tanto de autorización como de autenticación. Esto es necesario ya que el agente de reservas/proveedor de servicios del comerciante no puede realizar una solicitud 3RI para todas las partes involucradas en la transacción y, como tal, el emisor no puede asumir que la suma de todas las solicitudes 3RI será igual al total del monto de autenticación inicial, pero los montos 3RI no deben exceder el monto autenticado original.
+**Other payments** is the category reserved for **multi-party commerce** scenarios that may occur when multiple parties are involved in processing multiple authorizations associated with a single travel booking, or when multiple parties in sectors other than travel are involved in processing multiple authorizations associated with a single payment from the cardholder’s point of view.
 
-Agente de reservas que realiza la autenticación en nombre de un único comerciante
+In the initial authentication request and associated 3RI requests, booking agents/service providers must also use the appropriate naming conventions and identifiers for the use case they are authenticating for:
 
-El titular de una tarjeta ha reservado un artículo en el sitio web de un agente de viajes, por ejemplo, un vuelo
-por valor de $395, que se debe pagar al vendedor (es decir, la aerolínea, que será el comerciante en el
-sistema de autorización) o cobrar por él en el momento de la reserva, pero el agente de viajes se encarga de la autenticación.
+* Authentication solely on behalf of a single merchant
+* Authentication on behalf of multiple merchants
+* Authenticating themselves and on behalf of another merchant
 
+Similar to split shipments, issuers must track the total value using both authorization and authentication transaction data. This is necessary because the booking agent/merchant’s service provider cannot make a 3RI request for all parties involved in the transaction, and as such, the issuer cannot assume that the sum of all 3RI requests will equal the total of the original initial authentication amount — however, 3RI amounts must not exceed the original authenticated amount.
 
-| **Evento**                                             | **Parte**               | **Valor** | **Descripción**                                                                                                                                     |
-|--------------------------------------------------------|-------------------------|-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Autenticación inicial por parte del agente de reservas | Agente de reservas      | $395      | Autenticación inicial por el importe total del pedido por parte del agente de reservas                                                              |
-| Autorización para bienes/servicios                     | Comerciante de viajes 1 | $395      | El agente de reservas proporciona el CAVV de la autenticación inicial al vendedor, lo que le permite realizar una autorización por el importe total |
+**Booking agent authenticating on behalf of a single merchant**
 
+The cardholder has booked an item on the travel agent’s website — for example, a flight worth $395 — which must be paid to the seller (i.e., the airline, which will be the merchant in the authorization system) or charged by them at the time of booking, but the travel agent handles the authentication.
 
+| **Event**                               | **Party**         | **Value** | **Description**                                                                                                                         |
+|-----------------------------------------|-------------------|-----------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| Initial authentication by booking agent | Booking agent     | $395      | Initial authentication for the full order amount performed by the booking agent                                                         |
+| Authorization for goods/services        | Travel merchant 1 | $395      | The booking agent provides the initial authentication CAVV to the seller, enabling them to perform an authorization for the full amount |
 
+**Booking agent authenticating on behalf of multiple merchants**
 
-**Autenticación inicial por parte del agente de reservas**
+A cardholder has booked three items on a booking agent travel website, payable to each individual travel provider (**merchant 1, 2, and 3 in the authorization system**). The travel website is not collecting funds but is performing the authentication on behalf of the 3 travel providers:
 
-Autenticación inicial por el importe total del pedido por parte del agente de reservas
+* A $170 flight payable to the airline (**provider/merchant 1**) at the time of booking
+* A hotel for which no deposit is required at the time of booking (**provider/merchant 2** takes the card details in case a no-show payment is needed)
+* A car rental requiring a $50 deposit to the rental company (**seller/merchant 3**) at the time of booking
 
-### MASTERCARD
+| **Event**                                        | **Party**                 | **Value** | **Description**                                                                                                                            |
+|--------------------------------------------------|---------------------------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| Initial authentication by booking agent          | Booking agent             | $220      | Initial authentication by the booking agent for the amount due for the order                                                               |
+| Booking agent performs three 3RI transactions    | Booking agent             | $220      | Booking agent performs three 3RI transactions to obtain three separate CAVVs: Airline \$170, Hotel \$0, Car rental \$50                    |
+| Authorization for goods/services (Flight)        | Travel merchant 1         | $170      | Airline merchant uses the 3RI transaction CAVV with a value of 170 (and their name in the CAVV) to perform the flight ticket authorization |
+| Authorization for goods/services (Accommodation) | Travel merchant 2 (hotel) | $0        | Accommodation merchant uses the 3RI transaction CAVV with a value of 0 (and their name in the CAVV) to set up a MIT authorization          |
+| Authorization for goods/services (Car rental)    | Travel merchant 3         | $50       | Car rental merchant uses the 3RI transaction CAVV with a value of 50 (and their name in the CAVV) to perform the deposit authorization     |
 
-***Request Lookup***
+## Integration
+
+### Endpoint Base
+
+```
+POST https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
+```
+
+### Common Parameters
+
+| Parameter                  | Type   | Accepted Values / Example                                              | Description                                        |
+|----------------------------|--------|------------------------------------------------------------------------|----------------------------------------------------|
+| `deviceChannel`            | string | `BRW`, `RI`                                                            | Authentication channel.                            |
+| `threeDSAuthenticationInd` | string | According to the brand                                                 | Initial payment transaction.                       |
+| `threeDSChallengeInd`      | string | `CHALLENGE_REQUESTED_MANDATE`                                          | Mandatory challenge in the initial authentication. |
+| `purchaseAmount`           | string | e.g., 12345                                                            | Amount for the delayed good or service.            |
+| `purchaseCurrency`         | string | ISO4217 alpha code. e.g., USD                                          | Transaction currency.                              |
+| `reference`                | string | e.g., January 2024                                                     | Internal reference for the operation.              |
+| `redirectURI`              | string | e.g., [https://www.placetopay.com/web](https://www.placetopay.com/web) | Return URL after authentication flow.              |
+| `messageVersion`           | string | `2.2.0`, `2.3.1`                                                       | 3DS protocol version.                              |
+
+### Brand Examples
+
+**Initial authentication** for the total order amount by the booking agent
+
+#### Mastercard
 
 ```json
 {
@@ -1407,36 +1317,12 @@ Autenticación inicial por el importe total del pedido por parte del agente de r
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseAmount": "395",
   "purchaseCurrency": "USD",
-  "reference": "Enero 2024",
+  "reference": "January 2024",
   "messageVersion": "2.2.0"
 }
-
 ```
 
-**deviceChannel:** BRW (02) - Navegador
-
-**threeDSAuthenticationInd:** PAYMENT_TRANSACTION (01) indica que la transacción es de pago
-
-**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04), el desafío es obligatorio
-
-
-***Response  Lookup***
-
-```json
-{
-    "action": "redirect",
-    "sessionToken": "cf980dc8f7bc550243c9aa49e36902474b36dfcddd0d5671f78a924311c8bdc0",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86177/cf980dc8f7bc550243c9aa49e36902474b36dfcddd0d5671f78a924311c8bdc0",
-    "transactionID": 248143
-}
-```
-
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
-
-
-### VISA
-
-***Request Lookup***
+#### Visa
 
 ```json
 {
@@ -1448,99 +1334,104 @@ Autenticación inicial por el importe total del pedido por parte del agente de r
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseAmount": "395",
   "purchaseCurrency": "USD",
-  "reference": "Enero 2024",
+  "reference": "January 2024",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** BRW (02) - Navegador
+### Response
+For both Visa and Mastercard, initial authentications are responded to with the following parameters:
 
-**threeDSAuthenticationInd:** PAYMENT_TRANSACTION (01) indica que la transacción es de pago
-
-**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04), el desafío es obligatorio
-
-
-***Response  Lookup***
-
-
-```json
-{
-    "action": "redirect",
-    "sessionToken": "c7bf55043c2d0403e87eaff8895951f70067e48a12a3d46203fd82df3da0a7c1",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86180/c7bf55043c2d0403e87eaff8895951f70067e48a12a3d46203fd82df3da0a7c1",
-    "transactionID": 248146
-}
-```
-
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
-
-
-
-
-### Agente de reservas que realiza la autenticación en nombre de varios comerciantes
-
-Un titular de tarjeta ha reservado en un sitio web de viajes **agente de reservas** tres artículos pagaderos a cada proveedor de viajes individual **comerciante 1, 2 y 3 en el sistema de autorización**. El sitio web de viajes no está recaudando fondos, sino que realiza la autenticación en nombre de los 3 proveedores de viajes:
-
-* Un vuelo por $170 pagadero a la aerolínea **proveedor/comerciante 1** en el momento de la reserva
-* Un hotel para el cual no se debe realizar un depósito en el momento de la reserva (el hotel **proveedor/comerciante 2 toma los datos de la tarjeta en caso de que se requiera un pago por no presentarse**
-* Un alquiler de automóvil para el cual se debe realizar un depósito de $50 a la compañía de alquiler **vendedor/comerciante 3** en el momento de la reserva
-
-
-| **Evento**                                                 | **Parte**                       | **Valor** | **Descripción**                                                                                                                                                         |
-|------------------------------------------------------------|---------------------------------|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Autenticación inicial por parte del agente de reservas     | Agente de reservas              | $220      | Autenticación inicial por parte del agente de reservas por el monto adeudado por el pedido                                                                              |
-| El agente de reservas realiza tres transacciones 3RI       | Agente de reservas              | $220      | El agente de reservas realiza tres transacciones 3RI para obtener tres CAVV independientes: Aerolínea $170, Hotel $0, Alquiler de automóvil $50                         |
-| Autorización para bienes/servicios (Vuelo)                 | Comerciante de viajes 1         | $170      | El comerciante de la aerolínea utiliza el CAVV de la transacción 3RI con un valor de 170 (y su nombre en el CAVV) para realizar la autorización del boleto de avión.    |
-| Autorización para bienes/servicios (Alojamiento)           | Comerciante de viajes 2 (hotel) | $0        | El comerciante de alojamiento utiliza el CAVV de la transacción 3RI con un valor de 0 (y su nombre en el CAVV) para realizar la autorización para configurar un MIT.    |
-| Autorización para bienes/servicios (Alquiler de automóvil) | Comerciante de viajes 3         | $50       | El comerciante de alquiler de automóviles utiliza el CAVV de la transacción 3RI con un valor de 50 (y su nombre en el CAVV) para realizar la autorización del depósito. |
-
-
-
-**Autenticación inicial por parte del agente de reservas**
-
-Autenticación inicial por parte del agente de reservas por el monto adeudado por el pedido.
-
-### MASTERCARD
-
-***Request Lookup***
+| Parameter              | Description                                                                       |
+|------------------------|-----------------------------------------------------------------------------------|
+| action                 | `redirect` indicates that the `redirectURL` must be accessed to continue the flow |
+| sessionToken           | Session token                                                                     |
+| redirectURL            | URL to continue the flow                                                          |
+| transactionID          | Internal transaction ID                                                           |
 
 ```json
 {
-    "deviceChannel": "BRW",
-    "threeDSAuthenticationInd": "MASTERCARD_THE_PAYMENT_REQUEST_IS_FOR_AN_AGENT_PAYMENT_TRANSACTION",
-    "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
-    "acctNumber": "5107000000010018",
-    "cardExpiryDate": "2806",
-    "purchaseAmount": "220",
-    "redirectURI": "https://www.placetopay.com/web",
-    "purchaseCurrency": "USD",
-    "messageVersion": "2.2.0"
+  "action": "redirect",
+  "sessionToken": "398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86036/398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "transactionID": 248002
 }
 ```
 
-**deviceChannel:** 02 - Navegador
+**Initial authentication** for the total order amount by the booking agent
 
-**threeDSAuthenticationInd:** 85 indica que la transacción es de otros pagos
-
-**threeDSChallengeInd: CHALLENGE_REQUESTED_MANDATE: (04)** el desafío es obligatorio
-
-***Response  Lookup***
+#### Mastercard
 
 ```json
 {
-    "action": "redirect",
-    "sessionToken": "a52df573f6a0a8071714958671d018030c90fc1e6cdc00ac4b7b50a35403da53",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86184/a52df573f6a0a8071714958671d018030c90fc1e6cdc00ac4b7b50a35403da53",
-    "transactionID": 248150
+  "deviceChannel": "BRW",
+  "threeDSAuthenticationInd": "MASTERCARD_THE_PAYMENT_REQUEST_IS_FOR_AN_AGENT_PAYMENT_TRANSACTION",
+  "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
+  "acctNumber": "5107000000010018",
+  "cardExpiryDate": "2902",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseAmount": "395",
+  "purchaseCurrency": "USD",
+  "reference": "January 2024",
+  "messageVersion": "2.2.0"
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+#### Visa
 
+```json
+{
+  "deviceChannel": "BRW",
+  "threeDSAuthenticationInd": "PAYMENT_TRANSACTION",
+  "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
+  "acctNumber": "4931119220729333",
+  "cardExpiryDate": "2902",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseAmount": "395",
+  "purchaseCurrency": "USD",
+  "reference": "January 2024",
+  "messageVersion": "2.2.0"
+}
+```
 
-### VISA
+### Response
+For both Visa and Mastercard, initial authentications are responded to with the following parameters:
 
-***Request Lookup***
+| Parameter              | Description                                                                       |
+|------------------------|-----------------------------------------------------------------------------------|
+| action                 | `redirect` indicates that the `redirectURL` must be accessed to continue the flow |
+| sessionToken           | Session token                                                                     |
+| redirectURL            | URL to continue the flow                                                          |
+| transactionID          | Internal transaction ID                                                           |
+
+```json
+{
+  "action": "redirect",
+  "sessionToken": "398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86036/398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "transactionID": 248002
+}
+```
+
+**Initial authentication** by the booking agent for the amount owed for the order.
+
+#### Mastercard
+
+```json
+{
+  "deviceChannel": "BRW",
+  "threeDSAuthenticationInd": "MASTERCARD_THE_PAYMENT_REQUEST_IS_FOR_AN_AGENT_PAYMENT_TRANSACTION",
+  "threeDSChallengeInd": "CHALLENGE_REQUESTED_MANDATE",
+  "acctNumber": "5107000000010018",
+  "cardExpiryDate": "2806",
+  "purchaseAmount": "220",
+  "redirectURI": "https://www.placetopay.com/web",
+  "purchaseCurrency": "USD",
+  "messageVersion": "2.2.0"
+}
+```
+
+#### Visa
 
 ```json
 {
@@ -1554,38 +1445,39 @@ Autenticación inicial por parte del agente de reservas por el monto adeudado po
   "purchaseAmount": "220",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Enero 2024",
+  "reference": "January 2024",
   "messageVersion": "2.2.0"
 }
-
 ```
 
-**deviceChannel:** BRW (02) - Navegador
+### Response
+For both Visa and Mastercard, initial authentications are responded to with the following parameters:
 
-**threeDSAuthenticationInd:** PAYMENT_TRANSACTION (01) indica que la transacción es de pago
-
-**threeDSChallengeInd:** CHALLENGE_REQUESTED_MANDATE (04), el desafío es obligatorio
-
-***Response  Lookup***
+| Parameter              | Description                                                                       |
+|------------------------|-----------------------------------------------------------------------------------|
+| action                 | `redirect` indicates that the `redirectURL` must be accessed to continue the flow |
+| sessionToken           | Session token                                                                     |
+| redirectURL            | URL to continue the flow                                                          |
+| transactionID          | Internal transaction ID                                                           |
 
 ```json
 {
-    "action": "redirect",
-    "sessionToken": "e672a6977da87394e43b3da848a754f0fc0c3f73153e4adb781fc54db1e80525",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86196/e672a6977da87394e43b3da848a754f0fc0c3f73153e4adb781fc54db1e80525",
-    "transactionID": 248162
+  "action": "redirect",
+  "sessionToken": "398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86036/398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "transactionID": 248002
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+### Subsequent authentications
 
-**Transacciones 3RI aerolínea**
+In the recurring phase, use `deviceChannel`: `RI`.
 
-El agente de reservas realiza la transaccion 3RI para obtener el CAVV y proporcionarlo al comerciante de viajes 1 (aerolínea)
+**3RI airline transactions**
 
-### MASTERCARD
+The reservation agent performs the 3RI transaction to obtain the CAVV and provide it to travel merchant 1 (airline).
 
-***Request Lookup***
+#### Mastercard – 3RI request example
 
 ```json
 {
@@ -1601,57 +1493,38 @@ El agente de reservas realiza la transaccion 3RI para obtener el CAVV y proporci
   "purchaseAmount": "170",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Marzo 2024",
+  "reference": "March 2024",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es 3RI
-
-**threeRIInd:** MASTERCARD_3RI_IS_FOR_AN_AGENT_PAYMENT_TRANSACTION (85), indica que la transacción de tipo otros pagos
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-- FRICTIONLESS_AUTHENTICATION (01), sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED (02), con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa (primera autenticación), consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa (primera autenticación), si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-
-***Response  Lookup***
+#### Mastercard - Sample 3RI response
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "1045a464-161f-4538-a769-9a0f84e27a3d",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
-    "acsTransID": "f31f4da1-7ac1-4be4-b37a-9e28d8e4eb9e",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "a0dca8a6-5fc5-49f9-96b2-8ee5c9e51508",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
-    "authenticationValue": "xgSFPEJIAAAAAAAAAAAAAAAAAAA=",
-    "eci": "07",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "FRICTIONLESS_AUTHENTICATION",
-    "authTimestamp": "2024-09-10T22:34:13+00:00",
-    "transactionID": 248159
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "1045a464-161f-4538-a769-9a0f84e27a3d",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
+  "acsTransID": "f31f4da1-7ac1-4be4-b37a-9e28d8e4eb9e",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "a0dca8a6-5fc5-49f9-96b2-8ee5c9e51508",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
+  "authenticationValue": "xgSFPEJIAAAAAAAAAAAAAAAAAAA=",
+  "eci": "07",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "FRICTIONLESS_AUTHENTICATION",
+  "authTimestamp": "2024-09-10T22:34:13+00:00",
+  "transactionID": 248159
 }
 ```
-**Actión:** continue indica que la API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
 
-
-### VISA
-
-***Request Lookup***
+#### Visa – 3RI request example
 
 ```json
 {
@@ -1667,49 +1540,40 @@ El agente de reservas realiza la transaccion 3RI para obtener el CAVV y proporci
   "purchaseAmount": "170",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Febrero 2024",
+  "reference": "February 2024",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es 3RI
-
-**threeRIInd:** OTHER_PAYMENT (11) indica que la transacción de tipo otro pago
-
-***Response  Lookup***
+#### Visa - 3RI response example
 
 ```json
- {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "1a53d143-230f-47b9-b886-a201ee867489",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
-    "acsTransID": "179f6511-b042-41f3-939d-7f862a527751",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "f5eb0bae-dccf-498e-b639-4abf5e86b162",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "10078025",
-    "authenticationValue": "AJkCAhAyeQAAAEJohAJUdYknEmE=",
-    "eci": "05",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "FRICTIONLESS_AUTHENTICATION",
-    "authTimestamp": "2024-09-10T22:46:32+00:00",
-    "transactionID": 248164
+  {
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "1a53d143-230f-47b9-b886-a201ee867489",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+  "acsTransID": "179f6511-b042-41f3-939d-7f862a527751",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "f5eb0bae-dccf-498e-b639-4abf5e86b162",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "10078025",
+  "authenticationValue": "AJkCAhAyeQAAAEJohAJUdYknEmE=",
+  "eci": "05",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "FRICTIONLESS_AUTHENTICATION",
+  "authTimestamp": "2024-09-10T22:46:32+00:00",
+  "transactionID": 248164
 }
 ```
 
-**Actión:** continue indica que la API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
+**3RI hotel transactions**
 
-
-**Transacciones 3RI hotel**
-
-### MASTERCARD
-
-***Request Lookup***
+#### Mastercard – 3RI request example
 
 ```json
 {
@@ -1725,56 +1589,38 @@ El agente de reservas realiza la transaccion 3RI para obtener el CAVV y proporci
   "purchaseAmount": "0",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Abril 2024",
+  "reference": "April 2024",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es 3RI
-
-**threeRIInd:** MASTERCARD_3RI_IS_FOR_AN_AGENT_PAYMENT_TRANSACTION (85) indica que la transacción de tipo otros pagos
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-
-- FRICTIONLESS_AUTHENTICATION (01) sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED (02) con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa (primera autenticación), consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa (primera autenticación), si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
+#### Mastercard - Sample 3RI response
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "32c88ea6-7841-4c8b-9067-b84c99b20784",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
-    "acsTransID": "fa92fe01-84f7-4ae7-a3f1-1dd50f97ebef",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "634b8dc1-aa5b-48c3-b367-022156663c81",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
-    "authenticationValue": "xgRTaR2SAAAAAAAAAAAAAAAAAAA=",
-    "eci": "07",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "FRICTIONLESS_AUTHENTICATION",
-    "authTimestamp": "2024-09-10T22:36:05+00:00",
-    "transactionID": 248160
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "32c88ea6-7841-4c8b-9067-b84c99b20784",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
+  "acsTransID": "fa92fe01-84f7-4ae7-a3f1-1dd50f97ebef",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "634b8dc1-aa5b-48c3-b367-022156663c81",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
+  "authenticationValue": "xgRTaR2SAAAAAAAAAAAAAAAAAAA=",
+  "eci": "07",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "FRICTIONLESS_AUTHENTICATION",
+  "authTimestamp": "2024-09-10T22:36:05+00:00",
+  "transactionID": 248160
 }
 ```
-**Actión:** continue indica que la API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
 
-### VISA
-
-***Request Lookup***
+#### Visa – 3RI request example
 
 ```json
 {
@@ -1790,60 +1636,41 @@ El agente de reservas realiza la transaccion 3RI para obtener el CAVV y proporci
   "purchaseAmount": "0",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Marzo 2024",
+  "reference": "March 2024",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es 3RI
-
-**threeRIInd:** OTHER_PAYMENT (11) indica que la transacción de tipo otros pagos
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-- FRICTIONLESS_AUTHENTICATION (01) sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED (02), con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa (primera autenticación), consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa (primera autenticación), si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
+#### Visa - 3RI response example
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "b9913d5d-4980-4103-b77c-5daf0c7054b0",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
-    "acsTransID": "e9b7726c-6f9a-4606-afe3-09dce49f49a2",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "6f9c449a-0ff3-4438-8c47-e3009ded9cd1",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "10078025",
-    "authenticationValue": "AJkCB4EjdQAAAAAAhAJUdYknEmE=",
-    "eci": "05",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "01",
-    "authTimestamp": "2024-09-10T22:48:07+00:00",
-    "transactionID": 248165
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "b9913d5d-4980-4103-b77c-5daf0c7054b0",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+  "acsTransID": "e9b7726c-6f9a-4606-afe3-09dce49f49a2",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "6f9c449a-0ff3-4438-8c47-e3009ded9cd1",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "10078025",
+  "authenticationValue": "AJkCB4EjdQAAAAAAhAJUdYknEmE=",
+  "eci": "05",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "01",
+  "authTimestamp": "2024-09-10T22:48:07+00:00",
+  "transactionID": 248165
 }
 ```
 
-**Actión:** continue indica que la API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
+**3RI Car Transactions**
+The booking agent performs the 3RI transaction to obtain the CAVV and provide it to the travel merchant 3 (car rental).
 
-**Transacciones 3RI alquiler de automóvil**
-
-El agente de reservas realiza la transacción 3RI para obtener el CAVV y proporcionarlo al comerciante de viajes 3 (alquiler automóvil)
-
-### MASTERCARD
-
-***Request Lookup***
+#### Mastercard – 3RI request example
 
 ```json
 {
@@ -1859,58 +1686,38 @@ El agente de reservas realiza la transacción 3RI para obtener el CAVV y proporc
   "purchaseAmount": "50",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Marzo 2024",
+  "reference": "March 2024",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es 3RI
-
-**threeRIInd:** MASTERCARD_3RI_IS_FOR_AN_AGENT_PAYMENT_TRANSACTION (85) indica que la transacción de tipo otros pagos
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-
-- FRICTIONLESS_AUTHENTICATION (01) sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED (02), con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa (primera autenticación), consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa (primera autenticación), si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
+#### Mastercard - Sample 3RI response
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "c34f67dc-7a25-4977-97f7-ca1f961946be",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
-    "acsTransID": "fd189ecf-c65e-4a7d-9640-89662b850038",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "4680679e-d6ed-48d2-89d2-b73de0828a57",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
-    "authenticationValue": "xgSELtLrAAAAAAAAAAAAAAAAAAA=",
-    "eci": "07",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "01",
-    "authTimestamp": "2024-09-10T22:38:11+00:00",
-    "transactionID": 248161
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "c34f67dc-7a25-4977-97f7-ca1f961946be",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539",
+  "acsTransID": "fd189ecf-c65e-4a7d-9640-89662b850038",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "4680679e-d6ed-48d2-89d2-b73de0828a57",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "ACS-V210-ACS-PLACETOPAY-11174",
+  "authenticationValue": "xgSELtLrAAAAAAAAAAAAAAAAAAA=",
+  "eci": "07",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "01",
+  "authTimestamp": "2024-09-10T22:38:11+00:00",
+  "transactionID": 248161
 }
 ```
 
-**Actión:** continue indica que la API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
-
-
-### VISA
-
-***Request Lookup***
+#### Visa – 3RI request example
 
 ```json
 {
@@ -1926,78 +1733,109 @@ El agente de reservas realiza la transacción 3RI para obtener el CAVV y proporc
   "purchaseAmount": "50",
   "redirectURI": "https://www.placetopay.com/web",
   "purchaseCurrency": "USD",
-  "reference": "Mayo 2024",
+  "reference": "May 2024",
   "messageVersion": "2.2.0"
 }
 ```
 
-***deviceChannel:*** RI (03) indica que el canal es 3RI
-
-***threeRIInd:*** OTHER_PAYMENT(11) indica que la transacción de tipo otros pagos
-
-***threeDSReqPriorAuthMethod:*** Método que fue usado por el tarjetahabiente para la autenticación.
-
-- FRICTIONLESS_AUTHENTICATION(01) sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED (02) con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***threeDSReqPriorAuthTimestamp:*** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***threeDSReqPriorRef:*** El ID otorgado por el ACS en la transacción previa (primera autenticación), consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***threeDSReqPriorAuthData:*** El ID otorgado por el DS en la transacción previa (primera autenticación), si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
+#### Visa - 3RI response example
 
 ```json
  {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "7a64778d-45de-48ae-8c78-ec688775315d",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
-    "acsTransID": "d4b3bbae-5594-4c89-9cf8-ae2ac3499223",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "5c4c3ec0-d31b-442d-81e8-86025c08cb9d",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "10078025",
-    "authenticationValue": "AJkCByOJNAAAABOIhAJUdYknEmE=",
-    "eci": "05",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "01",
-    "authTimestamp": "2024-09-10T22:49:54+00:00",
-    "transactionID": 248166
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "7a64778d-45de-48ae-8c78-ec688775315d",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+  "acsTransID": "d4b3bbae-5594-4c89-9cf8-ae2ac3499223",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "5c4c3ec0-d31b-442d-81e8-86025c08cb9d",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "10078025",
+  "authenticationValue": "AJkCByOJNAAAABOIhAJUdYknEmE=",
+  "eci": "05",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "01",
+  "authTimestamp": "2024-09-10T22:49:54+00:00",
+  "transactionID": 248166
 }
 ```
 
-**Actión:** continue indica que la API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
-
-
 ---
 
+# Unscheduled Card-on-File Transactions (UCOF)
 
-## Transacciones con tarjeta registrada no programadas
+**Objective:** Allow merchants to process one-time, unscheduled charges using previously stored card information, without requiring additional cardholder interaction, protected by 3DS.
 
-Las transacciones UCOF **Unscheduled card-on-file** se producen cuando un comerciante utiliza la información de la tarjeta almacenada en su sistema para realizar un cargo único y no programado en la tarjeta del cliente. Estas transacciones no están asociadas con pagos recurrentes o a plazos, sino que son transacciones únicas que aprovechan la información de la tarjeta almacenada previamente para facilitar el pago.
+## Glossary
 
-* Compras en línea sin intervención del titular de la tarjeta: Por ejemplo, un cliente realiza una compra en un sitio web utilizando la opción de ***guardar tarjeta para futuras compras***. Luego, en una fecha posterior, el comerciante utiliza la información de la tarjeta almacenada para procesar un pago por una compra adicional sin la necesidad de una interacción adicional por parte del cliente.
-* Renovaciones automáticas de servicios no periódicos: Algunos servicios no siguen un ciclo de facturación regular, pero aún pueden optar por utilizar la información de la tarjeta almacenada para facilitar el pago de renovaciones automáticas. Por ejemplo, la renovación anual de una suscripción a un software que no se factura mensualmente, pero que utiliza la información de la tarjeta almacenada para procesar automáticamente el pago cuando llega la fecha de renovación.
-* Pagos de tarifas o cargos únicos: Situaciones en las que un cliente necesita realizar un pago único y no programado a un comerciante, como el pago de una factura pendiente, un cargo por servicio adicional, o una compra de último minuto.
+* **3DS**: Three-Domain Secure.
+* **3RI**: 3‑D Secure Recurrent Initiation.
+* **UCOF**: Unscheduled Card-On-File.
+* **NPA**: No Payment (transaction with no debiting of funds).
+* **PA**: Payment (transaction that verifies funds).
+* **BRW:** Browser Authentication (channel 02).
+* **RI:** Recurring Initiation (channel 03).
+
+## Definitions
+
+**Unscheduled Card-on-File (UCOF)** transactions occur when a merchant uses card information stored in their system to perform a one-time, unscheduled charge to the customer’s card. These transactions are not associated with recurring or installment payments; instead, they are one-time transactions that leverage previously stored card details to facilitate payment.
+
+* **Online purchases without cardholder intervention:** For example, a customer makes a purchase on a website using the **_save card for future purchases_** option. Later, on a different date, the merchant uses the stored card information to process a payment for an additional purchase without requiring further interaction from the customer.
+* **Automatic renewals for non-periodic services:** Some services do not follow a regular billing cycle but may still opt to use stored card information to facilitate automatic renewals. For example, the annual renewal of a software subscription that is not billed monthly, but automatically charges the stored card when the renewal date arrives.
+* **One-time fees or charges:** Situations in which a customer needs to make a one-time, unscheduled payment to a merchant, such as paying an outstanding invoice, an extra service fee, or a last-minute purchase.
+
+### Use Cases
+
+* **Additional purchases without login:** Use of “save card” for future purchases.
+* **Non-periodic renewals:** Annual subscription payments.
+* **One-time service charges:** Outstanding invoices, penalties, last-minute purchases.
+
+## Prerequisites
+
+1. Initial EMV 3DS authentication.
+2. Merchant credentials and HMAC signature configured.
+
+## General Flow Diagram
+
+```plaintext
+1. Initial authentication (ADD_CARD or NPA)
+2. Store threeDSRequestorPriorAuthenticationInfo and CAVV
+3. RI (UCOF) request for one-time charge
+```
+
+## Integration
+
+### Endpoint Base
+
+```
+POST https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
+```
+
+### Common Parameters
+
+| Parameter                  | Type   | Accepted Values / Example                                              | Description                                        |
+|----------------------------|--------|------------------------------------------------------------------------|----------------------------------------------------|
+| `deviceChannel`            | string | `BRW`, `RI`                                                            | Authentication channel.                            |
+| `threeDSAuthenticationInd` | string | According to brand                                                     | Initial payment transaction.                       |
+| `threeDSChallengeInd`      | string | `CHALLENGE_REQUESTED_MANDATE`                                          | Mandatory challenge in the initial authentication. |
+| `purchaseAmount`           | string | e.g., 12345                                                            | Amount of the delayed good or service.             |
+| `purchaseCurrency`         | string | ISO4217 alpha code, e.g., USD                                          | Transaction currency.                              |
+| `reference`                | string | e.g., January 2024                                                     | Internal operation reference.                      |
+| `redirectURI`              | string | e.g., [https://www.placetopay.com/web](https://www.placetopay.com/web) | Return URL after authentication flow.              |
+| `messageVersion`           | string | `2.2.0`, `2.3.1`                                                       | 3DS protocol version.                              |
 
 
-`POST` https://3dss-dev.placetopay.ws/api/threeds/v2x/sessions
+### Brand Examples
 
+**Visa No Payment (NPA)**
 
-**Visa No Pago (NPA)**
+NPA option: This option does not require verifying account funds.
 
-***Primera Autenticación - Agregar tarjeta***
-
-**Opción NPA:** esta opción no require verificar fondos de la cuenta.
-
-
-***Request Lookup***
+#### Visa – First Authentication, Add Card
 
 ```json
 {
@@ -2008,45 +1846,42 @@ Las transacciones UCOF **Unscheduled card-on-file** se producen cuando un comerc
   "acctNumber": "4931119220729333",
   "cardExpiryDate": "2902",
   "redirectURI": "https://www.placetopay.com/web",
-  "reference": "Enero 2024",
+  "reference": "January 2024",
   "messageVersion": "2.2.0",
   "billAddrCity": "Medellín",
   "billAddrCountry": "COL",
   "billAddrLine1": "Carrera 65 # 45 - 20",
   "billAddrPostCode": "050004",
   "billAddrState": "ANT",
-  "email": "john.doe@evertecinc.com",
+  "email": "email@example.com",
   "mobilePhone": {
-      "cc": "57",
-      "subscriber": "30011122333"
+    "cc": "57",
+    "subscriber": "3111111111"
   }
 }
 ```
 
-**deviceChannel:** BRW (02) - Navegador
+### Response
 
-**messageCategory:** NPA (02) - No pago
-
-**threeDSAuthenticationInd**, indica el tipo de autenticación. El valor de 04 corresponde a agregar tarjeta.
-
-***Response  Lookup***
-
+| Parameter              | Description                                                                       |
+|------------------------|-----------------------------------------------------------------------------------|
+| action                 | `redirect` indicates that the `redirectURL` must be accessed to continue the flow |
+| sessionToken           | Session token                                                                     |
+| redirectURL            | URL to continue the flow                                                          |
+| transactionID          | Internal transaction ID                                                           |
 
 ```json
 {
-    "action": "redirect",
-    "sessionToken": "b8ba7e2e3cb4b7cf8045c8e098bf84e5f77b6b643a1ce19cef9ebe4be8b05473",
-    "redirectURL": "https://3dss-dev.placetopay.ws/threeds/v2x/sessions/1268/b8ba7e2e3cb4b7cf8045c8e098bf84e5f77b6b643a1ce19cef9ebe4be8b05473",
-    "transactionID": 1312
+  "action": "redirect",
+  "sessionToken": "398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86036/398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "transactionID": 248002
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+### Subsequent authentications
 
-
-**Autenticaciones posteriores**
-
-***Request Lookup***
+#### Visa – 3RI request example
 
 ```json
 {
@@ -2063,59 +1898,41 @@ Las transacciones UCOF **Unscheduled card-on-file** se producen cuando un comerc
   "purchaseAmount": "1.00",
   "purchaseCurrency": "USD",
   "redirectURI": "https://www.placetopay.com/web",
-  "reference": "Febrero 2024",
+  "reference": "February 2024",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es 3RI
-
-**threeRIInd:** 81 indica que la transacción con una tarjeta registrada no programada
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-- FRICTIONLESS_AUTHENTICATION(01) sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED(02) con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa ***primera autenticación***, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa **primera autenticación**, si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
-
+#### Visa - 3RI response example
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "aec4b66f-f4ce-4bbf-9904-0759efa6ea8e",
-    "acsReferenceNumber": "PTOPID",
-    "acsTransID": "f7a98ab1-37d1-4e20-a7db-8f0491fbdd6d",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "655fabd4-ee08-4bab-963f-68c79063438f",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "CAS_OPERD_DR",
-    "authenticationValue": "BpkCBBYBJAAAAABkhAEkdYR0cUU=",
-    "eci": "05",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "RI",
-    "messageCategory": "PA",
-    "authMethod": "FRICTIONLESS_AUTHENTICATION",
-    "authTimestamp": "2024-05-03T22:49:38+00:00"
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "aec4b66f-f4ce-4bbf-9904-0759efa6ea8e",
+  "acsReferenceNumber": "PTOPID",
+  "acsTransID": "f7a98ab1-37d1-4e20-a7db-8f0491fbdd6d",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "655fabd4-ee08-4bab-963f-68c79063438f",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "CAS_OPERD_DR",
+  "authenticationValue": "BpkCBBYBJAAAAABkhAEkdYR0cUU=",
+  "eci": "05",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "RI",
+  "messageCategory": "PA",
+  "authMethod": "FRICTIONLESS_AUTHENTICATION",
+  "authTimestamp": "2024-05-03T22:49:38+00:00"
 }
 ```
 
-**Actión:** continue indica que ls API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
+**Visa Non-Payment (NPA) and DAF**
 
+Implementation with DAF is optional.
 
-***Visa No Pago (NPA) y DAF***
-
-La implementación con DAF es opcional.
-
-***Request Lookup***
+#### Visa
 
 ```json
 {
@@ -2126,59 +1943,42 @@ La implementación con DAF es opcional.
   "acctNumber": "4931119220729333",
   "cardExpiryDate": "2902",
   "redirectURI": "https://www.placetopay.com/web",
-  "reference": "Enero 2024",
+  "reference": "January 2024",
   "messageVersion": "2.2.0",
   "billAddrCity": "Medellín",
   "billAddrCountry": "COL",
   "billAddrLine1": "Carrera 65 # 45 - 20",
   "billAddrPostCode": "050004",
   "billAddrState": "ANT",
-  "email": "john.doe@evertecinc.com",
+  "email": "email@example.com",
   "mobilePhone": {
-      "cc": "57",
-      "subscriber": "30011122333"
+    "cc": "57",
+    "subscriber": "3111111111"
   }
 }
 ```
 
-**deviceChannel:** 02 - Navegador
+### Response
 
-**messageCategory:** El valor 02 corresponde a transacción de No pago (NPA)
-
-**threeDSAuthenticationInd**, indica el tipo de autenticación. El valor de 04 corresponde a agregar tarjeta.
-
-**Datos DAF:** las llaves adicionales que se deberán enviar para que se aplique el DAF con VISA son los siguientes
-
-* billAddrCity
-* billAddrCountry
-* billAddrLine1
-* billAddrPostCode
-* billAddrState
-* email
-* mobilePhone
-
-<Note>
-    Además de tener en cuenta las configuraciones descritas en la documentación de [DAF](/en/three-d-s-server/api/integration/session-d-a-f)
-</Note>
-
-***Response  Lookup***
-
+| Parameter              | Description                                                                       |
+|------------------------|-----------------------------------------------------------------------------------|
+| action                 | `redirect` indicates that the `redirectURL` must be accessed to continue the flow |
+| sessionToken           | Session token                                                                     |
+| redirectURL            | URL to continue the flow                                                          |
+| transactionID          | Internal transaction ID                                                           |
 
 ```json
 {
-    "action": "redirect",
-    "sessionToken": "ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86201/ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
-    "transactionID": 248167
+  "action": "redirect",
+  "sessionToken": "398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86036/398864c1e4c8217283b67f0312a2d8ee14e3814c0e000a92d4532bc406f65d2f",
+  "transactionID": 248002
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+### Subsequent authentications
 
-
-**Autenticaciones posteriores**
-
-***Request Lookup***
+#### Visa – 3RI request example
 
 ```json
 {
@@ -2194,99 +1994,66 @@ La implementación con DAF es opcional.
   "purchaseAmount": "1.00",
   "purchaseCurrency": "USD",
   "redirectURI": "https://www.placetopay.com/web",
-  "reference": "Febrero 2024",
+  "reference": "February 2024",
   "billAddrCity": "Medellín",
   "billAddrCountry": "COL",
   "billAddrLine1": "Carrera 65 # 45 - 20",
   "billAddrPostCode": "050004",
   "billAddrState": "ANT",
-  "email": "john.doe@evertecinc.com",
+  "email": "email@example.com",
   "mobilePhone": {
-      "cc": "57",
-      "subscriber": "30011122333"
+    "cc": "57",
+    "subscriber": "3111111111"
   },
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es 3RI
-
-**threeRIInd:** 81 indica que la transacción con una tarjeta registrada no programada
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación.
-- FRICTIONLESS_AUTHENTICATION(01) sin fricción,
-- CARDHOLDER_CHALLENGE_OCCURRED(02) con fricción, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El ID otorgado por el ACS en la transacción previa ***primera autenticación***, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El ID otorgado por el DS en la transacción previa **primera autenticación**, si este dato no es enviado 3DSS lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**Datos DAF:** las llaves adicionales que se deberán enviar para que se aplique el [DAF](/en/three-d-s-server/api/integration/session-d-a-f) con VISA son los siguientes
-
-* billAddrCity
-* billAddrCountry
-* billAddrLine1
-* billAddrPostCode
-* billAddrState
-* email
-* mobilePhone
-
-<Note>
-    Además de tener en cuenta las configuraciones descritas en la documentación de [DAF](/en/three-d-s-server/api/integration/session-d-a-f)
-</Note>
-
-
-***Response  Lookup***
-
+#### Visa - 3RI response example
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
-    "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "10078025",
-    "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
-    "eci": "05",
-    "messageExtension": [
-        {
-            "name": "DAF Extension",
-            "id": "A000000003-003",
-            "criticalityIndicator": false,
-            "data": {
-                "chAccReqID": "MUHZx0nojuVVAZJwPD4CWps0RuxUPxepI8sk57Yd/s4=",
-                "authPayProcessReqInd": "01",
-                "version": "1.0",
-                "authPayCredStatus": "Y",
-                "dafAdvice": "01"
-            }
-        }
-    ],
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "03",
-    "messageCategory": "PA",
-    "authMethod": "01",
-    "authTimestamp": "2024-09-10T22:56:48+00:00",
-    "transactionID": 248168
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+  "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "10078025",
+  "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
+  "eci": "05",
+  "messageExtension": [
+    {
+      "name": "DAF Extension",
+      "id": "A000000003-003",
+      "criticalityIndicator": false,
+      "data": {
+        "chAccReqID": "MUHZx0nojuVVAZJwPD4CWps0RuxUPxepI8sk57Yd/s4=",
+        "authPayProcessReqInd": "01",
+        "version": "1.0",
+        "authPayCredStatus": "Y",
+        "dafAdvice": "01"
+      }
+    }
+  ],
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "03",
+  "messageCategory": "PA",
+  "authMethod": "01",
+  "authTimestamp": "2024-09-10T22:56:48+00:00",
+  "transactionID": 248168
 }
 ```
 
-**Actión:** continue indica que ls API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
+**Visa Payment (PA)**
 
+PA Option: This option requires verification of account funds. A minimum sample value is assigned; please consider this value during implementation.
 
-***Visa Pago (PA)***
-
-Opción PA: esta opción requiere verificar los fondos de la cuenta. Se asigna un valor mínimo de ejemplo, tenga en cuenta este valor en la implementación.
-
-***Request Lookup***
+#### Visa
 
 ```json
 {
@@ -2299,35 +2066,32 @@ Opción PA: esta opción requiere verificar los fondos de la cuenta. Se asigna u
   "purchaseAmount": "1.00",
   "purchaseCurrency": "USD",
   "redirectURI": "https://www.placetopay.com/web",
-  "reference": "Enero 2024",
+  "reference": "January 2024",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** 02 - Navegador
+### Response
 
-**messageCategory:** El valor 01 corresponde a transacción de pago (PA)
-
-**threeDSAuthenticationInd**, indica el tipo de autenticación. El valor de 04 corresponde a agregar tarjeta.
-
-***Response  Lookup***
-
+| Parameter              | Description                                                                       |
+|------------------------|-----------------------------------------------------------------------------------|
+| action                 | `redirect` indicates that the `redirectURL` must be accessed to continue the flow |
+| sessionToken           | Session token                                                                     |
+| redirectURL            | URL to continue the flow                                                          |
+| transactionID          | Internal transaction ID                                                           |
 
 ```json
 {
-    "action": "redirect",
-    "sessionToken": "ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86202/ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
-    "transactionID": 248168
+  "action": "redirect",
+  "sessionToken": "ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+  "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86202/ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+  "transactionID": 248168
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+### Subsequent authentications
 
-
-**Autenticaciones posteriores**
-
-***Request Lookup***
+#### Visa – 3RI request example
 
 ```json
 {
@@ -2343,60 +2107,44 @@ Opción PA: esta opción requiere verificar los fondos de la cuenta. Se asigna u
   "purchaseAmount": "1.00",
   "purchaseCurrency": "USD",
   "redirectURI": "https://www.placetopay.com/web",
-  "reference": "Febrero 2024",
+  "reference": "February 2024",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es 3RI
-
-**threeRIInd:** 81 indica que la transacción con una tarjeta registrada no programada
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación. 01 sin fricción, 02 con fricción,  consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El id otorgado por el ACS en la transacción previa (primera autenticación), consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El id otorgado por el DS en la transacción previa (primera autenticación), si este dato no es enviado MPI lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
-
+#### Visa - 3RI response example
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
-    "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "10078025",
-    "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
-    "eci": "05",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "03",
-    "messageCategory": "PA",
-    "authMethod": "01",
-    "authTimestamp": "2024-09-10T22:56:48+00:00",
-    "transactionID": 248168
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+  "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "10078025",
+  "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
+  "eci": "05",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "03",
+  "messageCategory": "PA",
+  "authMethod": "01",
+  "authTimestamp": "2024-09-10T22:56:48+00:00",
+  "transactionID": 248168
 }
 ```
 
-**Actión:** continue indica que ls API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
+**Visa Payment (PA) and DAF**
 
+Implementation with DAF is optional.
 
-***Visa Pago (PA) y DAF***
+PA Option: This option requires verification of account funds. A minimum sample value is assigned; please consider this value during implementation.
 
-La implementación con [DAF](/en/three-d-s-server/api/integration/session-d-a-f) es opcional.
-
-Opción PA: esta opción requiere verificar los fondos de la cuenta. Se asigna un valor mínimo de ejemplo, tenga en cuenta este valor en la implementación.
-
-***Request Lookup***
+#### Visa
 
 ```json
 {
@@ -2409,59 +2157,42 @@ Opción PA: esta opción requiere verificar los fondos de la cuenta. Se asigna u
   "purchaseAmount": "1.00",
   "purchaseCurrency": "USD",
   "redirectURI": "https://www.placetopay.com/web",
-  "reference": "Enero 2024",
+  "reference": "January 2024",
   "messageVersion": "2.2.0",
   "billAddrCity": "Medellín",
   "billAddrCountry": "COL",
   "billAddrLine1": "Carrera 65 # 45 - 20",
   "billAddrPostCode": "050004",
   "billAddrState": "ANT",
-  "email": "john.doe@evertecinc.com",
+  "email": "email@example.com",
   "mobilePhone": {
-      "cc": "57",
-      "subscriber": "30011122333"
+    "cc": "57",
+    "subscriber": "3111111111"
   }
 }
 ```
 
-**deviceChannel:** 02 - Navegador
+### Response
 
-**messageCategory:** El valor 01 corresponde a transacción de pago (PA)
-
-**threeDSAuthenticationInd**, indica el tipo de autenticación. El valor de 04 corresponde a agregar tarjeta.
-
-**Datos DAF:** las llaves adicionales que se deberán enviar para que se aplique el [DAF](/en/three-d-s-server/api/integration/session-d-a-f) con VISA son los siguientes
-
-* billAddrCity
-* billAddrCountry
-* billAddrLine1
-* billAddrPostCode
-* billAddrState
-* email
-* mobilePhone
-
-<Note>
-    Además de tener en cuenta las configuraciones descritas en la documentación de [DAF](/en/three-d-s-server/api/integration/session-d-a-f)
-</Note>
-
-***Response  Lookup***
-
+| Parameter              | Description                                                                       |
+|------------------------|-----------------------------------------------------------------------------------|
+| action                 | `redirect` indicates that the `redirectURL` must be accessed to continue the flow |
+| sessionToken           | Session token                                                                     |
+| redirectURL            | URL to continue the flow                                                          |
+| transactionID          | Internal transaction ID                                                           |
 
 ```json
 {
-    "action": "redirect",
-    "sessionToken": "ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86202/ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
-    "transactionID": 248168
+  "action": "redirect",
+  "sessionToken": "ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+  "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86202/ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+  "transactionID": 248168
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+### Subsequent authentications
 
-
-**Autenticaciones posteriores**
-
-***Request Lookup***
+#### Visa – 3RI request example
 
 ```json
 {
@@ -2477,97 +2208,66 @@ Opción PA: esta opción requiere verificar los fondos de la cuenta. Se asigna u
   "purchaseAmount": "1.00",
   "purchaseCurrency": "USD",
   "redirectURI": "https://www.placetopay.com/web",
-  "reference": "Febrero 2024",
+  "reference": "February 2024",
   "billAddrCity": "Medellín",
   "billAddrCountry": "COL",
   "billAddrLine1": "Carrera 65 # 45 - 20",
   "billAddrPostCode": "050004",
   "billAddrState": "ANT",
-  "email": "john.doe@evertecinc.com",
+  "email": "email@example.com",
   "mobilePhone": {
-      "cc": "57",
-      "subscriber": "30011122333"
+    "cc": "57",
+    "subscriber": "3111111111"
   },
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es 3RI
-
-**threeRIInd:** 81 indica que la transacción con una tarjeta registrada no programada
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el tarjetahabiente para la autenticación. 01 sin fricción, 02 con fricción,  consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El id otorgado por el ACS en la transacción previa (primera autenticación), consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El id otorgado por el DS en la transacción previa (primera autenticación), si este dato no es enviado MPI lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**Datos [DAF](/en/three-d-s-server/api/integration/session-d-a-f):** las llaves adicionales que se deberán enviar para que se aplique el [DAF](/en/three-d-s-server/api/integration/session-d-a-f) con VISA son los siguientes
-
-* billAddrCity
-* billAddrCountry
-* billAddrLine1
-* billAddrPostCode
-* billAddrState
-* email
-* mobilePhone
-
-<Note>
-    Además de tener en cuenta las configuraciones descritas en la documentación de [DAF](/en/three-d-s-server/api/integration/session-d-a-f)
-</Note>
-
-***Response  Lookup***
-
+#### Visa - 3RI response example
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
-    "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "10078025",
-    "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
-    "eci": "05",
-    "messageExtension": [
-        {
-            "name": "DAF Extension",
-            "id": "A000000003-003",
-            "criticalityIndicator": false,
-            "data": {
-                "chAccReqID": "MUHZx0nojuVVAZJwPD4CWps0RuxUPxepI8sk57Yd/s4=",
-                "authPayProcessReqInd": "01",
-                "version": "1.0",
-                "authPayCredStatus": "Y",
-                "dafAdvice": "01"
-            }
-        }
-    ],
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "03",
-    "messageCategory": "PA",
-    "authMethod": "01",
-    "authTimestamp": "2024-09-10T22:56:48+00:00",
-    "transactionID": 248168
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+  "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "10078025",
+  "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
+  "eci": "05",
+  "messageExtension": [
+    {
+      "name": "DAF Extension",
+      "id": "A000000003-003",
+      "criticalityIndicator": false,
+      "data": {
+        "chAccReqID": "MUHZx0nojuVVAZJwPD4CWps0RuxUPxepI8sk57Yd/s4=",
+        "authPayProcessReqInd": "01",
+        "version": "1.0",
+        "authPayCredStatus": "Y",
+        "dafAdvice": "01"
+      }
+    }
+  ],
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "03",
+  "messageCategory": "PA",
+  "authMethod": "01",
+  "authTimestamp": "2024-09-10T22:56:48+00:00",
+  "transactionID": 248168
 }
 ```
 
-**Actión:** continue indica que ls API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
+**Mastercard Non-Payment (NPA)**
 
----
+NPA Option: This option does not require verification of account funds.
 
-***Mastercard No Pago (NPA)***
-
-Opción NPA: esta opción no requiere verificar fondos de la cuenta.
-
-***Request Lookup***
+#### Mastercard
 
 ```json
 {
@@ -2583,30 +2283,27 @@ Opción NPA: esta opción no requiere verificar fondos de la cuenta.
 }
 ```
 
-**deviceChannel:** 02 - Navegador
+### Response
 
-**messageCategory:** El valor 02 corresponde a transacción de No pago (NPA)
-
-**threeDSAuthenticationInd**, indica el tipo de autenticación. El valor de 04 corresponde a agregar tarjeta.
-
-***Response  Lookup***
-
+| Parameter              | Description                                                                       |
+|------------------------|-----------------------------------------------------------------------------------|
+| action                 | `redirect` indicates that the `redirectURL` must be accessed to continue the flow |
+| sessionToken           | Session token                                                                     |
+| redirectURL            | URL to continue the flow                                                          |
+| transactionID          | Internal transaction ID                                                           |
 
 ```json
 {
-    "action": "redirect",
-    "sessionToken": "ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86203/ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
-    "transactionID": 248168
+  "action": "redirect",
+  "sessionToken": "ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+  "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86203/ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+  "transactionID": 248168
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+### Subsequent authentications
 
-
-**Autenticaciones posteriores**
-
-***Request Lookup***
+#### Mastercard – 3RI request example
 
 ```json
 {
@@ -2622,58 +2319,41 @@ Opción NPA: esta opción no requiere verificar fondos de la cuenta.
   "purchaseAmount": "1.00",
   "purchaseCurrency": "USD",
   "redirectURI": "https://www.placetopay.com/web",
-  "reference": "Febrero 2024",
+  "reference": "February 2024",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es 3RI
-
-**threeRIInd:** 11 indica que obedece a Otros pagos.
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el titular de la tarjeta para la autenticación. 01 sin fricción, 02 con fricción,  consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El id otorgado por el ACS en la transacción previa (primera autenticación), consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El id otorgado por el DS en la transacción previa (primera autenticación), si este dato no es enviado MPI lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
-
+#### Mastercard - Sample 3RI response
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
-    "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "10078025",
-    "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
-    "eci": "02",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "03",
-    "messageCategory": "PA",
-    "authMethod": "01",
-    "authTimestamp": "2024-09-10T22:56:48+00:00",
-    "transactionID": 248168
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+  "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "10078025",
+  "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
+  "eci": "02",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "03",
+  "messageCategory": "PA",
+  "authMethod": "01",
+  "authTimestamp": "2024-09-10T22:56:48+00:00",
+  "transactionID": 248168
 }
 ```
+**Mastercard Payment (PA)**
 
-**Actión:** continue indica que ls API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
+PA Option: This option requires verification of account funds. A minimum sample value is assigned; please consider this value during implementation.
 
-
-***Mastercard Pago (PA)***
-
-Opción PA: esta opción requiere verificar fondos de la cuenta. Se asigna un valor mínimo de ejemplo, tenga en cuenta este valor en la implementación.
-
-***Request Lookup***
+#### Mastercard
 
 ```json
 {
@@ -2691,30 +2371,27 @@ Opción PA: esta opción requiere verificar fondos de la cuenta. Se asigna un va
 }
 ```
 
-**deviceChannel:** 02 - Navegador
+### Response
 
-**messageCategory:** El valor 01 corresponde a transacción de Pago (PA)
-
-**threeDSAuthenticationInd**, indica el tipo de autenticación. El valor de 04 corresponde a agregar tarjeta.
-
-***Response  Lookup***
-
+| Parameter              | Description                                                                       |
+|------------------------|-----------------------------------------------------------------------------------|
+| action                 | `redirect` indicates that the `redirectURL` must be accessed to continue the flow |
+| sessionToken           | Session token                                                                     |
+| redirectURL            | URL to continue the flow                                                          |
+| transactionID          | Internal transaction ID                                                           |
 
 ```json
 {
-    "action": "redirect",
-    "sessionToken": "ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
-    "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86203/ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
-    "transactionID": 248168
+  "action": "redirect",
+  "sessionToken": "ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+  "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/86203/ea515edd9d05e07ad58df6a96adf6b806172de055743099787318236304899f4",
+  "transactionID": 248168
 }
 ```
 
-**Actión:** redirect indica que la API retornara un redirectURL que deberá ser consumido para continuar con el flujo
+### Subsequent authentications
 
-
-**Autenticaciones posteriores**
-
-***Request Lookup***
+#### Mastercard – 3RI request example
 
 ```json
 {
@@ -2730,59 +2407,42 @@ Opción PA: esta opción requiere verificar fondos de la cuenta. Se asigna un va
   "purchaseAmount": "1.00",
   "purchaseCurrency": "USD",
   "redirectURI": "https://www.placetopay.com/web",
-  "reference": "Febrero 2024",
+  "reference": "February 2024",
   "messageVersion": "2.2.0"
 }
 ```
 
-**deviceChannel:** RI (03) indica que el canal es 3RI
-
-**threeRIInd:** 11 indica que obedece a Otros pagos.
-
-**threeDSReqPriorAuthMethod:** Método que fue usado por el titular de la tarjeta para la autenticación. 01 sin fricción, 02 con fricción,  consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthTimestamp:** Fecha y hora en formato UTC de la autenticación previa. El formato es C, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorRef:** El id otorgado por el ACS en la transacción previa (primera autenticación), consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-**threeDSReqPriorAuthData:** El id otorgado por el DS en la transacción previa (primera autenticación), si este dato no es enviado MPI lo asigna, consultar la sesión Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-***Response  Lookup***
-
+#### Mastercard - Sample 3RI response
 
 ```json
 {
-    "action": "continue",
-    "messageType": "ARes",
-    "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
-    "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
-    "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
-    "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
-    "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
-    "messageVersion": "2.2.0",
-    "acsOperatorID": "10078025",
-    "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
-    "eci": "02",
-    "transStatus": "Y",
-    "whiteListStatusSource": "03",
-    "whiteListStatus": "Y",
-    "deviceChannel": "03",
-    "messageCategory": "PA",
-    "authMethod": "01",
-    "authTimestamp": "2024-09-10T22:56:48+00:00",
-    "transactionID": 248168
+  "action": "continue",
+  "messageType": "ARes",
+  "threeDSServerTransID": "d48e4da7-889c-41c1-82eb-a8dba4e58d44",
+  "acsReferenceNumber": "3DS_LOA_ACS_EISF_020200_00539V3",
+  "acsTransID": "710adf8a-aaa2-43a1-9510-80edda02f347",
+  "dsReferenceNumber": "3DS_LOA_DIS_PPFU_020100_00010",
+  "dsTransID": "b2255f0e-6bce-4a63-973c-396c03abe85d",
+  "messageVersion": "2.2.0",
+  "acsOperatorID": "10078025",
+  "authenticationValue": "BpkCCAAhkgAAAABkhAJUdYknEmE=",
+  "eci": "02",
+  "transStatus": "Y",
+  "whiteListStatusSource": "03",
+  "whiteListStatus": "Y",
+  "deviceChannel": "03",
+  "messageCategory": "PA",
+  "authMethod": "01",
+  "authTimestamp": "2024-09-10T22:56:48+00:00",
+  "transactionID": 248168
 }
 ```
 
-**Actión:** continue indica que ls API retornara la información de la autenticación, y por ende no es necesario consumir endpoints adicionales para continuar con el flujo
-
-
 ---
 
+## Obtain the data from the threeDSRequestorPriorAuthenticationInfo
 
-## Obtener los datos del threeDSRequestorPriorAuthenticationInfo
-
-Para obtener los datos requeridos se deberá de lanzar la transacción tipo CIT **primera autenticación**, para posterior consultar los datos de dicha transacción y poder enviar la información del threeDSRequestorPriorAuthenticationInfo en la transacción MIT.
+To obtain the required data, the CIT transaction **first authentication** must be launched. The transaction data can then be queried and the threeDSRequestorPriorAuthenticationInfo information can be sent in the MIT transaction.
 
 ***Request Lookup***
 
@@ -2790,31 +2450,29 @@ Para obtener los datos requeridos se deberá de lanzar la transacción tipo CIT 
 
 ***Response  Lookup***
 
-
 ```json
 {
-    "transStatus": "Y",
-    "transStatusReason": null,
-    "eci": "05",
-    "acsTransID": "5d822226-d2ad-4a43-8270-87c95003dad4",
-    "dsTransID": "5b3e6516-0a88-41a4-9c20-f97af2003acd",
-    "threeDSServerTransID": "fbefea2f-2ae6-4a21-94cc-d7e5083f05a6",
-    "sdkTransID": null,
-    "authenticationValue": "AAICAImZhwAAAAAAAAEkdYR0cUU=",
-    "messageVersion": "2.2.0",
-    "authMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
-    "authTimestamp": "2024-05-03T22:48:06+00:00",
-    "enrolled": "Y",
-    "messageCategory": "NPA"
+  "transStatus": "Y",
+  "transStatusReason": null,
+  "eci": "05",
+  "acsTransID": "5d822226-d2ad-4a43-8270-87c95003dad4",
+  "dsTransID": "5b3e6516-0a88-41a4-9c20-f97af2003acd",
+  "threeDSServerTransID": "fbefea2f-2ae6-4a21-94cc-d7e5083f05a6",
+  "sdkTransID": null,
+  "authenticationValue": "AAICAImZhwAAAAAAAAEkdYR0cUU=",
+  "messageVersion": "2.2.0",
+  "authMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+  "authTimestamp": "2024-05-03T22:48:06+00:00",
+  "enrolled": "Y",
+  "messageCategory": "NPA"
 }
 ```
 
 ---
 
-## Mejora la tasa de autenticaciones con datos adicionales
-Nos complace invitarles a visitar el apartado de [Adicional Data](/en/three-d-s-server/api/sessions/detail-info) en nuestra documentación del API. Este apartado ofrece información crucial para optimizar el proceso de autenticación 3DS.
+## Improve Authentication Rates with Additional Data
+We are pleased to invite you to visit the [Additional Data](/three-d-s-server/api/sessions/detail-info) section of our API documentation. This section provides crucial information for optimizing the 3DS authentication process.
 
-La inclusión de estos datos adicionales en sus solicitudes permite a los emisores realizar una evaluación más precisa, lo que puede mejorar considerablemente la tasa de autenticaciones exitosas.
+Including this additional data in your requests allows issuers to perform a more accurate evaluation, which can significantly improve the successful authentication rate.
 
-Les recomendamos revisar estas pautas para aprovechar al máximo las funcionalidades del API y así ofrecer una experiencia más segura y eficiente a sus usuarios.
-
+We encourage you to review these guidelines to take full advantage of the API's features and thus offer a more secure and efficient experience to your users.

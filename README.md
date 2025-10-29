@@ -121,7 +121,7 @@ This applies to theory pages and API pages.
 
 3. Push your changes to the repository and create a new Pull request.
 
-4. Modify the description of your Pull Request with a brief explanation of the change and add Eduardo Gúzman as a Reviewer.
+4. Modify the description of your Pull Request with a brief explanation of the change and add your leader or a maintainer as a reviewer.
 
 5. Notify by internal message about the existence of the PR to speed up review, merger and deployment times.
 
@@ -150,6 +150,7 @@ When creating or reviewing examples, ensure all data follows these patterns:
 - **Login credentials**: Use clearly artificial tokens
   - ✅ `123example456token789abc012def345` (32 alphanumeric characters, obviously fake)
   - ✅ `aabbccdd1234567890aabbccdd123456` (patterned to show it's an example)
+  - ✅ `Bearer test123abc123abc123abc123abc123abc123abc123abc123abc123abc` (token to show it's an example)
   - ❌ Tokens that could be mistaken for real credentials
 
 - **Card numbers**: Use industry-standard test numbers

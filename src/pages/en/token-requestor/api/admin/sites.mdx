@@ -1,0 +1,681 @@
+export const description = 'sites';
+import {ApiReader, CodeGroup, Col, Row} from "../../../../../components/mdx";
+export const sectionMode = 'nav';
+export const apiRefs = [
+ '/api/admin/sites/edit',
+ '/api/admin/sites/delete',
+ '/api/admin/sites/index',
+ '/api/admin/sites/show',
+ '/api/admin/sites/create'
+];
+
+# Sites
+
+The Sites API is designed to simplify the management of sites that belong to a merchant-consumer within the administrative environment. These sites act as integration points, enabling each merchant to connect independently and securely with tokenization and authorization services.
+
+Through this API, you can register new sites, query them individually or via paginated lists, update their configuration, or delete them when no longer needed. Each site is always linked to a merchant and a consumer, and can be configured with parameters such as its name, notification URLs, security credentials, and activation dates.
+
+The aim is to offer administrators a clear and secure way to manage these connection points. The following sections detail each available operation, the required fields, applicable validation rules, and examples of the response structure for each request.
+
+<Note> All operations require authentication using valid credentials. More details are available in the authentication section of this documentation. </Note>
+
+---
+
+## Site Creation {{ id: 'token-requestor-api-admin-sites-create', tag: 'POST', label: '/api/admin/sites/create' }}
+
+This operation allows you to register a new site within the administrative system environment. It is available only to authenticated users with the appropriate permissions and requires a valid credential to associate the site with an authorized merchant. This is mainly used in administrative environments, whether for testing or production, depending on the values provided.
+
+Once created, the site is stored in the system with its corresponding configuration, activation status, and webhook parameters (if applicable). It can also be registered in test mode (`onTest`), which affects how it operates.
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/create"
+      method="post"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <br />
+    <CodeGroup title="Request" tag="POST" label="/api/admin/sites/create">
+      ```bash {{ title: '200' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/create \
+      -H "Content-Type: application/json" \
+      -d '{
+        "auth": {
+          "login":"aabbccdd1234567890aabbccdd123456",
+          "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+          "nonce":"MnFrcmZlYjQ0bXk=",
+          "seed":"2025-07-03T20:28:43-05:00"
+        },
+        "data": {
+          "name": "Site Test",
+          "webhookURL": "https://webhook.site/asdads",
+          "webhookSecret": "E0wWIBNtNr3GSF6G",
+          "merchantId": "f1d0888b-f5a9-445a-8c54-dba63763fbc5",
+          "onTest": true,
+          "enabledAt": "2025-06-16T22:29:01+00:00"
+        }
+      }'
+      ```
+      ```bash {{ title: '200: only required' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/create \
+      -H "Content-Type: application/json" \
+      -d '{
+        "auth": {
+          "login":"aabbccdd1234567890aabbccdd123456",
+          "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+          "nonce":"MnFrcmZlYjQ0bXk=",
+          "seed":"2025-07-03T20:28:43-05:00"
+        },
+        "data": {
+          "name": "Site Test",
+          "merchantId": "f1d0888b-f5a9-445a-8c54-dba63763fbc5"
+        }
+      }'
+      ```
+      ```bash {{ title: '499: Null name field' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/create \
+      -H "Content-Type: application/json" \
+      -d '{
+        "auth": {
+          "login":"aabbccdd1234567890aabbccdd123456",
+          "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+          "nonce":"MnFrcmZlYjQ0bXk=",
+          "seed":"2025-07-03T20:28:43-05:00"
+        },
+        "data": {
+          "name": null,
+          "webhookURL": "https://webhook.site/test",
+          "webhookSecret": "E0wWIBNtNr3GSF6G",
+          "merchantId": "f1d0888b-f5a9-445a-8c54-dba63763fbc5",
+          "onTest": true,
+          "enabledAt": "2025-06-16T22:29:01+00:00"
+        }
+      }'
+      ```
+      ```bash {{ title: '400: Invalid merchantId' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/create \
+      -H "Content-Type: application/json" \
+      -d '{
+        "auth": {
+          "login":"aabbccdd1234567890aabbccdd123456",
+          "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+          "nonce":"MnFrcmZlYjQ0bXk=",
+          "seed":"2025-07-03T20:28:43-05:00"
+        },
+        "data": {
+          "name": "Site Test",
+          "webhookURL": "https://webhook.site/test",
+          "webhookSecret": "E0wWIBNtNr3GSF6G",
+          "merchantId": "invalid",
+          "onTest": true,
+          "enabledAt": "2025-06-16T22:29:01+00:00"
+        }
+      }'
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/create"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <br />
+    <CodeGroup title="Response">
+      ```json {{ title: '200' }}
+      {
+        "status": {
+          "status": "OK",
+          "reason": "00",
+          "message": "The request has been successfully processed",
+          "date": "2025-07-03T23:37:15+00:00"
+        },
+        "data": {
+          "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea"
+        }
+      }
+      ```
+      ```json {{ title: '400' }}
+      {
+        "status": {
+          "status": "FAILED",
+          "reason": "BR",
+          "message": "The data.name field is required.",
+          "date": "2025-07-04T01:59:29+00:00"
+        }
+      }
+      ```
+      ```json {{ title: '400: Merchant invalid' }}
+       {
+         "status": {
+           "status": "FAILED",
+           "reason": "BR",
+           "message": "The selected data.merchant id is invalid.",
+           "date": "2025-07-04T02:03:02+00:00"
+         }
+       }
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+---
+
+## Site Query {{ id: 'token-requestor-api-admin-sites-show', tag: 'POST', label: '/api/admin/sites/show' }}
+
+This operation allows querying detailed information about a previously registered site in the administrative system. It is available exclusively to authenticated users who have access permissions and visibility over the resource.
+
+The response includes basic information about the site, its enabled status, test mode (`onTest`), and data related to the merchant and consumer associated with it. Additionally, if applicable, it returns the configured webhook settings.
+
+This operation validates that the supplied identifier exists and that the requesting user is authorized to access the resource, either by direct association or via ACL exclusion rules.
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/show"
+      method="post"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <br />
+    <CodeGroup title="Request" tag="POST" label="/api/admin/sites/show">
+      ```bash {{ title: '200' }}
+         curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/show \
+         -H "Content-Type: application/json" \
+         -d '{
+        "auth": {
+          "login": "aabbccdd1234567890aabbccdd123456",
+          "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+          "nonce": "enQ4dXh3YWhkMWM=",
+          "seed": "2025-07-25T09:00:00-05:00"
+        },
+        "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea"
+      }'
+      ```
+      ```bash {{ title: '400: Invalid ID' }}
+          curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/show \
+          -H "Content-Type: application/json" \
+          -d '{
+         "auth": {
+           "login": "aabbccdd1234567890aabbccdd123456",
+           "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+           "nonce": "enQ4dXh3YWhkMWM=",
+           "seed": "2025-07-25T09:00:00-05:00"
+         },
+         "id": "invalid"
+      }'
+      ```
+      ```bash {{ title: '400: Nonexistent site' }}
+           curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/show \
+           -H "Content-Type: application/json" \
+           -d '{
+          "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "enQ4dXh3YWhkMWM=",
+            "seed": "2025-07-25T09:00:00-05:00"
+          },
+          "id": "9f4e4926-9783-49b9-a169-f3ad39e61bea"
+        }'
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/show"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <br />
+    <CodeGroup title="Response">
+    ```json {{ title: '200' }}
+      {
+          "status": {
+              "status": "OK",
+              "reason": "00",
+              "message": "The request has been successfully processed",
+              "date": "2025-07-06T00:10:00+00:00"
+          },
+          "data": {
+              "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea",
+              "merchant": {
+                  "id": "f1d0888b-f5a9-445a-8c54-dba63763fbc5",
+                  "name": "Merchant Test"
+              },
+              "consumer": {
+                  "id": "e1a8c0b2-c7f1-49e3-91e0-7059b50e3f43",
+                  "name": "Consumer Test"
+              },
+              "name": "Site Test",
+              "webhookURL": "https://webhook.site/test",
+              "availableFranchises": {
+                   "master": "ACTIVE",
+                   "visa": "ACTIVE"
+              },
+              "webhookSecret": "secret-token",
+              "onTest": true,
+              "enabledAt": "2025-06-16 22:29:01",
+              "createdAt": "2025-07-01 10:00:00",
+              "updatedAt": "2025-07-02 15:30:00"
+          }
+      }
+    ```
+    ```json {{ title: '400: Invalid ID' }}
+     {
+         "status": {
+             "status": "FAILED",
+             "reason": "BR",
+             "message": "The id must be a valid UUID.",
+             "date": "2025-07-06T00:12:00+00:00"
+         }
+     }
+    ```
+    ```json {{ title: '400: Nonexistent site' }}
+       {
+           "status": {
+               "status": "FAILED",
+               "reason": "BR",
+               "message": "The selected id is invalid.",
+               "date": "2025-07-06T00:13:00+00:00"
+           }
+       }
+     ```
+    ```json {{ title: '400: ACL restriction' }}
+      {
+          "status": {
+              "status": "FAILED",
+              "reason": "BR",
+              "message": "No results for the query",
+              "date": "2025-07-06T00:14:00+00:00"
+          }
+      }
+     ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+---
+
+## Site Update {{ id: 'token-requestor-api-admin-sites-edit', tag: 'POST', label: '/api/admin/sites/edit' }}
+
+This operation allows partially modifying the attributes of an existing site. Only the fields sent in the `data` object will be updated.
+This operation requires authentication with valid credentials and appropriate access permissions.
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/edit"
+      method="post"
+      type="request"
+      api={props.refs}
+    />
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Request" tag="POST" label="/api/admin/sites/edit">
+      ```bash {{ title: '200: Full Update' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/edit \
+        -H "Content-Type: application/json" \
+        -d '{
+          "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "enQ4dXh3YWhkMWM=",
+            "seed": "2025-07-25T09:00:00-05:00"
+          },
+          "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea",
+          "data": {
+            "name": "Updated test site",
+            "webhookURL": "https://mywebhook.com/notifications",
+            "webhookSecret": "webhook-secret-key",
+            "onTest": false,
+            "enabledAt": "2025-08-01T08:30:00-05:00"
+          }
+        }'
+      ```
+      ```bash {{ title: '200: Partial Update' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/edit \
+        -H "Content-Type: application/json" \
+        -d '{
+          "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "enQ4dXh3YWhkMWM=",
+            "seed": "2025-07-25T09:00:00-05:00"
+          },
+          "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea",
+          "data": {
+            "name": "Only site name updated"
+          }
+        }'
+      ```
+      ```bash {{ title: '400: Invalid Site ID' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/edit \
+        -H "Content-Type: application/json" \
+        -d '{
+          "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "enQ4dXh3YWhkMWM=",
+            "seed": "2025-07-25T09:00:00-05:00"
+          },
+          "id": "invalid-id-format",
+          "data": {
+            "name": "Updated test site"
+          }
+        }'
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+---
+
+## Site Deletion {{ id: 'token-requestor-api-admin-sites-delete', tag: 'POST', label: '/api/admin/sites/delete' }}
+
+This operation allows deleting a previously registered site in the administrative system. It is exclusively available to authenticated users who have access and visibility permissions over the resource.
+
+The response includes basic site information, enablement status, test mode (`onTest`), and data related to the associated merchant and consumer. Additionally, if applicable, it returns the configured webhook settings.
+
+This operation validates that the provided identifier exists and that the requesting user has authorized access to the resource, either through direct relation or ACL exclusion rules.
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/delete"
+      method="post"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <br />
+    <CodeGroup title="Request" tag="POST" label="/api/admin/sites/delete">
+      ```bash {{ title: '200' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/delete \
+        -H "Content-Type: application/json" \
+        -d '{
+          "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "MnFrcmZlYjQ0bXk=",
+            "seed": "2025-07-03T20:28:43-05:00"
+          },
+          "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea"
+        }'
+      ```
+      ```bash {{ title: '400: Site has associated tokens' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/delete \
+        -H "Content-Type: application/json" \
+        -d '{
+          "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "MnFrcmZlYjQ0bXk=",
+            "seed": "2025-07-03T20:28:43-05:00"
+          },
+          "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea"
+        }'
+      ```
+      ```bash {{ title: '400: Invalid site ID' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/delete \
+        -H "Content-Type: application/json" \
+        -d '{
+          "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "MnFrcmZlYjQ0bXk=",
+            "seed": "2025-07-03T20:28:43-05:00"
+          },
+          "id": "invalid"
+        }'
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/delete"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <br />
+    <CodeGroup title="Response">
+      ```json {{ title: '200' }}
+      {
+        "status": {
+          "status": "OK",
+          "reason": "00",
+          "message": "The request has been successfully processed",
+          "date": "2025-07-04T14:50:00+00:00"
+        }
+      }
+      ```
+      ```json {{ title: '400: Site has tokens' }}
+      {
+        "status": {
+          "status": "FAILED",
+          "reason": "BR",
+          "message": "The site has associated tokens.",
+          "date": "2025-07-04T14:53:40+00:00"
+        }
+      }
+      ```
+      ```json {{ title: '400: Invalid ID' }}
+      {
+        "status": {
+          "status": "FAILED",
+          "reason": "BR",
+          "message": "The selected id is invalid.",
+          "date": "2025-07-04T14:54:02+00:00"
+        }
+      }
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+---
+
+## List of Sites {{ id: 'token-requestor-api-admin-sites-index', tag: 'POST', label: '/api/admin/sites/index' }}
+
+This operation allows retrieving a list of the sites registered in the administrative system, returning a paginated set of results with the ability to apply multiple filters to narrow the search. It can only be used by authenticated and authorized credentials, in accordance with the access permissions defined by the system.
+
+The result of this operation includes basic information about each site, such as its identifier, related consumer and merchant data, name, webhook URLs, key dates, and whether it's in test or production mode.
+
+The system also supports ACL-based exclusion mechanisms, so certain sites may not appear in the list depending on the access rules configured for the authenticated credential.
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/index"
+      method="post"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <br />
+    <CodeGroup title="Request" tag="POST" label="/api/admin/sites/index">
+      ```bash {{ title: '200' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/index \
+      -H "Content-Type: application/json" \
+      -d '{
+        "auth": {
+          "login": "aabbccdd1234567890aabbccdd123456",
+          "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+          "nonce": "MnFrcmZlYjQ0bXk=",
+          "seed": "2025-07-03T20:28:43-05:00"
+        }
+      }'
+      ```
+      ```bash {{ title: '200: Multiple filters' }}
+      curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/index \
+      -H "Content-Type: application/json" \
+      -d '{
+        "auth": {
+          "login": "aabbccdd1234567890aabbccdd123456",
+          "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+          "nonce": "MnFrcmZlYjQ0bXk=",
+          "seed": "2025-07-03T20:28:43-05:00"
+        },
+        "pagination": {
+            "perPage": 10,
+            "currentPage": 1
+        }
+        "filters": {
+           "name": "Site Test",
+           "onTest": false,
+           "merchants": ["f3120a54-7a9d-4f2c-a1fd-41cfb184cc8c"],
+           "consumers": ["64f258cd-e36e-4e33-bcdc-501a0a76801c"],
+           "createdAt": {
+               "from": "2025-07-01",
+               "to": "2025-07-07"
+           }
+        }
+      }'
+      ```
+      ```bash {{ title: '400: Invalid UUID' }}
+        curl -X "POST" https://token-requestor.placetopay.ws/api/admin/sites/index \
+        -H "Content-Type: application/json" \
+        -d '{
+          "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "MnFrcmZlYjQ0bXk=",
+            "seed": "2025-07-03T20:28:43-05:00"
+          },
+         "filters": {
+             "consumers": ["64f258cd-e36e-4e33-bcdc-501a0a76801c"],
+           }
+        }'
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/admin/sites/index"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <br />
+    <CodeGroup title="Response">
+      ```json {{ title: '200' }}
+      {
+        "status": {
+          "status": "OK",
+          "reason": "00",
+          "message": "The request has been successfully processed",
+          "date": "2025-07-04T15:03:00+00:00"
+        },
+        "pagination": {
+           "total": 5,
+           "perPage": 15,
+           "currentPage": 1,
+           "lastPage": 1
+        },
+        "data": [
+          {
+            "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea",
+            "merchant": {
+              "id": "f3120a54-7a9d-4f2c-a1fd-41cfb184cc8c",
+              "name": "TargetMerchant"
+            },
+            "consumer": {
+              "id": "64f258cd-e36e-4e33-bcdc-501a0a76801c",
+              "name": "TargetConsumer"
+            },
+            "name": "Site Test",
+            "onTest": false,
+            "isEnabled": true,
+            "createdAt": "2025-07-01 03:40:55"
+          },
+          {
+            "id": "e8933493-b4f1-44cb-b6c7-02db9f9e3b57",
+            "merchant": {
+              "id": "f3120a54-7a9d-4f2c-a1fd-41cfb184cc8c",
+              "name": "TargetMerchant 2"
+            },
+            "consumer": {
+              "id": "64f258cd-e36e-4e33-bcdc-501a0a76801c",
+              "name": "TargetConsumer 2"
+            },
+            "name": "Site Test 2",
+            "onTest": false,
+            "isEnabled": true,
+            "createdAt": "2025-07-01 03:40:55"
+          },
+        ],
+      }
+      ```
+      ```json {{ title: '200: Multiple filters' }}
+          {
+              "status": {
+                  "status": "OK",
+                  "reason": "00",
+                  "message": "The request has been successfully processed",
+                  "date": "2025-07-07T13:00:00+00:00"
+              },
+              "data": [
+                  {
+                      "id": "9f4e4926-4783-44b9-a169-f3ad38e61bea",
+                      "merchant": {
+                          "id": "f3120a54-7a9d-4f2c-a1fd-41cfb184cc8c",
+                          "name": "TargetMerchant"
+                      },
+                      "consumer": {
+                          "id": "64f258cd-e36e-4e33-bcdc-501a0a76801c",
+                          "name": "TargetConsumer"
+                      },
+                      "name": "Site Test",
+                      "onTest": false,
+                      "enabledAt": "2025-07-01 03:40:55",
+                      "createdAt": "2025-07-01 03:40:55"
+                  }
+              ],
+              "pagination": {
+                 "total": 5,
+                 "perPage": 15,
+                 "currentPage": 1,
+                 "lastPage": 1
+              },
+          }
+      ```
+      ```json {{ title: '400: Invalid UUID' }}
+        {
+            "status": {
+                "status": "FAILED",
+                "reason": "BR",
+                "message": "The filters.consumer id must be a valid UUID.",
+                "date": "2025-07-07T13:00:00+00:00"
+            }
+        }
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+

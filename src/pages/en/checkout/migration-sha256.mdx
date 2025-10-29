@@ -1,0 +1,294 @@
+export const description =
+    'Complete guide to migrate your Checkout notification integration from SHA-1 to SHA-256.';
+
+# Migration of notification algorithm from SHA-1 to SHA-256
+
+This guide will help you migrate your Checkout notification integration from the SHA-1 algorithm (deprecated) to the SHA-256 algorithm (recommended and secure). {{ className: 'lead' }}
+
+## Why migrate?
+
+SHA-1 has been marked as deprecated due to security vulnerabilities discovered in recent years. SHA-256 is the current industry standard and provides a significantly higher level of security to protect the integrity of notifications.
+
+<Note>
+  Starting from [specific date], notifications will exclusively use SHA-256. It's important to complete the migration before this date to avoid service disruptions.
+</Note>
+
+## Differences between SHA-1 and SHA-256
+
+### SHA-1 Signature Structure (Deprecated)
+
+```json
+{
+  "status": { /* ... */ },
+  "requestId": 1234,
+  "reference": "TEST_123424",
+  "signature": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
+}
+```
+
+- The signature has NO prefix
+- Length: 40 hexadecimal characters
+- Formula: `SHA-1(requestId + status.status + status.date + secretKey)`
+
+### SHA-256 Signature Structure (Recommended)
+
+```json
+{
+  "status": { /* ... */ },
+  "requestId": 1234,
+  "reference": "TEST_123424",
+  "signature": "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6"
+}
+```
+
+- The signature HAS the `sha256:` prefix
+- Length: 64 hexadecimal characters (excluding the prefix)
+- Formula: `SHA-256(requestId + status.status + status.date + secretKey)`
+
+## Migration Process
+
+### Phase 1: Preparation (Dual Support)
+
+During this phase, your system must support BOTH algorithms simultaneously. This allows you to make a seamless transition.
+
+**Update validation code**
+
+Modify your code to detect the algorithm used. Below we show some examples of what you can implement, but the exact implementation will depend on the programming language you use and your code structure. This implementation is merely a reference and should not be used as-is in production without first adapting it to your specific context.
+
+<CodeGroup>
+```php {{ title: 'PHP' }}
+function validateSignature($notification, $secretKey) {
+    $signature = $notification['signature'];
+    $requestId = $notification['requestId'];
+    $status = $notification['status']['status'];
+    $date = $notification['status']['date'];
+    
+    // Identify the algorithm
+    if (strpos($signature, 'sha256:') === 0) {
+        // SHA-256
+        $receivedSignature = substr($signature, 7); // Remove prefix
+        $generatedSignature = hash('sha256', $requestId . $status . $date . $secretKey);
+    } else {
+        // SHA-1 (legacy)
+        $receivedSignature = $signature;
+        $generatedSignature = sha1($requestId . $status . $date . $secretKey);
+    }
+    
+    return hash_equals($generatedSignature, $receivedSignature);
+}
+```
+
+```javascript {{ title: 'Node.js' }}
+const crypto = require('crypto');
+
+function validateSignature(notification, secretKey) {
+    const { signature, requestId, status } = notification;
+    const { status: statusValue, date } = status;
+    
+    let receivedSignature;
+    let generatedSignature;
+    
+    // Identify the algorithm
+    if (signature.startsWith('sha256:')) {
+        // SHA-256
+        receivedSignature = signature.substring(7); // Remove prefix
+        generatedSignature = crypto
+            .createHash('sha256')
+            .update(requestId + statusValue + date + secretKey)
+            .digest('hex');
+    } else {
+        // SHA-1 (legacy)
+        receivedSignature = signature;
+        generatedSignature = crypto
+            .createHash('sha1')
+            .update(requestId + statusValue + date + secretKey)
+            .digest('hex');
+    }
+    
+    return receivedSignature === generatedSignature;
+}
+```
+
+```python {{ title: 'Python' }}
+import hashlib
+
+def validate_signature(notification, secret_key):
+    signature = notification['signature']
+    request_id = str(notification['requestId'])
+    status = notification['status']['status']
+    date = notification['status']['date']
+    
+    # Identify the algorithm
+    if signature.startswith('sha256:'):
+        # SHA-256
+        received_signature = signature[7:]  # Remove prefix
+        data = request_id + status + date + secret_key
+        generated_signature = hashlib.sha256(data.encode()).hexdigest()
+    else:
+        # SHA-1 (legacy)
+        received_signature = signature
+        data = request_id + status + date + secret_key
+        generated_signature = hashlib.sha1(data.encode()).hexdigest()
+    
+    return received_signature == generated_signature
+```
+
+```java {{ title: 'Java' }}
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+public class SignatureValidator {
+    
+    public static boolean validateSignature(Notification notification, String secretKey) 
+            throws NoSuchAlgorithmException {
+        String signature = notification.getSignature();
+        String requestId = String.valueOf(notification.getRequestId());
+        String status = notification.getStatus().getStatus();
+        String date = notification.getStatus().getDate();
+        
+        String receivedSignature;
+        String generatedSignature;
+        
+        // Identify the algorithm
+        if (signature.startsWith("sha256:")) {
+            // SHA-256
+            receivedSignature = signature.substring(7); // Remove prefix
+            String data = requestId + status + date + secretKey;
+            generatedSignature = sha256(data);
+        } else {
+            // SHA-1 (legacy)
+            receivedSignature = signature;
+            String data = requestId + status + date + secretKey;
+            generatedSignature = sha1(data);
+        }
+        
+        return receivedSignature.equals(generatedSignature);
+    }
+    
+    private static String sha256(String data) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(data.getBytes());
+        return bytesToHex(hash);
+    }
+    
+    private static String sha1(String data) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-1");
+        byte[] hash = digest.digest(data.getBytes());
+        return bytesToHex(hash);
+    }
+    
+    private static String bytesToHex(byte[] hash) {
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : hash) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) hexString.append('0');
+            hexString.append(hex);
+        }
+        return hexString.toString();
+    }
+}
+```
+</CodeGroup>
+
+**Update validation code if you are using lightbox**
+
+If you are using Lightbox to integrate Placetopay, make sure to update the code that handles notifications to support both algorithms. Check the [Lightbox](/en/checkout/lightbox/) section for more details on how to handle notifications in this context.
+
+**Test in testing environment**
+
+1. Deploy the updated code to your development/staging environment
+2. Request Placetopay support to enable SHA-256 in your test account
+3. Perform test transactions and verify that notifications are validated correctly
+4. Confirm that both SHA-1 and SHA-256 work correctly
+
+**Monitor and log (Optional)**
+
+If you want to closely monitor the migration process, implement logging to track which algorithm is being used. For example, in PHP you could add:
+
+```php
+if (strpos($signature, 'sha256:') === 0) {
+    error_log("Notification received with SHA-256 for requestId: {$requestId}");
+} else {
+    error_log("Notification received with SHA-1 (legacy) for requestId: {$requestId}");
+}
+```
+
+### Phase 2: SHA-256 Activation
+
+Once your code is updated and tested:
+
+1. Deploy your changes to production
+2. Contact Placetopay support to request SHA-256 activation in your production account
+3. The Placetopay team will activate SHA-256 for your account
+4. From that moment, all new notifications will include the `sha256:` prefix in the signature
+5. Your code will automatically detect the new format and validate using SHA-256
+
+### Phase 3: Post-migration Verification
+
+After activation:
+
+1. **Monitor logs**: Verify that all new notifications use SHA-256
+2. **Review metrics**: Ensure there's no increase in rejected notifications
+3. **Validate alerts**: Confirm your monitoring system doesn't report anomalies
+
+### Phase 4: Cleanup (Optional)
+
+Once you confirm SHA-256 is working correctly for at least 30 days, you can:
+
+1. Remove legacy SHA-1 support code
+2. Simplify your validation logic to use only SHA-256
+3. Update your internal documentation
+
+## Migration Checklist
+
+Use this list to ensure a successful migration:
+
+- [ ] Code updated to support both algorithms (SHA-1 and SHA-256)
+- [ ] Tests performed in development/staging environment
+- [ ] Logging implemented to track algorithm usage
+- [ ] Coordination with Placetopay support for activation
+- [ ] SHA-256 activated in test account
+- [ ] Successful validation of notifications in tests
+- [ ] SHA-256 activated in production account
+- [ ] Active monitoring post-migration (first 7 days)
+- [ ] Verification of metrics and logs (30 days)
+- [ ] (Optional) Legacy SHA-1 code removed
+
+## Frequently Asked Questions
+
+<details>
+<summary>How long will the migration take?</summary>
+<p>The technical migration can be completed in a few hours. However, we recommend a monitoring period of at least 30 days before considering the migration complete.</p>
+</details>
+
+<details>
+<summary>Can I revert to SHA-1 if I encounter issues?</summary>
+<p>During the transition phase, your code supports both algorithms, so technically it's possible. However, SHA-1 is deprecated and will eventually be completely discontinued.</p>
+</details>
+
+<details>
+<summary>What happens if I don't migrate before the deadline?</summary>
+<p>If you don't update your code to support SHA-256 before the deadline, your system won't be able to validate notification signatures correctly, which may result in transactions not being properly updated in your system.</p>
+</details>
+
+<details>
+<summary>Do I need to update my API authentication as well?</summary>
+<p>No. This migration refers specifically to signature validation in notifications. However, it's a good opportunity to review your entire integration and ensure you're using security best practices in all aspects.</p>
+</details>
+
+<details>
+<summary>How do I identify if my current integration uses SHA-1?</summary>
+<p>If your signature validation code doesn't check for the `sha256:` prefix and assumes all signatures are 40 characters long, then you're using SHA-1. Review your notification validation code to confirm.</p>
+</details>
+
+## Support
+
+If you need help during the migration process:
+
+- **Support email**: servicioposventa@placetopay.com
+- **Technical documentation**: [Notifications](/en/checkout/notification/)
+- **Authentication documentation**: [Authentication](/en/checkout/authentication/)
+
+<Note>
+  We recommend performing the migration as soon as possible to take advantage of SHA-256 security improvements and avoid setbacks near the SHA-1 discontinuation deadline.
+</Note>

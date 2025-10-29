@@ -1,40 +1,40 @@
-import { SSTConfig } from "sst";
-import { StaticSite } from "sst/constructs";
-import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
+/// <reference path="./.sst/platform/config.d.ts" />
 
-export default {
-  config(_input) {
+export default $config({
+  app(input) {
     return {
       name: "placetopay-docs",
-      region: "us-east-1",
+      removal: input?.stage === "production" ? "retain" : "remove",
+      home: "aws",
+      providers: {
+        aws: {
+          region: "us-east-1",
+        },
+      },
     };
   },
-  stacks(app) {
-    app.stack(function Site({ stack }) {
-      const site = new StaticSite(stack, "site", {
-        purgeFiles: true,
-        buildOutput: "out",
-        buildCommand: "npm run build",
-        customDomain: {
-          domainName: process.env.APP_DOMAIN_NAME,
-          isExternalDomain: true,
-          cdk: {
-            certificate: Certificate.fromCertificateArn(stack, "MyCert", process.env.AWS_CERT_ARN),
-          }
-        },
-        environment: {
-          NEXT_PUBLIC_FEEDBACK_FORM_URL: process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL,
-          NEXT_PUBLIC_GITHUB_REPO_URL: process.env.NEXT_PUBLIC_GITHUB_REPO_URL,
-        }
-      });
-
-      stack.addOutputs({
-        SiteUrl: site.url,
-      });
-
-      if (app.stage !== "prod") {
-        app.setDefaultRemovalPolicy("destroy");
-      }
+  async run() {
+    const site = new sst.aws.StaticSite("site", {
+      build: {
+        command: "npm run build",
+        output: "out",
+      },
+      domain: process.env.APP_DOMAIN_NAME ? {
+        name: process.env.APP_DOMAIN_NAME,
+        cert: process.env.AWS_CERT_ARN,
+        dns: false,
+      } : undefined,
+      environment: {
+        NEXT_PUBLIC_FEEDBACK_FORM_URL: process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL || "",
+        NEXT_PUBLIC_GITHUB_REPO_URL: process.env.NEXT_PUBLIC_GITHUB_REPO_URL || "",
+      },
+      errorPage: "404.html",
     });
+
+    return {
+      SiteUrl: site.url,
+      SiteAssets: site.nodes.assets,
+      siteCDN: site.nodes.cdn,
+    };
   },
-} satisfies SSTConfig;
+});
