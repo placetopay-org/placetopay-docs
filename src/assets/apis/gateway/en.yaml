@@ -47,6 +47,8 @@ tags:
     description: "Allows PIN validation with a secure Pinpad"
   - name: "Report of operations carried out"
     description: "Allows you to obtain a report of all transactions carried out in a period of time for the site used"
+  - name: "Account validator"
+    description: "Allows you to consume the account validator endpoints in a more secure way"
 paths:
   /gateway/information:
     post:
@@ -2989,6 +2991,263 @@ paths:
                       lastDigits: "1111"
                       validUntil: "12/29"
                       owner: "John Doe"
+  /gateway/account-validator/session:
+    post:
+      summary: "Create Session"
+      description: "This endpoint allows creating a session for account validation"
+      operationId: "create-session"
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - user
+                - returnUrl
+              properties:
+                auth:
+                  $ref: "../base/en.yaml#/components/schemas/Authentication"
+                user:
+                  type: object
+                  description: |
+                    User owner of the account to validate
+                  required:
+                      - name
+                      - email
+                  properties:
+                    name:
+                      type: string
+                      description: |
+                        First name or names of the user owner of the account
+                      maxLength: 50
+                      example: John
+                    surname:
+                      type: string
+                      description: |
+                        Surname of the user owner of the account
+                      maxLength: 50
+                      example: Doe
+                    email:
+                      type: email
+                      description: |
+                        Email of the user owner of the account
+                      maxLength: 80
+                      example: John.doe@test.com
+                returnUrl:
+                  type: string
+                  description: |
+                    Return URL once the account validation process is completed
+                  maxLength: 255
+                  example: https://www.placetopay.com/return
+                locale:
+                  type: string
+                  description: Determines the language of the response
+                  maxLength: 5
+                  example: es_CO
+                isAuthenticated:
+                  type: boolean
+                  description: Determines if an external authentication process has already been completed. The intention is not to validate the user's email twice. By default it is false, meaning that an OTP will be sent to validate the user if they have already validated accounts with microdeposits in the system
+                  example: true
+      responses:
+        "200":
+          description: "Session created successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    description: |
+                      Structure containing the response to the request in the case of a successful status
+                    properties:
+                      requestId:
+                        type: string
+                        description: |
+                          Unique identifier of the session you want to consult.
+                        maxLength: 36
+                        format: regex
+                        pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                        example: 9bd89c8d-6097-4d69-8ce9-d9b5ec35d8ea
+                      redirectUrl:
+                        type: string <url>
+                        description: Redirect URL to the account validator
+                        example: https://dev-account-validator.placetopay.ws/verification/redirect/9bd89c8d-6097-4d69-8ce9-d9b5ec35d8ea
+                      expiresAt:
+                        type: string
+                        description: Expiration date of the session
+                        example: 2024-04-19 17:36:57
+                  status:
+                    $ref: "../base/en.yaml#/components/schemas/Status"
+                  
+        "400":
+          description: |
+            Invalid request.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "../base/en.yaml#/components/schemas/Status"
+                required:
+                  - status
+  /gateway/account-validator/query:
+    post:
+      summary: "Check session status"
+      description: "This endpoint will allow you to consult the status of the created session."
+      operationId: "check-session-status"
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - requestId
+              properties:
+                auth:
+                  $ref: "../base/en.yaml#/components/schemas/Authentication"                
+                requestId:
+                  type: string
+                  description: Unique identifier of the session you want to consult.
+                  maxLength: 36
+                  format: regex
+                  pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                  example: 1f630ff7-9c02-4da4-82d4-d676709acb21
+      responses:
+        "200":
+          description: "Session status checked successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "../base/en.yaml#/components/schemas/Status"
+                  data:
+                    type: object
+                    description: Structure containing the response to the request in the case of a successful status
+                    properties:
+                      requestId:
+                        type: string
+                        description: Unique identifier of the session you want to consult.
+                        maxLength: 36
+                        format: regex
+                        pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                        example: 1f630ff7-9c02-4da4-82d4-d676709acb21
+                      expiresAt:
+                        type: string
+                        description: Expiration date of the session
+                        example: 2022-08-30 15:19:33
+                      isAuthenticated:
+                        type: boolean
+                        description: Indicates if the user has already completed an external authentication process
+                        example: true
+                      token:
+                        $ref: "#/components/schemas/Token"
+                          
+        "400":
+          description: |
+            Invalid request.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "../base/en.yaml#/components/schemas/Status"
+                required:
+                  - status
+  /gateway/account-validator/validate:
+    post:
+      summary: "Validate existing account"
+      description: "Once the initial session creation is successfully completed, you can perform validations to the account as many times as you consider necessary, you only need to have the account information and the verification code delivered in the previous process."
+      operationId: "validate-existing-account"
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - instrument
+              properties:
+                auth:
+                  $ref: "../base/en.yaml#/components/schemas/Authentication"
+                instrument:
+                  type: object
+                  description: Token a la que se le realizará la validación.
+                  required:
+                    - token
+                  properties:
+                    token:
+                      type: object
+                      description: Se requiere el token o subtoken de la cuenta a validar.
+                      properties:
+                        token:
+                          type: string
+                          examples:
+                            - "faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891"
+                        subtoken:
+                          type: string
+                          examples:
+                            - "fakesubtoken00005"
+                payment:
+                  type: object
+                  description: Structure containing payment information.
+                  required:
+                    - name
+                    - email
+                  properties:
+                    amount:
+                      type: object
+                      description: Structure containing payment information.
+                      properties:
+                        currency:
+                          type: string
+                          description: Currency of the payment.
+                          minLength: 3
+                          maxLength: 3
+                          example: USD
+                        total:
+                          type: number
+                          description: Total amount of the payment.
+                          minimum: 0
+                          example: 100
+                locale:
+                  type: string
+                  description: Language of the payment.
+                  default: en
+                  example: es_CO
+
+      responses:
+        "200":
+          description: "Validation status response"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "../base/en.yaml#/components/schemas/Status"
+                required:
+                  - status
+        "400":
+          description: Invalid request.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "../base/en.yaml#/components/schemas/Status"
+                required:
+                  - status
 components:
   schemas:
     Subscription:
