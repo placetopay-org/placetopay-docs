@@ -56,7 +56,6 @@ paths:
                   maxLength: 32
                 id:
                   $ref: '#/components/schemas/AutoPayId'
-        description: ''
   /autopay/settlement:
     post:
       summary: Asentar un AutoPago
@@ -134,9 +133,9 @@ paths:
                 properties:
                   status:
                     $ref: "#/components/schemas/Status"
-  /search:
+  /api/search:
     post:
-      summary: Buscar autopagos
+      summary: Listar autopagos
       operationId: post-search
       requestBody:
         required: true
@@ -146,27 +145,43 @@ paths:
               type: object
               required:
                 - auth
-                - filters
               properties:
                 auth:
                   $ref: '../base/es.yaml#/components/schemas/Authentication'
                 filters:
-                  type: object
-                  properties:
-                    reference:
-                      type: string
-                      description: Referencia del AutoPago proporcionada por el cliente/comercio.
-                      example: "ACC00012345"
-                      maxLength: 32
-                    date:
-                      type: object
-                      properties:
-                        from:
-                          type: string
-                          example: 2025-09-01
-                        to:
-                          type: string
-                          example: 2025-09-30
+                    type: object
+                    description: Criterios de filtrado para la búsqueda.
+                    properties:
+                      reference:
+                        type: string
+                        description: Referencia del AutoPago proporcionada por el cliente/comercio.
+                        example: "ACC00012345"
+                        maxLength: 32
+                      id:
+                        $ref: '#/components/schemas/AutoPayId'
+                      chargeTypes:
+                        type: array
+                        description: Filtrar por uno o varios tipos de cargo.
+                        items:
+                          $ref: '#/components/schemas/ChargeType'
+                      status:
+                        type: array
+                        description: Estados del AutoPago a incluir.
+                        items:
+                            $ref: '#/components/schemas/StatusAutoPay'
+                            example: [ "ACTIVE", "PENDING" ]
+                      createdAt:
+                          type: object
+                          description: Rango de fechas de creación (ISO 8601, solo fecha).
+                          properties:
+                            from:
+                              type: string
+                              example: "2025-09-01"
+                            to:
+                              type: string
+                              example: "2025-09-30"
+                pagination:
+                  $ref: '#/components/schemas/PaginationRequest'
       responses:
         "200":
           description: Solicitud exitosa
@@ -177,24 +192,70 @@ paths:
                 properties:
                   status:
                     $ref: '#/components/schemas/Status'
-                  id:
-                    $ref: '#/components/schemas/AutoPayId'
-                  chargeType:
-                    $ref: '#/components/schemas/ChargeType'
-                  createdAt:
-                    type: string
-                    description: Fecha en la que se creo el auto pago
-                    example: 2025-09-25T10:02:17-05:00
-                  registeredAt:
-                    type: string
-                    description: Fecha en la que el usuario se registro al auto pago
-                    example: 2025-09-25T10:02:17-05:00
-                  canceledAt:
-                    type: string
-                    description: Fecha en la que se canceló el auto pago
-                    example: 2025-09-25T10:02:17-05:00
-                  payment:
-                    $ref: '../base/es.yaml#/components/schemas/Payment'
+                  data:
+                    description: Lista de autopagos que cumplen con los criterios de búsqueda.
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          $ref: '#/components/schemas/AutoPayId'
+                        status:
+                          $ref: '#/components/schemas/StatusAutoPay'
+                        chargeType:
+                          $ref: '#/components/schemas/ChargeType'
+                        reference:
+                          type: string
+                          description: Referencia unica del AutoPago proporcionada por el cliente/comercio.
+                          example: "ACC00012345"
+                          maxLength: 32
+                        description:
+                          type: string
+                          description: Descripción visible para el pagador del propósito del AutoPago.
+                          maxLength: 255
+                          example: Suscripción mensual Plan Básico
+                        amount:
+                          $ref: "../base/es.yaml#/components/schemas/Amount"
+                          description: |
+                            Solo presente cuando el tipo de cargo sea `FIXED_AMOUNT` o `FIXED_MINIMUM`.
+                            - `FIXED_AMOUNT`: monto recurrente a cobrar.
+                            - `FIXED_MINIMUM`: monto adicional al pago mínimo calculado.
+                        ipAddress:
+                          type: string
+                          example: "127.0.0.1"
+                        acceptedAt:
+                          type: string
+                          format: date-time
+                          description: Fecha en la que el usuario aceptó el AutoPago.
+                          example: "2021-09-24T10:02:17-05:00"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          description: Fecha de creación del AutoPago.
+                          example: "2021-09-24T10:02:17-05:00"
+                        payer:
+                          $ref: '../base/es.yaml#/components/schemas/Person'
+                        recurring:
+                          $ref: "#/components/schemas/Recurring"
+                        additional:
+                          type: object
+                          description: Información adicional de medio de pago y flujo.
+                          properties:
+                            franchise:
+                              type: string
+                              example: "visa"
+                            lastDigits:
+                              type: string
+                              example: "0008"
+                            bin:
+                              type: string
+                              example: "411111"
+                            processUrl:
+                              type: string
+                              format: uri
+                              example: "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a"
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
   /api/cancel:
     post:
       summary: Cancelar un autopago
@@ -391,80 +452,82 @@ paths:
                 type: object
                 required:
                   - status
-                  - id
-                  - statusAutopay
-                  - chargeType
-                  - reference
-                  - createdAt
-                x-conditional:
-                  - amount
+                  - data
                 properties:
                   status:
                     $ref: '#/components/schemas/Status'
-                  id:
-                    $ref: '#/components/schemas/AutoPayId'
-                  statusAutopay:
-                    type: string
-                    description: Estado actual del AutoPago.
-                    enum: [ ACTIVE, CANCELED, PENDING ]
-                    example: ACTIVE
-                  chargeType:
-                    $ref: '#/components/schemas/ChargeType'
-                  reference:
-                    type: string
-                    description: Referencia unica del AutoPago proporcionada por el cliente/comercio.
-                    example: "ACC00012345"
-                    maxLength: 32
-                  description:
-                    type: string
-                    description: Descripción visible para el pagador del propósito del AutoPago.
-                    maxLength: 255
-                    example: Suscripción mensual Plan Básico
-                  amount:
-                      $ref: "../base/es.yaml#/components/schemas/Amount"
-                      description: |
-                        Solo presente cuando el tipo de cargo sea `FIXED_AMOUNT` o `FIXED_MINIMUM`.
-                        - `FIXED_AMOUNT`: monto recurrente a cobrar.
-                        - `FIXED_MINIMUM`: monto adicional al pago mínimo calculado.
-                  ipAddress:
-                      type: string
-                      example: "127.0.0.1"
-                  acceptedAt:
-                      type: string
-                      format: date-time
-                      description: Fecha en la que el usuario aceptó el AutoPago.
-                      example: "2021-09-24T10:02:17-05:00"
-                  createdAt:
-                      type: string
-                      format: date-time
-                      description: Fecha de creación del AutoPago.
-                      example: "2021-09-24T10:02:17-05:00"
-                  payer:
-                    $ref: '../base/es.yaml#/components/schemas/Person'
-                  recurring:
-                    $ref: "#/components/schemas/Recurring"
-                  payments:
-                    type: array
-                    description: Lista de pagos ejecutados bajo este AutoPago.
-                    items:
-                      $ref: '../base/es.yaml#/components/schemas/Payment'
-                  additional:
-                      type: object
-                      description: Información adicional de medio de pago y flujo.
-                      properties:
-                        franchise:
+                  data:
+                    type: object
+                    required:
+                      - id
+                      - status
+                      - chargeType
+                      - reference
+                      - createdAt
+                    x-conditional:
+                      - amount
+                    properties:
+                      id:
+                        $ref: '#/components/schemas/AutoPayId'
+                      status:
+                        $ref: '#/components/schemas/StatusAutoPay'
+                      chargeType:
+                        $ref: '#/components/schemas/ChargeType'
+                      reference:
+                        type: string
+                        description: Referencia unica del AutoPago proporcionada por el cliente/comercio.
+                        example: "ACC00012345"
+                        maxLength: 32
+                      description:
+                        type: string
+                        description: Descripción visible para el pagador del propósito del AutoPago.
+                        maxLength: 255
+                        example: Suscripción mensual Plan Básico
+                      amount:
+                          $ref: "../base/es.yaml#/components/schemas/Amount"
+                          description: |
+                            Solo presente cuando el tipo de cargo sea `FIXED_AMOUNT` o `FIXED_MINIMUM`.
+                            - `FIXED_AMOUNT`: monto recurrente a cobrar.
+                            - `FIXED_MINIMUM`: monto adicional al pago mínimo calculado.
+                      ipAddress:
                           type: string
-                          example: "visa"
-                        lastDigits:
+                          example: "127.0.0.1"
+                      acceptedAt:
                           type: string
-                          example: "0008"
-                        bin:
+                          format: date-time
+                          description: Fecha en la que el usuario aceptó el AutoPago.
+                          example: "2021-09-24T10:02:17-05:00"
+                      createdAt:
                           type: string
-                          example: "411111"
-                        processUrl:
-                          type: string
-                          format: uri
-                          example: "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a"
+                          format: date-time
+                          description: Fecha de creación del AutoPago.
+                          example: "2021-09-24T10:02:17-05:00"
+                      payer:
+                        $ref: '../base/es.yaml#/components/schemas/Person'
+                      recurring:
+                        $ref: "#/components/schemas/Recurring"
+                      payments:
+                        type: array
+                        description: Lista de pagos ejecutados bajo este AutoPago.
+                        items:
+                          $ref: '../base/es.yaml#/components/schemas/Payment'
+                      additional:
+                          type: object
+                          description: Información adicional de medio de pago y flujo.
+                          properties:
+                            franchise:
+                              type: string
+                              example: "visa"
+                            lastDigits:
+                              type: string
+                              example: "0008"
+                            bin:
+                              type: string
+                              example: "411111"
+                            processUrl:
+                              type: string
+                              format: uri
+                              example: "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a"
         "4XX":
           description: Solicitud inválida
           content:
@@ -617,3 +680,52 @@ components:
         - status
         - reason
         - message
+    StatusAutoPay:
+        type: string
+        description: Estado actual del AutoPago.
+        enum: [ ACTIVE, CANCELED, PENDING ]
+        example: ACTIVE
+    Pagination:
+      title: Pagination
+      type: object
+      description: Estructura que contiene la información de la paginación.
+      properties:
+        total:
+          type: integer
+          example: 30
+          minimum: 1
+          description: Número total de registros encontrados en la consulta.
+        perPage:
+          type: integer
+          default: 15
+          example: 10
+          minimum: 1
+          description: Número de registros por página
+        currentPage:
+          type: integer
+          default: 1
+          minimum: 1
+          example: 1
+          description: Página actual
+        lastPage:
+          type: integer
+          minimum: 1
+          example: 1
+          description: Ultima página disponible
+    PaginationRequest:
+      title: Pagination
+      type: object
+      description: Estructura que contiene la información de la paginación.
+      properties:
+        perPage:
+          type: integer
+          default: 15
+          example: 10
+          minimum: 1
+          description: Número de registros por página
+        currentPage:
+          type: integer
+          default: 1
+          minimum: 1
+          example: 1
+          description: Página actual

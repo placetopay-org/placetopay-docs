@@ -1,33 +1,161 @@
-export const apiRefs = ['/search']
+export const apiRefs = ['/api/search']
 
-## Búsqueda de AutoPagos {{ id: 'search-autopays', tag: 'POST', label: '/search' }}
-
-
-
-<Row>
-  <Col>
-    Este servicio permite la búsqueda de autopagos por filtros, suele utilizarse en caso de pérdida
-    de comunicación al crear un autopago.
-
-    <ApiReader
-      path="/search"
-      method="POST"
-      api={props.refs}
-    />
-
-  </Col>
-  <Col sticky>
-  </Col>
-</Row>
-
+## Búsqueda de AutoPagos {{ id: 'search-autopay', tag: 'POST', label: '/api/search' }}
+Este servicio permite listar los AutoPagos registrados por un comercio y filtrarlos según criterios operativos y de auditoría. Está pensado para consultas administrativas, conciliación y monitoreo del ciclo de vida de los contratos de autopago.
 
 <Row>
-  <Col>
-    <ApiReader
-      path="/search"
-      method="POST"
-      type="response"
-      api={props.refs}
-    />
-  </Col>
+    <Col>
+        <ApiReader
+            path="/api/search"
+            method="POST"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <br />
+        <CodeGroup title="Solicitud" tag="POST" label="/api/search">
+            ```bash {{ title: 'General' }}
+            curl -X "POST" {{baseURl}}/api/create \
+            -H "Content-Type: application/json" \
+            -d '{
+            "auth": {
+                "login":"aabbccdd1234567890aabbccdd123456",
+                "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+                "nonce":"enQ4dXh3YWhkMWM=",
+                "seed":"2023-06-21T09:56:06-05:00"
+            },
+            "filters": {
+                "reference": "PAYMENT_1",
+                "id": "328eb09a-363f-48a6-a16e-51c5a58b89ec",
+                "chargeTypes": ["FIXED_AMOUNT", "STATEMENT_BALANCE"],
+                "status": ["ACTIVE", "PENDING"],
+                "createdAt": {
+                    "from": "2025-09-01",
+                    "to": "2025-09-30"
+                }
+            },
+            "pagination": {
+                "perPage": 15,
+                "currentPage": 1
+            }
+        }'
+            ```
+        </CodeGroup>
+    </Col>
 </Row>
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/api/search"
+            method="POST"
+            type="response"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <br />
+        <CodeGroup title="Respuesta">
+    ```json {{ title: '200' }}
+        {
+            "status": {
+                "status": "OK",
+                "reason": "00",
+                "description": "La petición se ha procesado correctamente",
+                "date":"2023-06-21T09:56:06-05:00"
+            },
+            "pagination": {
+                "total": 0,
+                "perPage": 15,
+                "currentPage": 1,
+                "lastPage": 1
+            },
+            "data": [
+            {
+                "id": "328eb09a-363f-48a6-a16e-51c5a58b89ec",
+                "status": "ACTIVE",
+                "chargeType": "FIXED_AMOUNT",
+                "reference": "12345",
+                "description": "Ejemplo de descripción",
+                "amount": {
+                    "currency": "USD",
+                    "total": 10
+                },
+                "ipAddress": "127.0.0.1",
+                "acceptedAt": "2021-09-24T10:02:17-05:00",
+                "createdAt": "2021-09-24T10:02:17-05:00",
+                "payer": {
+                    "document": "911111111",
+                    "documentType": "CC",
+                    "name": "john",
+                    "surname": "doe",
+                    "email": "john@doe.com",
+                    "mobile": "+573111111111"
+                },
+                "recurring": {
+                    "periodicity": "D",
+                    "interval": "1",
+                    "nextPayment": "2025-08-24",
+                    "maxPeriods": 1,
+                    "dueDate ": "2025-12-24",
+                    "notificationUrl ": "https://checkout.placetopay.com"
+                },
+                "additional": {
+                    "franchise": "visa",
+                    "lastDigits": "0008",
+                    "bin": "411111",
+                    "processUrl": "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a",
+                }
+            },
+            {
+                "id": "328eb09a-363f-48a6-a16e-51c5a58b89ec",
+                "status": "ACTIVE",
+                "chargeType": "FIXED_AMOUNT",
+                "reference": "12345",
+                "description": "Ejemplo de descripción",
+                "amount": {
+                    "currency": "USD",
+                    "total": 10
+                },
+                "ipAddress": "127.0.0.1",
+                "acceptedAt": "2021-09-24T10:02:17-05:00",
+                "createdAt": "2021-09-24T10:02:17-05:00",
+                "payer": {
+                    "document": "911111111",
+                    "documentType": "CC",
+                    "name": "john",
+                    "surname": "doe",
+                    "email": "john@doe.com",
+                    "mobile": "+573111111111"
+                },
+                "recurring": {
+                    "periodicity": "D",
+                    "interval": "1",
+                    "nextPayment": "2025-08-24",
+                    "maxPeriods": 1,
+                    "dueDate ": "2025-12-24",
+                    "notificationUrl ": "https://checkout.placetopay.com"
+                },
+                "additional": {
+                    "franchise": "visa",
+                    "lastDigits": "0008",
+                    "bin": "411111",
+                    "processUrl": "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a",
+                }
+            }
+        ]}
+    ```
+            ```json {{ title: '401: Autenticación fallida' }}
+                {
+                    "status": {
+                        "status": "FAILED",
+                        "reason": "401",
+                        "message": "la autenticación no contiene todos los parámetros requeridos (login, tranKey, seed, nonce)",
+                        "date": "2021-09-21T09:34:48-05:00"
+                    }
+                }
+            ```
+        </CodeGroup>
+    </Col>
+</Row>
+
