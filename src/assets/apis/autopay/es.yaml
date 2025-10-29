@@ -247,7 +247,6 @@ paths:
               required:
                 - auth
                 - reference
-                - description
                 - chargeTypes
               properties:
                 auth:
@@ -324,35 +323,7 @@ paths:
                         items:
                           $ref: "../base/es.yaml#/components/schemas/AmountDetail"
                 recurring:
-                  type: object
-                  description: Parámetros de recurrencia. Si no se envía, el sistema podrá solicitarlos al usuario en el momento de la redirección.
-                  properties:
-                    periodicity:
-                      type: string
-                      description: Periodicidad del cobro. D=Diario, W=Semanal, M=Mensual, Y=Anual.
-                      enum: [ D, W, M, Y ]
-                      example: M
-                    interval:
-                      type: string
-                      description: Cada cuántos períodos se realiza el cobro (ej. "1" = cada mes si periodicidad=M).
-                      pattern: '^[1-9][0-9]*$'
-                      example: "1"
-                    maxPeriods:
-                      type: integer
-                      description: Número máximo de períodos a cobrar.
-                      minimum: 1
-                      example: 12
-                    dueDay:
-                      type: integer
-                      description: Día de corte o vencimiento (1–28 para evitar meses cortos).
-                      minimum: 1
-                      maximum: 28
-                      example: 15
-                    paymentDate:
-                      type: string
-                      format: date-time
-                      description: Fecha a partir de la cual inicia el cobro.
-                      example: "2025-11-30T00:00:00-05:00"
+                  $ref: "#/components/schemas/Recurring"
                 expiration:
                     type: string
                     format: date-time
@@ -393,6 +364,113 @@ paths:
                 properties:
                   status:
                     $ref: '#/components/schemas/Status'
+  /api/query:
+    post:
+      summary: Consultar un autopago
+      operationId: post-search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+              properties:
+                auth:
+                  $ref: '../base/es.yaml#/components/schemas/Authentication'
+                id:
+                  $ref: '#/components/schemas/AutoPayId'
+      responses:
+        "200":
+          description: Solicitud exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - id
+                  - statusAutopay
+                  - chargeType
+                  - reference
+                  - createdAt
+                x-conditional:
+                  - amount
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  id:
+                    $ref: '#/components/schemas/AutoPayId'
+                  statusAutopay:
+                    type: string
+                    description: Estado actual del AutoPago.
+                    enum: [ ACTIVE, CANCELED, PENDING ]
+                    example: ACTIVE
+                  chargeType:
+                    $ref: '#/components/schemas/ChargeType'
+                  reference:
+                    type: string
+                    description: Referencia unica del AutoPago proporcionada por el cliente/comercio.
+                    example: "ACC00012345"
+                    maxLength: 32
+                  description:
+                    type: string
+                    description: Descripción visible para el pagador del propósito del AutoPago.
+                    maxLength: 255
+                    example: Suscripción mensual Plan Básico
+                  amount:
+                      $ref: "../base/es.yaml#/components/schemas/Amount"
+                      description: |
+                        Solo presente cuando el tipo de cargo sea `FIXED_AMOUNT` o `FIXED_MINIMUM`.
+                        - `FIXED_AMOUNT`: monto recurrente a cobrar.
+                        - `FIXED_MINIMUM`: monto adicional al pago mínimo calculado.
+                  ipAddress:
+                      type: string
+                      example: "127.0.0.1"
+                  acceptedAt:
+                      type: string
+                      format: date-time
+                      description: Fecha en la que el usuario aceptó el AutoPago.
+                      example: "2021-09-24T10:02:17-05:00"
+                  createdAt:
+                      type: string
+                      format: date-time
+                      description: Fecha de creación del AutoPago.
+                      example: "2021-09-24T10:02:17-05:00"
+                  payer:
+                    $ref: '../base/es.yaml#/components/schemas/Person'
+                  recurring:
+                    $ref: "#/components/schemas/Recurring"
+                  additional:
+                      type: object
+                      description: Información adicional de medio de pago y flujo.
+                      properties:
+                        franchise:
+                          type: string
+                          example: "visa"
+                        lastDigits:
+                          type: string
+                          example: "0008"
+                        bin:
+                          type: string
+                          example: "411111"
+                        processUrl:
+                          type: string
+                          format: uri
+                          example: "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a"
+        "4XX":
+          description: Solicitud inválida
+          content:
+            application/json:
+              schema:
+                required:
+                  - status
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
 components:
   schemas:
     ChargeType:
@@ -410,6 +488,36 @@ components:
       minLength: 36
       maxLength: 36
       example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+    Recurring:
+      type: object
+      description: Parámetros de recurrencia. En caso de no enviarse en la solicitud de creación, el sistema podrá solicitarlos al usuario en el momento de la redirección.
+      properties:
+        periodicity:
+          type: string
+          description: Periodicidad del cobro. D=Diario, W=Semanal, M=Mensual, Y=Anual.
+          enum: [ D, W, M, Y ]
+          example: M
+        interval:
+          type: string
+          description: Cada cuántos períodos se realiza el cobro (ej. "1" = cada mes si periodicidad=M).
+          pattern: '^[1-9][0-9]*$'
+          example: "1"
+        maxPeriods:
+          type: integer
+          description: Número máximo de períodos a cobrar.
+          minimum: 1
+          example: 12
+        dueDay:
+          type: integer
+          description: Día de corte o vencimiento (1–28 para evitar meses cortos).
+          minimum: 1
+          maximum: 28
+          example: 15
+        paymentDate:
+          type: string
+          format: date-time
+          description: Fecha a partir de la cual inicia el cobro.
+          example: "2025-11-30T00:00:00-05:00"
     WebhookEvent:
       type: object
       required: [ auth, reference, id, type, date ]
