@@ -133,7 +133,7 @@ paths:
                 properties:
                   status:
                     $ref: "#/components/schemas/Status"
-  /api/search:
+  /api/client/search:
     post:
       summary: Listar autopagos
       operationId: post-search
@@ -166,10 +166,15 @@ paths:
                           $ref: '#/components/schemas/ChargeType'
                       status:
                         type: array
-                        description: Estados del AutoPago a incluir.
+                        description: Estados del AutoPago incluidos en el filtro.
                         items:
-                            $ref: '#/components/schemas/StatusAutoPay'
-                            example: [ "ACTIVE", "PENDING" ]
+                          type: string
+                          enum:
+                              - OK
+                              - FAILED
+                              - REJECTED
+                              - APPROVED
+                        example: [ "APPROVED", "PENDING" ]
                       createdAt:
                           type: object
                           description: Rango de fechas de creación (ISO 8601, solo fecha).
@@ -182,6 +187,8 @@ paths:
                               example: "2025-09-30"
                 pagination:
                   $ref: '#/components/schemas/PaginationRequest'
+                locale:
+                  $ref: '#/components/schemas/Locale'
       responses:
         "200":
           description: Solicitud exitosa
@@ -201,7 +208,7 @@ paths:
                       $ref: '#/components/schemas/AutoPay'
                   pagination:
                     $ref: '#/components/schemas/Pagination'
-  /api/cancel:
+  /api/client/cancel:
     post:
       summary: Cancelar un autopago
       operationId: post-search
@@ -219,6 +226,8 @@ paths:
                   $ref: '../base/es.yaml#/components/schemas/Authentication'
                 id:
                   $ref: '#/components/schemas/AutoPayId'
+                locale:
+                  $ref: '#/components/schemas/Locale'
       responses:
         "200":
           description: Solicitud exitosa
@@ -240,7 +249,7 @@ paths:
                 properties:
                   status:
                     $ref: '#/components/schemas/Status'
-  /api/create:
+  /api/client/create:
     post:
       summary: Crear un autopago
       operationId: post-search
@@ -296,10 +305,6 @@ paths:
                     - FIXED
                   example:
                     - [ "TOTAL_BALANCE", "MINIMUM_BALANCE" ]
-                locale:
-                  type: "string"
-                  description: "Idioma de la respuesta."
-                  example: "es_ES"
                 expiration:
                     type: string
                     format: date-time
@@ -311,6 +316,8 @@ paths:
                     maxLength: 255
                     description: URL de retorno post-proceso (longitud máxima actual 255).
                     example: "https://dnetix.co/p2p/client"
+                locale:
+                  $ref: '#/components/schemas/Locale'
       responses:
         "200":
           description: Solicitud exitosa
@@ -323,6 +330,11 @@ paths:
                     $ref: '#/components/schemas/Status'
                   id:
                     $ref: '#/components/schemas/AutoPayId'
+                  processUrl:
+                    type: string
+                    format: uri
+                    description: URL de redirección para completar el proceso de creación.
+                    example: "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a/edit"
         "4XX":
           description: Solicitud inválida
           content:
@@ -332,7 +344,7 @@ paths:
                 properties:
                   status:
                     $ref: '#/components/schemas/Status'
-  /api/edit:
+  /api/client/edit:
     post:
       summary: Actualizar un autopago
       operationId: post-edit
@@ -350,6 +362,8 @@ paths:
                   $ref: '../base/es.yaml#/components/schemas/Authentication'
                 id:
                   $ref: '#/components/schemas/AutoPayId'
+                locale:
+                  $ref: '#/components/schemas/Locale'
       responses:
         "200":
           description: Solicitud exitosa
@@ -385,7 +399,7 @@ paths:
                 properties:
                   status:
                     $ref: '#/components/schemas/Status'
-  /api/query:
+  /api/client/query:
     post:
       summary: Consultar un autopago
       operationId: post-search
@@ -403,6 +417,8 @@ paths:
                   $ref: '../base/es.yaml#/components/schemas/Authentication'
                 id:
                   $ref: '#/components/schemas/AutoPayId'
+                locale:
+                  $ref: '#/components/schemas/Locale'
       responses:
         "200":
           description: Solicitud exitosa
@@ -476,28 +492,6 @@ paths:
                         maxLength: 255
                         description: URL de retorno post-proceso (longitud máxima actual 255).
                         example: "https://dnetix.co/p2p/client"
-                      additional:
-                        type: object
-                        description: Información adicional de medio de pago y flujo.
-                        properties:
-                          franchise:
-                            type: string
-                            example: "visa"
-                          lastDigits:
-                            type: string
-                            example: "0008"
-                          bin:
-                            type: string
-                            example: "411111"
-                          processUrl:
-                            type: string
-                            format: uri
-                            example: "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a"
-                      transactions:
-                        type: array
-                        description: Lista de las ultimas transacciones ejecutadas bajo este AutoPago.
-                        items:
-                          $ref: '../base/es.yaml#/components/schemas/Payment'
         "4XX":
           description: Solicitud inválida
           content:
@@ -560,23 +554,17 @@ components:
           format: date-time
           description: Fecha de creación del AutoPago.
           example: "2021-09-24T10:02:17-05:00"
-        additional:
-          type: object
-          description: Información adicional de medio de pago y flujo.
-          properties:
-            franchise:
-              type: string
-              example: "visa"
-            lastDigits:
-              type: string
-              example: "0008"
-            bin:
-              type: string
-              example: "411111"
-            processUrl:
-              type: string
-              format: uri
-              example: "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a"
+        expiration:
+          type: string
+          format: date-time
+          description: Fecha de expiración de la sesión/solicitud.
+          example: "2025-12-15T00:00:00-05:00"
+        returnUrl:
+          type: string
+          format: uri
+          maxLength: 255
+          description: URL de retorno post-proceso (longitud máxima actual 255).
+          example: "https://dnetix.co/p2p/client"
     ChargeType:
       type: string
       enum:
@@ -646,7 +634,7 @@ components:
           enum:
             - AUTOPAY_UPDATED
             - AUTOPAY_FAILED
-            - AUTOPAY_DELETED
+            - AUTOPAY_CANCELED
           description: "Tipo de evento notificado. Ver más en [Eventos Webhook](/autopay/webhook-description#event-types)."
         date:
           type: string
@@ -671,7 +659,7 @@ components:
               type: string
               minLength: 2
               maxLength: 2
-              description: Código de razón de actualización del autopago. Puede venir cuando el evento es AUTOPAY_FAILED, AUTOPAY_DELETED. Ver más en [Códigos de razón](/autopay/codes).
+              description: Código de razón de actualización del autopago. Puede venir cuando el evento es AUTOPAY_FAILED, AUTOPAY_CANCELED. Ver más en [Códigos de razón](/autopay/codes).
               example: "XA"
     Status:
       title: Status
@@ -718,8 +706,8 @@ components:
         - message
     StatusAutoPay:
         $ref: '#/components/schemas/Status'
-        enum: [ ACTIVE, CANCELED, PENDING ]
-        example: ACTIVE
+        enum: [ APPROVED, REJECTED, PENDING, FAILED ]
+        example: APPROVED
     Pagination:
       title: Pagination
       type: object
@@ -752,6 +740,10 @@ components:
           minimum: 1
           example: 1
           description: Ultima página disponible
+    Locale:
+      type: "string"
+      description: "Idioma de la respuesta."
+      example: "es_ES"
     PaginationRequest:
       title: Pagination
       type: object
