@@ -503,6 +503,107 @@ paths:
                 properties:
                   status:
                     $ref: '#/components/schemas/Status'
+  /api/client/transactions:
+    post:
+      summary: Listar transacciones de un autopago
+      operationId: post-search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+              properties:
+                auth:
+                  $ref: '../base/es.yaml#/components/schemas/Authentication'
+                id:
+                  $ref: '#/components/schemas/AutoPayId'
+                filters:
+                  type: object
+                  description: Criterios de filtrado para la búsqueda.
+                  properties:
+                    internalReference:
+                      type: string
+                      description: Referencia interna de la transacción en placetopay proporcionada por la pasarela en el momento del pago.
+                      example: "ACC00012345"
+                      maxLength: 32
+                    status:
+                      type: array
+                      description: Estados de la transacción.
+                      items:
+                        type: string
+                        enum:
+                          - OK
+                          - FAILED
+                          - REJECTED
+                          - APPROVED
+                          - APPROVED_PARCIAL
+                      example: [ "APPROVED", "PENDING" ]
+                    amount:
+                      type: "object"
+                      description: "Estructura que contiene la información acerca del pago de la transacción."
+                      required:
+                        - "currency"
+                        - "total"
+                      properties:
+                        currency:
+                          type: "string"
+                          description: |
+                            Código alfabético de la moneda a usar (ISO 4217 alpha code)
+                          enum:
+                            - "USD"
+                            - "COP"
+                            - "CRC"
+                            - "EUR"
+                            - "CAD"
+                            - "AUD"
+                            - "GBP"
+                            - "MXN"
+                            - "CLP"
+                          example: "COP"
+                          minLength: 3
+                          maxLength: 3
+                        total:
+                          type: "number"
+                          example: 2000
+                          description: |
+                            Valor total en la moneda base indicada
+                    createdAt:
+                      type: object
+                      description: Rango de fechas de creación (ISO 8601, solo fecha).
+                      properties:
+                        from:
+                          type: string
+                          example: "2025-09-01"
+                        to:
+                          type: string
+                          example: "2025-09-30"
+                pagination:
+                  $ref: '#/components/schemas/PaginationRequest'
+                locale:
+                  $ref: '#/components/schemas/Locale'
+      responses:
+        "200":
+          description: Solicitud exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  data:
+                    description: Lista de transacciones del autopago que cumplen con los criterios de búsqueda.
+                    type: array
+                    items:
+                      $ref: '../base/es.yaml#/components/schemas/Payment'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
 components:
   schemas:
     AutoPay:
