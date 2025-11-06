@@ -20,17 +20,12 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [status, id, amount]
+                required: [ status, id, amount ]
                 properties:
                   status:
                     $ref: '#/components/schemas/Status'
                   id:
-                    description: Identificador único del auto pago
-                    type: string
-                    format: uuid
-                    minLength: 36
-                    maxLength: 36
-                    example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                    $ref: '#/components/schemas/AutoPayId'
                   amount:
                     $ref: "../base/es.yaml#/components/schemas/Amount"
                   min_amount:
@@ -50,23 +45,17 @@ paths:
           application/json:
             schema:
               type: object
-              required: [auth, reference, id]
+              required: [ auth, reference, id ]
               properties:
                 auth:
                   $ref: '../base/es.yaml#/components/schemas/Authentication'
                 reference:
                   type: string
-                  description: Referencia del AutoPago proporcionada por el cliente/comercio.
+                  description: Referencia del AutoPago proporcionada por el cliente/comercio, esta referencia debe ser unica activa por comercio.
                   example: "ACC00012345"
                   maxLength: 32
                 id:
-                  type: string
-                  format: uuid
-                  description: Identificador único del AutoPago
-                  minLength: 36
-                  maxLength: 36
-                  example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-        description: ''
+                  $ref: '#/components/schemas/AutoPayId'
   /autopay/settlement:
     post:
       summary: Asentar un AutoPago
@@ -89,12 +78,7 @@ paths:
                   status:
                     $ref: '#/components/schemas/Status'
                   id:
-                    type: string
-                    format: uuid
-                    description: Identificador único del autopago confirmado en el registro de la notificación.
-                    minLength: 36
-                    maxLength: 36
-                    example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                    $ref: '#/components/schemas/AutoPayId'
         "4XX":
           description: Error en la solicitud.
           content:
@@ -113,17 +97,12 @@ paths:
                   $ref: '../base/es.yaml#/components/schemas/Authentication'
                 reference:
                   type: string
-                  description: Referencia del AutoPago proporcionada por el cliente/comercio.
+                  description: Referencia del AutoPago proporcionada por el cliente/comercio, esta referencia debe ser unica activa por comercio.
                   minLength: 32
                   maxLength: 32
                   example: "ACC00012345"
                 id:
-                  type: string
-                  format: uuid
-                  description: Identificador único del autopago confirmado en el registro de la notificación.
-                  minLength: 36
-                  maxLength: 36
-                  example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+                  $ref: '#/components/schemas/AutoPayId'
                 transaction:
                   $ref: "../base/es.yaml#/components/schemas/Transaction"
   /autopay/webhook:
@@ -154,8 +133,544 @@ paths:
                 properties:
                   status:
                     $ref: "#/components/schemas/Status"
+  /gateway/autopay/search:
+    post:
+      summary: Listar autopagos
+      operationId: post-search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+              properties:
+                auth:
+                  $ref: '../base/es.yaml#/components/schemas/Authentication'
+                filters:
+                    type: object
+                    description: Criterios de filtrado para la búsqueda.
+                    properties:
+                      reference:
+                        type: string
+                        description: Referencia del AutoPago proporcionada por el cliente/comercio, esta referencia debe ser unica activa por comercio.
+                        example: "ACC00012345"
+                        maxLength: 32
+                      id:
+                        $ref: '#/components/schemas/AutoPayId'
+                      chargeTypes:
+                        type: array
+                        description: Filtrar por uno o varios tipos de cargo.
+                        items:
+                          $ref: '#/components/schemas/ChargeType'
+                      status:
+                        type: array
+                        description: Estados del AutoPago incluidos en el filtro.
+                        items:
+                          type: string
+                          enum:
+                              - OK
+                              - FAILED
+                              - REJECTED
+                              - APPROVED
+                        example: [ "APPROVED", "PENDING" ]
+                      createdAt:
+                          type: object
+                          description: Rango de fechas de creación (ISO 8601, solo fecha).
+                          properties:
+                            from:
+                              type: string
+                              example: "2025-09-01"
+                            to:
+                              type: string
+                              example: "2025-09-30"
+                pagination:
+                  $ref: '#/components/schemas/PaginationRequest'
+                locale:
+                  $ref: '#/components/schemas/Locale'
+      responses:
+        "200":
+          description: Solicitud exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  data:
+                    description: Lista de autopagos que cumplen con los criterios de búsqueda.
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AutoPay'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+  /gateway/autopay/cancel:
+    post:
+      summary: Cancelar un autopago
+      operationId: post-search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+              properties:
+                auth:
+                  $ref: '../base/es.yaml#/components/schemas/Authentication'
+                id:
+                  $ref: '#/components/schemas/AutoPayId'
+                locale:
+                  $ref: '#/components/schemas/Locale'
+      responses:
+        "200":
+          description: Solicitud exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  id:
+                    $ref: '#/components/schemas/AutoPayId'
+        "4XX":
+          description: Solicitud inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+  /gateway/autopay/create:
+    post:
+      summary: Crear un autopago
+      operationId: post-search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - reference
+                - chargeTypes
+              properties:
+                auth:
+                  $ref: '../base/es.yaml#/components/schemas/Authentication'
+                subscriptor:
+                  $ref: '../base/es.yaml#/components/schemas/Person'
+                  description: Estructura que contiene la información del suscriptor (pagador) del AutoPago. Si no se envía, el sistema solicitará esta información al usuario en la interfaz gráfica.
+                subscription:
+                  type: object
+                  required:
+                    - reference
+                    - description
+                    - recurring
+                  description: Estructura que contiene la información acerca de la suscripción asociada al AutoPago.
+                  properties:
+                    reference:
+                      type: "string"
+                      minLength: 1
+                      maxLength: 32
+                    description:
+                      type: "string"
+                      maxLength: 250
+                    amount:
+                      $ref: "../base/es.yaml#/components/schemas/Amount"
+                      description: |
+                        Estructura que define la información asociada al pago recurrente dentro del proceso de autopago. El valor y comportamiento de este campo dependen del tipo de cargo seleccionado por el usuario (chargeType) y de la configuración del comercio:
+                        - Si el tipo de cargo es FIXED, el valor definido en este campo representará el monto que se cobrará de forma recurrente.
+                        - Si el tipo de cargo es TOTAL_BALANCE o MINIMUM_BALANCE, este valor será ignorado, ya que el monto será determinado automáticamente con base en el estado de cuenta del usuario ([Balance](/autopay/contracts/balance)).
+                        - Si el tipo de cargo es MINIMUM_PLUS_BALANCE, este valor será interpretado como un monto adicional al pago mínimo calculado a partir del [Balance](/autopay/contracts/balance)
+                        En caso de no enviarse este campo y el tipo de cargo seleccionado lo requiera, el sistema solicitará al usuario completar la información correspondiente a través de la interfaz gráfica.
+                      x-conditional:
+                        - "currency"
+                        - "total"
+                    recurring:
+                      $ref: "#/components/schemas/Recurring"
+                chargeTypes:
+                  type: array
+                  description: |
+                    Tipos de cargo permitidos dentro del autopago. Debe incluir al menos un tipo. En el caso de existir un solo tipo, este se tomará por defecto y se aplicará la lógica correspondiente al monto y configuración del comercio; si por el contrario existen varios tipos, en la redirección a la interfaz gráfica se le solicitará al usuario (pagador) escoger un tipo de cargo de los seleccionados por el cliente. Ver más en [Tipos de cargo](/autopay/charge-types).
+                    - Actualmente solo será permitido seleccionar un item.
+                  minItems: 1
+                  maxItems: 1
+                  enum:
+                    - TOTAL_BALANCE
+                    - MINIMUM_BALANCE
+                    - MINIMUM_PLUS_BALANCE
+                    - FIXED
+                  example:
+                    - [ "TOTAL_BALANCE" ]
+                additional:
+                  type: object
+                  description: Información adicional.
+                  properties:
+                    customerAccountNumber:
+                      type: string
+                      example: "12345"
+                expiration:
+                    type: string
+                    format: date-time
+                    description: Fecha de expiración de la sesión/solicitud.
+                    example: "2025-12-15T00:00:00-05:00"
+                returnUrl:
+                    type: string
+                    format: uri
+                    maxLength: 255
+                    description: URL de retorno post-proceso (longitud máxima actual 255).
+                    example: "https://dnetix.co/p2p/client"
+                cancelUrl:
+                  type: string
+                  description: |
+                    URL de cancelación, a esta url se redirige al usuario cuando decide no continuar con el proceso.
+                    Ocurre cuando el usuario da click en _No deseo continuar_
+                  example: 'https://commerce.test/cancel'
+                skipResult:
+                  type: boolean
+                  description: |
+                    Si se envía `true`, cuando el usuario finalice el proceso no se mostrará la página de resultado de sesión, en su lugar será redireccionado al `returnUrl`. Ver más en [Omitir resultado](/checkout/skip-result)
+                  default: false
+                locale:
+                  $ref: '#/components/schemas/Locale'
+      responses:
+        "200":
+          description: Solicitud exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  id:
+                    $ref: '#/components/schemas/AutoPayId'
+                  processUrl:
+                    type: string
+                    format: uri
+                    description: URL de redirección para completar el proceso de creación.
+                    example: "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a/edit"
+        "4XX":
+          description: Solicitud inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+  /gateway/autopay/edit:
+    post:
+      summary: Actualizar un autopago
+      operationId: post-edit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+              properties:
+                auth:
+                  $ref: '../base/es.yaml#/components/schemas/Authentication'
+                id:
+                  $ref: '#/components/schemas/AutoPayId'
+                expiration:
+                    type: string
+                    format: date-time
+                    description: Fecha de expiración de la sesión/solicitud.
+                    example: "2025-12-15T00:00:00-05:00"
+                returnUrl:
+                  type: string
+                  format: uri
+                  maxLength: 255
+                  description: URL de retorno post-proceso (longitud máxima actual 255).
+                  example: "https://dnetix.co/p2p/client"
+                cancelUrl:
+                  type: string
+                  description: |
+                    URL de cancelación, a esta url se redirige al usuario cuando decide no continuar con el proceso.
+                    Ocurre cuando el usuario da click en _No deseo continuar_
+                  example: 'https://commerce.test/cancel'
+                skipResult:
+                  type: boolean
+                  description: |
+                    Si se envía `true`, cuando el usuario finalice el proceso no se mostrará la página de resultado de sesión, en su lugar será redireccionado al `returnUrl`. Ver más en [Omitir resultado](/checkout/skip-result)
+                  default: false
+                locale:
+                  $ref: '#/components/schemas/Locale'
+      responses:
+        "200":
+          description: Solicitud exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  id:
+                    $ref: '#/components/schemas/AutoPayId'
+                  processUrl:
+                    type: string
+                    format: uri
+                    description: URL de redirección para completar el proceso de actualización.
+                    example: "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a/edit"
+        "400":
+          description: Solicitud inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+        "401":
+          description: Autenticación fallida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+  /gateway/autopay/transactions:
+    post:
+      summary: Listar transacciones de un autopago
+      operationId: post-search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+              properties:
+                auth:
+                  $ref: '../base/es.yaml#/components/schemas/Authentication'
+                id:
+                  $ref: '#/components/schemas/AutoPayId'
+                filters:
+                  type: object
+                  description: Criterios de filtrado para la búsqueda.
+                  properties:
+                    internalReference:
+                      type: string
+                      description: Referencia interna de la transacción en placetopay proporcionada por la pasarela en el momento del pago.
+                      example: "ACC00012345"
+                      maxLength: 32
+                    status:
+                      type: array
+                      description: Estados de la transacción.
+                      items:
+                        type: string
+                        enum:
+                          - OK
+                          - FAILED
+                          - REJECTED
+                          - APPROVED
+                          - APPROVED_PARCIAL
+                      example: [ "APPROVED", "PENDING" ]
+                    amount:
+                      type: "object"
+                      description: "Estructura que contiene la información acerca del pago de la transacción."
+                      required:
+                        - "currency"
+                        - "total"
+                      properties:
+                        currency:
+                          type: "string"
+                          description: |
+                            Código alfabético de la moneda a usar (ISO 4217 alpha code)
+                          enum:
+                            - "USD"
+                            - "COP"
+                            - "CRC"
+                            - "EUR"
+                            - "CAD"
+                            - "AUD"
+                            - "GBP"
+                            - "MXN"
+                            - "CLP"
+                          example: "COP"
+                          minLength: 3
+                          maxLength: 3
+                        total:
+                          type: "number"
+                          example: 2000
+                          description: |
+                            Valor total en la moneda base indicada
+                    createdAt:
+                      type: object
+                      description: Rango de fechas de creación (ISO 8601, solo fecha).
+                      properties:
+                        from:
+                          type: string
+                          example: "2025-09-01"
+                        to:
+                          type: string
+                          example: "2025-09-30"
+                pagination:
+                  $ref: '#/components/schemas/PaginationRequest'
+                locale:
+                  $ref: '#/components/schemas/Locale'
+      responses:
+        "200":
+          description: Solicitud exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  data:
+                    description: Lista de transacciones del autopago que cumplen con los criterios de búsqueda.
+                    type: array
+                    items:
+                      $ref: '../base/es.yaml#/components/schemas/Payment'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
 components:
   schemas:
+    AutoPay:
+      type: object
+      required:
+        - id
+        - status
+        - subscription
+        - createdAt
+      properties:
+        id:
+          $ref: '#/components/schemas/AutoPayId'
+        status:
+          $ref: '#/components/schemas/StatusAutoPay'
+        subscriptor:
+          $ref: '../base/es.yaml#/components/schemas/Person'
+        subscription:
+          type: object
+          required:
+            - reference
+            - description
+            - recurring
+          description: Estructura que contiene la información acerca de la suscripción asociada al AutoPago.
+          properties:
+            reference:
+              type: "string"
+              minLength: 1
+              maxLength: 32
+            description:
+              type: "string"
+              maxLength: 250
+            amount:
+              $ref: "../base/es.yaml#/components/schemas/Amount"
+              description: |
+                Solo presente cuando el tipo de cargo sea `FIXED` o `MINIMUM_PLUS_BALANCE`.
+                - `FIXED`: monto recurrente a cobrar.
+                - `MINIMUM_PLUS_BALANCE`: monto adicional al pago mínimo calculado.
+            recurring:
+              $ref: "#/components/schemas/Recurring"
+        additional:
+          type: object
+          description: Información adicional.
+          properties:
+            customerAccountNumber:
+              type: string
+              example: "12345"
+        acceptedAt:
+          type: string
+          format: date-time
+          description: Fecha en la que el usuario aceptó el AutoPago.
+          example: "2021-09-24T10:02:17-05:00"
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha de creación del AutoPago.
+          example: "2021-09-24T10:02:17-05:00"
+        expiration:
+          type: string
+          format: date-time
+          description: Fecha de expiración de la sesión/solicitud.
+          example: "2025-12-15T00:00:00-05:00"
+        returnUrl:
+          type: string
+          format: uri
+          maxLength: 255
+          description: URL de retorno post-proceso (longitud máxima actual 255).
+          example: "https://dnetix.co/p2p/client"
+        cancelUrl:
+          type: string
+          description: |
+            URL de cancelación, a esta url se redirige al usuario cuando decide no continuar con el proceso.
+            Ocurre cuando el usuario da click en _No deseo continuar_
+          example: 'https://commerce.test/cancel'
+        skipResult:
+          type: boolean
+          description: |
+            Si se envía `true`, cuando el usuario finalice el proceso no se mostrará la página de resultado de sesión, en su lugar será redireccionado al `returnUrl`. Ver más en [Omitir resultado](/checkout/skip-result)
+          default: false
+    ChargeType:
+      type: string
+      enum:
+        - TOTAL_BALANCE
+        - MINIMUM_BALANCE
+        - MINIMUM_PLUS_BALANCE
+        - FIXED
+      description: Tipo de cargo del autopago. Ver más en [Tipos de cargo](/autopay/charge-types).
+    AutoPayId:
+      type: string
+      format: uuid
+      description: Identificador único del autopago confirmado en el registro de la notificación.
+      minLength: 36
+      maxLength: 36
+      example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+    Recurring:
+      type: object
+      description: Parámetros de recurrencia. En caso de no enviarse en la solicitud de creación, el sistema podrá solicitarlos al usuario en el momento de la redirección.
+      properties:
+        type:
+          $ref: '#/components/schemas/ChargeType'
+        periodicity:
+          type: string
+          description: Periodicidad del cobro. D=Diario, W=Semanal, M=Mensual, Y=Anual.
+          enum: [ D, W, M, Y ]
+          example: M
+        interval:
+          type: string
+          description: Cada cuántos períodos se realiza el cobro (ej. "1" = cada mes si periodicidad=M).
+          pattern: '^[1-9][0-9]*$'
+          example: "1"
+        maxPeriods:
+          type: integer
+          description: Número máximo de períodos a cobrar.
+          minimum: 1
+          example: 12
+        dueDay:
+          type: integer
+          description: Día de corte o vencimiento (1–28 para evitar meses cortos).
+          minimum: 1
+          maximum: 28
+          example: 15
+        paymentDate:
+          type: string
+          format: date-time
+          description: Fecha a partir de la cual inicia el cobro.
+          example: "2025-11-30T00:00:00-05:00"
     WebhookEvent:
       type: object
       required: [ auth, reference, id, type, date ]
@@ -165,7 +680,7 @@ components:
           $ref: '../base/es.yaml#/components/schemas/Authentication'
         reference:
           type: string
-          description: Referencia del AutoPago proporcionada por el cliente/comercio.
+          description: Referencia del AutoPago proporcionada por el cliente/comercio, esta referencia debe ser unica activa por comercio.
           example: "ACC00012345"
           maxLength: 32
         id:
@@ -180,7 +695,7 @@ components:
           enum:
             - AUTOPAY_UPDATED
             - AUTOPAY_FAILED
-            - AUTOPAY_DELETED
+            - AUTOPAY_CANCELED
           description: "Tipo de evento notificado. Ver más en [Eventos Webhook](/autopay/webhook-description#event-types)."
         date:
           type: string
@@ -205,7 +720,7 @@ components:
               type: string
               minLength: 2
               maxLength: 2
-              description: Código de razón de actualización del autopago. Puede venir cuando el evento es AUTOPAY_FAILED, AUTOPAY_DELETED. Ver más en [Códigos de razón](/autopay/codes).
+              description: Código de razón de actualización del autopago. Puede venir cuando el evento es AUTOPAY_FAILED, AUTOPAY_CANCELED. Ver más en [Códigos de razón](/autopay/codes).
               example: "XA"
     Status:
       title: Status
@@ -250,3 +765,60 @@ components:
         - status
         - reason
         - message
+    StatusAutoPay:
+        $ref: '#/components/schemas/Status'
+        enum: [ APPROVED, REJECTED, PENDING, FAILED ]
+        example: APPROVED
+    Pagination:
+      title: Pagination
+      type: object
+      description: Estructura que contiene la información de la paginación.
+      required:
+        - total
+        - perPage
+        - currentPage
+        - lastPage
+      properties:
+        total:
+          type: integer
+          example: 30
+          minimum: 1
+          description: Número total de registros encontrados en la consulta.
+        perPage:
+          type: integer
+          default: 15
+          example: 10
+          minimum: 1
+          description: Número de registros por página
+        currentPage:
+          type: integer
+          default: 1
+          minimum: 1
+          example: 1
+          description: Página actual
+        lastPage:
+          type: integer
+          minimum: 1
+          example: 1
+          description: Ultima página disponible
+    Locale:
+      type: "string"
+      description: "Idioma de la respuesta."
+      example: "es_ES"
+    PaginationRequest:
+      title: Pagination
+      type: object
+      description: Estructura que contiene la información de la paginación.
+      properties:
+        perPage:
+          type: integer
+          default: 15
+          example: 10
+          minimum: 1
+          description: Número de registros por página
+        currentPage:
+          type: integer
+          default: 1
+          minimum: 1
+          example: 1
+          description: Página actual

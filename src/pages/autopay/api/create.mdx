@@ -1,4 +1,193 @@
-export const apiRefs = ['/autopay/api/create']
+export const apiRefs = ['/gateway/autopay/create']
 
-## Crear un AutoPago {{ id: 'create-autopay', tag: 'POST', label: '/autopay/api/create' }}
-<Note type="warning"> Esta API se encuentra en construcción </Note>
+## Crear sessión de AutoPago {{ id: 'create-autopay', tag: 'POST', label: '/gateway/autopay/create' }}
+
+El flujo de creación de un autopago comienza con esta solicitud que genera un registro en estado pendiente. Este proceso permite configurar pagos programados y/o recurrentes de forma automatizada, proporcionando enlace para dirigirse a la interfaz gráfica para que el tarjeta habiente autorice el inicio del autopago y seleccione el medio de pago.
+
+## Flujo de creación
+
+1. **Solicitud inicial**: Al realizar la petición de creación, el sistema genera un autopago en estado `PENDING` y retorna una URL de redirección.
+
+2. **Interfaz de AutoPago**: La URL dirige al usuario a una interfaz gráfica donde debe:
+- Aceptar los términos y condiciones del autopago
+- Seleccionar su medio de pago preferido
+- Completar el proceso de suscripción del medio de pago
+- Pasar las validaciones de seguridad necesarias
+
+3. **Activación**: Una vez completado el proceso, recibirá una notificación mediante webhook indicando la actualización del estado del autopago. Alternativamente, puede consultar el estado usando el endpoint de consulta para verificar si el autopago ya está activo.
+
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/gateway/autopay/create"
+            method="POST"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <br />
+        <CodeGroup title="Solicitud" tag="POST" label="/gateway/autopay/create">
+            ```bash {{ title: 'General' }}
+            curl -X "POST" {{baseURl}}/gateway/autopay/create \
+            -H "Content-Type: application/json" \
+            -d '{
+                "auth": {
+                    "login":"aabbccdd1234567890aabbccdd123456",
+                    "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+                    "nonce":"enQ4dXh3YWhkMWM=",
+                    "seed":"2023-06-21T09:56:06-05:00"
+                },
+                "chargeTypes": ["TOTAL_BALANCE"], || MINIMUM_BALANCE
+                "subscription": {
+                    "reference": "RF-12345",
+                    "description": "Plan de suscripción mensual",
+                    "recurring": {
+                        "periodicity": "D",
+                        "interval": 1,
+                        "maxPeriods": 5,
+                        "nextPayment": "2025-06-03",
+                        "dueDate": "2025-08-03",
+                    }
+                },
+                "additional": {
+                    "customerAccountNumber": "1232312323"
+                },
+                "expiration": "2022-12-15T00:00:00-05:00",
+                "returnUrl": "https://dnetix.co/p2p/client",
+                "locale": "es_ES"
+            }'
+            ```
+            ```bash {{ title: 'Cargo Fijo' }}
+            curl -X "POST" {{baseURl}}/gateway/autopay/create \
+            -H "Content-Type: application/json" \
+            -d '{
+                "auth": {
+                    "login":"aabbccdd1234567890aabbccdd123456",
+                    "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+                    "nonce":"enQ4dXh3YWhkMWM=",
+                    "seed":"2025-07-14T09:56:06-05:00"
+                },
+                "chargeTypes": ["FIXED"],
+                "subscription": {
+                    "reference": "RF-12345",
+                    "description": "Plan de suscripción mensual",
+                    "amount": {
+                        "currency": "USD",
+                        "total": 100
+                    },
+                    "recurring": {
+                        "periodicity": "D",
+                        "interval": 1,
+                        "maxPeriods": 5,
+                        "nextPayment": "2025-06-03",
+                        "dueDate": "2025-08-03",
+                    }
+                },
+                "additional": {
+                    "customerAccountNumber": "1232312323"
+                },
+                "expiration": "2022-12-15T00:00:00-05:00",
+                "returnUrl": "https://dnetix.co/p2p/client",
+                "cancelUrl": "https://dnetix.co/p2p/client",
+                "skipResult": false,
+                "locale": "es_ES"
+            }'
+            ```
+            ```bash {{ title: 'Monto minimo fijo' }}
+            curl -X "POST" {{baseURl}}/gateway/autopay/create \
+            -H "Content-Type: application/json" \
+            -d '{
+            "auth": {
+                "login":"aabbccdd1234567890aabbccdd123456",
+                "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+                "nonce":"enQ4dXh3YWhkMWM=",
+                "seed":"2025-07-14T09:56:06-05:00"
+            },
+            "chargeTypes": ["MINIMUM_PLUS_BALANCE"],
+            "subscriptor": {
+                "document": "911111111",
+                "documentType": "CC",
+                "name": "john",
+                "surname": "doe",
+                "email": "john@doe.com",
+                "mobile": "+573111111111"
+            },
+            "subscription": {
+                "reference": "RF-12345",
+                "description": "Plan de suscripción mensual",
+                "amount": {
+                    "currency": "USD",
+                    "total": 1 # En este caso se cobra el monto minimo de la factura + el monto indicado en este punto
+                },
+                "recurring": {
+                    "periodicity": "D",
+                    "interval": 1,
+                    "maxPeriods": 5,
+                    "nextPayment": "2025-06-03",
+                    "dueDate": "2025-08-03"
+                }
+            },
+            "additional": {
+                "customerAccountNumber": "1232312323"
+            },
+            "expiration": "2022-12-15T00:00:00-05:00",
+            "returnUrl": "https://dnetix.co/p2p/client",
+            "cancelUrl": "https://dnetix.co/p2p/client",
+            "skipResult": false,
+            "locale": "es_ES"
+        }'
+            ```
+        </CodeGroup>
+    </Col>
+</Row>
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/gateway/autopay/create"
+            method="POST"
+            type="response"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <br />
+        <CodeGroup title="Respuesta">
+            ```json {{ title: '200' }}
+            {
+                "status": {
+                    "status": "OK",
+                    "reason": "00",
+                    "description": "La petición se ha procesado correctamente",
+                    "date":"2023-06-21T09:56:06-05:00"
+               },
+                "id": "ac1cc9ce-83fe-42d7-9708-f6dd5461c89e",
+                "processUrl": "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a"
+            }
+            ```
+            ```json {{ title: '400: Respuesta fallida' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": "BR",
+                    "message": "El campo reference es obligatorio.",
+                    "date":"2023-06-21T09:56:06-05:00"
+                }
+            }
+            ```
+
+            ```json {{ title: '401: Autenticación fallida' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": "401",
+                    "message": "la autenticación no contiene todos los parámetros requeridos (login, tranKey, seed, nonce)",
+                    "date": "2021-09-21T09:34:48-05:00"
+             }
+            }
+            ```
+        </CodeGroup>
+    </Col>
+</Row>
+
