@@ -1,126 +1,11 @@
-import { forwardRef, Fragment, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { Transition } from '@headlessui/react'
 
 import { Button } from '@/components/Button'
 import { useNavigation } from '@/hooks/useNavigation'
 import { useLocale } from './LocaleProvider'
 import { Logo } from '@/components/Logo'
 import { ROUTES_WITH_INDEX } from '@/constants/routes-with-index'
-
-function CheckIcon(props) {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true" {...props}>
-      <circle cx="10" cy="10" r="10" strokeWidth="0" />
-      <path
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-        d="m6.75 10.813 2.438 2.437c1.218-4.469 4.062-6.5 4.062-6.5"
-      />
-    </svg>
-  )
-}
-
-function FeedbackButton(props) {
-  const router = useRouter()
-  const [href, setHref] = useState(process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL)
-
-  useEffect(() => {
-    if (router.pathname) {
-      setHref(
-        process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL +
-          '?RefererUrl=' +
-          window.location.origin +
-          router.pathname
-      )
-    }
-  }, [router.pathname])
-
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="rounded-full border border-gray-900/10 px-3 text-sm font-medium text-gray-600 transition hover:bg-gray-900/2.5 hover:text-gray-900 dark:border-white/10 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
-      {...props}
-    />
-  )
-}
-
-const FeedbackByLocale = {
-  es: {
-    title: 'Nos importa tu experiencia,',
-    description: '¡Déjanos un comentario!',
-    thanks: '¡Gracias por tus comentarios!',
-  },
-  en: {
-    title: 'We care about your experience,',
-    description: 'Leave us a comment!',
-    thanks: 'Thanks for your feedback!',
-  },
-}
-
-const FeedbackForm = forwardRef(function FeedbackForm(
-  { onSubmit, locale },
-  ref
-) {
-  return (
-    <div ref={ref} className="flex items-center gap-3">
-      <p className="text-sm text-gray-600 dark:text-gray-400">
-        {FeedbackByLocale[locale].title}
-      </p>
-      <FeedbackButton onClick={onSubmit}>
-        {FeedbackByLocale[locale].description}
-      </FeedbackButton>
-    </div>
-  )
-})
-
-const FeedbackThanks = forwardRef(function FeedbackThanks({ locale }, ref) {
-  return (
-    <div
-      ref={ref}
-      className="absolute inset-0 flex justify-center md:justify-start"
-    >
-      <div className="flex items-center gap-3 rounded-full bg-primary-50/50 py-1 pl-1.5 pr-3 text-sm text-primary-900 ring-1 ring-inset ring-primary-500/20 dark:bg-primary-500/5 dark:text-primary-200 dark:ring-primary-500/30">
-        <CheckIcon className="h-5 w-5 flex-none fill-primary-500 stroke-white dark:fill-primary-200/20 dark:stroke-primary-200" />
-        {FeedbackByLocale[locale].thanks}
-      </div>
-    </div>
-  )
-})
-
-function Feedback() {
-  const { locale } = useLocale()
-
-  let [submitted, setSubmitted] = useState(false)
-
-  return (
-    <div className="relative h-8">
-      <Transition
-        show={!submitted}
-        as={Fragment}
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-        leave="pointer-events-none duration-300"
-      >
-        <FeedbackForm locale={locale} onSubmit={() => setSubmitted(true)} />
-      </Transition>
-      <Transition
-        show={submitted}
-        as={Fragment}
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        enter="delay-150 duration-300"
-      >
-        <FeedbackThanks locale={locale} />
-      </Transition>
-    </div>
-  )
-}
 
 function PageLink({ label, page, previous = false, locale, hasPrefix }) {
   const href = hasPrefix ? `/${locale}${page.href}` : page.href
@@ -334,8 +219,7 @@ export function Footer({ withouLinks }) {
   return (
     <footer className="mx-auto max-w-2xl space-y-10 pb-16 lg:max-w-5xl">
       {!withouLinks && <PageNavigation />}
-      <div className="flex w-full justify-between">
-        <Feedback />
+      <div className="flex w-full justify-end">
         <EditThisPage />
       </div>
       <SmallPrint />
