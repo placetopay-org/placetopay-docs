@@ -2231,7 +2231,7 @@ export const TAB_NAVIGATION = {
               { title: 'Introducción', href: '/autopay' },
               { title: 'Autenticación', href: '/autopay/authentication' },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
-              { title: 'Tipos de cargo', href: '/autopay/charge-types'},
+              { title: 'Cargos en AutoPay', href: '/autopay/charge-types'},
               { title: 'Descripción de notificaciones', href: '/autopay/webhook-description'}
             ],
           },
