@@ -47,6 +47,8 @@ tags:
     description: "Permite realizar validación de PIN con un Pinpad seguro"
   - name: "Reporte de operaciones realizadas"
     description: "Permite obtener un reporte de todas las transacciones realizadas en un periodo de tiempo para el sitio usado"
+  - name: "Account validator"
+    description: "Permite consumir los endpoints de account validator de forma mas segura"
 paths:
   /gateway/information:
     post:
@@ -70,7 +72,7 @@ paths:
                     instrument:
                       $ref: "#/components/schemas/Instrument"
                     payment:
-                      $ref: "#/components/schemas/Payment"
+                      $ref: "../base/es.yaml#/components/schemas/Payment"
                     subscription:
                       $ref: "#/components/schemas/Subscription"
                     metadata:
@@ -89,7 +91,7 @@ paths:
                     locale:
                       type: "string"
                     payer:
-                      $ref: "#/components/schemas/Person"
+                      $ref: "../base/es.yaml#/components/schemas/Person"
                     payment:
                       type: "object"
                       description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
@@ -137,7 +139,7 @@ paths:
                     locale:
                       type: "string"
                     payer:
-                      $ref: "#/components/schemas/Person"
+                      $ref: "../base/es.yaml#/components/schemas/Person"
                     payment:
                       type: "object"
                       description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
@@ -690,13 +692,13 @@ paths:
                 auth:
                   $ref: "../base/es.yaml#/components/schemas/Authentication"
                 payer:
-                  $ref: "#/components/schemas/Person"
+                  $ref: "../base/es.yaml#/components/schemas/Person"
                 buyer:
-                  $ref: "#/components/schemas/Person"
+                  $ref: "../base/es.yaml#/components/schemas/Person"
                 instrument:
                   $ref: "#/components/schemas/Instrument"
                 payment:
-                  $ref: "#/components/schemas/Payment"
+                  $ref: "../base/es.yaml#/components/schemas/Payment"
                 additional:
                   type: "object"
                   description: |
@@ -974,11 +976,11 @@ paths:
                 auth:
                   $ref: "../base/es.yaml#/components/schemas/Authentication"
                 payer:
-                  $ref: "#/components/schemas/Person"
+                  $ref: "../base/es.yaml#/components/schemas/Person"
                 instrument:
                   $ref: "#/components/schemas/Instrument"
                 payment:
-                  $ref: "#/components/schemas/Payment"
+                  $ref: "../base/es.yaml#/components/schemas/Payment"
                 subscription:
                   $ref: "#/components/schemas/Subscription"
                 ipAddress:
@@ -1584,7 +1586,7 @@ paths:
                 instrument:
                   $ref: "#/components/schemas/Instrument"
                 payment:
-                  $ref: "#/components/schemas/Payment"
+                  $ref: "../base/es.yaml#/components/schemas/Payment"
             examples:
               Consumo:
                 value:
@@ -1746,7 +1748,7 @@ paths:
                 instrument:
                   $ref: "#/components/schemas/Instrument"
                 payment:
-                  $ref: "#/components/schemas/Payment"
+                  $ref: "../base/es.yaml#/components/schemas/Payment"
                 subscription:
                   $ref: "#/components/schemas/Subscription"
             examples:
@@ -2063,7 +2065,7 @@ paths:
                 instrument:
                   $ref: "#/components/schemas/Instrument"
                 payment:
-                  $ref: "#/components/schemas/Payment"
+                  $ref: "../base/es.yaml#/components/schemas/Payment"
                 subscription:
                   $ref: "#/components/schemas/Subscription"
                 version:
@@ -2355,7 +2357,7 @@ paths:
                 instrument:
                   $ref: "#/components/schemas/BalanceInstrument"
                 payment:
-                  $ref: "#/components/schemas/Payment"
+                  $ref: "../base/es.yaml#/components/schemas/Payment"
             examples:
               Consumo:
                 value:
@@ -2822,6 +2824,252 @@ paths:
                       lastDigits: "1111"
                       validUntil: "12/29"
                       owner: "John Doe"
+  /gateway/account-validator/session:
+    post:
+      summary: "Crear Session"
+      description: "Este endpoint permite crear una sesión de verificación de cuenta"
+      operationId: "create-session"
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - user
+                - returnUrl
+              properties:
+                auth:
+                  $ref: "../base/es.yaml#/components/schemas/Authentication"
+                user:
+                  type: object
+                  description: |
+                    Usuario dueño de la cuenta a validar
+                  required:
+                      - name
+                      - email
+                  properties:
+                    name:
+                      type: string
+                      description: Primer nombre o nombres del usuario propietario de la cuenta
+                      maxLength: 50
+                      example: John
+                    surname:
+                      type: string
+                      description: Apellidos del usuario propietario de la cuenta
+                      maxLength: 50
+                      example: Doe
+                    email:
+                      type: email
+                      description: Correo Electrónico del usuario propietario de la cuenta
+                      maxLength: 80
+                      example: John.doe@test.com
+                returnUrl:
+                  type: string
+                  description: Url de retorno una vez culmine el proceso de validación de cuentas
+                  maxLength: 255
+                  example: https://www.placetopay.com/return
+                locale:
+                  type: string
+                  description: Determina el idioma de la respuesta
+                  maxLength: 5
+                  example: es_CO
+                isAuthenticated:
+                  type: boolean
+                  description: Determina si ya se ha realizado un proceso de autenticación externa. La intención de no validar el correo electrónico del usuario dos veces. por defecto es false, quiere decir que se realizara envio de OTP para validar el usuario si este ya ha validado cuentas con microdepositos en el sistema
+                  example: true
+      responses:
+        "200":
+          description: "Sesión creada exitosamente"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    description: Estructura que contiene la respuesta a la solicitud en el caso de que el estado sea exitoso
+                    properties:
+                      requestId:
+                        type: string
+                        description: Identificador unico de la sesión que desea consultar.
+                        format: regex
+                        pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                        maxLength: 36
+                        example: 9bd89c8d-6097-4d69-8ce9-d9b5ec35d8ea
+                      redirectUrl:
+                        type: string
+                        format: uri
+                        description: URL de redireccionamiento
+                        example: https://dev-account-validator.placetopay.ws/verification/redirect/9bd89c8d-6097-4d69-8ce9-d9b5ec35d8ea
+                      expiresAt:
+                        type: string
+                        description: Fecha de expiración de la sesión
+                        format: date-time
+                        example: 2024-04-19 17:36:57
+                  status:
+                    $ref: "../base/es.yaml#/components/schemas/Status"
+        "400":
+          description: Petición inválida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "../base/es.yaml#/components/schemas/Status"
+                required:
+                  - status
+  /gateway/account-validator/query:
+    post:
+      summary: "Consultar estado de sesión"
+      description: "Este endpoint te permitirá consultar el estado de la sesión creada."
+      operationId: "check-session-status"
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - requestId
+              properties:
+                auth:
+                  $ref: "../base/es.yaml#/components/schemas/Authentication"                
+                requestId:
+                  type: string
+                  description: Identificador unico de la sesión que desea consultar.
+                  example: 1f630ff7-9c02-4da4-82d4-d676709acb21
+                  format: regex
+                  pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                  maxLength: 36
+      responses:
+        "200":
+          description: "Consulta exitosa"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "../base/es.yaml#/components/schemas/Status"
+                  data:
+                    type: object
+                    description: Estructura que contiene la respuesta a la solicitud en el caso de que el estado sea exitoso
+                    properties:
+                      requestId:
+                        type: string
+                        description: Identificador unico de la sesión que desea consultar.
+                        example: 1f630ff7-9c02-4da4-82d4-d676709acb21
+                        format: regex
+                        pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                        maxLength: 36
+                      expiresAt:
+                        type: string
+                        description: Fecha de expiración de la sesión
+                        example: 2022-08-30 15:19:33
+                        format: date-time
+                      isAuthenticated:
+                        type: boolean
+                        description: Indica si el usuario ya ha realizado un proceso de autenticación externa
+                        example: true
+                      token:
+                        $ref: "#/components/schemas/Token"
+        "400":
+          description: Solicitud inválida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "../base/es.yaml#/components/schemas/Status"
+                required:
+                  - status
+  /gateway/account-validator/validate:
+    post:
+      summary: "Validar Cuenta existente"
+      description: "Una vez realizada de manera exitosa la creación inicial de la sesión podrá realizar validaciones a la cuenta las veces que considere necesarias, solo debe tener la información de la cuenta y el código de verificación entregado en el proceso anterior."
+      operationId: "validate-existing-account"
+      requestBody:
+        description: ""
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - instrument
+              properties:
+                auth:
+                  $ref: "../base/es.yaml#/components/schemas/Authentication"
+                instrument:
+                  type: object
+                  description: |
+                    Token a la que se le realizará la validación.
+                  required:
+                    - token
+                  properties:
+                    token:
+                      type: object
+                      description: |
+                        Se requiere el token o subtoken de la cuenta a validar.
+                      properties:
+                        token:
+                          type: string
+                          examples:
+                            - "faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891"
+                        subtoken:
+                          type: string
+                          examples:
+                            - "fakesubtoken00005"
+                payment:
+                  type: object
+                  description: |
+                    Estructura que contiene la información acerca del pago de la transacción.
+                  required:
+                    - name
+                    - email
+                  properties:
+                    amount:
+                      type: object
+                      description: |
+                        Estructura que contiene la información acerca del pago de la transacción.
+                      properties:
+                        currency:
+                          type: string
+                          example: USD
+                          maxLength: 3
+                          minLength: 3
+                        total:
+                          type: number
+                          example: 1000
+                locale:
+                  type: string
+                  example: es_CO
+                  default: en
+
+      responses:
+        "200":
+          description: "Respuesta estado de validación"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "../base/es.yaml#/components/schemas/Status"
+        "400":
+          description: Solicitud inválida.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "../base/es.yaml#/components/schemas/Status"
 components:
   schemas:
     Subscription:
@@ -2871,44 +3119,10 @@ components:
       required:
         - "type"
         - "number"
-    Address:
-      title: "Address"
-      type: "object"
-      description: "Estructura que contiene la información sobre una dirección física"
-      properties:
-        street:
-          type: "string"
-          maxLength: "128"
-          description: "Calle"
-        city:
-          type: "string"
-          maxLength: "30"
-          description: "Ciudad"
-        state:
-          type: "string"
-          maxLength: "3"
-          description: "Código de la subdivisión del país que representa el estado o provincia. Formato ISO 3166-2"
-          example: "CUN"
-        postalCode:
-          type: "string"
-          maxLength: "10"
-          description: "Código postal"
-          example: "110111"
-        country:
-          type: "string"
-          maxLength: "2"
-          example: "CO"
-          description: "País. Código ISO 3166-1 alpha-2"
-        phone:
-          type: "string"
-          maxLength: "20"
-          description: "Teléfono"
-          example: "3003003000"
     Account:
       title: "Account"
       type: "object"
-      description: "Estructura que contiene la información de la cuenta bancaria.
-"
+      description: "Estructura que contiene la información de la cuenta bancaria."
       required:
         - "bankCode"
         - "accountType"
@@ -2944,47 +3158,10 @@ components:
             id: "jpxori5mf80z2"
           example: "eyJhbGciOiJSUzI1NiJ9.eyJhY2NvdW50SGFzaCI6ImM5YWM2ZjFhZDhjNDA3Y2ZjNzMyNDljNTE2MTJjNTdmMWQxZGNiNTA4YjE4ZGJlYWE1MWQ0NDI5NjBjMjUwNDUyMzY4ZTg2YmUzMWQ3MDMxMDY4ZDM2MjM2NzVjYzhkYTUzNzhhODNmMTUwZjg5OTczOTBiZTEyMGU1ZmExN2RhIiwib25UZXN0Ijp0cnVlLCJzZXJ2aWNlIjoibW9jayIsImlkIjo0MDB9.dFMY4EwCrWq9EBmERFkKCoLHExPH4vgaCgnZaqB_mf8n3Sv6Qnu6Pb79onluX1OZecmYmBuHqZ_ykKXWSD4RMZSpckYFCiO3mlcJKI4qb91COhl_c2qXxYJuLEdbLfGlzf0k8-oJgFcO9gAS1Xm0hpTP4iiXF6st1hFwlfR3fpX4rr-bTsKgMvRSReMuxa0Vs92DykfqUR_3udlc0DFCPB9ZTaSqeRNHFAPAWNniUPWURQlW5c9J9xcyKTgKGzfI1_7h2I4ALQeRifptE2nC-HZtEMwtcToNh7hn0oL9lNFXnXGK9sWKORcyWKVfpEChS8z30UfX6kOhU6fp_qUwmA"
           description: "El verificationCode es un JSON Web Signature (JWS). Tiene el fin de ser el instrumento verificador del estado de la cuenta."
-    Person:
-      title: "Person"
-      type: "object"
-      description: "Estructura que refleja la información de una persona involucrada en una transacción."
-      properties:
-        documentType:
-          type: "string"
-          description: "[Tipo de documento de identificación](/gateway/document-types)"
-          example: "CC"
-          maxLength: "6"
-        document:
-          type: "string"
-          description: "Número de documento de identificación. Debe ser un número válido de acuerdo al tipo de documento. Ver más en [Tipos de documento de identificación](/gateway/document-types)"
-          maxLength: "25"
-        name:
-          type: "string"
-          description: "Nombre"
-          maxLength: "60"
-        surname:
-          type: "string"
-          description: "Apellidos"
-          maxLength: "60"
-        company:
-          type: "string"
-          description: "Compañia"
-          maxLength: "60"
-        email:
-          type: "string"
-          description: "Correo electrónico."
-          maxLength: "80"
-        address:
-          $ref: "#/components/schemas/Address"
-          description: "Objeto que contiene información de la dirección de una persona."
-        mobile:
-          type: "string"
-          description: "Teléfono movil"
     Instrument:
       title: "Instrument"
       type: "object"
-      description: "Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura
-es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
+      description: "Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
       properties:
         card:
           $ref: "#/components/schemas/Card"
@@ -3126,77 +3303,6 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           type: "string"
           description: "Descripción del bolsillo"
       x-examples:
-    Payment:
-      title: "Payment"
-      type: "object"
-      description: "Estructura que contiene la información acerca del pago de la transacción requerida al servicio web"
-      properties:
-        reference:
-          type: "string"
-          minLength: 1
-          maxLength: 32
-        description:
-          type: "string"
-          maxLength: 250
-        amount:
-          $ref: "../base/es.yaml#/components/schemas/Amount"
-        dispersion:
-          type: "array"
-          items:
-            $ref: "#/components/schemas/Dispersion"
-        modifiers:
-          type: "array"
-          description: "Estructura que contiene modificadores de pago"
-          items:
-            $ref: "#/components/schemas/PaymentModifier"
-        shipping:
-          $ref: "#/components/schemas/Person"
-          description: "Estructura para relacionar información de envío."
-    PaymentModifier:
-      title: "PaymentModifier"
-      type: "object"
-      description: "Estructura para almacenar información sobre un modificador de pago.
-
-        NOTA: Si se envia un modificador que aplica descuento, no se tomará los descuentos configurados por promociones en el sítio."
-      x-examples:
-        law-discount:
-          type: "FEDERAL_GOVERNMENT"
-          code: "17934"
-          additional:
-            invoice: "123456"
-      properties:
-        type:
-          type: "string"
-          enum:
-            - "FEDERAL_GOVERNMENT"
-          description: "Tipo de modificador"
-        code:
-          type: "string"
-          example: "17934"
-          description: "Código del modificador. Cuando el tipo es FEDERAL_GOVERMENT, representa el número de ley para descuento."
-        additional:
-          type: "object"
-          description: "Informaciones adicionales del modificador"
-          properties:
-            invoice:
-              type: "string"
-              description: "Número de factura. Requerido cuando tipo es FEDERAL_GOVERMENT."
-    Dispersion:
-      title: "Dispersion"
-      type: "object"
-      description: "Estructura que contiene la información requerida para un pago de dispersión"
-      properties:
-        agreement:
-          type: "number"
-          description: "Identificador de destinatario de la transacción. Para el sitio principal de la transacción, el valor debe ser null."
-          nullable: true
-        agreementType:
-          type: "string"
-          enum:
-            - "AIRLINE"
-            - "MERCHANT"
-        amount:
-          $ref: "../base/es.yaml#/components/schemas/Amount"
     InterestValues:
       title: "InterestValues"
       type: "object"
@@ -3501,7 +3607,7 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
             userType:
               type: "string"
               description: "Define si el pagador es una persona natural o jurídica"
-              enum: 
+              enum:
                 - "person"
                 - "company"
             skipRegister:
@@ -3609,9 +3715,9 @@ es variable de acuerdo a la solicitud que se genere, cada servicio requiere que 
           description: "El numero celular puede contener el indicativo del país"
           example: "+573111111111"
         address:
-          $ref: "#/components/schemas/Address"
+          $ref: "../base/es.yaml#/components/schemas/Address"
     Buyer:
       type: "object"
       properties:
         address:
-          $ref: "#/components/schemas/Address"
+          $ref: "../base/es.yaml#/components/schemas/Address"
