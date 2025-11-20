@@ -296,19 +296,12 @@ paths:
                         - "total"
                     recurring:
                       $ref: "#/components/schemas/Recurring"
-                chargeTypes:
-                  type: array
-                  description: |
-                    Tipos de cargo permitidos dentro del autopago. Debe incluir al menos un tipo. En el caso de existir un solo tipo, este se tomará por defecto y se aplicará la lógica correspondiente al monto y configuración del comercio; si por el contrario existen varios tipos, en la redirección a la interfaz gráfica se le solicitará al usuario (pagador) escoger un tipo de cargo de los seleccionados por el cliente. Ver más en [Tipos de cargo](/autopay/charge-types).
-                    - Actualmente solo será permitido seleccionar un item.
-                  minItems: 1
-                  maxItems: 1
-                  enum:
-                    - TOTAL_BALANCE
-                    - MINIMUM_BALANCE
-                    - FIXED
-                  example:
-                    - [ "TOTAL_BALANCE" ]
+                dueDay:
+                  type: integer
+                  description: Día de corte o vencimiento (1–28 para evitar meses cortos).
+                  minimum: 1
+                  maximum: 28
+                  example: 15
                 additional:
                   type: object
                   description: Información adicional.
@@ -583,6 +576,12 @@ components:
                 - `FIXED`: monto recurrente a cobrar.
             recurring:
               $ref: "#/components/schemas/Recurring"
+        dueDay:
+          type: integer
+          description: Día de corte o vencimiento (1–28 para evitar meses cortos).
+          minimum: 1
+          maximum: 28
+          example: 15
         additional:
           type: object
           description: Información adicional.
@@ -622,6 +621,8 @@ components:
     Recurring:
       type: object
       description: Parámetros de recurrencia. En caso de no enviarse en la solicitud de creación, el sistema podrá solicitarlos al usuario en el momento de la redirección.
+      required:
+        - type
       properties:
         type:
           $ref: '#/components/schemas/ChargeType'
@@ -640,17 +641,21 @@ components:
           description: Número máximo de períodos a cobrar.
           minimum: 1
           example: 12
-        dueDay:
-          type: integer
-          description: Día de corte o vencimiento (1–28 para evitar meses cortos).
-          minimum: 1
-          maximum: 28
-          example: 15
-        paymentDate:
+        startDate:
           type: string
           format: date-time
+          description: Fecha en la iniciará o inició la recurrencia.
+          example: "2021-09-24"
+        dueDate:
+          type: string
+          format: date
+          description: Fecha de vencimiento de la recurrencia
+          example: '2019-09-24'
+        nextPayment:
+          type: string
           description: Fecha a partir de la cual inicia el cobro.
-          example: "2025-11-30T00:00:00-05:00"
+          format: date
+          example: "2025-11-30"
     WebhookEvent:
       type: object
       required: [ auth, reference, id, type, date ]
