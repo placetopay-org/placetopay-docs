@@ -322,7 +322,7 @@ paths:
         in: path
         required: true
     post:
-      summary: Consultar sesión (getRequestInformation)
+      summary: Consultar sesión (getSessionInformation)
       operationId: post-api-session-requestId
       responses:
         '200':
@@ -1766,6 +1766,7 @@ components:
           keyword: installmentAmount
           displayOn: none
     Recurring:
+      title: Recurring
       type: object
       description: |
         Estructura para indicar la frecuencia de un cobro recurrente.
@@ -1773,38 +1774,30 @@ components:
         periodicity:
           type: string
           description: |
-            Periodicidad del cobro   
-            `D` Día, `M` Mes, `Y` Año
+            Periodicidad del cobro. `D` día, `M` mes, `Y` año
           enum:
             - D
             - M
             - Y
           example: D
         interval:
-          type:
-            - number
-          minLength: 1
+          type: integer
+          min: 1
           description: |
-            Intervalo asociado a la periodicidad   
-            EJ: `15` para días.
-          example: '1'
-          maxLength: 127
+            En combinación con `periodicity`, indica cada cuánto se realizará el cobro.
+            EJ: Para 15 días, usar `interval: 15` `periodicity: "D"`.
+          example: 15
         nextPayment:
           type: string
-          description: |
-            Fecha del próximo pago   
-            EJ: `2019-08-24`
+          description: Fecha del próximo pago   
           format: date
           example: '2019-08-24'
         maxPeriods:
-          type:
-            - number
+          type: number
           description: |
             Número máximo de periodos. Usar `-1` en caso de que no haya límite      
-            EJ: `12` para máximo 12 cobros
-          example: 1
-          minLength: -1
-          maxLength: 32767
+          example: 12
+          min: -1
         dueDate:
           type: string
           format: date
@@ -1814,17 +1807,40 @@ components:
           example: '2019-09-24'
         notificationUrl:
           type: string
+          description: URL en el que el servicio notificará cada vez que se haga un cobro
+          example: 'https://merchant.example.com/notificationUrl'
+        type:
+          type: string
           description: |
-            URL en el que el servicio notificará cada vez que se haga un cobro   
-            EJ: `https://merchant.com/notification`
-          example: 'https://checkout.placetopay.com'
+            Corresponde al tipo de cobro que tendrá la recurrencia. Sólo se usa en sesiones de autopago.
+            `FIXED`: El monto es fijo y fue definido desde la creación del autopago,
+            `MINIMUM_BALANCE`: El monto minimo para mantener el la recurrencia activa, lo define un servicio externo,
+            `TOTAL_BALANCE`: El total definido en el activo, lo define un servicio externo
+          enum:
+            - FIXED
+            - MINIMUM_BALANCE
+            - TOTAL_BALANCE
+          example: TOTAL_BALANCE
+        startDate:
+          type: string
+          format: date
+          description: Fecha informativa de inicio de la recurrencia, formato AAAA-MM-DD. Sólo se usa en sesiones de autopago.
+          example: '2019-08-24'
       examples:
         - periodicity: D
           interval: '1'
           nextPayment: '2019-08-24'
           maxPeriods: 1
-          'dueDate ': '2019-09-24'
-          'notificationUrl ': 'https://checkout.placetopay.com'
+          dueDate: '2019-09-24'
+          notificationUrl: 'https://merchant.example.com/notificationUrl'
+        - type: 'MINIMUM_BALANCE'
+          periodicity: M
+          interval: 1
+          startDate: '2019-08-24'
+          nextPayment: '2019-08-24'
+          maxPeriods: 1
+          dueDate: '2020-09-24'
+          notificationUrl: 'https://merchant.example.com/notificationUrl'
     Item:
       description: Posee una colección de estructuras de elementos.
       title: Item
@@ -1948,7 +1964,7 @@ components:
       description: |
         Cuando se envía, se genera una sesión de suscripción.
         
-        El usuario registra un medio de pago para que luego se realicen cobros sobre ese medio de pago.
+        El usuario registra un medio de pago para que luego el comercio pueda realizar cobros sobre ese medio de pago en demanada.
       properties:
         reference:
           $ref: '#/components/schemas/Reference'
@@ -1956,14 +1972,48 @@ components:
           $ref: '#/components/schemas/Description'
         fields:
           $ref: '#/components/schemas/Fields'
-    RedirectRequest:
-      title: RedirectRequest
+    AutopayRequest:
+      title: AutopayRequest
       type: object
       description: |
-        Estructura que contiene toda la información acerca de la transacción para ser procesada.
+        Detalle del autopago a generar. El usuario debe registrar un medio de pago para que se realicen cobros automáticos sobre ese medio de pago segun las condiciones pactadas. Es requerido cuando `createSessionRequest.type` es `autopay`.
+      properties:
+        reference:
+          $ref: '#/components/schemas/Reference'
+        description:
+          $ref: '#/components/schemas/Description'
+        id:
+          $ref: '#/components/schemas/AutopayId'
+          description: Identificador del autopago existente. Si se conoce el autopago de forma prévia, se puede referenciar con este campo. Se usa para resolver o para editar un autopago ya existentes.
+        dueDay:
+          $ref: '#/components/schemas/AutopayDueDay'
+        recurring:
+          description: Indica las condiciones de recurrencia del autopago.
+          $ref: '#/components/schemas/Recurring'
+        amount:
+          $ref: '#/components/schemas/Amount'
+    AutopayId:
+      type: string
+      format: uuid
+      description: Identificador del Autopago.
+      example: 'f7b347d7-c922-4c68-8750-99fb43c9e5ff'
+    AutopayDueDay: 
+      type: integer
+      minimum: 1
+      maximum: 28
+      description: |
+        Para pagos recurrentes con periodicidad mensual, corresponde al día de corte del pago.
+        Es un valor informativo para indicar al usuario el día máximo esperado para realizar el pago.
+        Normalmente indica que los cobros despues de este día pueden tener recargos o no estar disponibles.    
+        EJ: `15` para el día quince de cada mes.
+      example: 15
+    RedirectRequest:
+      title: CreateSessionRequest
+      type: object
+      description: |
+        Información para crear una sesión de WebCheckout.
       required:
         - auth
-        - payment
         - ipAddress
         - userAgent
         - returnUrl
@@ -1998,6 +2048,8 @@ components:
             Si se envía este dato, el usuario tendrá sus datos personales pre-diligenciados pero **no podrá cambiarlos**.
         subscription:
           $ref: '#/components/schemas/SubscriptionRequest'
+        autopay:
+          $ref: '#/components/schemas/AutopayRequest'
         fields:
           $ref: '#/components/schemas/Fields'
         paymentMethod:
@@ -2029,11 +2081,12 @@ components:
         type:
           type: string
           description: |
-            Parámetro usado para sesiones de tipo preauthorización
-
-            Sólo se soporta `checkin` para generar una sesión de preautorización
+            Parámetro usado para sesiones de tipos adicionales
+            Usar `checkin` para generar una sesión de Preautorización.
+            Usar `autopay` para generar una sesión de Autopago.
           enum:
             - checkin
+            - autopay
           example: checkin
         metadata:
           $ref: '#/components/schemas/Metadata'
@@ -2495,6 +2548,55 @@ components:
           description: |
             Código del método de pago utilizado.
           example: visa
+    Autopay:
+      title: Autopay
+      type: object
+      description: |
+        Autopago generado en proceso sesión de autopago.
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        id:
+          $ref: '#/components/schemas/AutopayId'
+        subscriptor:
+          $ref: '#/components/schemas/Person'
+        subscription:
+          type: object
+          description: Estructura que contiene la información acerca de la suscripción asociada al AutoPago.
+          properties:
+            reference:
+              $ref: '#/components/schemas/Reference'
+            description:
+              $ref: '#/components/schemas/Description'
+            amount:
+              $ref: '#/components/schemas/Amount'
+            recurring:
+              $ref: '#/components/schemas/Recurring'
+        dueDay:
+          $ref: '#/components/schemas/AutopayDueDay'
+        additional:
+          type: object
+          description: Estructura que incluye datos adicionales del autopago.
+          properties:
+            customerAccountNumber:
+              type: string
+              description: Dato opcional enviado al iniciar el proceso de Autopago.
+              example: '1234567890'
+        acceptedAt:
+          type: string
+          format: date-time
+          description: Fecha y hora en que se aceptó el autopago.
+          example: "2021-09-24T10:02:17-05:00"
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha y hora en que se creó el autopago.
+          example: "2021-09-24T10:02:17-05:00"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Fecha y hora en que se actualizó el autopago.
+          example: "2021-09-24T10:02:17-05:00"
     AmountConversion:
       title: AmountConversion
       type: object
@@ -2599,11 +2701,17 @@ components:
           $ref: '#/components/schemas/RedirectRequest'
         payment:
           type: array
-            - 'null'
           items:
             $ref: '#/components/schemas/Transaction'
         subscription:
           $ref: '#/components/schemas/SubscriptionResponse'
+        autopay:
+          oneOf: 
+            - type: array
+              title: "array[Autopay]"
+              items:
+                $ref: '#/components/schemas/Autopay'
+            - type: 'null'
       examples:
         - requestId: 1
           status:
@@ -2988,8 +3096,7 @@ components:
         locale:
           $ref: '#/components/schemas/Locale'
         type:
-          type:
-            - string
+          type: string
           description: |
             Parámetro usado para sesiones de tipo preauthorización
             
