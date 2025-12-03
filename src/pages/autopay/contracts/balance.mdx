@@ -1,9 +1,18 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+<HeroPattern />
+
 export const apiRefs = ['/autopay/balance']
 
 ## Consultar monto a cobrar  {{ id: 'balance', tag: 'POST', label: '{{baseURL}}/autopay/balance' }}
 
 <Note type="warning">
     **baseURL**: Es la URL base del aplicativo del cliente/comercio la cual debe ser entregada por el mismo y configurada en el momento del onboarding del comercio con AutoPay.
+</Note>
+
+<Note type="warning">
+    **Autenticación (Basic Authentication):** Este endpoint requiere autenticación vía header `Authorization`.
+    El comercio debe validar las credenciales configuradas para AutoPay en cada solicitud entrante. Ver más en [**Autenticación de contratos**](/autopay/contract-authentication).
 </Note>
 
 <Row>
@@ -22,24 +31,19 @@ export const apiRefs = ['/autopay/balance']
         />
     </Col>
     <Col sticky={true}>
-                <CodeGroup title="Solicitud" tag="POST" label="{{baseURl}}/autopay/balance">
-                    ```bash {{ title: 'Obtener balance' }}
-                    curl -X "POST" {{baseURl}}/autopay/balance \
-                    -H "Content-Type: application/json" \
-                    -d '{
-                        "auth": {
-                            "login": "aabbccdd1234567890aabbccdd123456",
-                            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
-                            "nonce": "bmVybzNzYms4cmE=",
-                            "seed": "2024-11-21T11:30:33-05:00"
-                        },
-                        "reference": "ACC00012345",
-                        "id": "2972c13d-6315-4da3-80d7-64c24eb232ad"
-                    }
-                    '
-                    ```
-                </CodeGroup>
-            </Col>
+        <CodeGroup title="Solicitud" tag="POST" label="{{baseURl}}/autopay/balance">
+            ```bash {{ title: 'Obtener balance' }}
+            curl -X "POST" {{baseURl}}/autopay/balance \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Basic <base64(username:password)>" \
+            -d '{
+            "reference": "ACC00012345",
+            "id": "2972c13d-6315-4da3-80d7-64c24eb232ad"
+        }
+            '
+            ```
+        </CodeGroup>
+    </Col>
 </Row>
 
 <Row>
@@ -64,45 +68,51 @@ export const apiRefs = ['/autopay/balance']
               },
               "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
               "amount": {
-               "currency": "USD",
-               "total": 10
+                 "currency": "USD",
+                 "total": 10
               },
               "min_amount": {
-                "currency": "USD",
-                "total": 5
+                 "currency": "USD",
+                 "total": 5
               }
             }
             ```
             ```json {{ title: '400: No encontrado' }}
             {
-              "status": {
-                 "status": "FAILED",
-                 "reason": "404",
-                 "message": "Balance no encontrado",
-                 "date": "2025-09-29T17:09:29-05:00"
-              },
+                "status": {
+                    "status": "FAILED",
+                    "reason": "404",
+                    "message": "Balance no encontrado",
+                    "date": "2025-09-29T17:09:29-05:00"
+                }
             }
             ```
             ```json {{ title: '401: Autenticación invalida' }}
             {
-              "status": {
-                 "status": "FAILED",
-                 "reason": "100",
-                 "message": "Authentication no proporcionado (Encabezado de la autorización mal formada).",
-                 "date": "2025-09-29T17:09:29-05:00"
-              },
+                "status": {
+                    "status": "FAILED",
+                    "reason": "BR",
+                    "message": "Autenticación no proporcionada o encabezado Authorization mal formado.",
+                    "date": "2025-09-29T17:09:29-05:00"
+                }
             }
             ```
-            ```json {{ title: '401: Autenticación invalida - Fecha del seed mayor de 5 minutos' }}
+            ```json {{ title: '401: Autenticación invalida - Credenciales incorrectas' }}
             {
-              "status": {
-                 "status": "FAILED",
-                 "reason": "103",
-                 "message": "Fecha del seed mayor de 5 minutos.",
-                 "date": "2025-09-29T17:09:29-05:00"
-              },
+                "status": {
+                    "status": "FAILED",
+                    "reason": "101",
+                    "message": "Credenciales inválidas.",
+                    "date": "2025-09-29T17:09:29-05:00"
+                }
             }
             ```
         </CodeGroup>
     </Col>
 </Row>
+
+
+
+
+
+
