@@ -367,11 +367,10 @@ paths:
                       items:
                         type: string
                         enum:
-                          - OK
                           - FAILED
                           - REJECTED
                           - APPROVED
-                      example: [ "APPROVED", "PENDING" ]
+                      example: [ "APPROVED"]
                     createdAt:
                       type: object
                       description: Rango de fechas de creación (ISO 8601, solo fecha).
@@ -671,7 +670,7 @@ paths:
                           - REJECTED
                           - APPROVED
                           - APPROVED_PARCIAL
-                      example: [ "APPROVED", "PENDING" ]
+                      example: [ "APPROVED" ]
                     amount:
                       type: "object"
                       description: "Estructura que contiene la información acerca del pago de la transacción."
@@ -855,16 +854,9 @@ components:
           example: "2025-11-30"
     WebhookEvent:
       type: object
-      required: [ auth, reference, id, type, date ]
-      x-conditional: [ data ]
+      required: [ id, type, date, signature, reference ]
+      x-conditional: [ additional ]
       properties:
-        auth:
-          $ref: '#/components/schemas/Authentication'
-        reference:
-          type: string
-          description: Referencia del AutoPago proporcionada por el cliente/comercio, esta referencia debe ser unica activa por comercio.
-          example: "ACC00012345"
-          maxLength: 32
         id:
           type: string
           format: uuid
@@ -875,35 +867,38 @@ components:
         type:
           type: string
           enum:
+            - AUTOPAY_CREATED
             - AUTOPAY_UPDATED
-            - AUTOPAY_FAILED
             - AUTOPAY_CANCELED
+            - AUTOPAY_TRANSACTION_FAILED
           description: "Tipo de evento notificado. Ver más en [Eventos Webhook](/autopay/webhook-description#event-types)."
         date:
           type: string
           format: date-time
           description: Fecha y hora en la que se lanzó por primera vez el evento. En formato ISO 8601.
           example: "2025-09-29T17:09:29-05:00"
-        data:
+        signature:
+          type: string
+          description: Firma digital del contenido del webhook para validación. Ver más en [Validación de Webhooks](/autopay/webhook-description#validating-webhooks).
+          example: "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
+        reference:
+          type: string
+          description: Referencia del AutoPago proporcionada por el cliente/comercio, esta referencia debe ser unica activa por comercio.
+          example: "ACC00012345"
+          maxLength: 32
+        additional:
           type: object
           description: Objeto que contiene información relevante para identificar el autopago e información del evento.
           x-conditional:
             transactionId
-            reason
           properties:
-            transactionId:
+            transactionID:
               type: string
               format: uuid
               minLength: 36
               maxLength: 36
-              description: Identificador del pago ejecutado. Puede venir cuando el evento es AUTOPAY_FAILED.
+              description: Identificador del pago ejecutado. Puede venir cuando el evento es AUTOPAY_TRANSACTION_FAILED.
               example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-            reason:
-              type: string
-              minLength: 2
-              maxLength: 2
-              description: Código de razón de actualización del autopago. Puede venir cuando el evento es AUTOPAY_FAILED, AUTOPAY_CANCELED. Ver más en [Códigos de razón](/autopay/codes).
-              example: "XA"
     Status:
       title: Status
       type: object
@@ -955,7 +950,7 @@ components:
       properties:
         status:
           type: string
-          enum: [ APPROVED, REJECTED, PENDING, FAILED ]
+          enum: [ APPROVED, REJECTED, FAILED ]
           example: APPROVED
           description: Estado del autopago.
         reason:
