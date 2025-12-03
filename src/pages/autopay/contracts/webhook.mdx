@@ -1,13 +1,60 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+<HeroPattern />
+
 export const apiRefs = ['/autopay/webhook']
 
+# Notificaciones
+
+**AutoPay** envía notificaciones cuando ocurran eventos sobre los autopagos pertenecientes a tu comercio.
+
+Para poder recibir notificaciones el comercio debe exponer un endpoint tipo **POST** con el contrato mencionado en esta documentación, además debe existir en la plataforma el comercio registrado.
+
+### Tipos de eventos {{ id: 'event-types' }}
+Actualmente, AutoPay envía notificaciones para los siguientes eventos:
+
+| Evento                     | Descripción                                                                                                                                                      |
+|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| AUTOPAY_CREATED            | Indica que un autopay ha sido creado, puede suceder luego de que el usuario finalize la sesión de creación de autopago y autorice la creación del mismo          |
+| AUTOPAY_UPDATED            | Indica que un autopay ha sido actualizado, puede suceder cuando el usuario haya cambiado en medio de pago, el comercio haya cambiado la frecuencia de pago, etc. |
+| AUTOPAY_TRANSACTION_FAILED | Indica que un intento de pago automático ha fallado.                                                                                                             |
+| AUTOPAY_CANCELED           | Indica que un autopay ha sido cancelado.                                                                                                                         |
+
+### Validación del webhook {{ id: 'validating-webhooks' }}
+
+Debido a que la notificación llega desde un sistema externo a tus servidores, es importante validar que el mensaje es autentico y viene de un origen confiable. Para esto se hace uso de una firma incluida en el mensaje y que fue generada usando el `secretKey` proveniente del sitio que solo conocen los sistemas involucrados. Para conocer más de tu `secretKey`, consulta la documentación de [Autenticación](/autopay/authentication)
+
+Para iniciar tu validación debes tener disponible el `secretKey` asociado con tu comercio.
+
+**Identificar el algoritmo** para identificar el algoritmo usado en la firma, ten en cuenta lo siguiente:
+
+- Si el campo `signature` comienza con el prefijo `sha256:`, entonces la firma fue generada usando SHA-256.
+
+**Extraer la firma plana**: Una vez identificado el algoritmo, identifica el campo `signature`.
+
+- Si el prefijo `sha256:` está presente, debes eliminarlo y con esto obtendrás la firma plana que debes comparar, llamaremos a esta `receivedSignature`.
+
+**Generar tu propia firma** Una vez identificado el algoritmo, debes generar tu propia firma usando la siguiente fórmula:
+
+- Para SHA-256: `SHA-256(id + type + date + secretKey)`
+
+Con esto obtendrás la firma generada por tu sistema, llamaremos a esta `generatedSignature`. Ten encuenta que los datos para generar la firma se encuentra en el detalle del webhook, ver más en [Contrato de webhook](/autopay/contracts/webhook).
+
+**Comparar firmas**: Finalmente, compara la firma que generaste (`generatedSignature`) con la firma que recibiste en el mensaje (`receivedSignature`). Si ambas firmas son iguales, entonces la notificación es auténtica y puedes proceder a actualizar el estado de la sesión en tu sistema.
+
+<Note type="warning">
+    Al recibir una notificación, se recomienda llamar a la API de [consulta de AutoPagos](/autopay/autopay-api) para obtener más detalles sobre el cambio,
+    de manera que siempre se tenga información precisa y actualizada.
+</Note>
+
 ## Notificaciones {{ id: 'webhook', tag: 'POST', label: '{{baseURl}}/autopay/webhook' }}
+
 <Note type="warning">
     **baseURL**: Es la URL base del aplicativo del cliente/comercio la cual debe ser entregada por el mismo y configurada en el momento del onboarding del comercio con AutoPay.
 </Note>
 <Row>
     <Col>
         Debe exponer un endpoint conforme al siguiente contrato. AutoPay enviará notificaciones a dicho endpoint cada vez que un autopago sea creado, se haya actualizado el medio de pago, sea cancelado o fallado algún pago.
-        Ver [Descripción de notificaciones](/autopay/webhook-description) para más información.
         <ApiReader
             path="/autopay/webhook"
             method="POST"

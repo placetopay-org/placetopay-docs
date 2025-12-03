@@ -2233,7 +2233,6 @@ export const TAB_NAVIGATION = {
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
               { title: 'Cargos en AutoPay', href: '/autopay/charge-types'},
               { title: 'Autenticación de contratos', href: '/autopay/contract-authentication' },
-              { title: 'Descripción de notificaciones', href: '/autopay/webhook-description'}
             ],
           },
         ],

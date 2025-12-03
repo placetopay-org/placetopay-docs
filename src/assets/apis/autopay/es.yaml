@@ -330,7 +330,7 @@ paths:
                 properties:
                   status:
                     $ref: "#/components/schemas/Status"
-  /gateway/autopay/search:
+  /autopay/search:
     post:
       summary: Listar autopagos
       operationId: post-search
@@ -404,7 +404,7 @@ paths:
                       $ref: '#/components/schemas/AutoPay'
                   pagination:
                     $ref: '#/components/schemas/Pagination'
-  /gateway/autopay/cancel:
+  /autopay/cancel:
     post:
       summary: Cancelar un autopago
       operationId: post-search
@@ -445,194 +445,7 @@ paths:
                 properties:
                   status:
                     $ref: '#/components/schemas/Status'
-  /gateway/autopay/create:
-    post:
-      summary: Crear un autopago
-      operationId: post-search
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - auth
-                - reference
-                - chargeTypes
-              properties:
-                auth:
-                  $ref: '#/components/schemas/Authentication'
-                subscriptor:
-                  $ref: '../base/es.yaml#/components/schemas/Person'
-                  description: Estructura que contiene la información del suscriptor (pagador) del AutoPago. Si no se envía, el sistema solicitará esta información al usuario en la interfaz gráfica.
-                subscription:
-                  type: object
-                  required:
-                    - reference
-                    - description
-                    - recurring
-                  description: Estructura que contiene la información acerca de la suscripción asociada al AutoPago.
-                  properties:
-                    reference:
-                      type: "string"
-                      minLength: 1
-                      maxLength: 32
-                    description:
-                      type: "string"
-                      maxLength: 250
-                    amount:
-                      $ref: "../base/es.yaml#/components/schemas/Amount"
-                      description: |
-                        Estructura que define la información asociada al pago recurrente dentro del proceso de autopago. El valor y comportamiento de este campo dependen del tipo de cargo seleccionado por el usuario (chargeType) y de la configuración del comercio:
-                        - Si el tipo de cargo es FIXED, el valor definido en este campo representará el monto que se cobrará de forma recurrente.
-                        - Si el tipo de cargo es TOTAL_BALANCE o MINIMUM_BALANCE, este valor será ignorado, ya que el monto será determinado automáticamente con base en el estado de cuenta del usuario ([Balance](/autopay/contracts/balance)).
-                        En caso de no enviarse este campo y el tipo de cargo seleccionado lo requiera, el sistema solicitará al usuario completar la información correspondiente a través de la interfaz gráfica.
-                      x-conditional:
-                        - "currency"
-                        - "total"
-                    recurring:
-                      $ref: "#/components/schemas/Recurring"
-                dueDay:
-                  type: integer
-                  description: Día de corte o vencimiento (1–28 para evitar meses cortos).
-                  minimum: 1
-                  maximum: 28
-                  example: 15
-                additional:
-                  type: object
-                  description: Información adicional.
-                  properties:
-                    customerAccountNumber:
-                      type: string
-                      example: "12345"
-                expiration:
-                  type: string
-                  format: date-time
-                  description: Fecha de expiración de la sesión/solicitud.
-                  example: "2025-12-15T00:00:00-05:00"
-                returnUrl:
-                  type: string
-                  format: uri
-                  maxLength: 255
-                  description: URL de retorno post-proceso (longitud máxima actual 255).
-                  example: "https://dnetix.co/p2p/client"
-                cancelUrl:
-                  type: string
-                  description: |
-                    URL de cancelación, a esta url se redirige al usuario cuando decide no continuar con el proceso.
-                    Ocurre cuando el usuario da click en _No deseo continuar_
-                  example: 'https://commerce.test/cancel'
-                skipResult:
-                  type: boolean
-                  description: |
-                    Si se envía `true`, cuando el usuario finalice el proceso no se mostrará la página de resultado de sesión, en su lugar será redireccionado al `returnUrl`. Ver más en [Omitir resultado](/checkout/skip-result)
-                  default: false
-                locale:
-                  $ref: '#/components/schemas/Locale'
-      responses:
-        "200":
-          description: Solicitud exitosa
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    $ref: '#/components/schemas/Status'
-                  id:
-                    $ref: '#/components/schemas/AutoPayId'
-                  processUrl:
-                    type: string
-                    format: uri
-                    description: URL de redirección para completar el proceso de creación.
-                    example: "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a/edit"
-        "4XX":
-          description: Solicitud inválida
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    $ref: '#/components/schemas/Status'
-  /gateway/autopay/edit:
-    post:
-      summary: Actualizar un autopago
-      operationId: post-edit
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - auth
-                - id
-              properties:
-                auth:
-                  $ref: '#/components/schemas/Authentication'
-                id:
-                  $ref: '#/components/schemas/AutoPayId'
-                expiration:
-                  type: string
-                  format: date-time
-                  description: Fecha de expiración de la sesión/solicitud.
-                  example: "2025-12-15T00:00:00-05:00"
-                returnUrl:
-                  type: string
-                  format: uri
-                  maxLength: 255
-                  description: URL de retorno post-proceso (longitud máxima actual 255).
-                  example: "https://dnetix.co/p2p/client"
-                cancelUrl:
-                  type: string
-                  description: |
-                    URL de cancelación, a esta url se redirige al usuario cuando decide no continuar con el proceso.
-                    Ocurre cuando el usuario da click en _No deseo continuar_
-                  example: 'https://commerce.test/cancel'
-                skipResult:
-                  type: boolean
-                  description: |
-                    Si se envía `true`, cuando el usuario finalice el proceso no se mostrará la página de resultado de sesión, en su lugar será redireccionado al `returnUrl`. Ver más en [Omitir resultado](/checkout/skip-result)
-                  default: false
-                locale:
-                  $ref: '#/components/schemas/Locale'
-      responses:
-        "200":
-          description: Solicitud exitosa
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    $ref: '#/components/schemas/Status'
-                  id:
-                    $ref: '#/components/schemas/AutoPayId'
-                  processUrl:
-                    type: string
-                    format: uri
-                    description: URL de redirección para completar el proceso de actualización.
-                    example: "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a/edit"
-        "400":
-          description: Solicitud inválida
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    $ref: '#/components/schemas/Status'
-        "401":
-          description: Autenticación fallida
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    $ref: '#/components/schemas/Status'
-  /gateway/autopay/transactions:
+  /autopay/transactions:
     post:
       summary: Listar transacciones de un autopago
       operationId: post-search
@@ -871,7 +684,7 @@ components:
             - AUTOPAY_UPDATED
             - AUTOPAY_CANCELED
             - AUTOPAY_TRANSACTION_FAILED
-          description: "Tipo de evento notificado. Ver más en [Eventos Webhook](/autopay/webhook-description#event-types)."
+          description: "Tipo de evento notificado. Ver más en [Eventos Webhook](/autopay/contracts/webhook#event-types)."
         date:
           type: string
           format: date-time
@@ -879,7 +692,7 @@ components:
           example: "2025-09-29T17:09:29-05:00"
         signature:
           type: string
-          description: Firma digital del contenido del webhook para validación. Ver más en [Validación de Webhooks](/autopay/webhook-description#validating-webhooks).
+          description: Firma digital del contenido del webhook para validación. Ver más en [Validación de Webhooks](/autopay/contracts/webhook#validating-webhooks).
           example: "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
         reference:
           type: string
