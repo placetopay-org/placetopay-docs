@@ -5,9 +5,8 @@ export const description = 'This page explores the various 3DSS endpoints you ca
 export const apiRefs = ['/api/v1/merchants'];
 
 # Merchants API
----
 
-## Create a Merchant {{ id: 'create-a-merchant', tag: 'POST', label: '/api/v1/merchants' }}
+## Create a Merchant {{ id: 'create-a-merchant', tag: 'POST', label: '/api/{version}/merchants' }}
 
 <Row>
   <Col>
@@ -20,8 +19,8 @@ export const apiRefs = ['/api/v1/merchants'];
   <Col sticky>
 
     <br />
-    <CodeGroup title="Request" tag="POST" label="/api/v1/merchants">
-    ```bash {{ title: 'cURL' }}
+    <CodeGroup title="Request" tag="POST" label="/api/{version}/merchants">
+    ```bash {{ title: 'V1' }}
     curl -X "POST" https://3dss-test.placetopay.com/api/v1/merchants \
       -H "Content-Type: application/json" \
       -H "Accept: application/json" \
@@ -97,6 +96,81 @@ export const apiRefs = ['/api/v1/merchants'];
               "invitations": []
           }'
     ```
+
+    ```bash {{ title: 'V2' }}
+    curl -X "POST" https://3dss-test.placetopay.com/api/v2/merchants \
+      -H "Content-Type: application/json" \
+      -H "Accept: application/json" \
+      -H "Authorization: Bearer ACCESS_TOKEN" \
+      -d '{
+              "name": "Merchant one",
+              "brand": "Brand merchant one",
+              "country": "COL",
+              "currency": "COP",
+              "url": "https://www.merchant.com",
+              "mcc": 742,
+              "isicClass": 111,
+              "document": {
+                  "type": "NIT",
+                  "number": "1234567895"
+              },
+              "subscriptions": [
+                  {
+                      "franchise": "visa",
+                      "acquirerBIN": "411111",
+                      "version": 2,
+                      "merchantCode": "1234"
+                  },
+                  {
+                      "franchise": "mastercard",
+                      "acquirerBIN": "510510",
+                      "version": 2,
+                      "merchantCode": "1234"
+                  }
+              ],
+              "branches": [
+                  {
+                      "name": "Branch one",
+                      "brand": "Branch one brand",
+                      "country": "COL",
+                      "currency": "COP",
+                      "url": "https://www.branch1.merchant.com",
+                      "enabled": true,
+                      "subscriptions": [
+                          {
+                              "franchise": "visa",
+                              "acquirerBIN": "411111",
+                              "version": 2,
+                              "merchantCode": "1234"
+                          },
+                          {
+                              "franchise": "mastercard",
+                              "acquirerBIN": "510510",
+                              "version": 2,
+                              "merchantCode": "1234"
+                          }
+                      ]
+                  },
+                  {
+                      "name": "Branch two",
+                      "brand": "Branch two brand",
+                      "country": "COL",
+                      "currency": "COP",
+                      "url": "https://www.branch2.merchant.com",
+                      "enabled": true,
+                      "subscriptions": [
+                          {
+                              "franchise": "1",
+                              "acquirerBIN": "411111",
+                              "version": 2,
+                              "merchantCode": "1234"
+                          }
+                      ]
+                  }
+              ],
+              "invitations": []
+          }'
+    ```
     </CodeGroup>
   </Col>
 </Row>
@@ -114,7 +188,7 @@ export const apiRefs = ['/api/v1/merchants'];
   <Col sticky>
     <br />
     <CodeGroup title="Response">
-    ```json {{ title: '200' }}
+    ```json {{ title: '200 (V1)' }}
     {
       "status": {
         "code":1000
@@ -177,17 +251,74 @@ export const apiRefs = ['/api/v1/merchants'];
       }
     }
     ```
-    ```json {{ title: '401' }}
+
+    ```json {{ title: '200 (V2)' }}
+    {
+        "status": {
+          "status": "OK",
+          "reason": "00",
+          "message": "The request has been successfully processed",
+          "date": "2025-12-09T20:46:20+00:00"
+        },
+        "merchant": {
+          "id":1,
+          "name":"Merchant one",
+        },
+        "branches":[
+          {
+            "id":1,
+            "name":"Branch one",
+            "token": {
+                "accessToken":"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...",
+                "expiresAt": "2028-12-09T20:46:20+00:00",
+            }
+          },
+          {
+             "id":2,
+             "name":"Branch two",
+             "token": {
+                 "accessToken":"eyJ0eXAiOiJKV19.eyJhdWQiOiIxIiwianRpIjoiMWIyNjgk867nh...",
+                 "expiresAt": "2028-12-09T20:46:20+00:00",
+             }
+          }
+        ]
+    }
+    ```
+
+    ```json {{ title: '401 (V1)' }}
     {
       "message": "Unauthenticated."
     }
     ```
-    ```json {{ title: '422' }}
+
+    ```json {{ title: '401 (V2)' }}
+    {
+        "status": {
+            "status": "FAILED",
+            "reason": "BR",
+            "message": "Unauthenticated.",
+            "date": "2025-12-09T20:58:15+00:00"
+        }
+    }
+    ```
+
+    ```json {{ title: '422 (V1)' }}
     {
       "status": {
         "code": 1003,
         "error": "The name has already been taken."
       }
+    }
+    ```
+
+    ```json {{ title: '422 (V2)' }}
+    {
+        "status": {
+            "status": "FAILED",
+            "reason": "BR",
+            "message": "The branches.0.name has already been taken.",
+            "date": "2025-12-09T21:00:42+00:00"
+        }
     }
     ```
     </CodeGroup>

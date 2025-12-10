@@ -572,7 +572,7 @@ paths:
       summary: Create a merchant
       operationId: post-user
       responses:
-        '200':
+        '200 (V1)':
           description: OK
           content:
             application/json:
@@ -716,7 +716,92 @@ paths:
                       code: 1000
                     data:
                       token: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...
-        '401':
+        '200 (V2)':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - OK
+                      reason:
+                        type: string
+                        enum:
+                          - '00'
+                      message:
+                        type: string
+                      date:
+                        type: string
+                        format: date-time
+                        example: '2025-12-09T12:00:00Z'
+                  merchant:
+                    type: object
+                    required:
+                      - id
+                      - name
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      token:
+                        type: object
+                        required:
+                          - accessToken
+                          - expiresAt
+                        properties:
+                          accessToken:
+                            type: string
+                          expiresAt:
+                            type: string
+                            format: date-time
+                  branches:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - name
+                        - token
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        token:
+                          type: object
+                          required:
+                            - accessToken
+                            - expiresAt
+                          properties:
+                            accessToken:
+                              type: string
+                            expiresAt:
+                              type: string
+                              format: date-time
+                required:
+                  - status
+                  - merchant
+              examples:
+                Comercio creado con éxito:
+                  value:
+                    status:
+                      code: 1000
+                    data:
+                      token: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...
+        '401 (V1)':
           description: Unauthenticated
           content:
             application/json:
@@ -733,7 +818,48 @@ paths:
                 Unauthenticated:
                   value:
                     message: Unauthenticated.
-        '422':
+        '401 (V2)':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - FAILED
+                      reason:
+                        type: string
+                        enum:
+                          - BR
+                      message:
+                        type: string
+                        enum:
+                          - Unauthenticated
+                      date:
+                        type: string
+                        format: date-time
+                        example: '2025-12-09T12:00:00Z'
+                required:
+                  - status
+                  - reason
+                  - message
+                  - date
+              examples:
+                No autenticado:
+                  value:
+                    message: Unauthenticated.
+        '422 (V1)':
           description: Data validation messages
           content:
             application/json:
@@ -800,6 +926,39 @@ paths:
                     status:
                       code: 1009
                       error: The selected subscriptions.0.acquirerBIN is invalid.
+        '422 (V2)':
+          description: Data validation messages
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - FAILED
+                      reason:
+                        type: string
+                        enum:
+                          - BR
+                      message:
+                        type: string
+                        example: 'The branches.0.name has already been taken.'
+                      date:
+                        type: string
+                        format: date-time
+                        example: '2025-12-09T12:00:00Z'
+                required:
+                  - status
       requestBody:
         content:
           application/json:
@@ -845,12 +1004,12 @@ paths:
                 mcc:
                   type: number
                   description: 'Merchant category code'
-                enrollment:
-                  type: boolean
-                  description: 'Indicator that specifies whether to enroll the merchant in the brand'
                 isicClass:
                   type: number
                   description: ISIC class code
+                token:
+                  type: boolean
+                  description: 'Indicator for token creation per merchant. If this field is not sent, it will default to false and the token will not be created (this field is only available in API version V2).'
                 branch:
                   type: object
                   description: Branch information
