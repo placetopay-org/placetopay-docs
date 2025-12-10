@@ -1,4 +1,4 @@
-import {LANGUAGES_CODES} from '@/components/LocaleProvider'
+import { LANGUAGES_CODES } from '@/components/LocaleProvider'
 import {
   Activity,
   Book,
@@ -347,6 +347,7 @@ export const TAB_NAVIGATION = {
                 title: 'Redireccionamientos bancarios',
                 links: [
                   { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
+                  { title: 'Deuna!', href: '/payments/bank-redirects/deuna' },
                 ],
               },
               {
@@ -497,6 +498,7 @@ export const TAB_NAVIGATION = {
                 title: 'Bank redirects',
                 links: [
                   { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
+                  { title: 'Deuna!', href: '/payments/bank-redirects/deuna' },
                 ],
               },
               {
@@ -2267,10 +2269,10 @@ export const TAB_NAVIGATION = {
         icon: DocumentCode,
         links: [
           {
-              title: 'Documentos',
-              links: [
-                  {title: 'Introducción', href: '/autopay/contracts'},
-              ],
+            title: 'Documentos',
+            links: [
+              { title: 'Introducción', href: '/autopay/contracts' },
+            ],
           },
           {
             title: 'Servicios',
