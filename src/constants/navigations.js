@@ -2233,8 +2233,8 @@ export const TAB_NAVIGATION = {
               { title: 'Introducción', href: '/autopay' },
               { title: 'Autenticación', href: '/autopay/authentication' },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
-              { title: 'Cargos en AutoPay', href: '/autopay/charge-types' },
-              { title: 'Descripción de notificaciones', href: '/autopay/webhook-description' }
+              { title: 'Cargos en AutoPay', href: '/autopay/charge-types'},
+              { title: 'Autenticación de contratos', href: '/autopay/contract-authentication' },
             ],
           },
         ],
@@ -2245,21 +2245,20 @@ export const TAB_NAVIGATION = {
         href: '/autopay/api',
         icon: DocumentCode,
         links: [
-          {
-            title: 'General',
-            links: [
-              { title: 'Introducción', href: '/autopay/api' },
-            ]
-          },
-          {
-            title: 'API',
-            links: [
-              { title: 'Crear sesión de AutoPago', href: '/autopay/api/create' },
-              { title: 'Actualizar AutoPago', href: '/autopay/api/update' },
-              { title: 'Cancelar AutoPago', href: '/autopay/api/cancel' },
-              { title: 'Consulta de AutoPagos', href: '/autopay/api/search' },
-              { title: 'Transacciones de AutoPago', href: '/autopay/api/transactions' },
-            ],
+            {
+                title: 'General',
+                links: [
+                    { title: 'Introducción', href: '/autopay/api' },
+                ]
+            },
+            {
+                title: 'API',
+                links: [
+                  { title: 'Crear sesión o actualizar un AutoPago', href: '/autopay/api/session' },
+                  { title: 'Cancelar AutoPago', href: '/autopay/api/cancel' },
+                  { title: 'Consulta de AutoPagos', href: '/autopay/api/search' },
+                  { title: 'Transacciones de AutoPago', href: '/autopay/api/transactions' },
+                ],
           },
         ],
       },

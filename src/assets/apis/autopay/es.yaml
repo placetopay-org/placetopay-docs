@@ -47,8 +47,6 @@ paths:
               type: object
               required: [ auth, reference, id ]
               properties:
-                auth:
-                  $ref: '#/components/schemas/Authentication'
                 reference:
                   type: string
                   description: Referencia del AutoPago proporcionada por el cliente/comercio, esta referencia debe ser unica activa por comercio.
@@ -93,8 +91,6 @@ paths:
               type: object
               required: [ reference, id, transaction ]
               properties:
-                auth:
-                  $ref: '#/components/schemas/Authentication'
                 reference:
                   type: string
                   description: Referencia del AutoPago proporcionada por el cliente/comercio, esta referencia debe ser unica activa por comercio.
@@ -104,7 +100,204 @@ paths:
                 id:
                   $ref: '#/components/schemas/AutoPayId'
                 transaction:
-                  $ref: "../base/es.yaml#/components/schemas/Transaction"
+                  description: "Datos de la transacción"
+                  type: "object"
+                  properties:
+                    status:
+                      type: object
+                      description: Estructura para definir el estado del autopago
+                      x-internal: false
+                      properties:
+                        status:
+                          type: string
+                          enum: [ APPROVED ]
+                          example: APPROVED
+                          description: Estado del autopago. Solo se asentarán los pagos aprobados.
+                        reason:
+                            type: string
+                            enum:
+                              - '00'
+                            description: Razón del estado de la petición. (consulte en [Códigos de razón](/autopay/codes))
+                            example: '00'
+                        message:
+                            type: string
+                            description: Mensaje para aclarar el estado.
+                            example: "Respuesta satisfactoria"
+                        date:
+                            type: string
+                            format: date-time
+                            description: Fecha y hora en la que se generó la respuesta.
+                            example: "2025-09-29T17:09:29-05:00"
+                      required:
+                        - status
+                        - reason
+                        - message
+                    date:
+                      type: "string"
+                      format: date-time
+                      description: "Fecha de creación (ISO 8601 con zona). Ej: `2021-09-20T21:51:59-05:00`."
+                    transactionDate:
+                      type: "string"
+                      format: date-time
+                      description: "Fecha de procesamiento en el proveedor (puede diferir de date)."
+                    internalReference:
+                      type: "number"
+                      description: "Referencia interna."
+                      minimum: 1
+                    reference:
+                      type: "string"
+                      description: "Referencia del comercio."
+                      minLength: 1
+                      maxLength: 64
+                    paymentMethod:
+                      type: "string"
+                      description: "Formato convencional: procesador_franquicia (ej: `ID_VS` para Interdin Visa, `DF_MS` para Datafast Mastercard), pueden existir excepciones."
+                      minLength: 5
+                      maxLength: 5
+                    franchise:
+                      type: "string"
+                      description: "Franquicia / marca."
+                      enum:
+                        - "visa"
+                        - "visa_electron"
+                        - "amex"
+                        - "master"
+                        - "codensa"
+                        - "diners"
+                        - "jbc"
+                        - "discover"
+                        - "ris"
+                        - "credencial"
+                        - "comfama"
+                        - "colsubsidio"
+                        - "falabella"
+                        - "elo"
+                        - "somos"
+                        - "tuya"
+                        - "exito"
+                        - "alkosto"
+                        - "maestro"
+                        - "mefia"
+                        - "ath_card"
+                        - "ath"
+                        - "athmv"
+                        - "bancolombia"
+                        - "cooperativa"
+                        - "debito"
+                        - "pagoefectivo"
+                        - "cafam"
+                        - "efecty"
+                        - "gana"
+                        - "masterpass"
+                        - "ppd"
+                        - "pse"
+                        - "safetypay"
+                        - "supergiros"
+                        - "visa_checkout"
+                        - "procesa"
+                        - "comfandi"
+                        - "ach"
+                        - "telered"
+                        - "aval"
+                        - "dilo"
+                        - "banco_bogota"
+                        - "ebt"
+                        - "alia"
+                    franchiseName:
+                      type: "string"
+                      description: "Nombre mostrado de la franquicia."
+                      minLength: 1
+                    issuerName:
+                      type: "string"
+                      description: "Nombre del emisor."
+                      minLength: 1
+                      nullable: true
+                    amount:
+                      $ref: "../base/es.yaml#/components/schemas/Amount"
+                    conversion:
+                      $ref: "../base/es.yaml#/components/schemas/AmountConversion"
+                    authorization:
+                      type: "string"
+                      description: "Código de autorización."
+                      minLength: 1
+                      nullable: true
+                    receipt:
+                      type: "string"
+                      description: "Recibo / comprobante."
+                      maxLength: 16
+                      nullable: true
+                    type:
+                      type: "string"
+                      description: "Tipo de operación."
+                      minLength: 1
+                      enum:
+                        - 'AUTH_ONLY'
+                    refunded:
+                      type: "boolean"
+                      description: "Indicador reembolsada."
+                    lastDigits:
+                      type: "string"
+                      description: "Últimos dígitos de cuenta."
+                      minLength: 2
+                      nullable: true
+                    provider:
+                      type: "string"
+                      description: "Código del procesador/proveedor."
+                      enum:
+                        - "CREDIBANCO"
+                        - "REDEBAN"
+                        - "INTERDIN"
+                        - "DATAFAST"
+                        - "TUYA-DIRECT"
+                        - "BRASPAG"
+                        - "TRANSERVER"
+                        - "SABRE"
+                        - "EVERTEC"
+                        - "ACH"
+                        - "ATH-AVALNET"
+                        - "SUPERGIROS"
+                        - "TECNICARD"
+                        - "MEDIANET"
+                        - "AUSTRO"
+                        - "COMFANDI"
+                        - "PAYSTUDIO"
+                        - "FLAMINGO"
+                        - "ATH-MOVIL"
+                        - "EBUS"
+                        - "BANCOLOMBIA"
+                    discount:
+                      type: "string"
+                      description: "Información de descuento aplicada (si existe)."
+                    processorFields:
+                      type: "object"
+                      description: "Campos crudos del procesador."
+                      properties:
+                        id:
+                          type: "string"
+                          description: "Id procesador."
+                          maxLength: 64
+                        b24:
+                          type: "string"
+                          description: "Campo extra."
+                          maxLength: 64
+                    additional:
+                      type: "object"
+                      description: |
+                        Ver más en [Datos adicionales](/gateway/additional-data)
+                  required:
+                    - "status"
+                    - "provider"
+                    - "internalReference"
+                    - "reference"
+                    - "paymentMethod"
+                    - "franchise"
+                    - "franchiseName"
+                    - "amount"
+                    - "authorization"
+                    - "receipt"
+                    - "type"
+                    - "refunded"
+                    - "processorFields"
   /autopay/webhook:
     post:
       summary: Recepción de notificaciones AutoPay
@@ -133,7 +326,7 @@ paths:
                 properties:
                   status:
                     $ref: "#/components/schemas/Status"
-  /gateway/autopay/search:
+  /autopay/search:
     post:
       summary: Listar autopagos
       operationId: post-search
@@ -149,42 +342,41 @@ paths:
                 auth:
                   $ref: '#/components/schemas/Authentication'
                 filters:
-                    type: object
-                    description: Criterios de filtrado para la búsqueda.
-                    properties:
-                      reference:
+                  type: object
+                  description: Criterios de filtrado para la búsqueda.
+                  properties:
+                    reference:
+                      type: string
+                      description: Referencia del AutoPago proporcionada por el cliente/comercio, esta referencia debe ser unica activa por comercio.
+                      example: "ACC00012345"
+                      maxLength: 32
+                    id:
+                      $ref: '#/components/schemas/AutoPayId'
+                    chargeTypes:
+                      type: array
+                      description: Filtrar por uno o varios tipos de cargo.
+                      items:
+                        $ref: '#/components/schemas/ChargeType'
+                    status:
+                      type: array
+                      description: Estados del AutoPago incluidos en el filtro.
+                      items:
                         type: string
-                        description: Referencia del AutoPago proporcionada por el cliente/comercio, esta referencia debe ser unica activa por comercio.
-                        example: "ACC00012345"
-                        maxLength: 32
-                      id:
-                        $ref: '#/components/schemas/AutoPayId'
-                      chargeTypes:
-                        type: array
-                        description: Filtrar por uno o varios tipos de cargo.
-                        items:
-                          $ref: '#/components/schemas/ChargeType'
-                      status:
-                        type: array
-                        description: Estados del AutoPago incluidos en el filtro.
-                        items:
+                        enum:
+                          - FAILED
+                          - REJECTED
+                          - APPROVED
+                      example: [ "APPROVED"]
+                    createdAt:
+                      type: object
+                      description: Rango de fechas de creación (ISO 8601, solo fecha).
+                      properties:
+                        from:
                           type: string
-                          enum:
-                              - OK
-                              - FAILED
-                              - REJECTED
-                              - APPROVED
-                        example: [ "APPROVED", "PENDING" ]
-                      createdAt:
-                          type: object
-                          description: Rango de fechas de creación (ISO 8601, solo fecha).
-                          properties:
-                            from:
-                              type: string
-                              example: "2025-09-01"
-                            to:
-                              type: string
-                              example: "2025-09-30"
+                          example: "2025-09-01"
+                        to:
+                          type: string
+                          example: "2025-09-30"
                 pagination:
                   $ref: '#/components/schemas/PaginationRequest'
                 locale:
@@ -208,7 +400,7 @@ paths:
                       $ref: '#/components/schemas/AutoPay'
                   pagination:
                     $ref: '#/components/schemas/Pagination'
-  /gateway/autopay/cancel:
+  /autopay/cancel:
     post:
       summary: Cancelar un autopago
       operationId: post-search
@@ -249,194 +441,7 @@ paths:
                 properties:
                   status:
                     $ref: '#/components/schemas/Status'
-  /gateway/autopay/create:
-    post:
-      summary: Crear un autopago
-      operationId: post-search
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - auth
-                - reference
-                - chargeTypes
-              properties:
-                auth:
-                  $ref: '#/components/schemas/Authentication'
-                subscriptor:
-                  $ref: '../base/es.yaml#/components/schemas/Person'
-                  description: Estructura que contiene la información del suscriptor (pagador) del AutoPago. Si no se envía, el sistema solicitará esta información al usuario en la interfaz gráfica.
-                subscription:
-                  type: object
-                  required:
-                    - reference
-                    - description
-                    - recurring
-                  description: Estructura que contiene la información acerca de la suscripción asociada al AutoPago.
-                  properties:
-                    reference:
-                      type: "string"
-                      minLength: 1
-                      maxLength: 32
-                    description:
-                      type: "string"
-                      maxLength: 250
-                    amount:
-                      $ref: "../base/es.yaml#/components/schemas/Amount"
-                      description: |
-                        Estructura que define la información asociada al pago recurrente dentro del proceso de autopago. El valor y comportamiento de este campo dependen del tipo de cargo seleccionado por el usuario (chargeType) y de la configuración del comercio:
-                        - Si el tipo de cargo es FIXED, el valor definido en este campo representará el monto que se cobrará de forma recurrente.
-                        - Si el tipo de cargo es TOTAL_BALANCE o MINIMUM_BALANCE, este valor será ignorado, ya que el monto será determinado automáticamente con base en el estado de cuenta del usuario ([Balance](/autopay/contracts/balance)).
-                        En caso de no enviarse este campo y el tipo de cargo seleccionado lo requiera, el sistema solicitará al usuario completar la información correspondiente a través de la interfaz gráfica.
-                      x-conditional:
-                        - "currency"
-                        - "total"
-                    recurring:
-                      $ref: "#/components/schemas/Recurring"
-                dueDay:
-                  type: integer
-                  description: Día de corte o vencimiento (1–28 para evitar meses cortos).
-                  minimum: 1
-                  maximum: 28
-                  example: 15
-                additional:
-                  type: object
-                  description: Información adicional.
-                  properties:
-                    customerAccountNumber:
-                      type: string
-                      example: "12345"
-                expiration:
-                    type: string
-                    format: date-time
-                    description: Fecha de expiración de la sesión/solicitud.
-                    example: "2025-12-15T00:00:00-05:00"
-                returnUrl:
-                    type: string
-                    format: uri
-                    maxLength: 255
-                    description: URL de retorno post-proceso (longitud máxima actual 255).
-                    example: "https://dnetix.co/p2p/client"
-                cancelUrl:
-                  type: string
-                  description: |
-                    URL de cancelación, a esta url se redirige al usuario cuando decide no continuar con el proceso.
-                    Ocurre cuando el usuario da click en _No deseo continuar_
-                  example: 'https://commerce.test/cancel'
-                skipResult:
-                  type: boolean
-                  description: |
-                    Si se envía `true`, cuando el usuario finalice el proceso no se mostrará la página de resultado de sesión, en su lugar será redireccionado al `returnUrl`. Ver más en [Omitir resultado](/checkout/skip-result)
-                  default: false
-                locale:
-                  $ref: '#/components/schemas/Locale'
-      responses:
-        "200":
-          description: Solicitud exitosa
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    $ref: '#/components/schemas/Status'
-                  id:
-                    $ref: '#/components/schemas/AutoPayId'
-                  processUrl:
-                    type: string
-                    format: uri
-                    description: URL de redirección para completar el proceso de creación.
-                    example: "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a/edit"
-        "4XX":
-          description: Solicitud inválida
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    $ref: '#/components/schemas/Status'
-  /gateway/autopay/edit:
-    post:
-      summary: Actualizar un autopago
-      operationId: post-edit
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - auth
-                - id
-              properties:
-                auth:
-                  $ref: '#/components/schemas/Authentication'
-                id:
-                  $ref: '#/components/schemas/AutoPayId'
-                expiration:
-                    type: string
-                    format: date-time
-                    description: Fecha de expiración de la sesión/solicitud.
-                    example: "2025-12-15T00:00:00-05:00"
-                returnUrl:
-                  type: string
-                  format: uri
-                  maxLength: 255
-                  description: URL de retorno post-proceso (longitud máxima actual 255).
-                  example: "https://dnetix.co/p2p/client"
-                cancelUrl:
-                  type: string
-                  description: |
-                    URL de cancelación, a esta url se redirige al usuario cuando decide no continuar con el proceso.
-                    Ocurre cuando el usuario da click en _No deseo continuar_
-                  example: 'https://commerce.test/cancel'
-                skipResult:
-                  type: boolean
-                  description: |
-                    Si se envía `true`, cuando el usuario finalice el proceso no se mostrará la página de resultado de sesión, en su lugar será redireccionado al `returnUrl`. Ver más en [Omitir resultado](/checkout/skip-result)
-                  default: false
-                locale:
-                  $ref: '#/components/schemas/Locale'
-      responses:
-        "200":
-          description: Solicitud exitosa
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    $ref: '#/components/schemas/Status'
-                  id:
-                    $ref: '#/components/schemas/AutoPayId'
-                  processUrl:
-                    type: string
-                    format: uri
-                    description: URL de redirección para completar el proceso de actualización.
-                    example: "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a/edit"
-        "400":
-          description: Solicitud inválida
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    $ref: '#/components/schemas/Status'
-        "401":
-          description: Autenticación fallida
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    $ref: '#/components/schemas/Status'
-  /gateway/autopay/transactions:
+  /autopay/transactions:
     post:
       summary: Listar transacciones de un autopago
       operationId: post-search
@@ -474,7 +479,7 @@ paths:
                           - REJECTED
                           - APPROVED
                           - APPROVED_PARCIAL
-                      example: [ "APPROVED", "PENDING" ]
+                      example: [ "APPROVED" ]
                     amount:
                       type: "object"
                       description: "Estructura que contiene la información acerca del pago de la transacción."
@@ -552,7 +557,9 @@ components:
           $ref: '#/components/schemas/AutoPayId'
         status:
           $ref: '#/components/schemas/StatusAutoPay'
-        subscriptor:
+        payer:
+          $ref: '../base/es.yaml#/components/schemas/Person'
+        buyer:
           $ref: '../base/es.yaml#/components/schemas/Person'
         subscription:
           type: object
@@ -658,16 +665,9 @@ components:
           example: "2025-11-30"
     WebhookEvent:
       type: object
-      required: [ auth, reference, id, type, date ]
-      x-conditional: [ data ]
+      required: [ id, type, date, signature, reference ]
+      x-conditional: [ additional ]
       properties:
-        auth:
-          $ref: '#/components/schemas/Authentication'
-        reference:
-          type: string
-          description: Referencia del AutoPago proporcionada por el cliente/comercio, esta referencia debe ser unica activa por comercio.
-          example: "ACC00012345"
-          maxLength: 32
         id:
           type: string
           format: uuid
@@ -678,35 +678,36 @@ components:
         type:
           type: string
           enum:
+            - AUTOPAY_CREATED
             - AUTOPAY_UPDATED
-            - AUTOPAY_FAILED
             - AUTOPAY_CANCELED
-          description: "Tipo de evento notificado. Ver más en [Eventos Webhook](/autopay/webhook-description#event-types)."
+            - AUTOPAY_TRANSACTION_FAILED
+          description: "Tipo de evento notificado. Ver más en [Eventos Webhook](/autopay/contracts/webhook#event-types)."
         date:
           type: string
           format: date-time
           description: Fecha y hora en la que se lanzó por primera vez el evento. En formato ISO 8601.
           example: "2025-09-29T17:09:29-05:00"
-        data:
+        signature:
+          type: string
+          description: Firma digital del contenido del webhook para validación. Ver más en [Validación de Webhooks](/autopay/contracts/webhook#validating-webhooks).
+          example: "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
+        reference:
+          type: string
+          description: Referencia del AutoPago proporcionada por el cliente/comercio, esta referencia debe ser unica activa por comercio.
+          example: "ACC00012345"
+          maxLength: 32
+        additional:
           type: object
           description: Objeto que contiene información relevante para identificar el autopago e información del evento.
           x-conditional:
-            transactionId
-            reason
+            transactionID
           properties:
-            transactionId:
+            transactionID:
               type: string
-              format: uuid
-              minLength: 36
-              maxLength: 36
-              description: Identificador del pago ejecutado. Puede venir cuando el evento es AUTOPAY_FAILED.
-              example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
-            reason:
-              type: string
-              minLength: 2
-              maxLength: 2
-              description: Código de razón de actualización del autopago. Puede venir cuando el evento es AUTOPAY_FAILED, AUTOPAY_CANCELED. Ver más en [Códigos de razón](/autopay/codes).
-              example: "XA"
+              minLength: 32
+              description: Identificador del pago ejecutado. Puede venir cuando el evento es AUTOPAY_TRANSACTION_FAILED.
+              example: "CFed8XTioVhyG3CGHhJrpgpyM8k1phj3"
     Status:
       title: Status
       type: object
@@ -758,7 +759,7 @@ components:
       properties:
         status:
           type: string
-          enum: [ APPROVED, REJECTED, PENDING, FAILED ]
+          enum: [ APPROVED, REJECTED, FAILED ]
           example: APPROVED
           description: Estado del autopago.
         reason:
