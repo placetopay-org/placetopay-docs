@@ -1,0 +1,69 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+<HeroPattern />
+
+# Autenticación de contratos
+
+Para que el servicio de AutoPay pueda interactuar con tu API siguiendo los contratos definidos debes autenticar tus peticiones, de esta forma podrás identificarnos y validar la información para que tus operaciones sean seguras. La API debe utilizar **HTTP Basic Authentication (Basic Auth)**.
+
+## Credenciales API
+
+En la integración con AutoPay se debe contar con las credenciales `username` y `password` del comercio implementador.
+
+- **username:** Usuario que el comercio implementador debe **proveer a AutoPay** durante la configuración del sitio. Máximo 60 caracteres.
+- **password:** Contraseña que el comercio implementador debe **proveer a AutoPay** durante la configuración del sitio. Máximo 60 caracteres.
+
+Estas credenciales serán usadas por AutoPay para autenticarse **contra los contratos/servicios del comercio**, por lo tanto **el comercio debe validarlas** en cada solicitud entrante.
+
+<Note type="warning">
+    Estas credenciales son propias del comercio y deben ser tratadas de forma segura. No
+    comparta sus credenciales en áreas de acceso público como Github, código del lado de
+    cliente u otros lugares de fácil acceso para terceros.
+</Note>
+
+## Objeto Authentication {{ id: 'authentication-object' }}
+
+La autenticación se envía en **headers** en cada solicitud que AutoPay realice hacia los contratos del comercio.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="Authorization" type="string">
+                Header requerido. Se envía con el formato: <b>Basic base64(username:password)</b>
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```bash {{ 'title': 'Autenticación de Ejemplo (Header)' }}
+        Authorization: Basic bWVyY2hhbnRVc2VyOm1lcmNoYW50UGFzcw==
+        ```
+
+    </Col>
+</Row>
+
+## Cómo validar la autenticación {{ id: 'how-to-validate-authentication' }}
+
+Debes conocer y preparar los siguientes datos:
+
+**username:** Usuario que configuraste para que AutoPay consuma tus contratos. Máximo 60 caracteres.
+
+**password:** Contraseña que configuraste para que AutoPay consuma tus contratos. Máximo 60 caracteres.
+
+**Authorization:** Header recibido en la petición, con el formato:
+`Authorization: Basic base64(username:password)`
+
+### Reglas de validación basicas
+
+1. Verificar que exista el header `Authorization`.
+2. Verificar que el esquema sea `Basic`.
+3. Decodificar el token Base64 y obtener el texto `username:password`.
+4. Separar `username` y `password`.
+5. Comparar contra tus credenciales configuradas.
+6. Si falla, responder `401 Unauthorized` (opcionalmente con `WWW-Authenticate`).
+
+<Note type="warning">
+    La autenticación Basic debe viajar siempre sobre HTTPS. Base64 no cifra, solo codifica.
+</Note>
+
+

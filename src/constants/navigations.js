@@ -1,4 +1,4 @@
-import {LANGUAGES_CODES} from '@/components/LocaleProvider'
+import { LANGUAGES_CODES } from '@/components/LocaleProvider'
 import {
   Activity,
   Book,
@@ -347,6 +347,7 @@ export const TAB_NAVIGATION = {
                 title: 'Redireccionamientos bancarios',
                 links: [
                   { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
+                  { title: 'Deuna!', href: '/payments/bank-redirects/deuna' },
                 ],
               },
               {
@@ -497,6 +498,7 @@ export const TAB_NAVIGATION = {
                 title: 'Bank redirects',
                 links: [
                   { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
+                  { title: 'Deuna!', href: '/payments/bank-redirects/deuna' },
                 ],
               },
               {
@@ -2232,7 +2234,7 @@ export const TAB_NAVIGATION = {
               { title: 'Autenticación', href: '/autopay/authentication' },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
               { title: 'Cargos en AutoPay', href: '/autopay/charge-types'},
-              { title: 'Descripción de notificaciones', href: '/autopay/webhook-description'}
+              { title: 'Autenticación de contratos', href: '/autopay/contract-authentication' },
             ],
           },
         ],
@@ -2252,8 +2254,7 @@ export const TAB_NAVIGATION = {
             {
                 title: 'API',
                 links: [
-                  { title: 'Crear sesión de AutoPago', href: '/autopay/api/create' },
-                  { title: 'Actualizar AutoPago', href: '/autopay/api/update' },
+                  { title: 'Crear sesión o actualizar un AutoPago', href: '/autopay/api/session' },
                   { title: 'Cancelar AutoPago', href: '/autopay/api/cancel' },
                   { title: 'Consulta de AutoPagos', href: '/autopay/api/search' },
                   { title: 'Transacciones de AutoPago', href: '/autopay/api/transactions' },
@@ -2268,10 +2269,10 @@ export const TAB_NAVIGATION = {
         icon: DocumentCode,
         links: [
           {
-              title: 'Documentos',
-              links: [
-                  {title: 'Introducción', href: '/autopay/contracts'},
-              ],
+            title: 'Documentos',
+            links: [
+              { title: 'Introducción', href: '/autopay/contracts' },
+            ],
           },
           {
             title: 'Servicios',
