@@ -1983,9 +1983,8 @@ components:
         - action
         - reference
         - description
-        - recurring
       description: |
-        Detalle del autopago a generar. El usuario debe registrar un medio de pago para que se realicen cobros automáticos sobre ese medio de pago segun las condiciones pactadas. Es requerido cuando `createSessionRequest.type` es `autopay`.
+        Detalle del autopago a generar. El usuario debe registrar un medio de pago para que se realicen cobros automáticos sobre ese medio de pago segun las condiciones pactadas. Es requerido cuando `type` es `autopay`.
       properties:
         action: 
           type: string
@@ -2002,11 +2001,11 @@ components:
           $ref: '#/components/schemas/Description'
         id:
           $ref: '#/components/schemas/AutopayId'
-          description: Identificador del autopago existente. Si se conoce el autopago de forma prévia, se puede referenciar con este campo. Se usa para resolver o para editar un autopago ya existentes.
+          description: Requerido cuando `action` es `EDIT`. Identificador del autopago existente.
         dueDay:
           $ref: '#/components/schemas/AutopayDueDay'
         recurring:
-          description: Indica las condiciones de recurrencia del autopago.
+          description: Requerido cuando cuando `action` es `CREATE`, Indica las condiciones de recurrencia del autopago.
           required:
             - type
             - periodicity
@@ -2014,8 +2013,8 @@ components:
             - maxPeriods
           $ref: '#/components/schemas/Recurring'
         amount:
-          description: Cuando se envia `recurring.type` como `FIXED`, este campo es obligatorio y define el monto fijo a cobrar en cada recurrencia.
           $ref: '#/components/schemas/Amount'
+          description: Requerido cuando `recurring.type` es `FIXED`. Define el monto fijo a cobrar en cada recurrencia.
     AutopayId:
       type: string
       format: uuid
@@ -2072,8 +2071,6 @@ components:
             Si se envía este dato, el usuario tendrá sus datos personales pre-diligenciados pero **no podrá cambiarlos**.
         subscription:
           $ref: '#/components/schemas/SubscriptionRequest'
-        autopay:
-          $ref: '#/components/schemas/AutopayRequest'
         fields:
           $ref: '#/components/schemas/Fields'
         paymentMethod:
@@ -2114,6 +2111,8 @@ components:
           example: checkin
         metadata:
           $ref: '#/components/schemas/Metadata'
+        autopay:
+          $ref: '#/components/schemas/AutopayRequest'
       x-examples:
         'Crear sesión básica':
           locale: es_CO
@@ -2582,7 +2581,13 @@ components:
           $ref: '#/components/schemas/Status'
         id:
           $ref: '#/components/schemas/AutopayId'
-        subscriptor:
+        siteId:
+          type: integer
+          description: Identificador del sitio donde se creó el autopago.
+          example: 1234
+        payer:
+          $ref: '#/components/schemas/Person'
+        buyer:
           $ref: '#/components/schemas/Person'
         subscription:
           type: object
@@ -2596,12 +2601,19 @@ components:
               $ref: '#/components/schemas/Amount'
             recurring:
               $ref: '#/components/schemas/Recurring'
-        dueDay:
-          $ref: '#/components/schemas/AutopayDueDay'
+        instrument:
+          type: object
+          description: Estructura que contiene la información del medio de pago asociado al AutoPago.
+          properties:
+            token:
+              $ref: '#/components/schemas/Token'
         additional:
           type: object
           description: Estructura que incluye datos adicionales del autopago.
           properties:
+            dueDay:
+              type: string
+              $ref: '#/components/schemas/AutopayDueDay'
             customerAccountNumber:
               type: string
               description: Dato opcional enviado al iniciar el proceso de Autopago.
@@ -2610,16 +2622,6 @@ components:
           type: string
           format: date-time
           description: Fecha y hora en que se aceptó el autopago.
-          example: "2021-09-24T10:02:17-05:00"
-        createdAt:
-          type: string
-          format: date-time
-          description: Fecha y hora en que se creó el autopago.
-          example: "2021-09-24T10:02:17-05:00"
-        updatedAt:
-          type: string
-          format: date-time
-          description: Fecha y hora en que se actualizó el autopago.
           example: "2021-09-24T10:02:17-05:00"
     AmountConversion:
       title: AmountConversion

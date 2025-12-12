@@ -1250,7 +1250,7 @@ paths:
                     seed: '2021-09-21T09:34:48-05:00'
                   payment:
                     reference: '1122334455'
-                    description: Prueba
+                    description: Test
                     amount:
                       currency: USD
                       total: 100
@@ -1271,7 +1271,7 @@ paths:
                     seed: '2021-09-21T09:34:48-05:00'
                   payment:
                     reference: '1122334455'
-                    description: Prueba
+                    description: Test
                     amount:
                       currency: USD
                       total: 100
@@ -1293,7 +1293,7 @@ paths:
                     seed: '2021-09-21T09:34:48-05:00'
                   payment:
                     reference: '1122334455'
-                    description: Prueba
+                    description: Test
                     amount:
                       currency: USD
                       total: 100
@@ -1999,9 +1999,8 @@ components:
         - action
         - reference
         - description
-        - recurring
       description: |
-        Detail of the autopay to be generated. The user must register a payment method so that automatic charges are made on that payment method according to the agreed conditions. It is required when `createSessionRequest.type` is `autopay`.
+        Detail of the autopay to be generated. The user must register a payment method so that automatic charges are made on that payment method according to the agreed conditions. Required when `.type` is `autopay`.
       properties:
         action: 
           type: string
@@ -2018,11 +2017,11 @@ components:
           $ref: '#/components/schemas/Description'
         id:
           $ref: '#/components/schemas/AutopayId'
-          description: Identifier of the existing autopay. If the autopay is known beforehand, it can be referenced with this field. It is used to resolve or edit an existing autopay.
+          description: Required when `action` is `EDIT`. Identifier of the existing autopay.
         dueDay:
           $ref: '#/components/schemas/AutopayDueDay'
         recurring:
-          description: Indicates the recurrence conditions of the autopay.
+          description: Required when `action` is `CREATE`. Indicates the recurrence conditions of the autopay.
           required:
             - type
             - periodicity
@@ -2030,8 +2029,8 @@ components:
             - maxPeriods
           $ref: '#/components/schemas/Recurring'
         amount:
-          description: When `recurring.type` is sent as `FIXED`, this field is mandatory and defines the fixed amount to be charged in each recurrence.
           $ref: '#/components/schemas/Amount'
+          description: Required when `recurring.type` is `FIXED`. Defines the fixed amount to be charged in each recurrence.
     AutopayId:
       type: string
       format: uuid
@@ -2051,7 +2050,7 @@ components:
       title: CreateSessionRequest
       type: object
       description: |
-        Structure that contains all the information about the transaction to be processed.
+        Information to create a WebCheckout session.
       required:
         - auth
         - ipAddress
@@ -2088,8 +2087,6 @@ components:
             If this data is sent, the user will have their personal data pre-filled but **will not be able to change them**.
         subscription:
           $ref: '#/components/schemas/SubscriptionRequest'
-        autopay:
-          $ref: '#/components/schemas/AutopayRequest'
         fields:
           $ref: '#/components/schemas/Fields'
         paymentMethod:
@@ -2123,15 +2120,17 @@ components:
         type:
           type: string
           description: |
-            Parameter used for additional session types
+            Parameter used for additional type sessions
             Use `checkin` to generate a Pre-authorization session.
-            Use `autopay` to generate a Self-payment session.
+            Use `autopay` to generate an Autopay session.
           enum:
             - checkin
             - autopay
           example: checkin
         metadata:
           $ref: '#/components/schemas/Metadata'
+        autopay:
+          $ref: '#/components/schemas/AutopayRequest'
       x-examples:
         'Crear sesión básica':
           locale: es_CO
@@ -2266,11 +2265,6 @@ components:
                 amount:
                   currency: USD
                   total: 200
-            modifiers:
-              - type: FEDERAL_GOVERNMENT
-                code: 17934
-                additional:
-                  invoice: '123345'
           subscription:
             reference: '12345'
             description: Example description
@@ -2407,117 +2401,9 @@ components:
             - value: 2056
               keyword: totalAmount
               displayOn: none
-          dispersion: null
-          agreement: null
-          agreementType: null
-          discount:
-            base: 3000
-            code: '17934'
-            type: FRANCHISE
-            amount: 1000
-          subscription: null
-      properties:
-        status:
-          $ref: '#/components/schemas/Status'
-        internalReference:
-          type: integer
-          description: |
-            Internal referral at PlacetoPay.
-          example: 12345
-        reference:
-          type: string
-          description: |
-            Reference sent by the merchant for the transaction.
-          example: '12345'
-        paymentMethod:
-          type: string
-          description: |
-            Code of the payment method used.
-          example: visa
-        paymentMethodName:
-          type: string
-          description: |
-            Name of the payment method used.
-          example: Visa
-        issuerName:
-          type: string
-          description: |
-            Issuer or processor name.
-          example: 'JPMORGAN CHASE BANK, N.A.'
-        amount:
-          $ref: '#/components/schemas/AmountConversion'
-        receipt:
-          type: string
-          description: |
-            Transaction receipt number.
-          example: '052617800175'
-        franchise:
-          type: string
-          description: |
-            Excess of the card used.
-          example: PS_VS
-        refunded:
-          type: boolean
-          description: It is used to define if the transaction has been reversed
-          default: false
-        authorization:
-          type: string
-          description: |
-            Authorization code.
-          example: '965960'
-        processorFields:
-          type: array
-          description: Structure that may vary over time depending on the information available for the means of payment. See more in [Processor Fields](/en/checkout/processor-fields)
-          items:
-            $ref: '#/components/schemas/NameValuePair'
-        dispersion:
-          type: array
-            - 'null'
-          description: Structure containing scattering information
-          items:
-            $ref: '#/components/schemas/TransactionDispersion'
-        agreement:
-          type:
-            - integer
-            - 'null'
-            - string
-            - number
-          description: Transaction recipient identifier. For the main site of the transaction.
-          example: 186
-        agreementType:
-          type:
-            - string
-            - 'null'
-          description: Dispersion type
-          enum:
-            - MERCHANT
-            - AIRLINE
-          example: MERCHANT
-        discount:
-          type:
-            - object
-            - 'null'
-          properties:
-            base:
-              type:
-                - string
-                - number
-              example: 3000
-            code:
-              type: string
-              example: '17934'
-            type:
-              type: string
-              example: FRANCHISE
-            amount:
-              type:
-                - number
-                - string
-              example: 1000
-        subscription:
-          type:
-            - string
-            - 'null'
+            - value: 685.33
+              keyword: installmentAmount
+              displayOn: none
     TransactionDispersion:
       title: Transaction Dispersion
       x-stoplight:
@@ -2600,11 +2486,17 @@ components:
           $ref: '#/components/schemas/Status'
         id:
           $ref: '#/components/schemas/AutopayId'
-        subscriptor:
+        siteId:
+          type: integer
+          description: Identifier of the site where the autopay was created.
+          example: 1234
+        payer:
+          $ref: '#/components/schemas/Person'
+        buyer:
           $ref: '#/components/schemas/Person'
         subscription:
           type: object
-          description: Structure containing information about the subscription associated with the Autopay.
+          description: Structure containing information about the subscription associated with the AutoPay.
           properties:
             reference:
               $ref: '#/components/schemas/Reference'
@@ -2614,12 +2506,19 @@ components:
               $ref: '#/components/schemas/Amount'
             recurring:
               $ref: '#/components/schemas/Recurring'
-        dueDay:
-          $ref: '#/components/schemas/AutopayDueDay'
+        instrument:
+          type: object
+          description: Structure containing information about the payment method associated with the AutoPay.
+          properties:
+            token:
+              $ref: '#/components/schemas/Token'
         additional:
           type: object
-          description: Structure that includes additional data of the autopay.
+          description: Structure that includes additional autopay data.
           properties:
+            dueDay:
+              type: string
+              $ref: '#/components/schemas/AutopayDueDay'
             customerAccountNumber:
               type: string
               description: Optional data sent when starting the Autopay process.
@@ -2628,16 +2527,6 @@ components:
           type: string
           format: date-time
           description: Date and time when the autopay was accepted.
-          example: "2021-09-24T10:02:17-05:00"
-        createdAt:
-          type: string
-          format: date-time
-          description: Date and time when the autopay was created.
-          example: "2021-09-24T10:02:17-05:00"
-        updatedAt:
-          type: string
-          format: date-time
-          description: Date and time when the autopay was updated.
           example: "2021-09-24T10:02:17-05:00"
     AmountConversion:
       title: AmountConversion
@@ -2736,7 +2625,7 @@ components:
             - number
             - integer
           example: 1
-          description: Request id
+          description: Request ID
         status:
           $ref: '#/components/schemas/Status'
         request:
