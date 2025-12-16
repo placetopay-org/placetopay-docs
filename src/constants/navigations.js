@@ -2285,7 +2285,71 @@ export const TAB_NAVIGATION = {
         ],
       },
     ],
-    [LANGUAGES_CODES.EN]: [],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentation',
+        identifier: 'autopay',
+        href: '/en/autopay',
+        icon: Book,
+        links: [
+          {
+            title: '',
+            links: [
+              { title: 'Introduction', href: '/autopay' },
+              { title: 'Authentication', href: '/autopay/authentication' },
+              { title: 'Response Codes', href: '/autopay/codes' },
+              { title: 'AutoPay Charges', href: '/autopay/charge-types' },
+              { title: 'Contract Authentication', href: '/autopay/contract-authentication' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: '/autopay/api',
+        href: '/en/autopay/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'General',
+            links: [
+              { title: 'Introduction', href: '/autopay/api' },
+            ]
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Create or Update an AutoPay Session', href: '/autopay/api/session' },
+              { title: 'Cancel AutoPay', href: '/autopay/api/cancel' },
+              { title: 'AutoPay Search', href: '/autopay/api/search' },
+              { title: 'AutoPay Transactions', href: '/autopay/api/transactions' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'Contracts',
+        identifier: '/autopay/contracts',
+        href: '/en/autopay/contracts',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Documents',
+            links: [
+              { title: 'Introduction', href: '/autopay/contracts' },
+            ],
+          },
+          {
+            title: 'Services',
+            links: [
+              { title: 'Get Charge Amount', href: '/autopay/contracts/balance' },
+              { title: 'Settlement', href: '/autopay/contracts/settlement' },
+              { title: 'Notifications (Webhook)', href: '/autopay/contracts/webhook' },
+            ],
+          },
+        ],
+      },
+    ],
   },
   selfdeclarations: {
     [LANGUAGES_CODES.ES]: [

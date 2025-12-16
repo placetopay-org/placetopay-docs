@@ -1,0 +1,144 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+<HeroPattern />
+
+# Authentication
+
+To interact with the AutoPay API, you must authenticate your requests. This allows us to identify and validate the information so your operations remain secure. The API uses *Web Services Security UsernameToken Profile 1.1*.
+
+## API Credentials
+
+To integrate with AutoPay, you must have the consumer credentials: `login` and `secretKey`.
+
+- **login:** Site identifier. It can be considered public, as it is sent as plain data in API requests.
+- **secretKey:** Site secret key. This must remain private. A new `tranKey` will be generated from this value and sent with each request.
+
+<Note type="warning">
+    These credentials belong to the site and must be handled securely. Do not share your credentials in public-access areas such as GitHub, client-side code, or other locations easily accessible to third parties.
+</Note>
+
+## Authentication Object {{ id: 'authentication-object' }}
+
+The `auth` parameter must be sent in all API requests and contains the set of properties required to verify authentication.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="auth.login" type="string">
+                Identificador del sitio
+            </Property>
+            <Property name="auth.tranKey" type="string">
+                Credencial tranKey generado. A continuación se explica en detalle.
+            </Property>
+            <Property name="auth.nonce" type="string">
+                Valor aleatorio para cada solicitud codificado en Base64.
+            </Property>
+            <Property name="auth.seed" type="string">
+                Fecha actual, la cual se genera en formato ISO 8601.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```json {{ 'title': 'Autenticación de Ejemplo' }}
+        {
+            "auth": {
+                "login":"aabbccdd1234567890aabbccdd123456",
+                "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+                "nonce":"enQ4dXh3YWhkMWM=",
+                "seed":"2023-06-21T09:56:06-05:00"
+            },
+            ...
+        }
+
+        ```
+
+    </Col>
+</Row>
+
+
+## How to generate your authentication {{ id: 'how-to-generate-your-authentication' }}
+
+You must know and prepare the following data:
+
+**login:** The `login` credential provided when starting your integration. Site identifier.
+
+**secretKey:** The `secretKey` credential provided when starting your integration. Site secret key.
+
+**seed:** The date when the authentication was generated. The date must be in ISO 8601 format.
+Example: `2023-06-21T09:56:06-05:00`
+
+**nonce:** An arbitrary value that uniquely identifies a request.
+It is generated and used for other operations.
+When sending it, it must be Base64-encoded.
+Example: `base64('927342197')`
+
+**tranKey:** Generated programmatically for each request.
+It is generated using the following formula:
+`Base64(SHA-256(nonce + seed + secretKey))`
+This formula must be implemented according to the programming language used.
+
+<CodeGroup title="Generate authentication">
+
+    ```php
+    $login = "siteLogin";
+    $secretKey = "siteSecretKey";
+    $seed = date('c');
+    $rawNonce = rand();
+
+    $tranKey = base64_encode(hash('sha256', $rawNonce.$seed.$secretKey, true));
+    $nonce = base64_encode($rawNonce);
+
+    $body = [
+        "auth" => [
+            "login" => $login,
+            "tranKey" => $tranKey,
+            "nonce" => $nonce,
+            "seed" => $seed,
+        ],
+        // ... other params
+    ];
+    ```
+
+    ```js
+    const crypto = require('crypto');
+
+    const login = "siteLogin";
+    const secretKey = "siteSecretKey";
+    const seed = new Date().toISOString();
+    const rawNonce = Math.floor(Math.random() * 1000000);
+
+    const tranKey = Buffer.from(crypto.createHash('sha256').update(rawNonce + seed + secretKey).digest(), 'binary').toString('base64');
+    const nonce = Buffer.from(rawNonce.toString()).toString('base64');
+
+    const body = {
+        auth: {
+            login: login,
+            tranKey: tranKey,
+            nonce: nonce,
+            seed: seed,
+        },
+        // ... other params
+    };
+    ```
+
+    ```python
+    import base64, hashlib, random, datetime
+
+    login = "siteLogin"
+    secret_key = "siteSecretKey"
+
+    seed = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    raw_nonce = random.getrandbits(128).to_bytes(16, byteorder="big")
+    nonce = base64.b64encode(raw_nonce).decode("utf-8")
+    tran_key = base64.b64encode(hashlib.sha256(raw_nonce + seed.encode() + secret_key.encode()).digest()).decode("utf-8")
+
+    return {
+        "login": login,
+        "tranKey": tran_key,
+        "nonce": nonce,
+        "seed": seed,
+    }
+    ```
+
+</CodeGroup>

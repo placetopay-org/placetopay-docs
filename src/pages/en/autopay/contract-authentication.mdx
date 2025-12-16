@@ -1,0 +1,65 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+<HeroPattern />
+
+# Contract authentication
+
+For the AutoPay service to interact with your API following the defined contracts, you must authenticate incoming requests. This allows you to identify AutoPay and validate the information so your operations remain secure. The API must use **HTTP Basic Authentication (Basic Auth)**.
+
+## API credentials
+
+When integrating with AutoPay, you must have the merchant’s `username` and `password` credentials.
+
+- **username:** User that the implementing merchant must **provide to AutoPay** during site configuration. Maximum 60 characters.
+- **password:** Password that the implementing merchant must **provide to AutoPay** during site configuration. Maximum 60 characters.
+
+These credentials will be used by AutoPay to authenticate **against the merchant’s contracts/services**, therefore **the merchant must validate them** on every incoming request.
+
+<Note type="warning">
+    These credentials belong to the merchant and must be handled securely. Do not share your credentials in publicly accessible areas such as GitHub, client-side code, or other locations easily accessible to third parties.
+</Note>
+
+## Authentication object {{ id: 'authentication-object' }}
+
+Authentication is sent in the **headers** of every request that AutoPay makes to the merchant’s contracts.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="Authorization" type="string">
+                Required header. It is sent in the following format: <b>Basic base64(username:password)</b>
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```bash {{ 'title': 'Authentication Example (Header)' }}
+        Authorization: Basic bWVyY2hhbnRVc2VyOm1lcmNoYW50UGFzcw==
+        ```
+
+    </Col>
+</Row>
+
+## How to validate authentication {{ id: 'how-to-validate-authentication' }}
+
+You must know and prepare the following data:
+
+**username:** The user you configured for AutoPay to consume your contracts. Maximum 60 characters.
+
+**password:** The password you configured for AutoPay to consume your contracts. Maximum 60 characters.
+
+**Authorization:** Header received in the request, with the following format:
+`Authorization: Basic base64(username:password)`
+
+### Basic validation rules
+
+1. Verify that the `Authorization` header exists.
+2. Verify that the scheme is `Basic`.
+3. Decode the Base64 token and obtain the text `username:password`.
+4. Split `username` and `password`.
+5. Compare them against your configured credentials.
+6. If validation fails, respond with `401 Unauthorized` (optionally with `WWW-Authenticate`).
+
+<Note type="warning">
+    Basic authentication must always be sent over HTTPS. Base64 does not encrypt, it only encodes.
+</Note>
