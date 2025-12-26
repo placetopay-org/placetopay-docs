@@ -1,0 +1,68 @@
+import { HeroPattern } from '@/components/HeroPattern'
+import AutoPaySequence from "@/components/react-flow/SequenceDiagram/Diagrams/AutoPay/en/AutoPaySequence"
+
+export const description =
+  'Understand the AutoPay integration flow, subscription lifecycle, and how to automate your recurring charges.'
+
+<HeroPattern />
+
+# How AutoPay works
+
+AutoPay is a comprehensive solution that allows you to automate recurring charges by delegating both security (PCI tokenization) and scheduled execution of charges to Placetopay.
+
+Unlike a traditional subscription, AutoPay supports **variable charge models** (such as utility billing or consumption) and **fixed models** (such as memberships), automatically managing retries and payment method updates.
+
+## Unified integration model
+
+Instead of coordinating interface creation, card tokenization, and charging rule configuration separately, your server only needs to communicate with the Gateway API.
+
+The Gateway takes charge of **centralizing** the operation:
+
+1.  **Interface Management:** Automatically generates the secure WebCheckout session for the user to enter their data.
+2.  **Security (PCI):** Ensures sensitive data is captured and tokenized directly on our servers, keeping your merchant scope out of complex PCI audits.
+3.  **Charge Scheduling:** Registers and activates recurrence rules (frequency and amounts) in the AutoPay engine to ensure future charges are executed on time.
+
+## Key concepts
+
+To integrate AutoPay, it is necessary to understand two configurations that define the contract:
+
+### 1. Recurring
+Defines the contract's "frequency and lifespan" (Periodicity, Interval, and Validity Dates). It is fundamental to configure these parameters correctly so the billing engine works as expected.
+
+👉 [**See Recurring configuration guide**](/autopay/recurring-setup)
+
+### 2. Charge type
+Defines how the amount to be charged is calculated in each cycle. AutoPay allows everything from fixed charges (`FIXED`) to real-time queries of total debt (`TOTAL_BALANCE`) or minimum payments (`MINIMUM_BALANCE`) against your system.
+
+👉 [**See Charge Types detail**](/autopay/charge-types)
+
+## Integration lifecycle
+
+The following describes the flow of creating an AutoPay (Setup) and subsequent execution.
+
+<AutoPaySequence />
+
+### Process phases
+
+1.  **Initialization (Setup):** Your server consumes the Gateway API (`POST /session`) sending recurrence rules. The system returns a redirection URL.
+2.  **Capture and Tokenization:** The user is redirected to WebCheckout. There, they select their payment method, accept terms, and the card is securely tokenized.
+3.  **Confirmation:** Upon completion, the user returns to your site. You must query the session status to confirm the AutoPay was created (`APPROVED`).
+4.  **Scheduled Execution (Future):**
+    * The AutoPay engine detects when the next charge is due.
+    * If it is a variable amount, it queries your Balance API.
+    * It executes the transaction using the stored token.
+    * It notifies you of the result via Webhook (`AUTOPAY_TRANSACTION_FAILED` or successful).
+
+### Editing an AutoPay (Update)
+What happens if the user's card expires? The flow to **edit** a subscription reuses the same integration:
+
+1.  Create a new session in the Gateway (`POST /autopay/session`) specifying the action `EDIT` and the `id` of the existing AutoPay.
+2.  Redirect the user to WebCheckout.
+3.  The user updates their payment details.
+4.  Upon completion, the system updates the associated token without losing the subscription history.
+
+## What's next?
+
+* [Create an AutoPay Session](/autopay/api/session#create-a-session)
+* [Implement client contracts](/autopay/contracts) (For variable charges)
+* [AutoPay management](/autopay/api/session/#query-a-session) (Query and cancellation)

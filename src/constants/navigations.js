@@ -2228,13 +2228,20 @@ export const TAB_NAVIGATION = {
         icon: Book,
         links: [
           {
-            title: '',
+            title: 'Autopay',
             links: [
               { title: 'Introducción', href: '/autopay' },
-              { title: 'Autenticación', href: '/autopay/authentication' },
+              { title: 'Cómo funciona', href: '/autopay/how-autopay-works' },
+            ],
+          },
+          {
+            title: 'Integración',
+            links: [
+              { title: 'Autenticación API', href: '/autopay/authentication' },
+              { title: 'Autenticación de contratos', href: '/autopay/contract-authentication' },
+              { title: 'Configuración de recurrencia', href: '/autopay/recurring-setup' },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
               { title: 'Cargos en AutoPay', href: '/autopay/charge-types'},
-              { title: 'Autenticación de contratos', href: '/autopay/contract-authentication' },
             ],
           },
         ],
@@ -2254,7 +2261,7 @@ export const TAB_NAVIGATION = {
             {
                 title: 'API',
                 links: [
-                  { title: 'Crear sesión o actualizar un AutoPago', href: '/autopay/api/session' },
+                  { title: 'Crear o actualizar sesión de AutoPago', href: '/autopay/api/session' },
                   { title: 'Cancelar AutoPago', href: '/autopay/api/cancel' },
                   { title: 'Consulta de AutoPagos', href: '/autopay/api/search' },
                   { title: 'Transacciones de AutoPago', href: '/autopay/api/transactions' },
@@ -2293,15 +2300,23 @@ export const TAB_NAVIGATION = {
         icon: Book,
         links: [
           {
-            title: '',
+            title: 'Autopay',
             links: [
               { title: 'Introduction', href: '/autopay' },
-              { title: 'Authentication', href: '/autopay/authentication' },
-              { title: 'Response Codes', href: '/autopay/codes' },
-              { title: 'AutoPay Charges', href: '/autopay/charge-types' },
-              { title: 'Contract Authentication', href: '/autopay/contract-authentication' },
+              { title: 'How it works', href: '/autopay/how-autopay-works' },
             ],
           },
+          {
+            title: 'Integration',
+            links: [
+              { title: 'API Authentication', href: '/autopay/authentication' },
+              { title: 'Contract Authentication', href: '/autopay/contract-authentication' },
+              { title: 'Response Codes', href: '/autopay/codes' },
+              { title: 'Recurring setup', href: '/autopay/recurring-setup' },
+              { title: 'Response codes', href: '/autopay/codes' },
+              { title: 'AutoPay Charges', href: '/autopay/charge-types' },
+            ],
+          }
         ],
       },
       {
