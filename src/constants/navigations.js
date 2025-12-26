@@ -2231,6 +2231,8 @@ export const TAB_NAVIGATION = {
             title: '',
             links: [
               { title: 'Introducción', href: '/autopay' },
+              { title: 'Cómo funciona', href: '/autopay/how-it-works' },
+              { title: 'Configuración de recurrencia', href: '/autopay/recurring-setup' },
               { title: 'Autenticación', href: '/autopay/authentication' },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
               { title: 'Cargos en AutoPay', href: '/autopay/charge-types'},
