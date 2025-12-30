@@ -4,26 +4,20 @@ import { HeroPattern } from '@/components/HeroPattern'
 
 export const apiRefs = ['/autopay/balance']
 
-## Check amount to be charged {{ id: 'balance', tag: 'POST', label: '{{baseURL}}/autopay/balance' }}
+## Query amount to charge {{ id: 'balance', tag: 'POST', label: '/autopay/balance' }}
 
-<Note type="warning">
-    **baseURL**: This is the base URL of the client/merchant application, which must be provided by the merchant and configured during the AutoPay onboarding process.
-</Note>
+This endpoint contains the logic for variable charges (`TOTAL_BALANCE` or `MINIMUM_BALANCE`). Before attempting any transaction, AutoPay will query this service to know **how much to charge** at that specific moment.
 
-<Note type="warning">
-    **Authentication (Basic Authentication):** This endpoint requires authentication via the `Authorization` header.
-    The merchant must validate the credentials configured for AutoPay on each incoming request. See more at [**Contract authentication**](/autopay/contract-authentication).
-</Note>
+### Business rules
+
+1.  **Currency:** The currency (`currency`) you respond with must match the one configured in the original autopay.
+2.  **Zero Balance:** If you respond with a `total` of `0`, AutoPay will understand there is no pending debt and **will not perform any charge**.
+3.  **Amount Selection:** AutoPay will read the corresponding field based on the autopay configuration:
+    * If `TOTAL_BALANCE`, it will take the value from `amount`.
+    * If `MINIMUM_BALANCE`, it will take the value from `min_amount`.
 
 <Row>
     <Col>
-      This endpoint allows retrieving the amount that must be charged for an AutoPay.
-      It returns two values:
-
-      - **amount:** total amount to be charged in the current cycle.
-      - **min_amount:** minimum amount required to execute the charge.
-
-      It can be used to validate whether there are pending amounts before starting a payment or automatic reconciliation process.
         <ApiReader
             path="/autopay/balance"
             method="POST"

@@ -3,21 +3,42 @@ import { Note } from "@/components/Note";
 
 <HeroPattern />
 
-## Contratos API del cliente al integrar AutoPay
+# Contratos de Cliente (Merchant API)
+
+A diferencia de la API estándar donde tú inicias las peticiones, en los **Contratos de Cliente** es AutoPay quien **consulta a tu servidor** para realizar operaciones críticas en tiempo real.
+
+Esta sección documenta los endpoints que tu infraestructura debe exponer para permitir la automatización de cobros y la sincronización de estados.
+
+## Configuración y Base URL
 
 <Note type="warning">
-    **baseURL**: Es la URL base del aplicativo del cliente/comercio la cual debe ser entregada por el mismo y configurada en el momento del onboarding del comercio con AutoPay.
+  **Base URL:** Debes entregar esta URL durante el onboarding. Ten en cuenta que AutoPay concatenará automáticamente el prefijo **/autopay** a todas las peticiones, por lo que tu enrutador debe estar configurado para soportarlo.
+
+  **Ejemplo:**
+  * Base URL entregada: `https://api.tucomercio.com`
+  * Petición final de AutoPay: `POST https://api.tucomercio.com/autopay/balance`
 </Note>
 
-Para operar AutoPay de extremo a extremo, el cliente/comercio debe exponer un conjunto de endpoints propios que siguen los contratos definidos en esta documentación.
+## Servicios a Implementar
 
-Estos endpoints permiten a Placetopay:
-- Consultar el balance/importe a cobrar.
-- Confirmar la aplicación del pago
-- Recibir notificaciones del ciclo de vida del autopago (activación, actualización, desactivación, resultados de ejecución).
+Para garantizar una integración completa, debes exponer los siguientes contratos:
 
-En este apartado, podrás obtener más información acerca de los contratos y ejemplos de cada uno de los servicios que debes implementar.
+| Recurso | Método | Función |
+| :--- | :--- | :--- |
+| [**/balance**](/autopay/contracts/balance) | `POST` | **Exclusivo para Cobro Variable.** Nos permite consultar el monto a cobrar en cada ciclo. Necesario si usas modelos `TOTAL_BALANCE` o `MINIMUM_BALANCE`. |
+| [**/settlement**](/autopay/contracts/settlement) | `POST` | **Obligatorio.** Confirmación final del pago aprobado para que puedas registrarlo/asentarlo en tus sistemas internos. |
+| [**/webhook**](/autopay/contracts/webhook) | `POST` | **Obligatorio.** Canal de notificación para recibir actualizaciones de estado (creación, cancelación) y resultados de los cobros. |
 
-<Note type="warning">
-    Como cliente al implementar estos contratos deberás implementar una autenticación basada en *Basic Autentication*, de esta forma podrás identificarnos y validar la información para que tus operaciones sean seguras. Ver más en [**Autenticación de contratos**](/autopay/contract-authentication).
-</Note>
+---
+
+## Requisitos Técnicos
+
+Tu API debe cumplir con los siguientes estándares:
+
+### 1. Seguridad (Basic Auth)
+AutoPay se autenticará enviando una cabecera `Authorization`. Tú defines las credenciales (`username` y `password`) y debes validarlas en cada petición entrante.
+
+### 2. Formato y Transporte
+* **Protocolo:** HTTPS estricto.
+* **Formato:** JSON (`Content-Type: application/json`).
+* **Rendimiento:** Se recomienda responder en menos de 3 segundos para evitar timeouts.

@@ -1,65 +1,68 @@
 import { HeroPattern } from '@/components/HeroPattern'
+import { Note } from "@/components/Note";
 
 <HeroPattern />
 
-# Contract authentication
+# Contract Authentication
 
-For the AutoPay service to interact with your API following the defined contracts, you must authenticate incoming requests. This allows you to identify AutoPay and validate the information so your operations remain secure. The API must use **HTTP Basic Authentication (Basic Auth)**.
+Since AutoPay will send requests to your server (Webhooks, Balance, Settlement), you need a mechanism to ensure that **it is really us** and not an attacker.
 
-## API credentials
+We use the **HTTP Basic Authentication** standard.
 
-When integrating with AutoPay, you must have the merchant’s `username` and `password` credentials.
+## Credentials
 
-- **username:** User that the implementing merchant must **provide to AutoPay** during site configuration. Maximum 60 characters.
-- **password:** Password that the implementing merchant must **provide to AutoPay** during site configuration. Maximum 60 characters.
+Unlike the transactional API, in contracts **you define the credentials** and we use them.
 
-These credentials will be used by AutoPay to authenticate **against the merchant’s contracts/services**, therefore **the merchant must validate them** on every incoming request.
+| Credential | Definition | Restrictions |
+| :--- | :--- | :--- |
+| **Username** | The username you defined for your integration. | Maximum **60 characters**. |
+| **Password** | The associated secure password. | Maximum **60 characters**. |
 
-<Note type="warning">
-    These credentials belong to the merchant and must be handled securely. Do not share your credentials in publicly accessible areas such as GitHub, client-side code, or other locations easily accessible to third parties.
+<Note>
+  These credentials are configured during the Onboarding process [Service Activation](/autopay/#service-activation).
 </Note>
 
-## Authentication object {{ id: 'authentication-object' }}
+## Authentication Object
 
-Authentication is sent in the **headers** of every request that AutoPay makes to the merchant’s contracts.
+Authentication is sent in the **headers** of every HTTP request.
 
 <Row>
     <Col>
         <Properties>
             <Property name="Authorization" type="string">
-                Required header. It is sent in the following format: <b>Basic base64(username:password)</b>
+                Required header.
+                Sent in the format: <b>Basic base64(username:password)</b>
             </Property>
         </Properties>
     </Col>
     <Col sticky>
 
-        ```bash {{ 'title': 'Authentication Example (Header)' }}
+        ```bash {{ 'title': 'Example Authentication (Header)' }}
         Authorization: Basic bWVyY2hhbnRVc2VyOm1lcmNoYW50UGFzcw==
         ```
 
     </Col>
 </Row>
 
-## How to validate authentication {{ id: 'how-to-validate-authentication' }}
+---
 
-You must know and prepare the following data:
+## How to validate authentication
 
-**username:** The user you configured for AutoPay to consume your contracts. Maximum 60 characters.
+Your server must intercept every incoming request and execute the following security logic **before** processing any business data.
 
-**password:** The password you configured for AutoPay to consume your contracts. Maximum 60 characters.
+### Validation algorithm
 
-**Authorization:** Header received in the request, with the following format:
-`Authorization: Basic base64(username:password)`
-
-### Basic validation rules
-
-1. Verify that the `Authorization` header exists.
-2. Verify that the scheme is `Basic`.
-3. Decode the Base64 token and obtain the text `username:password`.
-4. Split `username` and `password`.
-5. Compare them against your configured credentials.
-6. If validation fails, respond with `401 Unauthorized` (optionally with `WWW-Authenticate`).
+1.  **Check Header:** Confirm that the request has the `Authorization` header.
+2.  **Check Scheme:** Ensure it starts with the keyword `Basic`.
+3.  **Decode:** Take the string after the space and Base64 decode it to get `username:password`.
+4.  **Compare:** Split the text by the colon (`:`) and compare the values with those configured in your environment variables.
+5.  **Decide:**
+    * If they match: **Allow access (HTTP 200)**.
+    * If they do not match: **Reject immediately (HTTP 401 Unauthorized)**.
 
 <Note type="warning">
-    Basic authentication must always be sent over HTTPS. Base64 does not encrypt, it only encodes.
+  **Critical Security:** These credentials are private and allow data injection into your system.
+
+  * **HTTPS:** Basic authentication must always travel over encrypted channels.
+  * **Source Code:** **Do not share** your credentials in public access areas like **GitHub**, nor include them in client-side code (Frontend). Always use them via environment variables on your server.
 </Note>

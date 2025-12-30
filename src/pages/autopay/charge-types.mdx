@@ -2,26 +2,42 @@ import { HeroPattern } from '@/components/HeroPattern'
 
 <HeroPattern />
 
-# Cargos en AutoPay
-Un cargo en **AutoPay** se refiere al monto que se intenta cobrar en cada fecha programada del autopago. Existen varias formas en las que se puede definir el monto a cobrar, conocidas como **"Tipos de cargo"**.
+# Tipos de Cobro en AutoPay
 
-## Tipos de cargo
-El tipo de cargo define la modalidad de cargo que se va a cobrar, es decir, la forma en que se determina el monto a cobrar en cada ejecución del autopago (por ejemplo, saldo total, pago mínimo, etc.). A continuación se definen los tipos de cargo disponibles en el sistema de AutoPay y cómo operan dentro del flujo general.
+AutoPay ofrece tres tipos de configuración para adaptarse a tu modelo de negocio, permitiendo desde cobros planos hasta montos variables basados en consumo.
 
-| Tipo de cargo          | Qué cobra                                                                   | Fuente del monto en ejecución                                                                                                                                                                                                                |
-|------------------------|-----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `TOTAL_BALANCE`        | El **saldo total** requerido del período (total a pagar segun recurrencia). | Se consulta el [**balance**](/autopay/contracts/balance) de la obligación vía API del comercio si está está habilitada en cada pago a realizar.                                                                                              |
-| `MINIMUM_BALANCE`      | El **pago mínimo** requerido del período.                                   | Se consulta el [**balance**](/autopay/contracts/balance) para obtener el mínimo del período en cada pago a realizar.                                                                                                                         |
-| `FIXED`                | Un **monto fijo** especificado por el comercio/usuario.                     | El monto lo provee la solicitud o en su defecto será elegido por el usuario en el momento de la confirmación del autopago.                                                                                                                   |
+La propiedad `recurring.type` define qué lógica se aplicará para determinar el monto final de la transacción.
 
-### Flujo de cobro variable
+## Tabla comparativa
 
-Si seleccionas `TOTAL_BALANCE` o `MINIMUM_BALANCE`:
-1.  El Core detecta que es fecha de cobro.
-2.  Realiza una petición a tu endpoint de **Balance**.
-3.  Tu API responde con el monto actual.
-4.  AutoPay procesa la transacción por ese valor exacto.
+| Tipo | Modelo de Negocio | ¿Requiere API Balance? | Ejemplo |
+| :--- | :--- | :--- | :--- |
+| **FIXED** | Valor constante | **No** | Membresías, Colegiaturas, Seguros |
+| **TOTAL_BALANCE** | Consumo Variable | **Sí** | Servicios Públicos, Telefonía Post-pago |
+| **MINIMUM_BALANCE** | Pagos Flexibles | **Sí** | Créditos Rotativos, Tarjetas de Crédito |
 
-<Note type="warning">
-    Si configuras un AutoPago como variable pero tu endpoint de Balance no responde o falla la autenticación, el cobro **no se realizará**.
+---
+
+## Detalle de los tipos
+
+### 1. FIXED (Monto fijo)
+Es el modelo más sencillo y común. El valor a cobrar se define **una única vez** al momento de crear la suscripción.
+* **Comportamiento:** Cobra siempre el mismo importe definido en la creación.
+* **Integración:** No requiere consultar tu servidor.
+* **Ideal para:** Gimnasios, suscripciones de software (SaaS), colegiaturas escolares, seguros mensuales o donaciones recurrentes.
+
+### 2. TOTAL_BALANCE (Saldo total)
+Diseñado para comercios donde el monto cambia ciclo a ciclo.
+* **Comportamiento:** Antes de cada cobro, AutoPay consulta tu endpoint `/balance`.
+* **Lógica:** Toma el valor reportado en el campo `amount` de tu API y procesa el cobro por esa cantidad exacta.
+* **Ideal para:** Facturas de energía, agua, gas o planes de telefonía basados en consumo.
+
+### 3. MINIMUM_BALANCE (Pago mínimo)
+Diseñado para productos financieros que ofrecen flexibilidad de pago al usuario.
+* **Comportamiento:** Consulta tu endpoint `/balance`.
+* **Lógica:** Cobra el valor reportado en el campo `min_amount` de tu API.
+* **Ideal para:** Créditos donde el usuario ha autorizado el descuento automático del pago mínimo exigible para mantenerse al día.
+
+<Note>
+  **Requisito Técnico:** Para usar `TOTAL_BALANCE` o `MINIMUM_BALANCE`, es obligatorio que tu servidor exponga el endpoint [Consultar Balance](/autopay/contracts/balance) para que AutoPay pueda preguntarte cuánto cobrar.
 </Note>

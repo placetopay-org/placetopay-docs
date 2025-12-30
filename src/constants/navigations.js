@@ -2241,7 +2241,7 @@ export const TAB_NAVIGATION = {
               { title: 'Autenticación de contratos', href: '/autopay/contract-authentication' },
               { title: 'Configuración de recurrencia', href: '/autopay/recurring-setup' },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
-              { title: 'Cargos en AutoPay', href: '/autopay/charge-types'},
+              { title: 'Tipos de Cobro', href: '/autopay/charge-types'},
             ],
           },
         ],
@@ -2285,7 +2285,7 @@ export const TAB_NAVIGATION = {
             title: 'Servicios',
             links: [
               { title: 'Consultar monto a cobrar', href: '/autopay/contracts/balance' },
-              { title: 'Asentamiento', href: '/autopay/contracts/settlement' },
+              { title: 'Confirmar / Asentar pago', href: '/autopay/contracts/settlement' },
               { title: 'Notificaciones (Webhook)', href: '/autopay/contracts/webhook' },
             ],
           },
@@ -2311,10 +2311,9 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'API Authentication', href: '/autopay/authentication' },
               { title: 'Contract Authentication', href: '/autopay/contract-authentication' },
-              { title: 'Response Codes', href: '/autopay/codes' },
               { title: 'Recurring setup', href: '/autopay/recurring-setup' },
               { title: 'Response codes', href: '/autopay/codes' },
-              { title: 'AutoPay Charges', href: '/autopay/charge-types' },
+              { title: 'Charge Types', href: '/autopay/charge-types' },
             ],
           }
         ],
@@ -2357,8 +2356,8 @@ export const TAB_NAVIGATION = {
           {
             title: 'Services',
             links: [
-              { title: 'Get Charge Amount', href: '/autopay/contracts/balance' },
-              { title: 'Settlement', href: '/autopay/contracts/settlement' },
+              { title: 'Query amount to charge', href: '/autopay/contracts/balance' },
+              { title: 'Settle / Confirm Payment', href: '/autopay/contracts/settlement' },
               { title: 'Notifications (Webhook)', href: '/autopay/contracts/webhook' },
             ],
           },

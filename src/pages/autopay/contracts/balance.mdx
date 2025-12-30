@@ -4,26 +4,22 @@ import { HeroPattern } from '@/components/HeroPattern'
 
 export const apiRefs = ['/autopay/balance']
 
-## Consultar monto a cobrar  {{ id: 'balance', tag: 'POST', label: '{{baseURL}}/autopay/balance' }}
+## Consultar monto a cobrar {{ id: 'balance', tag: 'POST', label: '/autopay/balance' }}
 
-<Note type="warning">
-    **baseURL**: Es la URL base del aplicativo del cliente/comercio la cual debe ser entregada por el mismo y configurada en el momento del onboarding del comercio con AutoPay.
-</Note>
+Este endpoint contiene la lógica de los cobros variables (`TOTAL_BALANCE` o `MINIMUM_BALANCE`). Antes de intentar cualquier transacción, AutoPay consultará este servicio para saber **cuánto cobrar** en el instante.
 
-<Note type="warning">
-    **Autenticación (Basic Authentication):** Este endpoint requiere autenticación vía header `Authorization`.
-    El comercio debe validar las credenciales configuradas para AutoPay en cada solicitud entrante. Ver más en [**Autenticación de contratos**](/autopay/contract-authentication).
-</Note>
+### Reglas de negocio
+
+1.  **Moneda:** La moneda (`currency`) que respondas debe coincidir con la configurada en el autopago original.
+2.  **Saldo Cero:** Si respondes con un `total` de `0`, AutoPay entenderá que no hay deuda pendiente y **no realizará ningún cobro**.
+3.  **Selección de Monto:** AutoPay leerá el campo correspondiente según la configuración del autopago:
+    * Si es `TOTAL_BALANCE` tomará el valor de `amount`.
+    * Si es `MINIMUM_BALANCE` tomará el valor de `min_amount`.
+
+---
 
 <Row>
     <Col>
-      Este endpoint permite conocer el monto que debe cobrarse asociado a un AutoPay.
-      Devuelve dos valores:
-
-      - **amount:** monto total a cobrar en el ciclo actual.
-      - **min_amount:** monto mínimo requerido para ejecutar el cobro.
-
-      Puede usarse para validar si existen valores pendientes antes de iniciar un proceso de pago o conciliación automática.
         <ApiReader
             path="/autopay/balance"
             method="POST"

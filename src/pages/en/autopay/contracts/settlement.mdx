@@ -4,22 +4,22 @@ import { HeroPattern } from '@/components/HeroPattern'
 
 export const apiRefs = ['/autopay/settlement']
 
-## Settle/Confirm a payment {{ id: 'settlement', tag: 'POST', label: '{{baseURl}}/autopay/settlement' }}
-<Note type="warning">
-    **baseURL**: This is the base URL of the client/merchant application, which must be provided by the merchant and configured during the AutoPay onboarding process.
-</Note>
+## Settle / Confirm Payment {{ id: 'settlement', tag: 'POST', label: '/autopay/settlement' }}
 
-<Note type="warning">
-    **Authentication (Basic Authentication):** This endpoint requires authentication via the `Authorization` header.
-    The merchant must validate the credentials configured for AutoPay on each incoming request. Learn more at [**Contract authentication**](/autopay/contract-authentication).
-</Note>
+This endpoint is the **official closure** of a successful transaction. AutoPay will invoke this service only when a charge has been **APPROVED** by the financial network.
 
-<Note type="warning">
-    Settlement is performed only for transactions that have been successfully processed and are in **APPROVED** status.
-</Note>
+Your goal here is to receive the confirmation and register the payment in your ERP, database, or accounting system.
+
+### Recommended Business Rules
+
+1.  **Idempotency:** Due to network intermittency, you may receive this confirmation more than once for the same transaction. Your system must validate if the payment was already settled and respond with `200 OK` without duplicating the record.
+2.  **Amount Validation:** Verify that `transaction.amount.total` matches what you expected to charge.
+3.  **Fast Response:** This process is synchronous. Respond as quickly as possible (`< 3s`) to complete the cycle.
+
+---
+
 <Row>
     <Col>
-        This endpoint is used to confirm a previously processed payment by sending the transaction details.
         <ApiReader
             path="/autopay/settlement"
             method="POST"
