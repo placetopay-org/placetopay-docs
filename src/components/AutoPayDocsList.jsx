@@ -4,44 +4,56 @@ import { useLocale } from './LocaleProvider'
 
 const guides = [
   {
-    href: '/checkout',
+    href: '/autopay',
     action: { es: 'Ver más', en: 'Learn more' },
     name: {
       es: 'Inicio',
       en: 'Home',
     },
     description: {
-      es: 'Conoce Checkout, las ventajas que te ofrece y los métodos de integración a un alto nivel.',
-      en: 'Get to know Checkout, the advantages it offers you and the integration methods at a high level.',
+      es: 'Conoce AutoPay, sus beneficios y obtén una visión general de su integración.',
+      en: 'Discover AutoPay, its benefits, and a high-level overview of the integration.',
     },
   },
   {
-    href: '/checkout/authentication',
+    href: '/autopay/authentication',
     action: { es: 'Ver más', en: 'Learn more' },
     name: {
       es: 'Integración',
       en: 'Integration',
     },
     description: {
-      es: 'Conoce las capacidades de Checkout, los conceptos y flujos que debes tener en cuenta para una integración exitosa.',
-      en: "Learn about Checkout's capabilities, the concepts and flows that you must take into account for a successful integration.",
+      es: 'Conoce las capacidades, conceptos y flujos clave de AutoPay para lograr una integración exitosa.',
+      en: 'Learn about AutoPay capabilities, concepts, and key workflows for a successful integration.',
     },
   },
   {
-    href: '/checkout/api/reference/session',
+    href: '/autopay/api/',
     action: { es: 'Ver más', en: 'Learn more' },
     name: {
       es: 'API',
       en: 'API',
     },
     description: {
-      es: 'Conoce en detalle los métodos HTTP disponibles, los parámetros y posibles respuestas de cada servicio.',
-      en: 'Know in detail the available HTTP methods, the parameters and possible responses of each service.',
+      es: 'Consulta en detalle los métodos HTTP disponibles, los parámetros y las posibles respuestas de cada servicio.',
+      en: 'Explore available HTTP methods, parameters, and possible responses for each service in detail.',
+    },
+  },
+  {
+    href: '/autopay/contracts/',
+    action: { es: 'Ver más', en: 'Learn more' },
+    name: {
+      es: 'Contratos',
+      en: 'Contracts',
+    },
+    description: {
+      es: 'Implementa los endpoints necesarios en tu servidor para gestionar balances, confirmaciones de pago y notificaciones.',
+      en: 'Implement the required endpoints on your server to handle balances, payment confirmations, and notifications.',
     },
   },
 ]
 
-export function DocsList() {
+export function AutoPayDocsList() {
   const { locale } = useLocale()
   const localizePath = useLocalizePath()
 

@@ -1,0 +1,85 @@
+import { HeroPattern } from '@/components/HeroPattern'
+import RecurringSequence from "@/components/react-flow/SequenceDiagram/Diagrams/AutoPay/en/RecurringSequence"
+
+<HeroPattern />
+
+# Recurring rules
+
+The `recurring` object is the logic core of the automation. It defines **when** it is charged, and **until when** the contract remains active.
+
+## Object structure
+
+```json
+    "recurring": {
+        "type": "TOTAL_BALANCE",
+        "periodicity": "M",
+        "interval": 1,
+        "nextPayment": "2025-06-03",
+        "dueDate": "2025-08-03",
+        "notificationUrl": "https://merchant.test/notification"
+    }
+```
+
+## Property definitions
+
+<Properties>
+  <Property name="type" type="string">
+    **Required.** Defines the charging modality.
+    * `FIXED`: Fixed amount (Subscriptions).
+    * `TOTAL_BALANCE`: Charges the total debt queried from your API.
+    * `MINIMUM_BALANCE`: Charges the minimum payment queried from your API.
+
+    [See Charge Types detail](/autopay/charge-types)
+  </Property>
+
+  <Property name="periodicity" type="string">
+    **Required.** Time unit for the frequency.
+    * `D`: Days
+    * `W`: Weeks
+    * `M`: Months
+    * `Y`: Years
+  </Property>
+
+  <Property name="interval" type="integer">
+    **Required.** Multiplier for the periodicity.
+    Example: To charge "Every 2 Weeks", use `periodicity: W` and `interval: 2`.
+  </Property>
+
+  <Property name="nextPayment" type="date">
+    **Required.** Format `YYYY-MM-DD`.<br/>
+    It is the trigger/start date. The system will not perform any charge before this date.
+    * **On creation:** Defines when the **first** charge will take place.
+    * **Automatic:** After each successful charge, the system automatically updates this field by adding the configured frequency.
+  </Property>
+
+  <Property name="dueDate" type="date" isRequired={false}>
+    **Optional.** Format `YYYY-MM-DD`.<br/>
+    Acts as an expiration date or upper limit. If the calculation of the next charge results in a date after this limit, the AutoPay is marked as **Finished** and stops processing charges.
+  </Property>
+
+  <Property name="notificationUrl" type="string">
+    **Required.** Secure URL (`https`).<br/>
+    Endpoint where your server will receive notifications (Webhooks) whenever a charge, failure, or status change occurs in this autopay.
+  </Property>
+</Properties>
+
+---
+
+## Date calculation logic
+
+The AutoPay engine (Scheduler) runs a daily process. To determine the **next charge** date, the system follows strict logic to ensure the autopay remains valid.
+
+The following diagram illustrates how the `recurring` object is updated after a successful charge:
+
+<RecurringSequence />
+
+### Common frequency examples
+
+Although the logic is flexible, here are the most used combinations:
+
+| Desired Frequency | JSON Configuration | Logical Result |
+| :--- | :--- | :--- |
+| **Monthly** | `"periodicity": "M", "interval": 1` | Charges every month on the same day (e.g., Jan 5, Feb 5). |
+| **Quarterly** | `"periodicity": "M", "interval": 3` | Charges every 3 months. |
+| **Bi-weekly** | `"periodicity": "W", "interval": 2` | Charges every 2 weeks (e.g., every other Friday). |
+| **Annual** | `"periodicity": "Y", "interval": 1` | Charges once a year. |

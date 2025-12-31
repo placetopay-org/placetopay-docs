@@ -2,34 +2,35 @@ import { HeroPattern } from '@/components/HeroPattern'
 
 <HeroPattern />
 
-# Autenticación de contratos
+# Autenticación de Contratos
 
-Para que el servicio de AutoPay pueda interactuar con tu API siguiendo los contratos definidos debes autenticar tus peticiones, de esta forma podrás identificarnos y validar la información para que tus operaciones sean seguras. La API debe utilizar **HTTP Basic Authentication (Basic Auth)**.
+Dado que AutoPay enviará peticiones a tu servidor (Balance y Settlement), necesitas un mecanismo para asegurarte de que **realmente somos nosotros** y no un atacante.
 
-## Credenciales API
+Utilizamos el estándar **HTTP Basic Authentication**.
 
-En la integración con AutoPay se debe contar con las credenciales `username` y `password` del comercio implementador.
+## Credenciales
 
-- **username:** Usuario que el comercio implementador debe **proveer a AutoPay** durante la configuración del sitio. Máximo 60 caracteres.
-- **password:** Contraseña que el comercio implementador debe **proveer a AutoPay** durante la configuración del sitio. Máximo 60 caracteres.
+A diferencia de la API transaccional, en los contratos **tú defines las credenciales** y nosotros las utilizamos.
 
-Estas credenciales serán usadas por AutoPay para autenticarse **contra los contratos/servicios del comercio**, por lo tanto **el comercio debe validarlas** en cada solicitud entrante.
+| Credencial | Definición | Restricciones |
+| :--- | :--- | :--- |
+| **Username** | El nombre de usuario que definiste para tu integración. | Máximo **60 caracteres**. |
+| **Password** | La contraseña segura asociada. | Máximo **60 caracteres**. |
 
-<Note type="warning">
-    Estas credenciales son propias del comercio y deben ser tratadas de forma segura. No
-    comparta sus credenciales en áreas de acceso público como Github, código del lado de
-    cliente u otros lugares de fácil acceso para terceros.
+<Note>
+  Estas credenciales se configuran en el proceso de Onboarding [Solicitud de activación](/autopay/#service-activation).
 </Note>
 
-## Objeto Authentication {{ id: 'authentication-object' }}
+## Objeto Authentication
 
-La autenticación se envía en **headers** en cada solicitud que AutoPay realice hacia los contratos del comercio.
+La autenticación se envía en los **headers** de cada solicitud HTTP.
 
 <Row>
     <Col>
         <Properties>
             <Property name="Authorization" type="string">
-                Header requerido. Se envía con el formato: <b>Basic base64(username:password)</b>
+                Header requerido.
+                Se envía con el formato: <b>Basic base64(username:password)</b>
             </Property>
         </Properties>
     </Col>
@@ -42,28 +43,25 @@ La autenticación se envía en **headers** en cada solicitud que AutoPay realice
     </Col>
 </Row>
 
-## Cómo validar la autenticación {{ id: 'how-to-validate-authentication' }}
+---
 
-Debes conocer y preparar los siguientes datos:
+## Cómo validar la autenticación
 
-**username:** Usuario que configuraste para que AutoPay consuma tus contratos. Máximo 60 caracteres.
+Tu servidor debe interceptar cada petición entrante y ejecutar la siguiente lógica de seguridad **antes** de procesar cualquier dato de negocio.
 
-**password:** Contraseña que configuraste para que AutoPay consuma tus contratos. Máximo 60 caracteres.
+### Algoritmo de validación
 
-**Authorization:** Header recibido en la petición, con el formato:
-`Authorization: Basic base64(username:password)`
-
-### Reglas de validación basicas
-
-1. Verificar que exista el header `Authorization`.
-2. Verificar que el esquema sea `Basic`.
-3. Decodificar el token Base64 y obtener el texto `username:password`.
-4. Separar `username` y `password`.
-5. Comparar contra tus credenciales configuradas.
-6. Si falla, responder `401 Unauthorized` (opcionalmente con `WWW-Authenticate`).
+1.  **Verificar Cabecera:** Confirma que la petición tiene el header `Authorization`.
+2.  **Verificar Esquema:** Asegúrate de que empieza con la palabra clave `Basic`.
+3.  **Decodificar:** Toma la cadena después del espacio y decodifícala de Base64 para obtener `username:password`.
+4.  **Comparar:** Separa el texto por los dos puntos (`:`) y compara los valores con los que tienes configurados en tus variables de entorno.
+5.  **Decidir:**
+    * Si coinciden: **Permite el acceso (HTTP 200)**.
+    * Si no coinciden: **Rechaza inmediatamente (HTTP 401 Unauthorized)**.
 
 <Note type="warning">
-    La autenticación Basic debe viajar siempre sobre HTTPS. Base64 no cifra, solo codifica.
+  **Seguridad crítica:** Estas credenciales son privadas y permiten inyectar datos en tu sistema.
+
+  * **HTTPS:** La autenticación Basic debe viajar siempre sobre canales cifrados.
+  * **Código fuente:** **No compartas** tus credenciales en áreas de acceso público como **GitHub**, ni las incluyas en código del lado del cliente (Frontend). Úsalas siempre mediante variables de entorno en tu servidor.
 </Note>
-
-

@@ -1,0 +1,68 @@
+import { HeroPattern } from '@/components/HeroPattern'
+import AutoPaySequence from "@/components/react-flow/SequenceDiagram/Diagrams/AutoPay/es/AutoPaySequence"
+
+export const description =
+  'Entiende el flujo de integración de AutoPay, el ciclo de vida de las suscripciones y cómo automatizar tus cobros recurrentes.'
+
+<HeroPattern />
+
+# Cómo funciona AutoPay
+
+AutoPay es una solución integral que te permite automatizar cobros recurrentes delegando en Placetopay tanto la seguridad (tokenización PCI) como la ejecución programada de los cobros.
+
+A diferencia de una suscripción tradicional, AutoPay soporta **modelos de cobro variable** (como facturación de servicios públicos o consumo) y **modelos fijos** (como membresías), gestionando automáticamente los reintentos y la actualización de medios de pago.
+
+## Modelo de integración unificado
+
+En lugar de tener que coordinar la creación de interfaces, la tokenización de tarjetas y la configuración de reglas de cobro por separado, tu servidor solo necesita comunicarse con la API de Gateway.
+
+El Gateway se encarga de **centralizar** la operación:
+
+1.  **Gestión de la Interfaz:** Genera automáticamente la sesión segura en WebCheckout para que el usuario ingrese sus datos.
+2.  **Seguridad (PCI):** Asegura que los datos sensibles sean capturados y tokenizados directamente en nuestros servidores, manteniendo tu comercio fuera del alcance de auditorías PCI complejas.
+3.  **Programación de Cobros:** Registra y activa las reglas de recurrencia (frecuencia y montos) en el motor de AutoPay para asegurar que los cobros futuros se ejecuten puntualmente.
+
+## Conceptos clave
+
+Para integrar AutoPay, es necesario entender dos configuraciones que definen el contrato:
+
+### 1. Recurrencia (Recurring)
+Define la "frecuencia y vida útil" del contrato (Periodicidad, Intervalo y Fechas de vigencia). Es fundamental configurar correctamente estos parámetros para que el motor de cobros funcione según lo esperado.
+
+👉 [**Ver guía de configuración de Recurrencia**](/autopay/recurring-setup)
+
+### 2. Tipos de cargo (Charge Type)
+Define cómo se calcula el monto a cobrar en cada ciclo. AutoPay permite desde cobros fijos (`FIXED`) hasta consultas en tiempo real de deuda total (`TOTAL_BALANCE`) o pagos mínimos (`MINIMUM_BALANCE`) contra tu sistema.
+
+👉 [**Ver detalle de Tipos de Cargo**](/autopay/charge-types)
+
+## Ciclo de vida de la integración
+
+A continuación, se describe el flujo de creación de un autopago y la ejecución posterior.
+
+<AutoPaySequence />
+
+### Fases del proceso
+
+1.  **Inicialización:** Tu servidor consume la API del Gateway (`POST /autopay/session`) enviando las reglas de recurrencia. El sistema retorna una URL de redirección.
+2.  **Captura y tokenización:** El usuario es redirigido a WebCheckout. Allí selecciona su medio de pago, acepta los términos y la tarjeta es tokenizada de forma segura.
+3.  **Confirmación:** Al finalizar, el usuario regresa a tu sitio. Debes consultar el estado de la sesión para confirmar que el AutoPago fue creado (`APPROVED`).
+4.  **Ejecución programada (futuro):**
+    * El motor de AutoPay detecta cuándo es el próximo cobro.
+    * Si es monto variable, consulta tu API de Balance.
+    * Ejecuta la transacción usando el token guardado.
+    * Te notifica el resultado vía Webhook (`AUTOPAY_TRANSACTION_FAILED` o exitosa).
+
+### Edición de un AutoPago (Actualización)
+¿Qué pasa si la tarjeta del usuario vence? El flujo para **editar** una suscripción reutiliza la misma integración:
+
+1.  Creas una nueva sesión en el Gateway (`POST /autopay/session`) especificando la acción `EDIT` y el `id` del autopago existente.
+2.  Rediriges al usuario a WebCheckout.
+3.  El usuario actualiza sus datos de pago.
+4.  Al finalizar, el sistema actualiza el token asociado sin perder el historial de la suscripción.
+
+## ¿Qué sigue?
+
+* [Crear una sesión de AutoPago](/autopay/api/session#create-a-session)
+* [Implementar los contratos de cliente](/autopay/contracts) (Para cobros variables)
+* [Gestión de AutoPagos](/autopay/api/session/#query-a-session) (Consulta y cancelación)

@@ -1,0 +1,85 @@
+import { HeroPattern } from '@/components/HeroPattern'
+import RecurringSequence from "@/components/react-flow/SequenceDiagram/Diagrams/AutoPay/es/RecurringSequence"
+
+<HeroPattern />
+
+# Reglas de recurrencia
+
+El objeto `recurring` es la lógica principal de la automatización. Define **cuándo** se cobra y **hasta cuándo** debe mantenerse activo el contrato.
+
+## Estructura del objeto
+
+```json
+"recurring": {
+    "type": "TOTAL_BALANCE",
+    "periodicity": "M",
+    "interval": 1,
+    "nextPayment": "2025-06-03",
+    "dueDate": "2025-08-03",
+    "notificationUrl": "https://merchant.test/notification"
+}
+```
+
+## Definición de propiedades
+
+<Properties>
+  <Property name="type" type="string">
+    **Requerido.** Define la modalidad del cobro.
+    * `FIXED`: Monto fijo (Suscripciones).
+    * `TOTAL_BALANCE`: Cobra la deuda total consultada a tu API.
+    * `MINIMUM_BALANCE`: Cobra el pago mínimo consultado a tu API.
+
+    [Ver detalle de Tipos de Cargo](/autopay/charge-types)
+  </Property>
+
+  <Property name="periodicity" type="string">
+    **Requerido.** Unidad de tiempo para la frecuencia.
+    * `D`: Días
+    * `W`: Semanas
+    * `M`: Meses
+    * `Y`: Años
+  </Property>
+
+  <Property name="interval" type="integer">
+    **Requerido.** Multiplicador de la periodicidad.
+    Ejemplo: Para cobrar "Cada 2 Semanas", usa `periodicity: W` e `interval: 2`.
+  </Property>
+
+  <Property name="nextPayment" type="date">
+    **Requerido.** Formato `YYYY-MM-DD`.<br/>
+    Es la fecha de inicio. El sistema no realizará ningún cobro antes de esta fecha.
+    * **Al crear:** Define cuándo será el **primer** cargo.
+    * **Automático:** Después de cada cobro exitoso, el sistema actualiza este campo automáticamente sumando la frecuencia configurada.
+  </Property>
+
+  <Property name="dueDate" type="date" isRequired={false}>
+    **Opcional.** Formato `YYYY-MM-DD`.<br/>
+    Funciona como fecha de caducidad o límite superior del autopago. Si el cálculo del siguiente cobro resulta en una fecha posterior a este límite, el AutoPago se marca como **Finalizado** y deja de procesar cobros.
+  </Property>
+
+  <Property name="notificationUrl" type="string">
+    **Requerido.** URL segura (`https`).<br/>
+    Endpoint donde tu servidor recibirá las notificaciones (Webhooks) cada vez que ocurra un cobro, un fallo o un cambio de estado en este autopago.
+  </Property>
+</Properties>
+
+---
+
+## Lógica de cálculo de fechas
+
+El motor de AutoPay (Scheduler) ejecuta un proceso diario. Para determinar la fecha del **siguiente cobro**, el sistema sigue una lógica estricta para asegurar que el autopago siga vigente.
+
+El siguiente diagrama ilustra cómo se actualiza el objeto `recurring` después de un cobro exitoso:
+
+<RecurringSequence />
+
+### Ejemplos de frecuencias comunes
+
+Aunque la lógica es flexible, aquí tienes las combinaciones más utilizadas:
+
+| Frecuencia Deseada | Configuración JSON | Resultado Lógico |
+| :--- | :--- | :--- |
+| **Mensual** | `"periodicity": "M", "interval": 1` | Cobra cada mes el mismo día (ej. 5 Ene, 5 Feb). |
+| **Trimestral** | `"periodicity": "M", "interval": 3` | Cobra cada 3 meses. |
+| **Quincenal** | `"periodicity": "W", "interval": 2` | Cobra cada 2 semanas (ej. Viernes por medio). |
+| **Anual** | `"periodicity": "Y", "interval": 1` | Cobra una vez al año. |
