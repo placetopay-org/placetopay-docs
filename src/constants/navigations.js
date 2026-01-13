@@ -992,7 +992,7 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server'
               },
               {
-                title: '¿Qué es el Protocolo 3-D Secure?',
+                title: '¿Qué es el Protocolo 3D-Secure?',
                 href: '/three-d-s-server/introduction',
               },
               {
@@ -1137,7 +1137,7 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server/api/merchants/branch',
               },
               {
-                title: 'Suscribir Modelos',
+                title: 'API Suscribir Modelos (obsoleta)',
                 href: '/three-d-s-server/api/merchants/enrolment',
               },
               {
@@ -1168,7 +1168,7 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server'
               },
               {
-                title: 'What is the 3-D Secure Protocol?',
+                title: 'What is the 3D-Secure Protocol?',
                 href: '/three-d-s-server/introduction',
               },
               {
@@ -1189,7 +1189,7 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'HTTP Codes in the Authentication Process',
-                href: '/three-d-s-server/http-Codes',
+                href: '/three-d-s-server/http-codes',
               },
               {
                 title: '3DS Server Service Flow',
@@ -1312,7 +1312,7 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server/api/merchants/branch',
               },
               {
-                title: 'Enrolment model',
+                title: 'Enrolment model API (deprecated)',
                 href: '/three-d-s-server/api/merchants/enrolment',
               },
               {
@@ -1574,7 +1574,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Introducción', href: '/acs' },
               {
-                title: '¿Qué es el Protocolo 3-D Secure?',
+                title: '¿Qué es el Protocolo 3D-Secure?',
                 href: '/acs/3-d-s-secure-protocol',
               },
               {
@@ -1615,7 +1615,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Introduction', href: '/acs' },
               {
-                title: 'What is the 3-D Secure Protocol?',
+                title: 'What is the 3D-Secure Protocol?',
                 href: '/acs/3-d-s-secure-protocol',
               },
               {
