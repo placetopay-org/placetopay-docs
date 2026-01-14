@@ -1137,10 +1137,6 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server/api/merchants/branch',
               },
               {
-                title: 'API Suscribir Modelos (obsoleta)',
-                href: '/three-d-s-server/api/merchants/enrolment',
-              },
-              {
                 title: 'API Suscripciones',
                 href: '/three-d-s-server/api/subscriptions/show',
               },
@@ -1310,10 +1306,6 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Branches API',
                 href: '/three-d-s-server/api/merchants/branch',
-              },
-              {
-                title: 'Enrolment model API (deprecated)',
-                href: '/three-d-s-server/api/merchants/enrolment',
               },
               {
                 title: 'Subscriptions API',
