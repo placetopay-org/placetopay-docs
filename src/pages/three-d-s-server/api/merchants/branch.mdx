@@ -4,9 +4,8 @@ export const description =
 export const apiRefs = ['/api/v1/merchants/{merchantID}/branches'];
 
 # API Sucursales
----
 
-## Agregar sucursales a un comercio {{ id: 'add-branches', tag: 'POST', label: '/api/v1/merchants/merchantID/branches' }}
+## Agregar sucursales a un comercio {{ id: 'add-branches', tag: 'POST', label: '/api/{version}/merchants/merchantID/branches' }}
 
 
 <Row>
@@ -20,8 +19,8 @@ export const apiRefs = ['/api/v1/merchants/{merchantID}/branches'];
     />
   </Col>
   <Col sticky>
-    <CodeGroup title="Solicitud" tag="POST" label="/api/v1/merchants/{merchantID}/branches">
-    ```bash {{ title: 'cURL' }}
+    <CodeGroup title="Solicitud" tag="POST" label="/api/{version}/merchants/{merchantID}/branches">
+    ```bash {{ title: 'V1' }}
     curl -X "POST" https://3dss-test.placetopay.com/api/v1/merchants/{merchantID}/branches \
       -H "Content-Type: application/json" \
       -H "Accept: application/json" \
@@ -61,6 +60,48 @@ export const apiRefs = ['/api/v1/merchants/{merchantID}/branches'];
           ]
       }'
     ```
+
+    ```bash {{ title: 'V2' }}
+    curl -X "POST" https://3dss-test.placetopay.com/api/v2/merchants/{merchantID}/branches \
+      -H "Content-Type: application/json" \
+      -H "Accept: application/json" \
+      -H "Authorization: Bearer ACCESS_TOKEN" \
+      -d '{
+              "branches": [
+                {
+                  "name": "Oficina Medellin",
+                  "brand": "Evertec Medellin",
+                  "country": "COL",
+                  "currency": "COP",
+                  "url": "https://example-uno.com",
+                  "createToken": true,
+                },
+                {
+                  "name": "Oficina Bogotá",
+                  "brand": "Evertec Bogotá",
+                  "country": "COL",
+                  "currency": "COP",
+                  "url": "https://example-dos.com"
+                  "enabled": true,
+                  "createToken": true,
+                  "subscriptions": [
+                      {
+                          "franchise": "visa",
+                          "acquirerBIN": "454819",
+                          "version": 2,
+                          "merchantCode": "1234"
+                      },
+                      {
+                          "franchise": "mastercard",
+                          "acquirerBIN": "510510",
+                          "version": 2,
+                          "merchantCode": "3064"
+                      }
+                  ]
+                }
+              ]
+      }'
+    ```
     </CodeGroup>
   </Col>
 </Row>
@@ -78,7 +119,7 @@ export const apiRefs = ['/api/v1/merchants/{merchantID}/branches'];
   <Col sticky>
     <br />
     <CodeGroup title="Respuesta">
-    ```json {{ title: '200' }}
+    ```json {{ title: '200 (V1)' }}
     {
       "status": {
         "code": 1000
@@ -118,12 +159,54 @@ export const apiRefs = ['/api/v1/merchants/{merchantID}/branches'];
       ]
     }
     ```
-    ```json {{ title: '401' }}
+    ```json {{ title: '200 (V2)' }}
+    {
+      "status": {
+          "status": "OK",
+          "reason": "00",
+          "message": "The request has been successfully processed",
+          "date": "2025-12-10T22:36:18+00:00"
+      },
+      "branches": [
+        {
+          "id": 1,
+          "name": "Oficina Ciudad A",
+          "brand": "Compañía Ciudad A",
+          "url": "https://company-a.com",
+          "token": {
+            "accessToken":"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...",
+            "expiresAt": "2028-12-09T20:46:20+00:00",
+          }
+        },
+        {
+          "id": 2,
+          "name": "Oficina Ciudad B",
+          "brand": "Compañía Ciudad B",
+          "url": "https://company-b.com",
+          "token": {
+              "accessToken":"eV19eyJhdWQiOiIxIiwianRpIjoiMWIyNjgk867nh...",
+              "expiresAt": "2028-12-09T20:46:20+00:00",
+          }
+        }
+      ]
+    }
+    ```
+    ```json {{ title: '401 (V1)' }}
     {
       "message": "Unauthenticated."
     }
     ```
-    ```json {{ title: '404' }}
+    ```json {{ title: '401 (V2)' }}
+    {
+        "status": {
+            "status": "FAILED",
+            "reason": "BR",
+            "message": "Unauthenticated.",
+            "date": "2025-12-09T20:58:15+00:00"
+        }
+    }
+    ```
+    ```json {{ title: '404 (V1)' }}
     {
       "status": {
         "code": 1010,
@@ -131,44 +214,32 @@ export const apiRefs = ['/api/v1/merchants/{merchantID}/branches'];
       }
     }
     ```
-    ```json {{ title: '422' }}
+   ```json {{ title: '404 (V2)' }}
+    {
+        "status": {
+            "status": "FAILED",
+            "reason": "BR",
+            "message": "The merchant does not exist",
+            "date": "2025-12-09T21:00:42+00:00"
+        }
+    }
+    ```
+    ```json {{ title: '422 (V1)' }}
     {
       "status": {
         "code": 1001,
-        "error": "The branches field is required."
+        "error": "The branches.0.name field is required."
       }
     }
     ```
-    ```json {{ title: '422' }}
+    ```json {{ title: '422 (V2)' }}
     {
-      "status": {
-        "code": 1002,
-        "error": "The branches.0.country must be 3 characters."
-      }
-    }
-    ```
-    ```json {{ title: '422' }}
-    {
-      "status": {
-        "code": 1002,
-        "error": "The selected branches.0.currency is invalid."
-      }
-    }
-    ```
-    ```json {{ title: '422' }}
-    {
-      "status": {
-        "code": 1004,
-        "error": "The branches.0.name has already been taken."
-      }
-    }
-    ```
-    ```json {{ title: '422' }}
-    {
-      "status": {
-        "code": 1004,
-        "error": "The branches.0.url must be a valid URL."
-      }
+        "status": {
+            "status": "FAILED",
+            "reason": "BR",
+            "message": "The branches.0.name field is required.",
+            "date": "2025-12-09T21:00:42+00:00"
+        }
     }
     ```
     </CodeGroup>
