@@ -16,10 +16,6 @@ const TITLES = {
     es: 'Respuesta',
     en: 'Response',
   },
-  body: {
-    es: 'Cuerpo',
-    en: 'Body',
-  },
   params: {
     es: {
       params: 'Parámetros',
@@ -388,11 +384,9 @@ export const ApiParams = ({ params = [], type = 'params' }) => {
   )
 }
 
-export const ApiRequest = ({ request = {}, params = [] }) => {
+export const ApiRequest = ({ request = {} }) => {
   const { locale } = useLocale()
-  const [selected, setSelected] = useState(0)
-
-  const headers = params ? params.filter((p) => p.in === 'header') : []
+  const [selected, setSelected] = useState(0);
 
   const requestBody =
     request?.content?.['application/json'] ??
@@ -406,7 +400,7 @@ export const ApiRequest = ({ request = {}, params = [] }) => {
     body = multiBodies[selected]
   }
 
-  if (!body?.properties && headers.length === 0) {
+  if (!body?.properties) {
     return null
   }
 
@@ -427,33 +421,19 @@ export const ApiRequest = ({ request = {}, params = [] }) => {
         )}
       </div>
 
-       {headers.length > 0 && (
-            <div className="mb-6">
-              <ApiParams params={headers} type="header" />
-            </div>
-        )}
+      {body.deprecated && (
+        <Note type='warning'>{TITLES.deprecated[locale]}</Note>
+      )}
 
-        {body && (
-            <>
-              {headers.length > 0 && (
-                 <h3>{TITLES.body[locale]}</h3>
-              )}
+      {body.description && (
+        <ReactMarkdown>{body.description}</ReactMarkdown>
+      )}
 
-              {body.deprecated && (
-                <Note type='warning'>{TITLES.deprecated[locale]}</Note>
-              )}
-
-              {body.description && (
-                <ReactMarkdown>{body.description}</ReactMarkdown>
-              )}
-
-              <ApiProperties
-                properties={Object.entries(body?.properties || {})}
-                requireds={body?.required || []}
-                conditionals={body?.['x-conditional'] || []}
-              />
-            </>
-          )}
+      <ApiProperties
+        properties={Object.entries(body?.properties || {})}
+        requireds={body?.required || []}
+        conditionals={body?.['x-conditional'] || []}
+      />
     </>
   )
 }
@@ -469,7 +449,7 @@ export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
   }
 
   if (type === 'request') {
-    return <ApiRequest request={data.requestBody} params={data.parameters} />
+    return <ApiRequest request={data.requestBody} />
   }
 
   if (type === 'response') {
