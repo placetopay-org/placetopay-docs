@@ -2,16 +2,16 @@ import { HeroPattern } from '@/components/HeroPattern'
 
 <HeroPattern />
 
-export const apiRefs = ['/autopay/session','/autopay/session/{requestId}']
+export const apiRefs = ['/autopay/session']
 
 
-## Crear o actualizar sesión de AutoPago {{ id: 'session-autopay', tag: 'POST', label: '/autopay/session' }}
+## Crear o actualizar sesión de AutoPago {{ id: 'create-a-session', tag: 'POST', label: '/autopay/session' }}
 
 El flujo de creación y actualización de un autopago comienza con esta solicitud que genera una sessión. Este proceso permite configurar pagos programados y/o recurrentes de forma automatizada, proporcionando enlace para dirigirse a la interfaz gráfica para que el tarjeta habiente autorice el inicio o actualización del autopago y seleccione el medio de pago.
 
-## Flujo de creación
+### Flujo
 
-1. **Solicitud inicial**: Al realizar la petición de creación, el sistema genera una sessión de AutoPago y retorna una URL de redirección.
+1. **Solicitud inicial**: Al realizar la petición de creación o edición, el sistema genera una sessión de AutoPago y retorna una URL de redirección.
 
 2. **Interfaz de AutoPago**: La URL dirige al usuario a una interfaz gráfica donde debe:
 - Aceptar los términos y condiciones del autopago
@@ -19,24 +19,15 @@ El flujo de creación y actualización de un autopago comienza con esta solicitu
 - Completar el proceso de suscripción del medio de pago
 - Pasar las validaciones de seguridad necesarias
 
-3. **Activación**: Una vez completado el proceso, recibirá una notificación mediante webhook indicando la creación del autopago. Alternativamente, puede consultar el estado usando el endpoint de consulta de sesión para verificar si el autopago ya está creado.
-
-
-
----
-
-## Crear una sesión {{ id: 'create-a-session', tag: 'POST', label: '/autopay/session' }}
+3. **Activación**: Una vez completado el proceso, recibirá una notificación mediante webhook indicando la creación o actualización del autopago. Alternativamente, puede consultar el estado usando el endpoint de [consulta de sesión](/autopay/api/query) para verificar si el autopago ya está actualizado.
 
 <Row>
   <Col>
-    Este endpoint te permite crear una nueva sesión. En la sesión el usuario podrá completar una suscripción.
-
     <ApiReader
       path="/autopay/session"
       method="post"
       api={props.refs}
     />
-
   </Col>
   <Col sticky>
     <CodeGroup title="Solicitud" tag="POST" label="/autopay/session">
@@ -187,7 +178,7 @@ curl -X "POST" https://test.placetopay.com/autopay/session \
 {
   "status": {
     "status": "OK",
-    "reason": "PC",
+    "reason": "00",
     "message": "La petición se ha procesado correctamente",
     "date": "2021-11-30T15:08:27-05:00"
   },
@@ -196,192 +187,6 @@ curl -X "POST" https://test.placetopay.com/autopay/session \
 }
 ```
 ```json {{ title: '400' }}
-{
-  "status": {
-    "status": "FAILED",
-    "reason": 401,
-    "message": "Autenticación fallida 102",
-    "date": "2021-11-30T15:12:25-05:00"
-  },
-}
-```
-    </CodeGroup>
-  </Col>
-</Row>
-
-
----
-
----
-
-## Consultar una sesión {{ id: 'query-a-session', tag: 'POST', label: '/autopay/session/:requestId' }}
-
-<Row>
-  <Col>
-    Este endpoint te permite obtener la información de la sesión, si en la sesión hay transacciones se muestra el detalle de las mismas.
-
-    <ApiReader
-      path="/autopay/session/{requestId}"
-      type="params"
-      api={props.refs}
-    />
-  </Col>
-</Row>
-
-<br />
-
-<Row>
-  <Col>
-    <ApiReader
-      path="/autopay/session/{requestId}"
-      method="post"
-      api={props.refs}
-    />
-
-  </Col>
-  <Col sticky>
-    <CodeGroup title="Solicitud" tag="POST" label="/autopay/session/:requestId">
-```bash {{ title: 'cURL' }}
-curl -X "POST" https://test.placetopay.com/autopay/session/000000 \
-  -H "Content-Type: application/json" \
-  -d '{
-      "auth": {
-        "login": "aabbccdd1234567890aabbccdd123456",
-        "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
-        "nonce": "NjE0OWVkODgwYjNhNw==",
-        "seed": "2021-09-21T09:34:48-05:00"
-      }
-    }'
-```
-    </CodeGroup>
-  </Col>
-</Row>
-
-<Row>
-  <Col>
-    <ApiReader
-      path="/autopay/session/{requestId}"
-      method="post"
-      type="response"
-      api={props.refs}
-    />
-  </Col>
-
-  <Col sticky>
-    <br />
-    <CodeGroup title="Respuesta">
-
-```json {{ title: '200: Autopago Registrado'}}
-{
-  "status": {
-    "status": "APPROVED",
-    "reason": "00",
-    "message": "La petición ha sido aprobada exitosamente",
-    "date": "2022-07-27T14:51:27-05:00"
-  },
-  "requestId": 100,
-  "request": {
-    "locale": "es_CO",
-    "payer": {
-      "document": "111111111",
-      "documentType": "CC",
-      "name": "Antonino",
-      "surname": "Pan y queso",
-      "email": "root13@app.com",
-      "mobile": "+573111111111"
-    },
-    "type": "autopay",
-    "autopay": {
-      "action": "CREATE",
-      "reference": "12345",
-      "description": "Inscripción autopago monto fijo",
-      "recurring": {
-        "type": "FIXED",
-        "periodicity": "M",
-        "interval": "1",
-        "maxPeriods": 12,
-        "startDate": "2026-11-26",
-        "nextPayment": "2026-12-05",
-        "dueDate": "2027-11-26",
-        "notificationUrl": "https://merchant.test/notification",
-      },
-      "dueDay": 15,
-      "amount": {
-        "currency": "USD",
-        "total": 100
-      }
-    },
-    "fields": [
-      {
-        "keyword": "customerAccountNumber",
-        "value": "112233",
-        "displayOn": "none"
-      }
-    ],
-    "returnUrl": "https://mysite.com/response/32120",
-    "ipAddress": "127.0.0.1",
-    "userAgent": "PlacetoPay Sandbox",
-    "expiration": "2023-03-09T23:28:43.775Z"
-  },
-  "autopay": [
-    {
-      "status": {
-          "status": "APPROVED",
-          "reason": "00",
-          "date":"2023-06-21T09:56:06-05:00"
-      },
-      "siteId": "100200300",
-      "id": "328eb09a-363f-48a6-a16e-51c5a58b89ec",
-      "buyer": null,
-      "payer": {
-        "document": "111111111",
-        "documentType": "CC",
-        "name": "Antonino",
-        "surname": "Pan y queso",
-        "email": "root13@app.com",
-        "mobile": "+573111111111"
-      },
-      "subscription": {
-        "reference": "12345",
-        "description": "Inscripción autopago monto fijo",
-        "amount": {
-          "currency": "USD",
-          "total": 100
-        },
-        "recurring": {
-          "type": "FIXED",
-          "periodicity": "M",
-          "interval": "1",
-          "maxPeriods": 12,
-          "startDate": "2026-11-26",
-          "nextPayment": "2026-12-05",
-          "dueDate": "2027-11-26",
-          "notificationUrl": "https://merchant.test/notification",
-        },
-      },
-      "instrument": {
-        "token": {
-          "token": "faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891",
-          "subtoken": "fakesubtoken00000",
-          "franchise": "master",
-          "franchiseName": "Mastercard",
-          "lastDigits": "0000",
-          "validUntil": "2018-12-31"
-        }
-      },
-      "additional": {
-        "customerAccountNumber": "1232312323",
-        "dueDay": "25",
-      },
-      "acceptedAt": "2021-09-24T10:02:17-05:00"
-    },
-  ],
-  "payment": null,
-  "subscription": null,
-}
-```
-
-```json {{ title: '401' }}
 {
   "status": {
     "status": "FAILED",
