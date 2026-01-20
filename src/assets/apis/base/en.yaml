@@ -290,6 +290,7 @@ components:
             - "banco_bogota"
             - "ebt"
             - "alia"
+            - "deuna"
         franchiseName:
           type: "string"
           description: "Franchise display name."
@@ -490,3 +491,146 @@ components:
         - "type"
         - "refunded"
         - "processorFields"
+    Dispersion:
+      title: "Dispersion"
+      type: "object"
+      description: "Structure that contains the information required for a dispersion payment."
+      properties:
+        agreement:
+          type: "number"
+          description: "Identifier of the transaction recipient. For the main transaction site, the value must be null."
+          nullable: true
+        agreementType:
+          type: "string"
+          enum:
+            - "AIRLINE"
+            - "MERCHANT"
+        amount:
+          $ref: "#/components/schemas/Amount"
+
+    PaymentModifier:
+      title: "PaymentModifier"
+      type: "object"
+      description: >
+        Structure to store information about a payment modifier.
+
+        NOTE: If a modifier that applies a discount is sent, the discounts configured by promotions on the site will not be applied.
+      x-examples:
+        law-discount:
+          type: "FEDERAL_GOVERNMENT"
+          code: "17934"
+          additional:
+            invoice: "123456"
+      properties:
+        type:
+          type: "string"
+          enum:
+            - "FEDERAL_GOVERNMENT"
+          description: "Modifier type"
+        code:
+          type: "string"
+          example: "17934"
+          description: "Modifier code. When the type is FEDERAL_GOVERNMENT, it represents the law number for the discount."
+        additional:
+          type: "object"
+          description: "Additional modifier information"
+          properties:
+            invoice:
+              type: "string"
+              description: "Invoice number. Required when the type is FEDERAL_GOVERNMENT."
+    Payment:
+      title: "Payment"
+      type: "object"
+      description: "Structure that contains information about the transaction payment required by the web service."
+      properties:
+        reference:
+          type: "string"
+          minLength: 1
+          maxLength: 32
+        description:
+          type: "string"
+          maxLength: 250
+        amount:
+          $ref: "#/components/schemas/Amount"
+        dispersion:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Dispersion"
+        modifiers:
+          type: "array"
+          description: "Structure that contains payment modifiers."
+          items:
+            $ref: "#/components/schemas/PaymentModifier"
+        shipping:
+          $ref: "#/components/schemas/Person"
+          description: "Structure to relate shipping information."
+    Person:
+      title: "Person"
+      type: "object"
+      description: "Structure that represents the information of a person involved in a transaction."
+      properties:
+        documentType:
+          type: "string"
+          description: "[Identification document type](/gateway/document-types)"
+          example: "CC"
+          maxLength: "6"
+        document:
+          type: "string"
+          description: "Identification document number. It must be a valid number according to the document type. See more at [Identification document types](/gateway/document-types)"
+          maxLength: "25"
+        name:
+          type: "string"
+          description: "First name"
+          maxLength: "60"
+        surname:
+          type: "string"
+          description: "Last name"
+          maxLength: "60"
+        company:
+          type: "string"
+          description: "Company"
+          maxLength: "60"
+        email:
+          type: "string"
+          description: "Email address."
+          maxLength: "80"
+        address:
+          $ref: "#/components/schemas/Address"
+          description: "Object that contains a person's address information."
+        mobile:
+          type: "string"
+          description: "Mobile phone number"
+    Address:
+      title: "Address"
+      type: "object"
+      description: "Structure that contains information about a physical address."
+      properties:
+        street:
+          type: "string"
+          maxLength: "128"
+          description: "Street"
+        city:
+          type: "string"
+          maxLength: "30"
+          description: "City"
+        state:
+          type: "string"
+          maxLength: "3"
+          description: "Country subdivision code representing the state or province. ISO 3166-2 format."
+          example: "CUN"
+        postalCode:
+          type: "string"
+          maxLength: "10"
+          description: "Postal code"
+          example: "110111"
+        country:
+          type: "string"
+          maxLength: "2"
+          example: "CO"
+          description: "Country. ISO 3166-1 alpha-2 code."
+        phone:
+          type: "string"
+          maxLength: "20"
+          description: "Phone number"
+          example: "3003003000"
+
