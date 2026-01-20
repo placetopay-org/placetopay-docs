@@ -2335,6 +2335,7 @@ export const TAB_NAVIGATION = {
             title: 'API',
             links: [
               { title: 'Create or Update an AutoPay Session', href: '/autopay/api/session' },
+              { title: 'Query an AutoPay Session', href: '/autopay/api/query' },
               { title: 'Cancel AutoPay', href: '/autopay/api/cancel' },
               { title: 'AutoPay Search', href: '/autopay/api/search' },
               { title: 'AutoPay Transactions', href: '/autopay/api/transactions' },
