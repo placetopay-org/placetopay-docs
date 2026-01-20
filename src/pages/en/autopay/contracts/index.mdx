@@ -3,21 +3,47 @@ import { Note } from "@/components/Note";
 
 <HeroPattern />
 
-## Client API contracts when integrating AutoPay
+# Merchant API Contracts
+
+Unlike the standard API where you initiate requests, in **Merchant Contracts**, AutoPay **queries your server** to perform critical operations in real-time.
+
+This section documents the endpoints your infrastructure must expose to enable automated charges and status synchronization.
+
+## Configuration and Base URL
 
 <Note type="warning">
-    **baseURL**: This is the base URL of the client/merchant application, which must be provided by the merchant and configured during the AutoPay onboarding process.
+  **Base URL:** You must provide this URL during onboarding. Please note that AutoPay will automatically append the **/autopay** prefix to all requests, so your router must be configured to support it.
+
+  **Example:**
+  * Provided Base URL: `https://api.yourcommerce.com`
+  * Final AutoPay request: `POST https://api.yourcommerce.com/autopay/balance`
 </Note>
-
-To operate AutoPay end to end, the client/merchant must expose a set of their own endpoints that follow the contracts defined in this documentation.
-
-These endpoints allow Placetopay to:
-- Query the balance/amount to be charged.
-- Confirm the application of a payment.
-- Receive notifications about the AutoPay lifecycle (activation, update, deactivation, execution results).
-
-In this section, you can find more information about the contracts and examples of each of the services you must implement.
 
 <Note type="warning">
-    As a client, when implementing these contracts you must implement authentication based on *Basic Authentication*. This allows you to identify us and validate the information so your operations remain secure. See more at [**Contract authentication**](/autopay/contract-authentication).
+    **Authentication (Basic Authentication):** This endpoint requires authentication via the `Authorization` header.
+    The merchant must validate the credentials configured for AutoPay on each incoming request. See more at [**Contract authentication**](/autopay/contract-authentication).
 </Note>
+
+## Services to Implement
+
+To ensure a complete integration, you must expose the following contracts:
+
+| Resource | Method | Function |
+| :--- | :--- | :--- |
+| [**/balance**](/autopay/contracts/balance) | `POST` | **Exclusive for Variable Charge.** Allows us to query the amount to charge in each cycle. Necessary if using `TOTAL_BALANCE` or `MINIMUM_BALANCE` models. |
+| [**/settlement**](/autopay/contracts/settlement) | `POST` | **Required.** Final confirmation of the approved payment so you can register/settle it in your internal systems. |
+| [**/webhook**](/autopay/contracts/webhook) | `POST` | **Required.** Notification channel to receive status updates (creation, cancellation) and charge results. |
+
+---
+
+## Technical Requirements
+
+Your API must comply with the following standards:
+
+### 1. Security (Basic Auth)
+AutoPay will authenticate by sending an `Authorization` header. You define the credentials (`username` and `password`) and must validate them on every incoming request.
+
+### 2. Format and Transport
+* **Protocol:** Strict HTTPS.
+* **Format:** JSON (`Content-Type: application/json`).
+* **Performance:** Responding in less than 3 seconds is recommended to avoid timeouts.

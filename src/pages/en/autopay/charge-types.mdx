@@ -2,14 +2,42 @@ import { HeroPattern } from '@/components/HeroPattern'
 
 <HeroPattern />
 
-# Charges in AutoPay
-A charge in **AutoPay** refers to the amount that is attempted to be collected on each scheduled date of the autopay. There are several ways in which the amount to be charged can be defined, known as **“Charge Types.”**
+# AutoPay Charge Types
 
-## Charge types
-The charge type defines the charging modality, that is, how the amount to be charged is determined in each autopay execution (for example, total balance, minimum payment, etc.). Below are the charge types available in the AutoPay system and how they operate within the general flow.
+AutoPay offers three configuration types to adapt to your business model, allowing everything from flat fees to variable amounts based on consumption.
 
-| Charge type            | What it charges                                                                       | Source of the amount at execution                                                                                                                                                                  |
-|------------------------|---------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `TOTAL_BALANCE`        | The **total balance** required for the period (total to pay according to recurrence). | The [**balance**](/autopay/contracts/balance) of the obligation is queried via the merchant API if it is enabled for each payment to be executed.                                                  |
-| `MINIMUM_BALANCE`      | The **minimum payment** required for the period.                                      | The [**balance**](/autopay/contracts/balance) is queried to obtain the minimum amount for the period for each payment to be executed.                                                              |
-| `FIXED`                | A **fixed amount** specified by the merchant/user.                                    | The amount is provided in the request or, if not, it will be selected by the user at the time of autopay confirmation.                                                                             |
+The `recurring.type` property defines the logic applied to determine the final transaction amount.
+
+## Comparison Table
+
+| Type | Business Model | Requires Balance API? | Example |
+| :--- | :--- | :--- | :--- |
+| **FIXED** | Constant Value | **No** | Memberships, Tuitions, Insurance |
+| **TOTAL_BALANCE** | Variable Consumption | **Yes** | Utilities, Post-paid Phone Bills |
+| **MINIMUM_BALANCE** | Flexible Payments | **Yes** | Revolving Credits, Credit Cards |
+
+---
+
+## Type Details
+
+### 1. FIXED (Fixed Amount)
+The simplest and most common model. The amount to charge is defined **once** when creating the subscription.
+* **Behavior:** Always charges the same amount defined at creation.
+* **Integration:** Does not require querying your server.
+* **Ideal for:** Gyms, software subscriptions (SaaS), school tuitions, monthly insurance premiums, or recurring donations.
+
+### 2. TOTAL_BALANCE (Total Balance)
+Designed for merchants where the amount changes from cycle to cycle.
+* **Behavior:** Before each charge, AutoPay queries your `/balance` endpoint.
+* **Logic:** Takes the value reported in the `amount` field of your API and processes the charge for that exact quantity.
+* **Ideal for:** Energy, water, gas bills, or consumption-based phone plans.
+
+### 3. MINIMUM_BALANCE (Minimum Payment)
+Designed for financial products that offer payment flexibility to the user.
+* **Behavior:** Queries your `/balance` endpoint.
+* **Logic:** Charges the value reported in the `min_amount` field of your API.
+* **Ideal for:** Credits where the user has authorized the automatic deduction of the minimum payment required to stay current.
+
+<Note>
+  **Technical Requirement:** To use `TOTAL_BALANCE` or `MINIMUM_BALANCE`, your server must expose the [Balance Query](/autopay/contracts/balance) endpoint so AutoPay can ask how much to charge.
+</Note>
