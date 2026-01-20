@@ -2262,6 +2262,7 @@ export const TAB_NAVIGATION = {
                 title: 'API',
                 links: [
                   { title: 'Crear o actualizar sesión de AutoPago', href: '/autopay/api/session' },
+                  { title: 'Consultar sesión de AutoPago', href: '/autopay/api/query' },
                   { title: 'Cancelar AutoPago', href: '/autopay/api/cancel' },
                   { title: 'Consulta de AutoPagos', href: '/autopay/api/search' },
                   { title: 'Transacciones de AutoPago', href: '/autopay/api/transactions' },
