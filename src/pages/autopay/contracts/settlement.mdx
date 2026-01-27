@@ -4,9 +4,15 @@ import { HeroPattern } from '@/components/HeroPattern'
 
 export const apiRefs = ['/autopay/settlement']
 
-## Asentar/Confirmar un pago {{ id: 'settlement', tag: 'POST', label: '{{baseURl}}/autopay/settlement' }}
+## Confirmar / Asentar pago {{ id: 'settlement', tag: 'POST', label: '/autopay/settlement' }}
+
+Este endpoint es el **cierre oficial** de una transacción exitosa. AutoPay invocará este servicio únicamente cuando un cobro haya sido **APROBADO** por la red financiera.
+
+Tu objetivo aquí es recibir la confirmación y registrar el pago en tu ERP, base de datos o sistema contable.
+
 <Note type="warning">
-    **baseURL**: Es la URL base del aplicativo del cliente/comercio la cual debe ser entregada por el mismo y configurada en el momento del onboarding del comercio con AutoPay.
+  **Endpoint del comercio:** La URL base (`{{baseURL}}`) corresponde a **tu propio servidor**.
+  Debes exponer este servicio en tu infraestructura y entregar la URL base durante el proceso de onboarding con AutoPay.
 </Note>
 
 <Note type="warning">
@@ -14,12 +20,16 @@ export const apiRefs = ['/autopay/settlement']
     El comercio debe validar las credenciales configuradas para AutoPay en cada solicitud entrante. Ver más en [**Autenticación de contratos**](/autopay/contract-authentication).
 </Note>
 
-<Note type="warning">
-    El asentamiento se realiza solo para las transacciones que han sido procesadas exitosamente y están en estado **APPROVED**.
-</Note>
+### Reglas de Negocio Recomendadas
+
+1.  **Idempotencia:** Es posible que, por intermitencias de red, recibas esta confirmación más de una vez para la misma transacción. Tu sistema debe validar si el pago ya fue asentado previamente y responder `200 OK` sin duplicar el registro.
+2.  **Validación de Monto:** Verifica que el `transaction.amount.total` coincida con lo que esperabas cobrar.
+3.  **Respuesta Rápida:** Este proceso es síncrono. Responde lo más rápido posible (`< 3s`) para finalizar el ciclo.
+
+---
+
 <Row>
     <Col>
-        Este endpoint se utiliza para confirmar un pago previamente procesado, enviando los detalles de la transacción.
         <ApiReader
             path="/autopay/settlement"
             method="POST"
@@ -120,7 +130,7 @@ curl -X POST {{baseURl}}/autopay/settlement \
   }
 }
 ```
-```json {{ title: '401: Autenticación invalida' }}
+```json {{ title: '400: Autenticación invalida' }}
 {
     "status": {
         "status": "FAILED",
@@ -130,7 +140,7 @@ curl -X POST {{baseURl}}/autopay/settlement \
     }
 }
 ```
-```json {{ title: '401: Autenticación invalida - Credenciales incorrectas' }}
+```json {{ title: '400: Autenticación invalida - Credenciales incorrectas' }}
 {
     "status": {
         "status": "FAILED",

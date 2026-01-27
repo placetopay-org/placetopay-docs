@@ -1,0 +1,153 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+<HeroPattern />
+
+export const apiRefs = ['/autopay/webhook']
+
+# Notifications (Webhooks)
+
+**AutoPay** uses this endpoint to notify you about **failed charges** and lifecycle changes.
+
+<Note>
+  **Important:**
+  1. **Approved** transactions are sent exclusively via [Settlement](/autopay/contracts/settlement).
+  2. Although this endpoint is part of Contracts and there is [Contracts Authentication](/autopay/contracts/authentication), the mechanism to validate message integrity is the **Digital Signature** described below.
+</Note>
+
+### Available events {{ id: 'event-types' }}
+
+| Event | Description |
+| :--- | :--- |
+| `AUTOPAY_CREATED` | Registration finished and autopay is active. |
+| `AUTOPAY_UPDATED` | Payment method or rules were updated. |
+| `AUTOPAY_TRANSACTION_FAILED` | Automatic charge attempt failed (e.g., insufficient funds). |
+| `AUTOPAY_CANCELED` | Autopay has been canceled. |
+
+## Security validation (signatures) {{ id: 'security-validation' }}
+
+It is **critical** to verify that the notification comes from Placetopay. We digitally sign every message. You must replicate the signing process on your server and compare the result.
+
+**Validation example:**
+
+Suppose your `secretKey` is `ABC123example456trankey+789abc012def3456ABC=` and you receive:
+
+```json {{ title: '1. Received Payload' }}
+{
+   "id": "111111-2222-3333-4444-555555555555",
+   "type": "AUTOPAY_TRANSACTION_FAILED",
+   "date": "2023-01-01 12:00:00",
+   "signature": "sha256:a1b2c3d4e5..."
+}
+```
+
+### Step-by-step process
+
+1.  **Concatenate:** Join `id`, `type`, `date`, and your `secretKey` (in this exact order, without spaces or separators).
+    > String = `111111-2222-3333-4444-555555555555` + `AUTOPAY_TRANSACTION_FAILED` + `2023-01-01 12:00:00` + `ABC123example456trankey+789abc012def3456ABC=`
+
+2.  **Hash:** Apply the **SHA-256** algorithm to the resulting string.
+
+3.  **Compare:** If your hash matches the received `signature` (ignoring the `sha256:` prefix), the request is authentic.
+
+<Note type="warning">
+  If the signature does not match, respond with **HTTP 400** and ignore the message. **Never** expose your `secretKey` in the frontend or public repositories.
+</Note>
+
+---
+
+## Webhook structure {{ id: 'webhook', tag: 'POST', label: '/autopay/webhook' }}
+
+<Note>
+  **Recommendation:** The webhook is strictly an event notification. To guarantee you have the latest and most detailed information, it is recommended to query the [Search AutoPay](/autopay/api/search) API using the received `id`.
+</Note>
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/autopay/webhook"
+            method="POST"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky={true}>
+        <CodeGroup title="Request" tag="POST" label="{{baseURl}}/autopay/webhook">
+            ```json {{ 'title': 'Creating an AutoPayment' }}
+            {
+                "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                "reference": "ACC00012345",
+                "type": "AUTOPAY_CREATED",
+                "date": "2023-01-19 15:57:23",
+                "signature": "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
+            }
+            ```
+            ```json {{ 'title': 'AutoPay Update' }}
+            {
+                "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                "reference": "ACC00012345",
+                "type": "AUTOPAY_UPDATED",
+                "date": "2023-01-19 15:57:23",
+                "signature": "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
+            }
+            ```
+
+            ```json {{ 'title': 'Fails to collect an AutoPayment' }}
+            {
+                "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                "reference": "ACC00012345",
+                "type": "AUTOPAY_TRANSACTION_FAILED",
+                "date": "2023-01-19 15:57:23",
+                "signature": "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s",
+                "additional": {
+                    "transactionID": "CFed8XTioVhyG3CGHhJrpgpyM8k1phj3"
+                },
+            }
+            ```
+
+            ```json {{ 'title': 'AutoPay Cancellation' }}
+            {
+                "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                "reference": "ACC00012345",
+                "type": "AUTOPAY_CANCELED",
+                "date": "2023-01-19 15:57:23",
+                "signature": "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
+            }
+            ```
+        </CodeGroup>
+    </Col>
+</Row>
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/autopay/webhook"
+            method="POST"
+            type="response"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <br />
+        <CodeGroup title="Response">
+            ```json {{ title: '200: Successful response' }}
+                {
+                  "status": {
+                     "status": "OK",
+                     "reason": "00",
+                     "message": "Successful response",
+                     "date": "2025-09-29T17:09:29-05:00"
+                  },
+                }
+            ```
+            ```json {{ title: '401: Invalid signature' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": "BR",
+                    "message": "Invalid signature",
+                    "date": "2025-09-29T17:09:29-05:00"
+                },
+            }
+            ```
+        </CodeGroup>
+    </Col>
+</Row>

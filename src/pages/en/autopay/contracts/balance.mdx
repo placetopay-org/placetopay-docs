@@ -1,0 +1,121 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+<HeroPattern />
+
+export const apiRefs = ['/autopay/balance']
+
+## Query amount to charge {{ id: 'balance', tag: 'POST', label: '/autopay/balance' }}
+
+This endpoint contains the logic for variable charges (`TOTAL_BALANCE` or `MINIMUM_BALANCE`). Before attempting any transaction, AutoPay will query this service to know **how much to charge** at that specific moment.
+
+<Note type="warning">
+  **Merchant endpoint:** The base URL (`{{baseURL}}`) corresponds to **your own server**.
+  You must expose this service on your infrastructure and provide the base URL during the AutoPay onboarding process.
+</Note>
+
+<Note type="warning">
+    **Authentication (Basic Authentication):** This endpoint requires authentication via the `Authorization` header.
+    The merchant must validate the credentials configured for AutoPay on each incoming request. See more at [**Contract authentication**](/autopay/contract-authentication).
+</Note>
+
+### Business rules
+
+1.  **Currency:** The currency (`currency`) you respond with must match the one configured in the original autopay.
+2.  **Zero Balance:** If you respond with a `total` of `0`, AutoPay will understand there is no pending debt and **will not perform any charge**.
+3.  **Amount Selection:** AutoPay will read the corresponding field based on the autopay configuration:
+    * If `TOTAL_BALANCE`, it will take the value from `amount`.
+    * If `MINIMUM_BALANCE`, it will take the value from `min_amount`.
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/autopay/balance"
+            method="POST"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky={true}>
+     <CodeGroup title="Solicitud" tag="POST" label="{{baseURl}}/autopay/balance">
+ ```bash {{ title: 'Obtener balance' }}
+        curl -X "POST" {{baseURl}}/autopay/balance \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Basic <base64(username:password)>" \
+        -d '{
+            "reference": "ACC00012345",
+            "id": "2972c13d-6315-4da3-80d7-64c24eb232ad"
+        }'
+  ```
+        </CodeGroup>
+    </Col>
+</Row>
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/autopay/balance"
+            method="POST"
+            type="response"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <br />
+        <CodeGroup title="Respuesta">
+            ```json {{ title: '200: Successful response' }}
+            {
+              "status": {
+                 "status": "OK",
+                 "reason": "00",
+                 "message": "Successful response",
+                 "date": "2025-09-29T17:09:29-05:00"
+              },
+              "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+              "amount": {
+                 "currency": "USD",
+                 "total": 10
+              },
+              "min_amount": {
+                 "currency": "USD",
+                 "total": 5
+              }
+            }
+            ```
+            ```json {{ title: '400: Not found' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": "404",
+                    "message": "Balance Not found",
+                    "date": "2025-09-29T17:09:29-05:00"
+                }
+            }
+            ```
+            ```json {{ title: '400: Invalid authentication' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": "BR",
+                    "message": "he authentication does not contains all the required parameters (login, tranKey, seed, nonce)",
+                    "date": "2025-09-29T17:09:29-05:00"
+                }
+            }
+            ```
+            ```json {{ title: '400: Invalid authentication - Incorrect credentials' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": "101",
+                    "message": "Authentication failed 103.",
+                    "date": "2025-09-29T17:09:29-05:00"
+                }
+            }
+            ```
+        </CodeGroup>
+    </Col>
+</Row>
+
+
+
+
+
+
