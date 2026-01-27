@@ -1765,6 +1765,69 @@ components:
         - value: 685.33
           keyword: installmentAmount
           displayOn: none
+    AutopayRecurring:
+      title: AutopayRecurring
+      type: object
+      description: Requerido cuando `action` es `CREATE`, Indica las condiciones de recurrencia del autopago.
+      required:
+        - type 
+        - periodicity
+        - interval
+        - nextPayment
+      properties:
+        type:
+          type: string
+          description: |
+            Corresponde al tipo de cobro que tendrá la recurrencia. Sólo se usa en sesiones de autopago.
+            `FIXED`: El monto es fijo y fue definido desde la creación del autopago,
+            `MINIMUM_BALANCE`: El monto minimo para mantener el la recurrencia activa, lo define un servicio externo,
+            `TOTAL_BALANCE`: El total definido en el activo, lo define un servicio externo
+          enum:
+            - FIXED
+            - MINIMUM_BALANCE
+            - TOTAL_BALANCE
+          example: TOTAL_BALANCE
+        periodicity: 
+          $ref: '#/components/schemas/Recurring/properties/periodicity'
+        interval: 
+          $ref: '#/components/schemas/Recurring/properties/interval'
+        nextPayment:
+          $ref: '#/components/schemas/Recurring/properties/nextPayment'
+        dueDate:
+          $ref: '#/components/schemas/Recurring/properties/dueDate'
+      examples:
+        - type: 'TOTAL_BALANCE'
+          periodicity: 'M'
+          interval: 1
+          nextPayment: '2019-08-24'
+          dueDate: '2019-09-24'
+    AutopayRecurringResponse:
+      title: AutopayRecurringResponse
+      type: object
+      description: Las condiciones del recurrencia del autopago.
+      properties:
+        type:
+          $ref: '#/components/schemas/AutopayRecurring/properties/type'
+        periodicity: 
+          $ref: '#/components/schemas/Recurring/properties/periodicity'
+        interval: 
+          $ref: '#/components/schemas/Recurring/properties/interval'
+        nextPayment:
+          $ref: '#/components/schemas/Recurring/properties/nextPayment'
+        dueDate:
+          $ref: '#/components/schemas/Recurring/properties/dueDate'
+        startDate:
+          type: string
+          format: date
+          description: Fecha informativa de inicio de la recurrencia, formato AAAA-MM-DD. Sólo se usa en sesiones de autopago.
+          example: '2019-08-24'
+      examples:
+        - type: 'TOTAL_BALANCE'
+          periodicity: 'M'
+          interval: 1
+          nextPayment: '2019-08-24'
+          dueDate: '2019-09-24'
+          startDate: '2019-08-24'
     Recurring:
       title: Recurring
       type: object
@@ -1813,37 +1876,12 @@ components:
           type: string
           description: URL en el que el servicio notificará cada vez que se haga un cobro
           example: 'https://merchant.example.com/notificationUrl'
-        type:
-          type: string
-          description: |
-            Corresponde al tipo de cobro que tendrá la recurrencia. Sólo se usa en sesiones de autopago.
-            `FIXED`: El monto es fijo y fue definido desde la creación del autopago,
-            `MINIMUM_BALANCE`: El monto minimo para mantener el la recurrencia activa, lo define un servicio externo,
-            `TOTAL_BALANCE`: El total definido en el activo, lo define un servicio externo
-          enum:
-            - FIXED
-            - MINIMUM_BALANCE
-            - TOTAL_BALANCE
-          example: TOTAL_BALANCE
-        startDate:
-          type: string
-          format: date
-          description: Fecha informativa de inicio de la recurrencia, formato AAAA-MM-DD. Sólo se usa en sesiones de autopago.
-          example: '2019-08-24'
       examples:
         - periodicity: D
-          interval: '1'
+          interval: 1
           nextPayment: '2019-08-24'
           maxPeriods: 1
           dueDate: '2019-09-24'
-          notificationUrl: 'https://merchant.example.com/notificationUrl'
-        - type: 'MINIMUM_BALANCE'
-          periodicity: M
-          interval: 1
-          startDate: '2019-08-24'
-          nextPayment: '2019-08-24'
-          maxPeriods: 1
-          dueDate: '2020-09-24'
           notificationUrl: 'https://merchant.example.com/notificationUrl'
     Item:
       description: Posee una colección de estructuras de elementos.
@@ -1984,7 +2022,7 @@ components:
         - reference
         - description
       description: |
-        Detalle del autopago a generar. El usuario debe registrar un medio de pago para que se realicen cobros automáticos sobre ese medio de pago segun las condiciones pactadas. Es requerido cuando `type` es `autopay`.
+        [BETA] Detalle del autopago a generar. El usuario debe registrar un medio de pago para que se realicen cobros automáticos sobre ese medio de pago segun las condiciones pactadas. Es requerido cuando `type` es `autopay`.
       properties:
         action: 
           type: string
@@ -2005,13 +2043,7 @@ components:
         dueDay:
           $ref: '#/components/schemas/AutopayDueDay'
         recurring:
-          description: Requerido cuando cuando `action` es `CREATE`, Indica las condiciones de recurrencia del autopago.
-          required:
-            - type
-            - periodicity
-            - interval
-            - startDate
-          $ref: '#/components/schemas/Recurring'
+          $ref: '#/components/schemas/AutopayRecurring'
         amount:
           $ref: '#/components/schemas/Amount'
           description: Requerido cuando `recurring.type` es `FIXED`. Define el monto fijo a cobrar en cada recurrencia.
@@ -2600,7 +2632,7 @@ components:
             amount:
               $ref: '#/components/schemas/Amount'
             recurring:
-              $ref: '#/components/schemas/Recurring'
+              $ref: '#/components/schemas/AutopayRecurringResponse'
         instrument:
           type: object
           description: Estructura que contiene la información del medio de pago asociado al AutoPago.

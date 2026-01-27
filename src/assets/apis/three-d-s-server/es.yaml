@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: 3DS Server
   version: '1.0'
-  description: 'Este documento presenta el funcionamiento del servicio o la API del 3DS Server. Expone las rutas a consumir (/sessions y /transactions), la url, el método, parámetros y los tipos datos que recibe. Además, contiene ejemplos de respuestas para diferentes tipos de peticiones en el flujo de autenticación de un tarjetahabiente dentro del marco del protocolo 3-D Secure.'
+  description: 'Este documento presenta el funcionamiento del servicio o la API del 3DS Server. Expone las rutas a consumir (/sessions y /transactions), la url, el método, parámetros y los tipos datos que recibe. Además, contiene ejemplos de respuestas para diferentes tipos de peticiones en el flujo de autenticación de un tarjetahabiente dentro del marco del protocolo 3D-Secure.'
   contact:
     name: Evertec Placetopay
     email: servicioposventa@placetopay.com
@@ -572,7 +572,7 @@ paths:
       summary: Crear un comercio
       operationId: post-user
       responses:
-        '200':
+        '200 (V1)':
           description: OK
           content:
             application/json:
@@ -716,7 +716,92 @@ paths:
                       code: 1000
                     data:
                       token: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...
-        '401':
+        '200 (V2)':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - OK
+                      reason:
+                        type: string
+                        enum:
+                          - '00'
+                      message:
+                        type: string
+                      date:
+                        type: string
+                        format: date-time
+                        example: '2025-12-09T12:00:00Z'
+                  merchant:
+                    type: object
+                    required:
+                      - id
+                      - name
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      token:
+                        type: object
+                        required:
+                          - accessToken
+                          - expiresAt
+                        properties:
+                            accessToken:
+                              type: string
+                            expiresAt:
+                              type: string
+                              format: date-time
+                  branches:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - name
+                        - token
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        token:
+                          type: object
+                          required:
+                            - accessToken
+                            - expiresAt
+                          properties:
+                            accessToken:
+                              type: string
+                            expiresAt:
+                              type: string
+                              format: date-time
+                required:
+                  - status
+                  - merchant
+              examples:
+                Comercio creado con éxito:
+                  value:
+                    status:
+                      code: 1000
+                    data:
+                      token: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...
+        '401 (V1)':
           description: No autenticado
           content:
             application/json:
@@ -733,7 +818,48 @@ paths:
                 No autenticado:
                   value:
                     message: Unauthenticated.
-        '422':
+        '401 (V2)':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - FAILED
+                      reason:
+                        type: string
+                        enum:
+                          - BR
+                      message:
+                        type: string
+                        enum:
+                          - Unauthenticated
+                      date:
+                        type: string
+                        format: date-time
+                        example: '2025-12-09T12:00:00Z'
+                required:
+                  - status
+                  - reason
+                  - message
+                  - date
+              examples:
+                No autenticado:
+                  value:
+                    message: Unauthenticated.
+        '422 (V1)':
           description: Mensajes de validación de datos
           content:
             application/json:
@@ -800,6 +926,43 @@ paths:
                     status:
                       code: 1009
                       error: The selected subscriptions.0.acquirerBIN is invalid.
+        '422 (V2)':
+          description: Mensajes de validación de datos
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - FAILED
+                      reason:
+                        type: string
+                        enum:
+                          - BR
+                      message:
+                        type: string
+                        example: 'The branches.0.name has already been taken.'
+                      date:
+                        type: string
+                        format: date-time
+                        example: '2025-12-09T12:00:00Z'
+                    examples:
+                      No autenticado:
+                        value:
+                          message: Unauthenticated.
+                required:
+                  - status
       requestBody:
         content:
           application/json:
@@ -854,13 +1017,13 @@ paths:
                 mcc:
                   type: number
                   description: 'código de categoría de comercial '
-                enrollment:
-                  type: boolean
-                  description: 'Indicador que indica si desea enrolar el comercio en la marca'
                 isicClass:
                   type: number
                   description: Código clase CIIU
-                branch:
+                createToken:
+                  type: boolean
+                  description: 'Indicador para la creación del token por comercio. Si este campo no se envía, por defecto se tomará como false y no se creará el token (este campo está disponible únicamente en la versión V2 del API).'
+                branches:
                   type: object
                   description: Información de la sucursal
                   required:
@@ -904,6 +1067,9 @@ paths:
                         * La URL no debe incluir fragmentos (hash o anclas, https://example.com`#section`).
                         * La URL debe tener un host definido. (https://`path`)
                         * El host no puede ser una dirección IP. (https://`192.168.1.1`)
+                    createToken:
+                      type: boolean
+                      description: 'Indicador para la creación del token por sucursal. Si este campo no se envía, por defecto se tomará como false y no se creará el token (este campo está disponible únicamente en la versión V2 del API).'
                 subscriptions:
                   type: array
                   uniqueItems: true
@@ -1159,6 +1325,9 @@ paths:
                           * La URL no debe incluir fragmentos (hash o anclas, https://example.com`#section`).
                           * La URL debe tener un host definido. (https://`path`)
                           * El host no puede ser una dirección IP. (https://`192.168.1.1`)
+                      createToken:
+                        type: boolean
+                        description: 'Indicador para la creación del token por sucursal. Si este campo no se envía, por defecto se tomará como false y no se creará el token (este campo está disponible únicamente en la versión V2 del API).'
                       enrollment:
                         type: boolean
                         description: 'Indicador que indica si desea enrolar el comercio en la marca @deprecated'
@@ -1214,7 +1383,7 @@ paths:
               properties: { }
         description: Envíe los campos necesarios para que la API agregue las sucursales a un comercio.
       responses:
-        '200':
+        '200 (V1)':
           description: OK
           content:
             application/json:
@@ -1238,6 +1407,8 @@ paths:
                         - name
                         - brand
                         - url
+                        - token
+                        - expires_at
                       properties:
                         id:
                           type: integer
@@ -1253,43 +1424,6 @@ paths:
                         expires_at:
                           type: string
                           format: date-time
-                        enrollment:
-                          type: object
-                          properties:
-                            mastercard:
-                              type: object
-                              required:
-                                - uuid
-                                - messageType
-                                - data
-                                - subscriptionId
-                              properties:
-                                uuid:
-                                  type: string
-                                  format: uuid
-                                messageType:
-                                  type: string
-                                data:
-                                  type: object
-                                  properties:
-                                    acquirerBIN:
-                                      type: string
-                                    acquirerICA:
-                                      type: string
-                                    acquirerName:
-                                      type: string
-                                    acquirerCID:
-                                      type: string
-                                    status:
-                                      type: string
-                                    reason:
-                                      type: string
-                                    modelId:
-                                      type: string
-                                    modelName:
-                                      type: string
-                                subscriptionId:
-                                  type: integer
                 required:
                   - status
                   - data
@@ -1307,7 +1441,69 @@ paths:
                         name: Oficina Ciudad B
                         brand: Compañía Ciudad B
                         url: 'https://company-b.com'
-        '401':
+        '200 (V2)':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - OK
+                      reason:
+                        type: string
+                        enum:
+                          - '00'
+                      message:
+                        type: string
+                      date:
+                        type: string
+                        format: date-time
+                        example: '2025-12-09T12:00:00Z'
+                  branches:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - name
+                        - token
+                        - url
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        brand:
+                          type: string
+                        url:
+                          type: string
+                        token:
+                          type: array
+                          required:
+                            - accessToken
+                            - expiresAt
+                          properties:
+                            accessToken:
+                              type: string
+                            expiresAt:
+                              type: string
+                              format: date-time
+                required:
+                  - status
+                  - branches
+        '401 (V1)':
           description: No autenticado
           content:
             application/json:
@@ -1324,7 +1520,48 @@ paths:
                 No autenticado:
                   value:
                     message: Unauthenticated.
-        '404':
+        '401 (V2)':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - FAILED
+                      reason:
+                        type: string
+                        enum:
+                          - BR
+                      message:
+                        type: string
+                        enum:
+                          - Unauthenticated
+                      date:
+                        type: string
+                        format: date-time
+                        example: '2025-12-09T12:00:00Z'
+                required:
+                  - status
+                  - reason
+                  - message
+                  - date
+              examples:
+                No autenticado:
+                  value:
+                    message: Unauthenticated.
+        '404 (V1)':
           description: El comercio no existe
           content:
             application/json:
@@ -1351,7 +1588,40 @@ paths:
                     status:
                       code: 1010
                       error: The merchant does not exist
-        '422':
+        '404 (V2)':
+          description:  El comercio no existe
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - FAILED
+                      reason:
+                        type: string
+                        enum:
+                          - BR
+                      message:
+                        type: string
+                        example: 'The merchant does not exist'
+                      date:
+                        type: string
+                        format: date-time
+                        example: '2025-12-09T12:00:00Z'
+                required:
+                  - status
+        '422 (V1)':
           description: Mensajes de validación de datos
           content:
             application/json:
@@ -1398,6 +1668,43 @@ paths:
                     status:
                       code: 1004
                       error: The branches.0.url must be a valid URL.
+        '422 (V2)':
+          description: Mensajes de validación de datos
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  status:
+                    type: object
+                    required:
+                      - status
+                      - reason
+                      - message
+                      - date
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - FAILED
+                      reason:
+                        type: string
+                        enum:
+                          - BR
+                      message:
+                        type: string
+                        example: 'The branches.0.name has already been taken.'
+                      date:
+                        type: string
+                        format: date-time
+                        example: '2025-12-09T12:00:00Z'
+                    examples:
+                      No autenticado:
+                        value:
+                          message: Unauthenticated.
+                required:
+                  - status
       description: Agregar sucursales a un comercio
       parameters:
         - schema:
@@ -1665,7 +1972,7 @@ paths:
                           version:
                             example: '2'
                             type: integer
-                            description: Número de versión de protocolo 3DS.
+                            description: Número de versión de protocolo EMV® 3D-Secure.
                   branch:
                     type: object
                     required:
@@ -1730,7 +2037,7 @@ paths:
                           version:
                             example: '2'
                             type: integer
-                            description: Número de versión de protocolo 3DS.
+                            description: Número de versión de protocolo EMV® 3D-Secure.
                 required:
                   - status
         '401':
@@ -1877,13 +2184,13 @@ paths:
                   enum:
                     - merchant
                     - branch
-                token:
+                accessToken:
                   type: string
                   description: Token a consultar.
               required:
                 - id
                 - type
-                - token
+                - accessToken
           application/xml:
             schema:
               type: object
@@ -2002,16 +2309,13 @@ paths:
                       date:
                         type: string
                         format: date-time
-                  name:
+                  accessToken:
                     type: string
-                    description: Nombre del token.
+                    description: Token creado, utilícelo para autenticar sus peticiones. Solo será visible en la respuesta de creación, manejar como una credencial de forma segura.
                   expiresAt:
                     type: string
                     format: date-time
                     description: Fecha y hora de expiración del token.
-                  revoked:
-                    type: boolean
-                    description: Indica si el token ha sido revocado.
 components:
   schemas:
     PhoneProperties:
@@ -2492,8 +2796,8 @@ components:
                 example: 2.2.0
                 enum:
                   - 2.2.0
-                description: Es el número de versión del protocolo 3DS que utiliza el sistema para ejecutar
-                  el flujo de autenticación. Esta versión la establece el servidor 3DS con el mensaje AReq
+                description: Es el número de versión del protocolo EMV® 3DS que utiliza el sistema para ejecutar
+                  el flujo de autenticación. Esta versión la establece el 3DS Server con el mensaje AReq
                   y no cambia durante todo el flujo de una transacción.
               messageCategory:
                 type: string

@@ -45,7 +45,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [ auth, reference, id ]
+              required: [ reference, id ]
               properties:
                 reference:
                   type: string
@@ -114,20 +114,20 @@ paths:
                           example: APPROVED
                           description: Estado del autopago. Solo se asentarán los pagos aprobados.
                         reason:
-                            type: string
-                            enum:
-                              - '00'
-                            description: Razón del estado de la petición. (consulte en [Códigos de razón](/autopay/codes))
-                            example: '00'
+                          type: string
+                          enum:
+                            - '00'
+                          description: Razón del estado de la petición. (consulte en [Códigos de razón](/autopay/codes))
+                          example: '00'
                         message:
-                            type: string
-                            description: Mensaje para aclarar el estado.
-                            example: "Respuesta satisfactoria"
+                          type: string
+                          description: Mensaje para aclarar el estado.
+                          example: "Respuesta satisfactoria"
                         date:
-                            type: string
-                            format: date-time
-                            description: Fecha y hora en la que se generó la respuesta.
-                            example: "2025-09-29T17:09:29-05:00"
+                          type: string
+                          format: date-time
+                          description: Fecha y hora en la que se generó la respuesta.
+                          example: "2025-09-29T17:09:29-05:00"
                       required:
                         - status
                         - reason
@@ -203,6 +203,7 @@ paths:
                         - "banco_bogota"
                         - "ebt"
                         - "alia"
+                        - "deuna"
                     franchiseName:
                       type: "string"
                       description: "Nombre mostrado de la franquicia."
@@ -265,6 +266,14 @@ paths:
                         - "ATH-MOVIL"
                         - "EBUS"
                         - "BANCOLOMBIA"
+                        - "PAGOEFECTIVO"
+                        - "PROCESA"
+                        - "TELERED"
+                        - "AVAL"
+                        - "DILO"
+                        - "BANCO_BOGOTA"
+                        - "BANET"
+                        - "DEUNA"
                     discount:
                       type: "string"
                       description: "Información de descuento aplicada (si existe)."
@@ -352,21 +361,27 @@ paths:
                       maxLength: 32
                     id:
                       $ref: '#/components/schemas/AutoPayId'
+                      nullable: true
                     chargeTypes:
                       type: array
-                      description: Filtrar por uno o varios tipos de cargo.
+                      description: Filtrar por uno o varios tipos de cargo. Ver más en [Tipos de cargo](/autopay/charge-types)
+                      example:  "['FIXED', 'TOTAL_BALANCE']"
+                      enum:
+                        - TOTAL_BALANCE
+                        - MINIMUM_BALANCE
+                        - FIXED
                       items:
                         $ref: '#/components/schemas/ChargeType'
                     status:
                       type: array
                       description: Estados del AutoPago incluidos en el filtro.
+                      enum:
+                        - FAILED
+                        - REJECTED
+                        - APPROVED
                       items:
                         type: string
-                        enum:
-                          - FAILED
-                          - REJECTED
-                          - APPROVED
-                      example: [ "APPROVED"]
+                      example: "[ 'APPROVED' ]"
                     createdAt:
                       type: object
                       description: Rango de fechas de creación (ISO 8601, solo fecha).
@@ -374,9 +389,12 @@ paths:
                         from:
                           type: string
                           example: "2025-09-01"
+                          format: date Y-m-d
+
                         to:
                           type: string
                           example: "2025-09-30"
+                          format: date Y-m-d
                 pagination:
                   $ref: '#/components/schemas/PaginationRequest'
                 locale:
@@ -471,15 +489,15 @@ paths:
                     status:
                       type: array
                       description: Estados de la transacción.
+                      enum:
+                        - OK
+                        - FAILED
+                        - REJECTED
+                        - APPROVED
+                        - APPROVED_PARCIAL
                       items:
                         type: string
-                        enum:
-                          - OK
-                          - FAILED
-                          - REJECTED
-                          - APPROVED
-                          - APPROVED_PARCIAL
-                      example: [ "APPROVED" ]
+                      example: "[ 'APPROVED' ]"
                     amount:
                       type: "object"
                       description: "Estructura que contiene la información acerca del pago de la transacción."
@@ -516,9 +534,11 @@ paths:
                         from:
                           type: string
                           example: "2025-09-01"
+                          format: date Y-m-d
                         to:
                           type: string
                           example: "2025-09-30"
+                          format: date Y-m-d
                 pagination:
                   $ref: '#/components/schemas/PaginationRequest'
                 locale:
@@ -539,10 +559,85 @@ paths:
                     description: Lista de transacciones del autopago que cumplen con los criterios de búsqueda.
                     type: array
                     items:
-                      title: Transaction
                       $ref: '../base/es.yaml#/components/schemas/Transaction'
                   pagination:
                     $ref: '#/components/schemas/Pagination'
+  /autopay/session:
+    post:
+      summary: Crear sesión (CreateRequest)
+      operationId: post-autopay-session
+      description: Solicita la creación de la sesión, retorna el identificador y la URL de procesamiento.
+      x-internal: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedirectRequest'
+      responses:
+        '200':
+          description: Solicitud exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  requestId:
+                    type:
+                      - string
+                      - number
+                      - integer
+                    example: 1
+                    description: Id de la petición
+                  processUrl:
+                    type: "string"
+                    format: "uri"
+                    maxLength: 250
+                    description: "URL a la cual se debe enviar al cliente para continuar el proceso, está es proporcionada por el servicio"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+  /autopay/session/{requestId}:
+    parameters:
+      - schema:
+          type: string
+        name: requestId
+        example: 1
+        description: Id de la petición. Se debe enviar en el path de la consulta.
+        in: path
+        required: true
+    post:
+      summary: Consultar sesión (getSessionInformation)
+      operationId: post-autopay-session-requestId
+      responses:
+        '200':
+          description: Respuesta exitosa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectInformation'
+      description: |
+        Obtiene la información de la sesión, si en la sesión hay transacciones se muestra el detalle de las mismas.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+
 components:
   schemas:
     AutoPay:
@@ -573,9 +668,11 @@ components:
               type: "string"
               minLength: 1
               maxLength: 32
+              description: Referencia
             description:
               type: "string"
               maxLength: 250
+              description: Descripción
             amount:
               $ref: "../base/es.yaml#/components/schemas/Amount"
               description: |
@@ -583,24 +680,21 @@ components:
                 - `FIXED`: monto recurrente a cobrar.
             recurring:
               $ref: "#/components/schemas/Recurring"
-        dueDay:
-          type: integer
-          description: Día de corte o vencimiento (1–28 para evitar meses cortos).
-          minimum: 1
-          maximum: 28
-          example: 15
         additional:
           type: object
           description: Información adicional.
           properties:
             customerAccountNumber:
               type: string
+              description: Identificador único que el comercio asigna a un cliente para identificar su cuenta interna
               example: "12345"
-        acceptedAt:
-          type: string
-          format: date-time
-          description: Fecha en la que el usuario aceptó el AutoPago.
-          example: "2021-09-24T10:02:17-05:00"
+            dueDay:
+              type: string
+              $ref: '../checkout/es.yaml#/components/schemas/AutopayDueDay'
+            sessionId:
+              type: string
+              description: Identificador de la sessión en CORE
+              example: "defe7220-2203-3bf1-af97-fcf4cebb18af"
         createdAt:
           type: string
           format: date-time
@@ -617,6 +711,7 @@ components:
         - TOTAL_BALANCE
         - MINIMUM_BALANCE
         - FIXED
+      example: TOTAL_BALANCE
       description: Tipo de cargo del autopago. Ver más en [Tipos de cargo](/autopay/charge-types).
     AutoPayId:
       type: string
@@ -643,25 +738,20 @@ components:
           description: Cada cuántos períodos se realiza el cobro (ej. "1" = cada mes si periodicidad=M).
           pattern: '^[1-9][0-9]*$'
           example: "1"
-        maxPeriods:
-          type: integer
-          description: Número máximo de períodos a cobrar.
-          minimum: 1
-          example: 12
-        startDate:
-          type: string
-          format: date-time
-          description: Fecha en la iniciará o inició la recurrencia.
-          example: "2021-09-24"
         dueDate:
           type: string
-          format: date
+          format: date Y-m-d
           description: Fecha de vencimiento de la recurrencia
-          example: '2019-09-24'
+          example: '2026-02-30'
+        startDate:
+          type: string
+          format: date Y-m-d
+          description: Fecha de inicio de la recurrencia
+          example: '2025-10-30'
         nextPayment:
           type: string
           description: Fecha a partir de la cual inicia el cobro.
-          format: date
+          format: date Y-m-d
           example: "2025-11-30"
     WebhookEvent:
       type: object
@@ -791,7 +881,6 @@ components:
       required:
         - status
         - reason
-        - message
     Pagination:
       title: Pagination
       type: object
@@ -868,3 +957,167 @@ components:
           description: Fecha **actual**, la cual se genera en formato **ISO 8601**.
       description: "Estructura que contiene la información de autenticación del *sitio* generada de acuerdo al WSSE
         UsernameToken Profile 1.1. Ver más en [Autenticación](/autopay/authentication)."
+    RedirectRequest:
+      title: CreateSessionRequest
+      type: object
+      description: |
+        Información para crear una sesión.
+      required:
+        - auth
+        - type
+        - autopay
+        - ipAddress
+        - userAgent
+        - returnUrl
+      properties:
+        auth:
+          $ref: '#/components/schemas/Authentication'
+        type:
+          type: string
+          description: |
+            Parámetro usado para sesiones de tipos adicionales
+            Usar `autopay` para generar una sesión de Autopago.
+          enum:
+            - autopay
+          example: autopay
+        autopay:
+          $ref: '../checkout/es.yaml#/components/schemas/AutopayRequest'
+          x-conditional:
+            - id
+            - amount
+        buyer:
+          $ref: '../checkout/es.yaml#/components/schemas/Person'
+          description: |
+            Datos del usuario **buyer**, se refiere al usuario que está comprando un producto o servicio.
+        payer:
+          $ref: '../checkout/es.yaml#/components/schemas/Person'
+          description: |
+            Datos del usuario **payer**, se refiere al dueño del medio de pago o usuario que pagó el monto solicitado.
+        fields:
+          $ref: '../checkout/es.yaml#/components/schemas/Fields'
+        paymentMethod:
+          type: string
+          description: |
+            Se usa para restringir los medios de pago disponibles en el checkout.
+            Se pueden enviar múltiples códigos separados por comas.
+          example: visa
+        cancelUrl:
+          type: string
+          description: |
+            URL de cancelación, el usuario es redirigido a esta url cuando decide no continuar con el proceso.
+          example: 'https://commerce.test/cancel'
+        skipResult:
+          type: boolean
+          description: |
+            Si se envía `true`, cuando el usuario finalice el proceso no se mostrará la página de resultado de la sesión, en su lugar será redirigido a la `returnUrl`.
+          default: false
+        noBuyerFill:
+          type: boolean
+          description: |
+            Por defecto, los datos enviados como `buyer` son pre-llenados en la interfaz de Checkout para agilizar el proceso de pago, si este parámetro se envía como `true` entonces no se realizará este pre-llenado.
+          default: false
+        ipAddress:
+          $ref: '../checkout/es.yaml#/components/schemas/IpAddress'
+        userAgent:
+          $ref: '../checkout/es.yaml#/components/schemas/UserAgent'
+        returnUrl:
+          $ref: '../checkout/es.yaml#/components/schemas/ReturnUrl'
+        locale:
+          $ref: '../checkout/es.yaml#/components/schemas/Locale'
+    RedirectInformation:
+      title: RedirectInformation
+      type: object
+      description: |
+        Estructura de respuesta a una solicitud para una información de transacción.
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        requestId:
+          type: string
+          example: 1
+          description: Id de la petición
+        request:
+          type: object
+          description: Contiene la información con la cual se realizó la solicitud de creación/actualización de la sesión de autopagos.
+          properties:
+            payment:
+              $ref: '../checkout/es.yaml#/components/schemas/PaymentRequest'
+            expiration:
+              $ref: '../checkout/es.yaml#/components/schemas/Expiration'
+            ipAddress:
+              $ref: '../checkout/es.yaml#/components/schemas/IpAddress'
+            userAgent:
+              $ref: '../checkout/es.yaml#/components/schemas/UserAgent'
+            returnUrl:
+              $ref: '../checkout/es.yaml#/components/schemas/ReturnUrl'
+            locale:
+              $ref: '../checkout/es.yaml#/components/schemas/Locale'
+            buyer:
+              $ref: '../checkout/es.yaml#/components/schemas/Person'
+              description: |
+                Datos del usuario **comprador**, hace referencia al usuario que está comprando un producto o un servicio.
+
+                **Cuando se crea una sesión**: Se puede enviar si conoces al usuario que está realizando la suscripción, pues ayuda a completar la información de la sesión.   
+                Si se envía este dato, el usuario tendrá sus datos personales pre-diligenciados y podrá cambiarlos en Checkout.
+            payer:
+              $ref: '../checkout/es.yaml#/components/schemas/Person'
+              description: |
+                Datos del usuario **pagador**, hace referencia al dueño del medio de pago o usuario que pagó o pagará el monto solicitado.
+
+                **Cuando se crea una sesión**: Sólo se debe usar cuando quieres "forzar" los datos del usuario que completará el proceso.   
+                Si se envía este dato, el usuario tendrá sus datos personales pre-diligenciados pero **no podrá cambiarlos**.
+            subscription:
+              $ref: '../checkout/es.yaml#/components/schemas/SubscriptionRequest'
+            fields:
+              $ref: '../checkout/es.yaml#/components/schemas/Fields'
+            paymentMethod:
+              type: string
+              description: |
+                Se usa para restringir los métodos de pago disponibles en checkout.
+                Se pueden enviar varios códigos separados por coma.
+                Ver más en [Métodos de pago](/checkout/payment-methods)
+
+                EJ: `visa,master,pse`
+              example: visa
+            cancelUrl:
+              type:
+                - string
+              description: |
+                URL de cancelación, a esta url se redirige al usuario cuando decide no continuar con el proceso.
+                Ocurre cuando el usario da click en _No deseo continuar_
+              example: 'https://commerce.test/cancel'
+            skipResult:
+              type: boolean
+              description: Si se envía `true`, cuando el usuario finalice el proceso no se mostrará la página de resultado de sesión, en su lugar será redireccionado al `returnUrl`. Ver más en [Omitir resultado](/checkout/skip-result)
+              default: false
+            noBuyerFill:
+              type: boolean
+              description: Por defecto los datos enviados como `buyer` se pre-diligencian en la interfaz de Checkout para agilizar el proceso de pago, si se envía este parámetro como `true` entonces no se hará este pre diligenciamiento.
+              default: false
+            type:
+              type: string
+              description: Parámetro usado para sesiones de tipos adicionales
+              enum:
+                - autopay
+              example: autopay
+            metadata:
+              $ref: '../checkout/es.yaml#/components/schemas/Metadata'
+            autopay:
+              $ref: '../checkout/es.yaml#/components/schemas/AutopayRequest'
+        autopay:
+          oneOf:
+            - type: array
+              description: Estructura con la información de los intentos de creación o actualización de un autopago dentro de la misma sesión.
+              title: "array[Autopay]"
+              items:
+                $ref: '../checkout/es.yaml#/components/schemas/Autopay'
+        payment:
+          description: Estructura con la información de la transacción registrada. Para autopagos este valor es **null**.
+          type: array
+          items:
+            $ref: '../checkout/es.yaml#/components/schemas/Transaction'
+        subscription:
+          description: Estructura que contiene información para el método de pago suscripción. Para autopagos este valor es **null**.
+          $ref: '../checkout/es.yaml#/components/schemas/SubscriptionResponse'
