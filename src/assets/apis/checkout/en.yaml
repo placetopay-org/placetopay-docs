@@ -1516,15 +1516,10 @@ components:
       properties:
         document:
           type: string
-          minLength: 1
-          description: |
-            Identification document
-            
-            e.g.: `1017111222`
+          description: Identity document. Format and length validation is applied dynamically based on the country and the selected document type.
           example: '1122334455'
         documentType:
           type: string
-          minLength: 1
           example: CC
           description: |
             Document type identifier. View options in [Document Types](/en/checkout/document-types)
@@ -1533,21 +1528,19 @@ components:
         name:
           type: string
           minLength: 1
-          description: | 
-            Name of the person or company
-            
-            e.g.: `Juan José`
+          maxLength: 60
+          description: Name of the person or company
           example: John
         surname:
           type: string
           minLength: 1
-          description: |
-            Last name of the person. Does not apply when the type of document corresponds to that of a company
-            
-            e.g.: `Peréz Pinzon`
+          maxLength: 60
+          description: Last name of the person. Does not apply when the type of document corresponds to that of a company
           example: Doe
         company:
           type: string
+          minLength: 1
+          maxLength: 60
           description: |
             Name of the company to which the person belongs
             
@@ -1556,6 +1549,7 @@ components:
         email:
           type: string
           minLength: 1
+          maxLength: 80
           example: johndoe@app.com
           description: |
             Email of the user or company
@@ -1564,6 +1558,7 @@ components:
         mobile:
           type: string
           minLength: 1
+          maxLength: 30
           description: |
             User or company phone number
             
@@ -1582,12 +1577,16 @@ components:
       properties:
         reference:
           type: string
+          minLength: 1
+          maxLength: 32
           description: |
             Unique payment reference, consisting of up to 32 alphanumeric characters and permitted symbols 
             e.g.: `PAYMENT_0001_ABC`, `Venta_1234-ABCD#2024/03/15$500`, `Ord: 1001/2023`
-          example: '12345'
+          example: 'PAYMENT_0001_ABC'
         description:
           type: string
+          minLength: 1
+          maxLength: 255
           description: |
             Description of the process to be performed, allowing up to 250 alphanumeric, accented characters, and common symbols 
             e.g.: `Cita con el Dr. Pérez a las 10:00 am. 5/12/2024, por $100.00`
@@ -1740,6 +1739,7 @@ components:
         keyword:
           type: string
           minLength: 1
+          maxLength: 50
           description: |
             Identifier or index of the data to be attached.   
             e.g.: `cmsInvoiceId`
@@ -1752,13 +1752,13 @@ components:
             - number
             - boolean
           minLength: 1
+          maxLength: 255
           description: |
             Value of the data to be attached.   
             e.g.: `ID_2233`
           example: lastDigits
         displayOn:
-          type: string
-          minLength: 1
+          type: enum
           description: |
             Indicates under what conditions the attached data is displayed. See more in [Additional Fields](/en/checkout/additional-fields)
             
@@ -1855,7 +1855,7 @@ components:
         - maxPeriods
       properties:
         periodicity:
-          type: string
+          type: enum
           description: |
             Billing frequency. `D` day, `M` month, `Y` year
           enum:
@@ -1890,6 +1890,8 @@ components:
           example: '2019-09-24'
         notificationUrl:
           type: string
+          maxLength: 255
+          format: uri
           description: URL where the service will notify each time a charge is made
           example: 'https://merchant.example.com/notificationUrl'
       examples:
@@ -1906,6 +1908,8 @@ components:
       properties:
         sku:
           type: string
+          minLength: 1
+          maxLength: 30
           description: |
             Item SKU.   
             e.g.: `SKU-12345`
@@ -1913,6 +1917,7 @@ components:
         name:
           type: string
           minLength: 1
+          maxLength: 120
           description: |
             Article name.   
             e.g.: `Manta de lana`
@@ -1920,6 +1925,7 @@ components:
         category:
           type: string
           minLength: 1
+          maxLength: 30
           description: |
             Article category. One of: `digital` `physical`
           enum:
@@ -1954,7 +1960,7 @@ components:
           base: 0
       properties:
         kind:
-          type: string
+          type: enum
           description: |
             Tax type identifier
             
@@ -1991,7 +1997,7 @@ components:
           amount: 1000
       properties:
         kind:
-          type: string
+          type: enum
           description: |
             Detail Type Identifier. 
             One of:  `discount` `additional` `vatDevolutionBase` `shipping` `handlingFee` `insurance` `giftWrap` `subtotal` `fee` `tip` `airline` `interests`
@@ -2041,7 +2047,7 @@ components:
         [Beta] Detail of the autopay to be generated. The user must register a payment method so that automatic charges are made on that payment method according to the agreed conditions. Required when `.type` is `autopay`.
       properties:
         action: 
-          type: string
+          type: enum
           description: |
             Indicates the action to be performed with the autopay.
             One of: `CREATE` to create an autopay, `EDIT` to edit an existing autopay.
@@ -2133,6 +2139,7 @@ components:
         cancelUrl:
           type:
             - string
+          format: uri
           description: |
             Cancellation URL, the user is redirected to this url when he decides not to continue with the process.
             Occurs when the user clicks on _I don't want to continue_
@@ -2150,7 +2157,7 @@ components:
             By default, the data sent as `buyer` is pre-filled in the Checkout interface to speed up the payment process, if this parameter is sent as `true` then this pre-fill will not be done.
           default: false
         type:
-          type: string
+          type: enum
           description: |
             Parameter used for additional type sessions
             Use `checkin` to generate a Pre-authorization session.
@@ -2332,24 +2339,25 @@ components:
         login:
           type: string
           minLength: 1
+          maxLength: 32
           description: |
             Site identifier.
         tranKey:
           type: string
           minLength: 1
+          maxLength: 64
           description: |
             Generated tranKey credential.
             See more in [Authentication](/en/checkout/authentication)
         nonce:
           type: string
-          minLength: 1
           description: |
             Random value for each Base64 encoded request.
         seed:
           type: string
-          minLength: 1
+          format: 'date-time'
           description: |
-            Current date, which is generated in ISO 8601 format.
+            Current date, which is generated in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format .
     Status:
       title: Status
       description: |
@@ -2357,8 +2365,7 @@ components:
       type: object
       properties:
         status:
-          type: string
-          minLength: 1
+          type: enum
           description: Status of a request or payment
           example: APPROVED
           enum:
@@ -2373,6 +2380,7 @@ components:
             - string
             - number
             - 'null'
+          maxLength: 2
           description: |
             Reason Code Provided.
           example: '00'
@@ -2380,16 +2388,14 @@ components:
           type:
             - string
             - 'null'
-          minLength: 1
           description: |
             Description of the reason code.
           example: The petition has been successfully approved
         date:
           type: string
-          minLength: 1
           format: date-time
           description: |
-            Date and time when the payment status is generated.
+            Date and time when the payment status is generated. [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) Format.
           example: '2022-07-27T14:51:27-05:00'
     Transaction:
       title: Transaction
@@ -3054,7 +3060,7 @@ components:
             
             e.g.: `122`
         agreementType:
-          type: string
+          type: enum
           description: |
             Type of destination of this amount.
             `MERCHANT` for sites, `AIRLINE` for airlines.
@@ -3077,7 +3083,7 @@ components:
         Applies to tax laws in specific countries.
       properties:
         type:
-          type: string
+          type: enum
           description: | 
             Modifier type identifier. 
             Only `FEDERAL_GOVERNMENT` is currently supported.
@@ -3136,6 +3142,8 @@ components:
     Reference:
       title: Reference
       type: string
+      minLength: 1
+      maxLength: 32
       description: |
         Unique reference of the process. Maximum of 32 characters
         
@@ -3144,6 +3152,8 @@ components:
     Description:
       title: Description
       type: string
+      minLength: 1
+      maxLength: 255
       description: |
         Description of the process to be carried out
         
@@ -3181,6 +3191,7 @@ components:
     ReturnUrl:
       type:
         - string
+      format: uri
       description: |
         Return URL, to this url the user is redirected once the session ends.
         Occurs when the user clicks on _Return to commerce_.
@@ -3702,33 +3713,34 @@ components:
       properties:
         country:
           type: string
-          minLength: 2
-          maxLength: 2
-          description: "The country in which the address is located. ISO 3166-1 alpha-2 code."
+          description: "The country in which the address is located. [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) code."
           example: CO
         state:
           type: string
-          maxLength: 3
-          description: State/province/department. ISO 3166-2 code
+          description: State/province/department. [ISO 3166-2](https://en.wikipedia.org/wiki/ISO_3166-2) code
           example: ANT
         city:
           type: string
           minLength: 1
+          maxLength: 20
           description: City of residence
           example: Medellín
         postalCode:
           type: string
           minLength: 1
+          maxLength: 20
           description: Postal code of the address
           example: '55555'
         street:
           type: string
           minLength: 1
+          maxLength: 50
           description: Home address
           example: 'Calle 12 #33a-12, Apto 101'
         phone:
           type: string
           minLength: 1
+          maxLength: 30
           description: Home phone number
           example: '+573111111111'
     Metadata:
