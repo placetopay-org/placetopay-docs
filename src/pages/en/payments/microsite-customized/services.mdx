@@ -20,7 +20,7 @@ All consumption is done through the base URL, which will be provided by the merc
 | `searchType`  | String   | Name of the search filter, which can have one of the following values: **reference**: Searches by invoice reference. **document**: Searches by payer document number. **alt_reference**: Searches by possible alternate reference. |
 | `searchValue `| String   | Search value.                            |
 | `siteId`      | String        |  Site identification credential.                                                       |
-| `filters (Optional)`  | filters | Structure that allows extending the search.                            |
+| `filters (Optional)`  | [filters](/payments/microsite-customized/services#filters) | Structure that allows extending the search.                            |
 | `locale `     | [Locale](/checkout/localization)     |  Indicates the platform's language. Allows for managing translations in the [Error messages.](/payments/microsite-customized/error-handling)                  |
 
 
@@ -41,6 +41,16 @@ All consumption is done through the base URL, which will be provided by the merc
  }
 
 ```
+
+**Expected Response**
+
+| Nombre    | Tipo                     |  Descripción                                                  |
+|-----------| ------------------------ |-------------------------------------------------------- |
+| `status`        | [Authentication](/payments/microsite-customized/authentication)| Describes the status of this request.         |
+| `data`   | String   | Describes the status of this request.                           |
+| `options`  | String   | Object containing additional options that allow modifying the payment flow behavior.  |
+| `messages`| [messages](/payments/microsite-customized/services#messages)   | Object containing the messages to be displayed for each defined event. |
+
 
 ``` json {{ 'title' : 'Example of a response'}}
 
@@ -162,7 +172,7 @@ All consumption is done through the base URL, which will be provided by the merc
 
 ```
 
-### Example of a request with the “filters” option {{tag:'POST', label:'/invoice/filters/'}}
+### Example of a request with the “filters” option {{id:'filters', tag:'POST', label:'/invoice/filters/'}}
 This structure allows you to extend the parameters used in invoice searches. This structure does NOT replace the **“searchType/searchValue”** parameter; therefore, if a parameter has already been sent in **“searchType/searchValue”**, it should not be included in the filters structure.
 
 | Name    | Type                     |  Description                                                  |
@@ -456,6 +466,33 @@ The **data** object must be an empty array or a null value.
 ```
 The parameter [mergePaymentMethods](/payments/microsite-customized/data-structures#fusion-de-metodos-de-pago-merge-payment-methods) within the ```options``` structure is what allows you to define the expected behavior in this case.
 
+
+### messages {{id:'messages'}}
+This structure allows you to define custom messages for data flow events, which are then displayed to the logged-in user.
+These options can only be included in the query service response.
+
+| Name                 | Type   | Description |
+|------------------------|--------|-------------|
+| `messages` | Object | It contains personalized messages.<br /><pre>{`{"event":{"es":"message","en":"message"}}`}</pre> |
+| `messages.postSearch` | Object | Message map by language <br /><pre>{`{"es":"message","en":"message"}`}</pre> |
+| `messages.postSearch.es` | String | Message corresponding to the indicated language <br /><pre>{`{"es":"message"}`}</pre> <br /> Los idiomas permitidos son <br /> - "es" (Spanish) <br /> - "en" (English) <br /> - "fr" (French) <br /> - "it" (Italian) <br /> - "pt" (Portuguese) |
+
+**Estructura messages**
+
+``` json {{ 'title' : 'Messages'}}
+
+{
+    "messages": {
+        "postSearch": {
+          "es": "Hola! tienes otras 5 órdenes de pago por pagar",
+          "en": "Hi! You have others 5 bills to pay"
+        }
+    }
+}
+
+```
+
+
 ## Blocking and releasing invoices {{ tag: 'POST', label:'/invoice/hold'}}
 
 | Name    | Type                     |  Description                                                |
@@ -636,12 +673,12 @@ It is the method by which a set of invoices is blocked or released depending on 
 | Name    | Type                     |  Description                                                |
 |-----------| ------------------------ |--------------------------------------------------------     |
 | `auth`        | [Authentication](/payments/microsite-customized/authentication)| Authentication information.         |
-| `data`        | data                      | Set of invoices to block or release.                            |
+| `data`        | data(/payments/microsite-customized/services#data) | Set of invoices to block or release.                            |
 | `revoke`      | Bool                     | Determine whether to revoke the hold or not. False: The invoice will be blocked. True: The invoice will be released.                     |
 | `siteId`      | String                   | Site identification credential.                     |
 | `locale `     | [Locale](/checkout/localization)     |  Indicates the platform's language. Allows for managing translations in the [Error messages.](/payments/microsite-customized/error-handling)                  |
 
-### data
+### data {{ id: 'data' }}
 List of invoices to block or release.
 Each object represents an invoice and includes its identifier (id) and its reference (reference). Both fields are required.
 
