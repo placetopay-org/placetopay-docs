@@ -2862,7 +2862,7 @@ components:
             payment: null
             subscription: null
     InstrumentCollect:
-      title: Instrument
+      title: Instrument-collect
       type: object
       description: |
         Structure containing the details of a subscribed means of payment.
@@ -2873,7 +2873,7 @@ components:
           $ref: '#/components/schemas/SimpleToken'
         pocket:
           type:
-            - string
+            - enum
           description: |
             Wallet code. Applies to Cards in Uruguay
 
@@ -2888,6 +2888,8 @@ components:
             - '20'
             - '80'
             - '90'
+        credit: 
+          $ref: "#/components/schemas/Credit"
     InstrumentInvalidate:
       title: InstrumentInvalidate
       description: |
@@ -2909,21 +2911,16 @@ components:
             subtoken:
               $ref: '#/components/schemas/InstrumentTokenSubToken'
     InstrumentTokenToken:
-      type:
-        - number
-      description: |
-        Representation of the means of payment.
-
-        e.g.: `a3bfc8e2afb9ac5583922eccd6d2061c1b0592b0...`
+      type: number
+      maxLength: 64
+      description: Representation of the means of payment.
       example: a3bfc8e2afb9ac5583922eccd6d2061c1b0592b099f04e352a894f37ae51cf1a
     InstrumentTokenSubToken:
-      type:
-        - string
+      type: string
+      maxLength: 16
       description: |
         Numerical representation of the means of payment. It is used in cases where the token is required to be numeric.
         The last 4 digits are the same as the last 4 digits of the credit card.
-
-        e.g.: `8740257204881112`
       example: '8740257204881112'
     SimpleToken:
       title: SimpleToken
@@ -2938,20 +2935,14 @@ components:
         subtoken:
           $ref: '#/components/schemas/InstrumentTokenSubToken'
         installments:
-          type:
-            - integer
-          description: |
-            Number of installments in which the collection is requested. Applies to Colombia.
-            
-            e.g.: `2` for 2 installments.
-          example: null
+          type: integer
+          description: Number of installments in which the collection is requested. Applies to Colombia.
+          example: '`2` for 2 installments.'
         cvv:
-          type:
-            - string
-          description: |
-            Card Security Code. If the user is present in the collection process, it is recommended to attach this information.
-            
-            e.g.: `123`
+          type: string
+          minLength: 3
+          maxLength: 4
+          description: Card Security Code. If the user is present in the collection process, it is recommended to attach this information.
           example: '123'
       examples:
         - token: faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891
@@ -3491,16 +3482,25 @@ components:
     Credit: 
       title: "Credit"
       type: "object"
-      description: "Structure that contains information on the type of credit"
+      description: "Structure that contains information on the type of credit. See more in [Créditos](/en/gateway/additional-data/#additional-data-credit)"
       properties: 
         code: 
           type: "string"
+          minLength: 1
+          maxLength: 6
         type: 
           type: "string"
+          minLength: 1
+          maxLength: 2
         groupCode: 
           type: "string"
+          maxLength: 1
         installment: 
           type: "integer"
+        description: 
+          type: "string"
+          minLength: 1
+          maxLength: 255
     Pocket: 
       title: "Pocket"
       type: "object"
@@ -3585,29 +3585,10 @@ components:
           description: "Alternate code generated to identify the card"
         franchise: 
           type: "string"
-          enum: 
-            - "visa"
-            - "visa_electron"
-            - "amex"
-            - "master"
-            - "codensa"
-            - "diners"
-            - "jbc"
-            - "discover"
-            - "ris"
-            - "credencial"
-            - "comfama"
-            - "colsubsidio"
-            - "falabella"
-            - "elo"
-            - "somos"
-            - "tuya"
-            - "exito"
-            - "alkosto"
-            - "maestro"
-            - "mefia"
-            - "ath_card"
+          minLength: 1
+          maxLength: 20
           description: "Franchise code associated with the token (Only as a response, it is not necessary to send it)"
+          example: '`visa`, `visa_electron`, `master`, `diners`'
         franchiseName: 
           type: "string"
         issuerName: 
@@ -4180,5 +4161,7 @@ components:
                 type: "object"
                 description: "Structure that contains information about the means of payment to be used in a transaction. This structure is variable according to the request that is generated. Each service requires that one or another data be used."
                 properties: 
-                  token: 
-                    $ref: "#/components/schemas/Token"
+                  token:
+                    $ref: '#/components/schemas/InstrumentTokenToken'
+                  subtoken:
+                    $ref: '#/components/schemas/InstrumentTokenSubToken'
