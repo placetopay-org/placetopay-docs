@@ -28,7 +28,7 @@ const guides = [
     },
   },
   {
-    href: '/checkout/api-reference/session',
+    href: '/checkout/api/reference/session',
     action: { es: 'Ver más', en: 'Learn more' },
     name: {
       es: 'API',

@@ -1,0 +1,1138 @@
+openapi: 3.0.0
+info:
+  title: BETA - AutoPay API - Balance Request
+  version: 1.0.0
+
+paths:
+  /autopay/balance:
+    post:
+      summary: Get balance
+      operationId: post-balance
+      parameters:
+        - schema:
+            type: string
+            example: application/json;charset=UTF-8
+          in: header
+          name: Content-Type
+      responses:
+        "200":
+          description: Successful response with the amount to be charged to the user
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ status, id, amount ]
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  id:
+                    $ref: '#/components/schemas/AutoPayId'
+                  amount:
+                    $ref: "../base/en.yaml#/components/schemas/Amount"
+                  min_amount:
+                    $ref: "../base/en.yaml#/components/schemas/Amount"
+        "4XX":
+          description: Request error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+      description: This endpoint returns the pending amount to be charged and the minimum amount required to execute the auto payment.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ reference, id ]
+              properties:
+                reference:
+                  type: string
+                  description: AutoPay reference provided by the client/merchant. This reference must be unique and active per merchant.
+                  example: "ACC00012345"
+                  maxLength: 32
+                id:
+                  $ref: '#/components/schemas/AutoPayId'
+  /autopay/settlement:
+    post:
+      summary: Settle an AutoPay
+      operationId: post-settlement
+      parameters:
+        - schema:
+            type: string
+            example: application/json;charset=UTF-8
+          in: header
+          name: Content-Type
+      responses:
+        "200":
+          description: AutoPay successfully registered.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ status, id ]
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  id:
+                    $ref: '#/components/schemas/AutoPayId'
+        "4XX":
+          description: Request error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+      description: This endpoint registers and returns only the notification (settlement) status.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ reference, id, transaction ]
+              properties:
+                reference:
+                  type: string
+                  description: AutoPay reference provided by the client/merchant. This reference must be unique and active per merchant.
+                  minLength: 32
+                  maxLength: 32
+                  example: "ACC00012345"
+                id:
+                  $ref: '#/components/schemas/AutoPayId'
+                transaction:
+                  description: Transaction data
+                  type: object
+                  properties:
+                    status:
+                      type: object
+                      description: Structure that defines the AutoPay status
+                      x-internal: false
+                      properties:
+                        status:
+                          type: string
+                          enum: [ APPROVED ]
+                          example: APPROVED
+                          description: AutoPay status. Only approved payments will be settled.
+                        reason:
+                          type: string
+                          enum:
+                            - '00'
+                          description: Reason code of the request status. (See [Reason codes](/autopay/codes))
+                          example: '00'
+                        message:
+                          type: string
+                          description: Message clarifying the status.
+                          example: "Successful response"
+                        date:
+                          type: string
+                          format: date-time
+                          description: Date and time when the response was generated.
+                          example: "2025-09-29T17:09:29-05:00"
+                      required:
+                        - status
+                        - reason
+                        - message
+                    date:
+                      type: "string"
+                      format: date-time
+                      description: "Creation date (ISO 8601 with timezone). Example: `2021-09-20T21:51:59-05:00`."
+                    transactionDate:
+                      type: "string"
+                      format: date-time
+                      description: "Processing date at the provider (may differ from date)."
+                    internalReference:
+                      type: "number"
+                      description: "Internal reference."
+                      minimum: 1
+                    reference:
+                      type: "string"
+                      description: "Merchant reference."
+                      minLength: 1
+                      maxLength: 64
+                    paymentMethod:
+                      type: "string"
+                      description: "Conventional format: processor_brand (e.g. `ID_VS` for Interdin Visa, `DF_MS` for Datafast Mastercard). Exceptions may apply."
+                      minLength: 5
+                      maxLength: 5
+                    franchise:
+                      type: "string"
+                      description: "Card brand / franchise."
+                      enum:
+                        - "visa"
+                        - "visa_electron"
+                        - "amex"
+                        - "master"
+                        - "codensa"
+                        - "diners"
+                        - "jbc"
+                        - "discover"
+                        - "ris"
+                        - "credencial"
+                        - "comfama"
+                        - "colsubsidio"
+                        - "falabella"
+                        - "elo"
+                        - "somos"
+                        - "tuya"
+                        - "exito"
+                        - "alkosto"
+                        - "maestro"
+                        - "mefia"
+                        - "ath_card"
+                        - "ath"
+                        - "athmv"
+                        - "bancolombia"
+                        - "cooperativa"
+                        - "debito"
+                        - "pagoefectivo"
+                        - "cafam"
+                        - "efecty"
+                        - "gana"
+                        - "masterpass"
+                        - "ppd"
+                        - "pse"
+                        - "safetypay"
+                        - "supergiros"
+                        - "visa_checkout"
+                        - "procesa"
+                        - "comfandi"
+                        - "ach"
+                        - "telered"
+                        - "aval"
+                        - "dilo"
+                        - "banco_bogota"
+                        - "ebt"
+                        - "alia"
+                        - "deuna"
+                    franchiseName:
+                      type: "string"
+                      description: "Displayed franchise name."
+                      minLength: 1
+                    issuerName:
+                      type: "string"
+                      description: "Issuer name."
+                      minLength: 1
+                      nullable: true
+                    amount:
+                      $ref: "../base/en.yaml#/components/schemas/Amount"
+                    conversion:
+                      $ref: "../base/en.yaml#/components/schemas/AmountConversion"
+                    authorization:
+                      type: "string"
+                      description: "Authorization code."
+                      minLength: 1
+                      nullable: true
+                    receipt:
+                      type: "string"
+                      description: "Receipt / voucher."
+                      maxLength: 16
+                      nullable: true
+                    type:
+                      type: "string"
+                      description: "Operation type."
+                      minLength: 1
+                      enum:
+                        - 'AUTH_ONLY'
+                    refunded:
+                      type: "boolean"
+                      description: "Refund indicator."
+                    lastDigits:
+                      type: "string"
+                      description: "Last account digits."
+                      minLength: 2
+                      nullable: true
+                    provider:
+                      type: "string"
+                      description: "Processor / provider code."
+                      enum:
+                        - "CREDIBANCO"
+                        - "REDEBAN"
+                        - "INTERDIN"
+                        - "DATAFAST"
+                        - "TUYA-DIRECT"
+                        - "BRASPAG"
+                        - "TRANSERVER"
+                        - "SABRE"
+                        - "EVERTEC"
+                        - "ACH"
+                        - "ATH-AVALNET"
+                        - "SUPERGIROS"
+                        - "TECNICARD"
+                        - "MEDIANET"
+                        - "AUSTRO"
+                        - "COMFANDI"
+                        - "PAYSTUDIO"
+                        - "FLAMINGO"
+                        - "ATH-MOVIL"
+                        - "EBUS"
+                        - "BANCOLOMBIA"
+                        - "PAGOEFECTIVO"
+                        - "PROCESA"
+                        - "TELERED"
+                        - "AVAL"
+                        - "DILO"
+                        - "BANCO_BOGOTA"
+                        - "BANET"
+                        - "DEUNA"
+                    discount:
+                      type: "string"
+                      description: "Applied discount information (if any)."
+                    processorFields:
+                      type: "object"
+                      description: "Raw processor fields."
+                      properties:
+                        id:
+                          type: "string"
+                          description: "Processor ID."
+                          maxLength: 64
+                        b24:
+                          type: "string"
+                          description: "Extra field."
+                          maxLength: 64
+                    additional:
+                      type: "object"
+                      description: See more at [Additional data](/gateway/additional-data)
+                  required:
+                    - "status"
+                    - "provider"
+                    - "internalReference"
+                    - "reference"
+                    - "paymentMethod"
+                    - "franchise"
+                    - "franchiseName"
+                    - "amount"
+                    - "authorization"
+                    - "receipt"
+                    - "type"
+                    - "refunded"
+                    - "processorFields"
+  /autopay/webhook:
+    post:
+      summary: AutoPay notifications reception
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEvent'
+      responses:
+        "200":
+          description: The webhook was received successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+        "4XX":
+          description: An error occurred while receiving the webhook.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+  /autopay/search:
+    post:
+      summary: List autopays
+      operationId: post-search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                filters:
+                  type: object
+                  description: Filtering criteria for the search.
+                  properties:
+                    reference:
+                      type: string
+                      description: AutoPay reference provided by the client/merchant. This reference must be unique and active per merchant.
+                      example: "ACC00012345"
+                      maxLength: 32
+                    id:
+                      $ref: '#/components/schemas/AutoPayId'
+                      nullable: true
+                    chargeTypes:
+                      type: array
+                      description: Filter by one or more charge types. See more [Charge types](/autopay/charge-types)
+                      example:  "['FIXED', 'TOTAL_BALANCE']"
+                      enum:
+                        - TOTAL_BALANCE
+                        - MINIMUM_BALANCE
+                        - FIXED
+                      items:
+                        $ref: '#/components/schemas/ChargeType'
+                    status:
+                      type: array
+                      description: AutoPay statuses included in the filter.
+                      enum:
+                        - FAILED
+                        - REJECTED
+                        - APPROVED
+                      items:
+                        type: string
+                      example: "[ 'APPROVED' ]"
+                    createdAt:
+                      type: object
+                      description: Creation date range (ISO 8601, date only).
+                      properties:
+                        from:
+                          type: string
+                          example: "2025-09-01"
+                          format: date Y-m-d
+
+                        to:
+                          type: string
+                          example: "2025-09-30"
+                          format: date Y-m-d
+                pagination:
+                  $ref: '#/components/schemas/PaginationRequest'
+                locale:
+                  $ref: '#/components/schemas/Locale'
+      responses:
+        "200":
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  data:
+                    description: List of autopays that match the search criteria.
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AutoPay'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+  /autopay/cancel:
+    post:
+      summary: Cancel an autopay
+      operationId: post-search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                id:
+                  $ref: '#/components/schemas/AutoPayId'
+                locale:
+                  $ref: '#/components/schemas/Locale'
+      responses:
+        "200":
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  id:
+                    $ref: '#/components/schemas/AutoPayId'
+        "4XX":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+  /autopay/transactions:
+    post:
+      summary: List autopay transactions
+      operationId: post-search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                id:
+                  $ref: '#/components/schemas/AutoPayId'
+                filters:
+                  type: object
+                  description: Filtering criteria for the search.
+                  properties:
+                    internalReference:
+                      type: string
+                      description: Internal transaction reference in PlacetoPay provided by the gateway at the time of payment.
+                      example: "ACC00012345"
+                      maxLength: 32
+                    status:
+                      type: array
+                      description: Transaction statuses.
+                      enum:
+                        - OK
+                        - FAILED
+                        - REJECTED
+                        - APPROVED
+                        - APPROVED_PARCIAL
+                      items:
+                        type: string
+                      example: "[ 'APPROVED' ]"
+                    amount:
+                      type: "object"
+                      description: "Structure containing information about the transaction payment."
+                      required:
+                        - "currency"
+                        - "total"
+                      properties:
+                        currency:
+                          type: "string"
+                          description: |
+                            Alphabetic currency code to be used (ISO 4217 alpha code)
+                          enum:
+                            - "USD"
+                            - "COP"
+                            - "CRC"
+                            - "EUR"
+                            - "CAD"
+                            - "AUD"
+                            - "GBP"
+                            - "MXN"
+                            - "CLP"
+                          example: "COP"
+                          minLength: 3
+                          maxLength: 3
+                        total:
+                          type: "number"
+                          example: 2000
+                          description: |
+                            Total amount in the specified base currency
+                    createdAt:
+                      type: object
+                      description: Creation date range (ISO 8601, date only).
+                      properties:
+                        from:
+                          type: string
+                          example: "2025-09-01"
+                          format: date Y-m-d
+                        to:
+                          type: string
+                          example: "2025-09-30"
+                          format: date Y-m-d
+                pagination:
+                  $ref: '#/components/schemas/PaginationRequest'
+                locale:
+                  $ref: '#/components/schemas/Locale'
+      responses:
+        "200":
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  data:
+                    description: List of autopay transactions that match the search criteria.
+                    type: array
+                    items:
+                      $ref: '../base/en.yaml#/components/schemas/Transaction'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+  /autopay/session:
+    post:
+      summary: Create session (CreateRequest)
+      operationId: post-autopay-session
+      description: Requests the creation of a session and returns the identifier and the processing URL.
+      x-internal: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedirectRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  requestId:
+                    type:
+                      - string
+                      - number
+                      - integer
+                    example: 1
+                    description: request identifier
+                  processUrl:
+                    type: "string"
+                    format: "uri"
+                    maxLength: 250
+                    description: "URL to which the user must be redirected to complete the payment process."
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+  /autopay/session/{requestId}:
+    parameters:
+      - schema:
+          type: string
+        name: requestId
+        example: 1
+        description: Identifier of the session request to be consulted.
+        in: path
+        required: true
+    post:
+      summary: Get session information (getSessionInformation)
+      operationId: post-autopay-session-requestId
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectInformation'
+      description: |
+        Retrieves the session information. If the session contains transactions, their details are included.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+
+components:
+  schemas:
+    AutoPay:
+      type: object
+      required:
+        - id
+        - status
+        - subscription
+        - createdAt
+      properties:
+        id:
+          $ref: '#/components/schemas/AutoPayId'
+        status:
+          $ref: '#/components/schemas/StatusAutoPay'
+        payer:
+          $ref: '../base/en.yaml#/components/schemas/Person'
+        buyer:
+          $ref: '../base/en.yaml#/components/schemas/Person'
+        subscription:
+          type: object
+          required:
+            - reference
+            - description
+            - recurring
+          description: Structure containing information about the subscription associated with the AutoPay.
+          properties:
+            reference:
+              type: "string"
+              minLength: 1
+              maxLength: 32
+              description: Reference
+            description:
+              type: "string"
+              maxLength: 250
+              description: Description
+            amount:
+              $ref: "../base/en.yaml#/components/schemas/Amount"
+              description: |
+                Only present when the charge type is `FIXED`.
+                - `FIXED`: recurring amount to be charged.
+            recurring:
+              $ref: "#/components/schemas/Recurring"
+        additional:
+          type: object
+          description: Additional information.
+          properties:
+            customerAccountNumber:
+              type: string
+              description: Unique identifier assigned by the merchant to a customer to identify their internal account.
+              example: "12345"
+            dueDay:
+              type: string
+              $ref: '../checkout/en.yaml#/components/schemas/AutopayDueDay'
+            sessionId:
+              type: string
+              description: Id of the session used to create the AutoPay.
+              example: "defe7220-2203-3bf1-af97-fcf4cebb18af"
+        createdAt:
+          type: string
+          format: date-time
+          description: AutoPay creation date.
+          example: "2021-09-24T10:02:17-05:00"
+        updatedAt:
+          type: string
+          format: date-time
+          description: AutoPay last update date.
+          example: "2021-09-24T10:02:17-05:00"
+    ChargeType:
+      type: string
+      enum:
+        - TOTAL_BALANCE
+        - MINIMUM_BALANCE
+        - FIXED
+      example: TOTAL_BALANCE
+      description: AutoPay charge type. See more at [Charge types](/autopay/charge-types).
+    AutoPayId:
+      type: string
+      format: uuid
+      description: Unique identifier of the confirmed AutoPay registered in the notification record.
+      minLength: 36
+      maxLength: 36
+      example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+    Recurring:
+      type: object
+      description: Recurrence parameters. If not provided in the creation request, the system may request them from the user during redirection.
+      required:
+        - type
+      properties:
+        type:
+          $ref: '#/components/schemas/ChargeType'
+        periodicity:
+          type: string
+          description: Charge frequency. D=Daily, W=Weekly, M=Monthly, Y=Yearly.
+          enum: [ D, W, M, Y ]
+          example: M
+        interval:
+          type: string
+          description: Number of periods between charges (e.g. "1" = every month if periodicity=M).
+          pattern: '^[1-9][0-9]*$'
+          example: "1"
+        dueDate:
+          type: string
+          format: date Y-m-d
+          description: Recurrence due date.
+          example: '2026-02-30'
+        startDate:
+          type: string
+          format: date Y-m-d
+          description: start date of the recurrence.
+          example: '2025-10-30'
+        nextPayment:
+          type: string
+          description: Date from which the charge starts.
+          format: date Y-m-d
+          example: "2025-11-30"
+    WebhookEvent:
+      type: object
+      required: [ id, type, date, signature, reference ]
+      x-conditional: [ additional ]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the AutoPay.
+          minLength: 36
+          maxLength: 36
+          example: "2972c13d-6315-4da3-80d7-64c24eb232ad"
+        type:
+          type: string
+          enum:
+            - AUTOPAY_CREATED
+            - AUTOPAY_UPDATED
+            - AUTOPAY_CANCELED
+            - AUTOPAY_TRANSACTION_FAILED
+          description: "Type of notified event. See more at [Webhook events](/autopay/contracts/webhook#event-types)."
+        date:
+          type: string
+          format: date-time
+          description: Date and time when the event was triggered for the first time, in ISO 8601 format.
+          example: "2025-09-29T17:09:29-05:00"
+        signature:
+          type: string
+          description: Digital signature of the webhook payload for validation. See more at [Webhook validation](/autopay/contracts/webhook#validating-webhooks).
+          example: "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
+        reference:
+          type: string
+          description: AutoPay reference provided by the client/merchant. This reference must be unique and active per merchant.
+          example: "ACC00012345"
+          maxLength: 32
+        additional:
+          type: object
+          description: Object containing relevant information to identify the AutoPay and event-related details.
+          x-conditional:
+            transactionID
+          properties:
+            transactionID:
+              type: string
+              minLength: 32
+              description: Executed payment identifier. It may be present when the event is AUTOPAY_TRANSACTION_FAILED.
+              example: "CFed8XTioVhyG3CGHhJrpgpyM8k1phj3"
+    Status:
+      title: Status
+      type: object
+      description: Structure used to define response statuses.
+      x-internal: false
+      properties:
+        status:
+          type: string
+          enum:
+            - OK
+            - FAILED
+            - REJECTED
+          description: Request status.
+        reason:
+          type: string
+          enum:
+            - 100
+            - 101
+            - 102
+            - 103
+            - 104
+            - '00'
+            - BR
+            - X3
+            - XH
+            - ?-
+            - '05'
+            - NF
+          description: Reason code of the request status. (See [Reason codes](/autopay/codes))
+          example: '00'
+        message:
+          type: string
+          description: Message clarifying the status.
+          example: "Successful response"
+        date:
+          type: string
+          format: date-time
+          description: Date and time when the response was generated.
+          example: "2025-09-29T17:09:29-05:00"
+      required:
+        - status
+        - reason
+        - message
+    StatusAutoPay:
+      title: Status
+      type: object
+      description: Structure used to define the AutoPay status.
+      x-internal: false
+      properties:
+        status:
+          type: string
+          enum: [ APPROVED, REJECTED, FAILED ]
+          example: APPROVED
+          description: AutoPay status.
+        reason:
+          type: string
+          enum:
+            - 100
+            - 101
+            - 102
+            - 103
+            - 104
+            - '00'
+            - BR
+            - X3
+            - XH
+            - ?-
+            - '05'
+            - NF
+          description: Reason code of the request status. (See [Reason codes](/autopay/codes))
+          example: '00'
+        message:
+          type: string
+          description: Message clarifying the status.
+          example: "Successful response"
+        date:
+          type: string
+          format: date-time
+          description: Date and time when the response was generated.
+          example: "2025-09-29T17:09:29-05:00"
+      required:
+        - status
+        - reason
+    Pagination:
+      title: Pagination
+      type: object
+      description: Structure containing pagination information.
+      required:
+        - total
+        - perPage
+        - currentPage
+        - lastPage
+      properties:
+        total:
+          type: integer
+          example: 30
+          minimum: 1
+          description: Total number of records found in the query.
+        perPage:
+          type: integer
+          default: 15
+          example: 10
+          minimum: 1
+          description: Number of records per page.
+        currentPage:
+          type: integer
+          default: 1
+          minimum: 1
+          example: 1
+          description: Current page.
+        lastPage:
+          type: integer
+          minimum: 1
+          example: 1
+          description: Last available page.
+
+    Locale:
+      type: "string"
+      description: "Response language."
+      example: "en_EN"
+    PaginationRequest:
+      title: Pagination
+      type: object
+      description: Structure containing pagination information.
+      properties:
+        perPage:
+          type: integer
+          default: 15
+          example: 10
+          minimum: 1
+          description: Number of records per page.
+        currentPage:
+          type: integer
+          default: 1
+          minimum: 1
+          example: 1
+          description: Current page.
+
+    Authentication:
+      required:
+        - login
+        - tranKey
+        - nonce
+        - seed
+      title: "Authentication"
+      type: "object"
+      properties:
+        login:
+          type: "string"
+          description: Site identifier.
+        tranKey:
+          type: "string"
+          description: Generated **tranKey** credential. See more at [Authentication](/autopay/authentication/#how-to-generate-your-authentication)
+        nonce:
+          type: "string"
+          description: Random - value for each request encoded in **Base64**.
+        seed:
+          type: "string"
+          description: Current - date generated in **ISO 8601** format.
+      description: >
+        Structure containing the *site* authentication information generated according to the WSSE
+        UsernameToken Profile 1.1. See more at [Authentication](/autopay/authentication).
+
+    RedirectRequest:
+      title: CreateSessionRequest
+      type: object
+      description: Information required to create a session.
+      required:
+        - auth
+        - type
+        - autopay
+        - ipAddress
+        - userAgent
+        - returnUrl
+      properties:
+        auth:
+          $ref: '#/components/schemas/Authentication'
+        type:
+          type: string
+          description: |
+            Parameter used for additional session types.
+            Use `autopay` to generate an AutoPay session.
+          enum:
+            - autopay
+          example: autopay
+        autopay:
+          $ref: '../checkout/en.yaml#/components/schemas/AutopayRequest'
+          x-conditional:
+            - id
+            - amount
+        buyer:
+          $ref: '../checkout/en.yaml#/components/schemas/Person'
+          description: |
+            Data of the **buyer** user, refers to the user who is purchasing a product or service.
+            
+            **When creating a session**: Can be sent if you know the user making the purchase, as it helps complete the session information.
+            If this data is sent, the user will have their personal data pre-filled and can change it in Checkout.
+        payer:
+          $ref: '../checkout/en.yaml#/components/schemas/Person'
+          description: |
+            Data of the **payer** user, refers to the owner of the payment method or user who paid the requested amount.
+            
+            **When creating a session**: Should only be used when you want to "force" the data of the user who will complete the process.
+            If this data is sent, the user will have their personal data pre-filled but **cannot change it**.
+        fields:
+          $ref: '../checkout/en.yaml#/components/schemas/Fields'
+        paymentMethod:
+          type: string
+          description: |
+            Used to restrict the payment methods available in checkout.
+            Multiple codes can be sent separated by commas.
+            See more at [Payment methods](/checkout/payment-methods)
+            
+            Ex: `visa,master,pse`
+          example: visa
+        cancelUrl:
+          type: string
+          description: |
+            Cancel URL, the user is redirected to this URL when they decide not to continue with the process.
+            Occurs when the user clicks on _I do not wish to continue_.
+          example: 'https://commerce.test/cancel'
+        skipResult:
+          type: boolean
+          description: |
+            If `true` is sent, when the user finishes the process the session result page will not be displayed, instead they will be redirected to the `returnUrl`. See more at [Skip result](/checkout/skip-result)
+          default: false
+        noBuyerFill:
+          type: boolean
+          description: |
+            By default, the data sent as `buyer` is pre-filled in the Checkout interface to speed up the payment process, if this parameter is sent as `true` then this pre-filling will not be done.
+          default: false
+        ipAddress:
+          $ref: '../checkout/en.yaml#/components/schemas/IpAddress'
+        userAgent:
+          $ref: '../checkout/en.yaml#/components/schemas/UserAgent'
+        returnUrl:
+          $ref: '../checkout/en.yaml#/components/schemas/ReturnUrl'
+        locale:
+          $ref: '../checkout/en.yaml#/components/schemas/Locale'
+    RedirectInformation:
+      title: RedirectInformation
+      type: object
+      description: |
+        Response structure for a transaction information request.
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        requestId:
+          type: string
+          example: 1
+          description: Request identifier.
+        request:
+          type: object
+          description: Contains the information used to create/update the autopay session request.
+          properties:
+            payment:
+              $ref: '../checkout/en.yaml#/components/schemas/PaymentRequest'
+            expiration:
+              $ref: '../checkout/en.yaml#/components/schemas/Expiration'
+            ipAddress:
+              $ref: '../checkout/en.yaml#/components/schemas/IpAddress'
+            userAgent:
+              $ref: '../checkout/en.yaml#/components/schemas/UserAgent'
+            returnUrl:
+              $ref: '../checkout/en.yaml#/components/schemas/ReturnUrl'
+            locale:
+              $ref: '../checkout/en.yaml#/components/schemas/Locale'
+            buyer:
+              $ref: '../checkout/en.yaml#/components/schemas/Person'
+              description: |
+                **Buyer** user data, refers to the user who is purchasing a product or a service.
+
+                **When creating a session:** It can be sent if you know the user who is making the subscription, as it helps to complete the session information.
+                If this data is provided, the user will have their personal information pre-filled and will be able to modify it in Checkout.
+            payer:
+              $ref: '../checkout/en.yaml#/components/schemas/Person'
+              description: |
+                **Payer** user data, refers to the owner of the payment method or the user who has paid or will pay the requested amount.
+
+                **When creating a session:** It should only be used when you want to enforce the data of the user who will complete the process.
+                If this data is provided, the user will have their personal information pre-filled but **will not be able to modify it**.
+            subscription:
+              $ref: '../checkout/en.yaml#/components/schemas/SubscriptionRequest'
+            fields:
+              $ref: '../checkout/en.yaml#/components/schemas/Fields'
+            paymentMethod:
+              type: string
+              description: |
+                Used to restrict the payment methods available in checkout.
+                Multiple codes can be sent separated by commas.
+                See more at [Payment methods](/checkout/payment-methods)
+                
+                Ex: `visa,master,pse`
+              example: visa
+            cancelUrl:
+              type:
+                - string
+              description: |
+                Cancel URL, the user is redirected to this URL when they decide not to continue with the process.
+                Occurs when the user clicks on _I do not wish to continue_.
+              example: 'https://commerce.test/cancel'
+            skipResult:
+              type: boolean
+              description: |
+                If `true` is sent, when the user finishes the process the session result page will not be displayed, instead they will be redirected to the `returnUrl`. See more at [Skip result](/checkout/skip-result)
+              default: false
+            noBuyerFill:
+              type: boolean
+              description: |
+                By default, the data sent as `buyer` is pre-filled in the Checkout interface to speed up the payment process, if this parameter is sent as `true` then this pre-filling will not be done.
+              default: false
+            type:
+              type: string
+              description: Parameter used for additional session types.
+              enum:
+                - autopay
+              example: autopay
+            metadata:
+              $ref: '../checkout/en.yaml#/components/schemas/Metadata'
+            autopay:
+              $ref: '../checkout/en.yaml#/components/schemas/AutopayRequest'
+        autopay:
+          oneOf:
+            - type: array
+              description: Structure containing information about the attempts to create or update an autopay within the same session.
+              title: "array[Autopay]"
+              items:
+                $ref: '../checkout/en.yaml#/components/schemas/Autopay'
+        payment:
+          description: Structure containing the information of the registered transaction. For autopays, this value is **null**.
+          type: array
+          items:
+            $ref: '../checkout/en.yaml#/components/schemas/Transaction'
+        subscription:
+          description: Structure that contains information for the subscription payment method. For autopays, this value is **null**.
+          $ref: '../checkout/en.yaml#/components/schemas/SubscriptionResponse'

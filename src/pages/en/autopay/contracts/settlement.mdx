@@ -1,0 +1,169 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+<HeroPattern />
+
+export const apiRefs = ['/autopay/settlement']
+
+## Settle / Confirm Payment {{ id: 'settlement', tag: 'POST', label: '/autopay/settlement' }}
+
+This endpoint is the **official closure** of a successful transaction. AutoPay will invoke this service only when a charge has been **APPROVED** by the financial network.
+
+Your goal here is to receive the confirmation and register the payment in your ERP, database, or accounting system.
+
+<Note type="warning">
+  **Merchant endpoint:** The base URL (`{{baseURL}}`) corresponds to **your own server**.
+  You must expose this service on your infrastructure and provide the base URL during the AutoPay onboarding process.
+</Note>
+
+<Note type="warning">
+    **Authentication (Basic Authentication):** This endpoint requires authentication via the `Authorization` header.
+    The merchant must validate the credentials configured for AutoPay on each incoming request. See more at [**Contract authentication**](/autopay/contract-authentication).
+</Note>
+
+### Recommended Business Rules
+
+1.  **Idempotency:** Due to network intermittency, you may receive this confirmation more than once for the same transaction. Your system must validate if the payment was already settled and respond with `200 OK` without duplicating the record.
+2.  **Amount Validation:** Verify that `transaction.amount.total` matches what you expected to charge.
+3.  **Fast Response:** This process is synchronous. Respond as quickly as possible (`< 3s`) to complete the cycle.
+
+---
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/autopay/settlement"
+            method="POST"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky={true}>
+        <CodeGroup title="Solicitud" tag="POST" label="{{baseURl}}/autopay/settlement">
+```bash {{ title: 'Settle a payment' }}
+curl -X POST {{baseURl}}/autopay/settlement \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Basic <base64(username:password)>" \
+  -d '{
+    "reference": "ACC00012345",
+    "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+    "transaction": {
+      "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "Approved",
+        "date": "2021-09-24T11:51:31-05:00"
+      },
+      "date": "2021-09-24T11:51:31-05:00",
+      "transactionDate": "2021-09-24T11:51:31-05:00",
+      "internalReference": 41,
+      "reference": "ON1434012-PN1433129",
+      "paymentMethod": "CR_VS",
+      "franchise": "visa",
+      "franchiseName": "Visa",
+      "issuerName": "BANCO DE GUAYAQUIL, S.A.",
+      "amount": {
+        "taxes": [
+          {
+             "kind": "airportTax",
+             "amount": 63,
+             "base": 0
+          },
+          {
+             "kind": "valueAddedTax",
+             "amount": 158.47,
+             "base": 0
+          }
+        ],
+        "currency": "USD",
+        "total": 1161.12
+      },
+      "conversion": {
+        "from": {
+            "currency": "USD",
+            "total": 1161.12
+        },
+        "to": {
+            "currency": "USD",
+             "total": 1161
+        },
+        "factor": 1
+      },
+      "authorization": "739877",
+      "receipt": "713329175945",
+      "type": "AUTH_ONLY",
+      "refunded": false,
+      "lastDigits": "0032",
+      "provider": "CREDIBANCO",
+      "discount": null,
+      "processorFields": {
+          "id": "08c0284b20510c8db8dcb29137374718",
+          "b24": "XX"
+      },
+      "additional": {
+         "merchantCode": "123456",
+         "terminalNumber": "12345678",
+         "bin": "411076",
+         "expiration": "1220"
+      }
+    }
+  }'
+```
+        </CodeGroup>
+    </Col>
+</Row>
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/autopay/settlement"
+            method="POST"
+            type="response"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <br />
+        <CodeGroup title="Response">
+```json {{ title: '200: Successful response' }}
+{
+  "status": {
+    "status": "OK",
+    "reason": "00",
+    "message": "Successful response",
+    "date": "2025-09-29T17:09:29-05:00"
+  },
+  "id": "2972c13d-6315-4da3-80d7-64c24eb232ad"
+}
+```
+```json {{ title: '404: Transaction not found' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": "404",
+    "message": "Transaction not found",
+    "date": "2025-09-29T17:09:29-05:00"
+  }
+}
+```
+```json {{ title: '400: Invalid authentication' }}
+{
+    "status": {
+        "status": "FAILED",
+        "reason": "BR",
+        "message": "The authentication does not contains all the required parameters (login, tranKey, seed, nonce).",
+        "date": "2025-09-29T17:09:29-05:00"
+    }
+}
+```
+```json {{ title: '400: Invalid authentication - Incorrect credentials' }}
+{
+    "status": {
+        "status": "FAILED",
+        "reason": "401",
+        "message": "Authentication failed 101.",
+        "date": "2025-09-29T17:09:29-05:00"
+   }
+}
+```
+        </CodeGroup>
+    </Col>
+</Row>
