@@ -9,7 +9,7 @@ export const description =
 # Servicios
 
 Todos los consumos se realizan a la URL base, que será proporcionada por el comercio y se le adiciona el endpoint del servicio a consumir
-## Búsqueda de facturas {{ tag: 'POST', label: '/invoice/search/' }} 
+## Búsqueda de facturas {{ tag: 'POST', label: '/invoice/search/' }}
 Es el método con el cual se listan las facturas relacionadas con los parametros de consulta descritos a continuación:
 
 **Campos con los cuales se realiza la peticion de consulta**
@@ -19,9 +19,9 @@ Es el método con el cual se listan las facturas relacionadas con los parametros
 | `auth`        | [Autenticación](/payments/microsite-customized/authentication)| Información de autenticación.         |
 | `agreement`   | String   | Código de convenio.                            |
 | `searchType`  | String   | Nombre del filtro de búsqueda que puede tener uno de los siguientes valores:  **reference**: Busca por la referencia de la factura.  **document**: Busca por el número de documento del pagador.  **alt_reference**: Busca por la referencia alterna posible. |
-| `searchValue `| String   | Pago por cuotas con interés.                            |
+| `searchValue `| String   | Valor de la búsqueda.                            |
 | `siteId`      | String        |  Credencial de identificación del sitio.                                                       |
-| `filters (Opcional)`  | filters | Estructura que permite extender la búsqueda.                            |
+| `filters (Opcional)`  | [filters](/payments/microsite-customized/services#filters) | Estructura que permite extender la búsqueda.                            |
 | `locale (Opcional)`     | [Locale](/checkout/localization)     | Indica el idioma de la plataforma. Permite dar manejo a traducciones en los  [Mensajes de error.](/payments/microsite-customized/error-handling)                  |
 
 
@@ -40,11 +40,21 @@ Es el método con el cual se listan las facturas relacionadas con los parametros
     "searchValue": "1040035000",
     "siteId": "657853a1y192317v2k59764fdb547e80"
  }
- 
+
 ```
 
+**Respuesta esperada**
+
+| Nombre    | Tipo                     |  Descripción                                                  |
+|-----------| ------------------------ |-------------------------------------------------------- |
+| `status`        | [Autenticación](/payments/microsite-customized/authentication)| Describe el estado de esta petición.         |
+| `data`   | String   | Arreglo de órdenes de pago u órdenes que coincidan con los parámetros de búsqueda proporcionados.                            |
+| `options`  | String   | Objeto de opciones adicionales que permiten modificar el comportamiento en el flujo de pago.  |
+| `messages`| [messages](/payments/microsite-customized/services#messages)   | Objeto con los mensajes que se deben mostrar en cada evento definido. |
+
+
 ``` json {{ 'title' : 'Ejemplo de respuesta'}}
-    
+
 {
   "status": {
     "status": "OK",
@@ -163,8 +173,8 @@ Es el método con el cual se listan las facturas relacionadas con los parametros
 
 ```
 
-### filters {{tag:'POST', label:'/invoice/filters/'}}
-Es una estructura que permite extender los parámetros en la búsqueda de facturas. Esta estructura NO sustituye al parámetro **“searchType/searchValue”**, por ende, si un parámetro ya fue enviado en **“searchType/searchValue”** no debe ser incluido en la estructura filters. 
+### filters {{id:'filters', tag:'POST', label:'/invoice/filters/'}}
+Es una estructura que permite extender los parámetros en la búsqueda de facturas. Esta estructura NO sustituye al parámetro **“searchType/searchValue”**, por ende, si un parámetro ya fue enviado en **“searchType/searchValue”** no debe ser incluido en la estructura filters.
 Los siguientes parametros son opcionales:
 
 | Nombre    | Tipo                     |  Descripción                                                  |
@@ -198,7 +208,7 @@ Los siguientes parametros son opcionales:
 
 ```
 
-**Ejemplo de respuesta sin facturas encontradas**  
+**Ejemplo de respuesta sin facturas encontradas**
 El objeto **data** debe ser un arreglo vacío o un nulo
 
 ``` json {{ 'title' : 'Ejemplo'}}
@@ -216,7 +226,7 @@ El objeto **data** debe ser un arreglo vacío o un nulo
 ```
 
 ### minAmountToPay & maxAmountToPay {{tag:'POST', label:'/invoice/minpay/'}}
-Es una estructura que permite al usuario modificar el monto total a pagar, ya sea por un monto menor o un monto mayor, para esto es necesario **incluir la llave minAmountToPay y maxAmountToPay** 
+Es una estructura que permite al usuario modificar el monto total a pagar, ya sea por un monto menor o un monto mayor, para esto es necesario **incluir la llave minAmountToPay y maxAmountToPay**
 
 ``` json {{ 'title' : 'Ejemplo'}}
 
@@ -308,8 +318,8 @@ Es una estructura que permite al usuario modificar el monto total a pagar, ya se
 
 ```
 
-**Ejemplo de respuesta cuando se va a permitir la modificación del monto máximo a pagar de las facturas**  
-Este escenario, donde se puede modificar el monto máximo a pagar, lo podemos ver como por ejemplo: 
+**Ejemplo de respuesta cuando se va a permitir la modificación del monto máximo a pagar de las facturas**
+Este escenario, donde se puede modificar el monto máximo a pagar, lo podemos ver como por ejemplo:
 
 - Diferir la deuda en cuotas:
     - Valor Total: $ 1.200.000
@@ -368,7 +378,7 @@ Este escenario, donde se puede modificar el monto máximo a pagar, lo podemos ve
 <Note> La gestión del monto pendiente de pagar se debe gestionar por parte del proveedor de las facturas.</Note>
 
 ### Fusionar medios de pago
-El campo mergePaymentMethods dentro de la estructura ```options``` es el que permite definir el comportamiento esperado en este caso, 
+El campo mergePaymentMethods dentro de la estructura ```options``` es el que permite definir el comportamiento esperado en este caso,
 para saber mas información acerca de este campo por favor dirigirse al siguiente apartado [mergePaymentMethods](/payments/microsite-customized/data-structures#fusion-de-metodos-de-pago-merge-payment-methods)
 
 
@@ -463,6 +473,31 @@ para saber mas información acerca de este campo por favor dirigirse al siguient
 
 ```
 
+### messages {{id:'messages'}}
+Estructura que permite definir mensajes personalizados en los eventos del flujo de datos y se muestran al usuario en sesión.
+Estas opciones sólo se pueden incluir en la respuesta del servicio de consulta.
+
+| Nombre                 | Tipo   | Descripción |
+|------------------------|--------|-------------|
+| `messages` | Object | Contiene los mensajes personalizados.<br /><pre>{`{"event":{"es":"message","en":"message"}}`}</pre> |
+| `messages.postSearch` | Object | Mapa de mensajes por idioma <br /><pre>{`{"es":"message","en":"message"}`}</pre> |
+| `messages.postSearch.es` | String | Mensaje correspondiente al idioma indicado <br /><pre>{`{"es":"message"}`}</pre> <br /> Los idiomas permitidos son <br /> - "es" (Español) <br /> - "en" (Inglés) <br /> - "fr" (Francés) <br /> - "it" (Italiano) <br /> - "pt" (Portugués) |
+
+**Estructura messages**
+
+``` json {{ 'title' : 'Messages'}}
+
+{
+    "messages": {
+        "postSearch": {
+          "es": "Hola! tienes otras 5 órdenes de pago por pagar",
+          "en": "Hi! You have others 5 bills to pay"
+        }
+    }
+}
+
+```
+
 ## Bloqueo y liberación de facturas {{ tag: 'POST', label:'/invoice/hold'}}
 Es el método con el cual se bloquea y se libera la factura dependiendo del comportamiento deseado.
 
@@ -477,9 +512,9 @@ Es el método con el cual se bloquea y se libera la factura dependiendo del comp
 | `locale `     | [locale](/checkout/localization)     | Indica el idioma de la plataforma. Permite dar manejo a traducciones en los  [Mensajes de error.](/payments/microsite-customized/error-handling)                  |
 
 
-**Ejemplo de petición para bloquear factura.**  
+**Ejemplo de petición para bloquear factura.**
 El campo `revoke` en este caso siempre debe ser `false.`
- 
+
 ``` json {{ 'title' : 'Ejemplo bloquear factura'}}
 
 {
@@ -558,10 +593,10 @@ En este caso el estado de la factura debe ser
 
 ```
 
-**Ejemplo de petición para liberar factura.**  
+**Ejemplo de petición para liberar factura.**
 
 El campo `revoke` en este caso siempre debe ser `true`
- 
+
 ``` json {{ 'title' : 'Ejemplo bloquear factura'}}
 
 {
@@ -580,7 +615,7 @@ El campo `revoke` en este caso siempre debe ser `true`
 
 ```
 
-**Ejemplo de respuesta de factura liberada.** 
+**Ejemplo de respuesta de factura liberada.**
 
 En este caso el estado de la factura debe ser distinto de `ACTIVE`.
 
@@ -640,6 +675,147 @@ En este caso el estado de la factura debe ser distinto de `ACTIVE`.
 
 ```
 
+## Bloqueo y liberación masivo de facturas {{ tag: 'POST', label:'/invoice/hold-massive'}}
+Es el método con el cual se bloquea o se liberan un conjunto de facturas dependiendo del comportamiento deseado.
+
+| Nombre    | Tipo                     |  Descripción                                                |
+|-----------| ------------------------ |--------------------------------------------------------     |
+| `auth`        | [Autenticación](/payments/microsite-customized/authentication)| Información de autenticación.         |
+| `data`        | [data](/payments/microsite-customized/services#data)                      | Conjunto de facturas a bloquear o liberar.                            |
+| `revoke`      | Bool                     | Determina si se debe revocar el hold o no false: La factura quedará bloqueada true: La factura será liberada.                     |
+| `siteId`      | String                   | Credencial de identificación del sitio                     |
+| `locale `     | [locale](/checkout/localization)     | Indica el idioma de la plataforma. Permite dar manejo a traducciones en los  [Mensajes de error.](/payments/microsite-customized/error-handling)                  |
+
+### data {{ id: 'data' }}
+Listado de facturas a bloquear o liberar.
+Cada objeto representa una factura e incluye su identificador (id) y su referencia (reference). Ambos campos son obligatorios.
+
+| Nombre    | Tipo                     |  Descripción                                                  |
+|-----------| ------------------------ |-------------------------------------------------------- |
+| `id`        | Int                      | Identificador de la factura (id).                            |
+| `reference`   | String                   | Referencia de la factura.  |
+
+``` json {{ 'title' : 'Ejemplo'}}
+
+{
+  "data": [
+            {
+              "id": 1,
+              "reference": "R-0001"
+            },
+            {
+              "id": 2,
+              "reference": "R-0002"
+            },
+            {
+              "id": 3,
+              "reference": "R-0003"
+            },
+      ],
+}
+
+```
+
+**Ejemplo de petición para bloquear múltiples factura.**
+El campo `revoke` en este caso siempre debe ser `false.`
+
+``` json {{ 'title' : 'Ejemplo bloquear factura'}}
+
+{
+    "auth": {
+        "login": "aabbccdd1234567890aabbccdd123456",
+        "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+        "nonce": "MTE5ODE0",
+        "seed": "2025-03-20T08:53:42-05:00"
+      },
+    "data": [
+          {
+            "id": 1,
+            "reference": "R-0001"
+          },
+          {
+            "id": 2,
+            "reference": "R-0002"
+          },
+    ],
+    "revoke": false,
+    "siteId": "657853a1y192317v2k59764fdb547e80"
+}
+
+```
+
+**Ejemplo de respuesta exitosa de facturas bloqueadas.**
+En este caso se entiende que todas las facturas solicitadas fueron bloqueadas correctamente.
+
+``` json {{ 'title' : 'Respuesta de múltiples facturas bloqueadas'}}
+{
+  "status": {
+    "status": "OK",
+    "reason": "00",
+    "message": "La petición se ha procesado correctamente",
+    "date": "2025-03-20T10:45:33-05:00"
+  }
+}
+
+```
+
+**Ejemplo de petición para liberar múltiples facturas.**
+
+El campo `revoke` en este caso siempre debe ser `true`
+
+``` json {{ 'title' : 'Petición para liberar múltiples facturas'}}
+
+{
+  "auth": {
+      "login": "aabbccdd1234567890aabbccdd123456",
+      "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+      "nonce": "MTE5ODE0",
+      "seed": "2025-03-20T08:53:42-05:00"
+      },
+  "data": [
+            {
+              "id": 1,
+              "reference": "R-0001"
+            },
+            {
+              "id": 2,
+              "reference": "R-0002"
+            },
+      ],
+  "invoice": 6,
+  "revoke": true,
+  "siteId": "657853a1y192317v2k59764fdb547e80"
+}
+
+```
+
+**Ejemplo de respuesta exitosa de facturas liberadas.**
+En este caso se entiende que todas las facturas solicitadas fueron liberadas correctamente.
+
+``` json {{ 'title' : 'Respuesta de múltiples facturas liberadas'}}
+{
+  "status": {
+    "status": "OK",
+    "reason": "00",
+    "message": "La petición se ha procesado correctamente",
+    "date": "2025-03-20T10:45:33-05:00"
+  }
+}
+
+```
+
+**Ejemplo de respuesta fallida en bloqueo masivo de facturas.**
+
+``` json {{ 'title' : 'Respuesta fallida'}}
+{
+    "status": {
+        "status": "FAILED",
+        "reason": "99",
+        "message": "Hubo un error al procesar tu solicitud",
+        "date": "2019-03-20T10:45:33-05:00"
+    }
+}
+```
 
 ## Asentamiento de factura {{tag:'POST', label:'/invoice/settle/'}}
 Es el método realiza el asentamiento de la factura en el servicio del comercio, se realiza con los siguientes campos:
@@ -650,9 +826,9 @@ Es el método realiza el asentamiento de la factura en el servicio del comercio,
 | `locale `     | [locale](/checkout/localization)     | Indica el idioma de la plataforma. Permite dar manejo a traducciones en los  [Mensajes de error.](/payments/microsite-customized/error-handling)                  |
 | `id`          | Int                      | Identificador de la factura (id).                            |
 | `reference`   | String                   | Referencia de la factura.  |
-| `agreement`   | String                     | Código de convenio.                     |  
-| `authorization`   | String                     | Monto pagado.                     |
-| `amount`          | String                     | Código de convenio.                     |
+| `agreement`   | String                     | Código de convenio.                     |
+| `authorization`   | String                     | Código de autorización del pago.                     |
+| `amount`          | String                     | Monto pagado.                     |
 | `date`            | String                     | Fecha de pago.                     |
 | `paymentMethod`   | String                     | Metodo de pago usado.                     |
 | `receipt`     | String                     | Código de recibo proporcionado por la red.                     |
