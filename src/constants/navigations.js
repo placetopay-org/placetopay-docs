@@ -351,6 +351,12 @@ export const TAB_NAVIGATION = {
                 ],
               },
               {
+                title: 'Redireccionamientos externos',
+                links: [
+                  { title: 'Zunify', href: '/payments/bank-redirects/zunify' },
+                ],
+              },
+              {
                 title: 'Efectivo',
                 links: [
                   { title: 'Pago en efectivo', href: '/payments/cash/cash' },
@@ -499,6 +505,12 @@ export const TAB_NAVIGATION = {
                 links: [
                   { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
                   { title: 'Deuna!', href: '/payments/bank-redirects/deuna' },
+                ],
+              },
+              {
+                title: 'External redirects',
+                links: [
+                  { title: 'Zunify', href: '/payments/bank-redirects/zunify' },
                 ],
               },
               {
