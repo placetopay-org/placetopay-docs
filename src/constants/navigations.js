@@ -344,15 +344,10 @@ export const TAB_NAVIGATION = {
                 ],
               },
               {
-                title: 'Redireccionamientos bancarios',
+                title: 'Redireccionamientos externos',
                 links: [
                   { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
                   { title: 'Deuna!', href: '/payments/bank-redirects/deuna' },
-                ],
-              },
-              {
-                title: 'Redireccionamientos externos',
-                links: [
                   { title: 'Zunify', href: '/payments/bank-redirects/zunify' },
                 ],
               },
@@ -501,15 +496,10 @@ export const TAB_NAVIGATION = {
                 ],
               },
               {
-                title: 'Bank redirects',
+                title: 'External redirects',
                 links: [
                   { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
                   { title: 'Deuna!', href: '/payments/bank-redirects/deuna' },
-                ],
-              },
-              {
-                title: 'External redirects',
-                links: [
                   { title: 'Zunify', href: '/payments/bank-redirects/zunify' },
                 ],
               },
