@@ -340,15 +340,15 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Débitos bancarios',
                 links: [
-                  { title: 'ACH Débito Bancario', href: '/payments/bank-redirects/ach-bank-debit' },
+                  { title: 'ACH Débito Bancario', href: '/payments/external-redirects/ach-bank-debit' },
                 ],
               },
               {
                 title: 'Redireccionamientos externos',
                 links: [
-                  { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
-                  { title: 'Deuna!', href: '/payments/bank-redirects/deuna' },
-                  { title: 'Zunify', href: '/payments/bank-redirects/zunify' },
+                  { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
+                  { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
+                  { title: 'Zunify', href: '/payments/external-redirects/zunify' },
                 ],
               },
               {
@@ -492,15 +492,15 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Bank Debits',
                 links: [
-                  { title: 'ACH Bank Debit', href: '/payments/bank-redirects/ach-bank-debit' },
+                  { title: 'ACH Bank Debit', href: '/payments/external-redirects/ach-bank-debit' },
                 ],
               },
               {
                 title: 'External redirects',
                 links: [
-                  { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
-                  { title: 'Deuna!', href: '/payments/bank-redirects/deuna' },
-                  { title: 'Zunify', href: '/payments/bank-redirects/zunify' },
+                  { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
+                  { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
+                  { title: 'Zunify', href: '/payments/external-redirects/zunify' },
                 ],
               },
               {
