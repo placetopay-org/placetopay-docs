@@ -361,6 +361,7 @@ export const TAB_NAVIGATION = {
                 title: 'Billeteras',
                 links: [
                   { title: 'Click to Pay', href: '/payments/wallets/clicktopay' },
+                  { title: 'Google Pay', href: '/payments/wallets/googlepay' },
                 ],
               }
             ],
@@ -513,6 +514,7 @@ export const TAB_NAVIGATION = {
                 title: 'Wallets',
                 links: [
                   { title: 'Click to Pay', href: '/payments/wallets/clicktopay' },
+                  { title: 'Google Pay', href: '/payments/wallets/googlepay' },
                 ],
               }
             ],
@@ -2235,7 +2237,7 @@ export const TAB_NAVIGATION = {
               { title: 'Autenticación de contratos', href: '/autopay/contract-authentication' },
               { title: 'Configuración de recurrencia', href: '/autopay/recurring-setup' },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
-              { title: 'Tipos de Cobro', href: '/autopay/charge-types'},
+              { title: 'Tipos de Cobro', href: '/autopay/charge-types' },
             ],
           },
         ],
@@ -2246,21 +2248,21 @@ export const TAB_NAVIGATION = {
         href: '/autopay/api',
         icon: DocumentCode,
         links: [
-            {
-                title: 'General',
-                links: [
-                    { title: 'Introducción', href: '/autopay/api' },
-                ]
-            },
-            {
-                title: 'API',
-                links: [
-                  { title: 'Crear o actualizar sesión de AutoPago', href: '/autopay/api/session' },
-                  { title: 'Consultar sesión de AutoPago', href: '/autopay/api/query' },
-                  { title: 'Cancelar AutoPago', href: '/autopay/api/cancel' },
-                  { title: 'Consulta de AutoPagos', href: '/autopay/api/search' },
-                  { title: 'Transacciones de AutoPago', href: '/autopay/api/transactions' },
-                ],
+          {
+            title: 'General',
+            links: [
+              { title: 'Introducción', href: '/autopay/api' },
+            ]
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Crear o actualizar sesión de AutoPago', href: '/autopay/api/session' },
+              { title: 'Consultar sesión de AutoPago', href: '/autopay/api/query' },
+              { title: 'Cancelar AutoPago', href: '/autopay/api/cancel' },
+              { title: 'Consulta de AutoPagos', href: '/autopay/api/search' },
+              { title: 'Transacciones de AutoPago', href: '/autopay/api/transactions' },
+            ],
           },
         ],
       },
