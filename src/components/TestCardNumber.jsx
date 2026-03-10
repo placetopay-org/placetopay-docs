@@ -6,8 +6,6 @@ import logoMastercard from '@/images/cards/mastercard.svg'
 import logoMaestro from '@/images/cards/maestro.svg'
 import logoSomos from '@/images/cards/somos.svg'
 import logoAmex from '@/images/cards/american_express.svg'
-import logoComfandi from '@/images/cards/comfandi.svg'
-import logoMefia from '@/images/cards/mefia.svg'
 import logoAlkosto from '@/images/cards/alkosto.svg'
 import logoExito from '@/images/cards/exito_card.svg'
 import logoAthCard from '@/images/cards/ath_card.svg'
@@ -455,65 +453,6 @@ const groupsByFranchise = [
         number : '5903120000000000',
         behavior: { es: 'Aprueba', en: 'Approve' },
       },
-    ],
-  },
-  {
-    id: 'comfandi',
-    logo: logoComfandi,
-    franchise: 'Comfandi',
-    items: [
-      {
-        number : '9391111111111111',
-        behavior: { es: 'Aprueba', en: 'Approve' },
-      },
-      {
-        number : '9395555555555555',
-        behavior: { es: 'Rechaza', en: 'Denies' },
-      },
-    ],
-  },
-  {
-    id: 'mefia',
-    logo: logoMefia,
-    franchise: 'Mefia',
-    items: [
-      {
-        number : '6377470106963215',
-        behavior: { es: 'Aprueba', en: 'Approve' },
-      },
-      {
-        number : '6377470100506457',
-        behavior: { es: 'Aprueba', en: 'Approve' },
-      },
-      {
-        number : '6377470102391155',
-        behavior: {
-            es: 'Aprueba si se proporciona la expiración 12/24',
-            en: 'Approves if 12/24 expiration is provided' 
-          },
-      },
-      {
-        number : '6377470107014851',
-        behavior: { es: 'Rechaza', en: 'Denies' },
-      },
-      {
-        number : '6377470106672139',
-        behavior: { es: 'Rechaza', en: 'Denies' },
-      },
-      {
-        number : '6377470105684614',
-        behavior: { 
-          es: 'Deja la transacción en estado pendiente y se resuelve a aprobado',
-          en: 'Leave the transaction in pending status and it is resolved to approved' 
-        },
-      },
-      {
-        number : '6377470106813436',
-        behavior: { 
-          es: 'Deja la transacción en estado pendiente y se resuelve a rechazado',
-          en: 'Leaves the transaction in pending status and resolves to rejected' 
-        },
-      }
     ],
   },
   {
