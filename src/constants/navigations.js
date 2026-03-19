@@ -2235,6 +2235,7 @@ export const TAB_NAVIGATION = {
               { title: 'Autenticación de contratos', href: '/autopay/contract-authentication' },
               { title: 'Configuración de recurrencia', href: '/autopay/recurring-setup' },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
+              { title: 'Reintentos', href: '/autopay/retries'},
               { title: 'Tipos de Cobro', href: '/autopay/charge-types'},
             ],
           },
@@ -2308,6 +2309,7 @@ export const TAB_NAVIGATION = {
               { title: 'Contract Authentication', href: '/autopay/contract-authentication' },
               { title: 'Recurring setup', href: '/autopay/recurring-setup' },
               { title: 'Response codes', href: '/autopay/codes' },
+              { title: 'Retries', href: '/autopay/retries'},
               { title: 'Charge Types', href: '/autopay/charge-types' },
             ],
           }
