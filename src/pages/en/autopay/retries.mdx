@@ -6,88 +6,102 @@ import { HeroPattern } from '@/components/HeroPattern'
 
 The AutoPay system has an automatic retry mechanism designed to ensure the continuity of collections in the event of
 temporary connection failures or unavailability of external services. The workflow includes four key points that utilize
-this automatic retry mechanism, which are detailed below.
+this mechanism, which are detailed below.
 
 ## Generation
 
-In this phase, the system identifies that a charge needs to be made and prepares the necessary information for the
-AutoPay collection.
+In this flow, the system identifies that a charge needs to be processed and prepares the information to generate it. It
+is at this point that the balance is checked on the merchant's external service.
 
 ### Balance Inquiry
 The system determines whether to check the amount to be charged based on the charge type configured in AutoPay
-([See Charge Types Details](/autopay/charge-types)). The charges that require consultation are:
+([See Charge Types Details](/autopay/charge-types)).
+
+The charges that require consultation are:
 * Total Balance (`TOTAL_BALANCE`): The total outstanding balance for the current period is checked with the merchant's
 service.
 * Minimum Balance (`MINIMUM_BALANCE`): The minimum balance required to maintain active service is checked, according to
 the merchant's report.
 
 ### Retry Frequency
-If an error occurs while attempting to check the balance or register the payment, the system will attempt up to 3
-re-attempts to register the payment at the following intervals:
-* **First re-attempt:** after 5 minutes.
-* **Second re-attempt:** after 10 minutes.
-* **Third re-attempt:** after 20 minutes.
+If an error occurs while checking the balance or registering the payment, the system will execute up to **2 retries**
+to register the payment, based on the following time intervals:
+
+| Retry | Interval (min) |
+|-------|----------------|
+| **1** | 5              |
+| **2** | 10             |
 
 ### Attempt Limit
-If the payment cannot be registered after 3 re-attempts, the system will give up, and the Self-Pay service will be
-marked as failed (FAILED).
-Note: If this process fails, not only is the current payment affected, but the status of all pending installments for
-that AutoPayment is also updated to failed.
+If the payment cannot be registered after 3 attempts, the system will give up and the AutoPay will be marked as
+failed (`FAILED`).
+
+<Note type="warning">
+    If this process fails, not only is the current payment affected, but the status of all pending installments for that
+    AutoPay is updated to failed.
+</Note>
 
 ## Processing
 Once the payment is generated with the corresponding amount, the transaction is processed against the payment method.
 
 ### Retry Frequency
-In the event of processable rejections or technical communication errors with the payment gateway, the system applies
-the following retry intervals:
-* **First retry:** after 1 minute.
-* **Second retry:** after 3 minutes.
-* **Third retry:** after 5 minutes.
+In the event of actionable rejections or technical communication errors with the gateway, the system will perform up to
+**2 retries** at the following time intervals:
+
+| Retry | Interval (min) |
+|-------|----------------|
+| **1** | 1              |
+| **2** | 3              |
 
 ### Amount Consistency
-During these retries, **the balance is not checked again**. This is a process performed during the installment
-registration stage to ensure consistency in the amount charged.
+During these new payment attempts, **the balance is not checked again**. This process is performed only during the
+installment registration stage to ensure consistency in the amount charged.
 
 ### Attempt Limit
-The total number of attempts is defined by the `max_retries` parameter, which currently has a default value of 3
-attempts (not configurable at this time).
-If this limit is reached without approval:
-* The associated payment and the main Self-Checkout change to a failed (FAILED) status.
+This flow currently has a maximum of 3 attempts. If this limit is reached without approval, the following actions will
+be executed:
+* The current payment and AutoPay change to failed status (`FAILED`).
+* If there are pending payments, their status will change to failed (`FAILED`).
 * The recurrence cycle stops.
 
 ## Settlement
-This process is executed only when a Self-Checkout payment has been approved. Its purpose is to inform the merchant's
+This process is executed only when a AutoPay payment has been approved. Its purpose is to inform the merchant's
 external service that the payment has been successfully completed.
 
 ### Retry Frequency
-If the merchant service does not respond or fails to confirm the transaction, retries are made at the following time
-intervals:
-* **First retry:** after 10 minutes
-* **Second retry:** after 20 minutes
-* **Third retry:** after 30 minutes
+If the merchant service does not respond or fails to confirm the settlement, the system will make up to **2 retries**
+during the following time intervals:
 
-### Transaction Failure
-When the 3 attempts to consume the external service are exhausted, the Self-Checkout system logs a warning for manual
-auditing.
+| Retry | Interval (min) |
+|-------|----------------|
+| **1** | 10             |
+| **2** | 20             |
+
+### Settlement Failure
+After exhausting the 3 attempts to consume the external service, the AutoPay system logs a warning for manual auditing.
 
 ## Notification
-This flow informs the merchant system about the outcome of different events related to a Self-Checkout transaction.
+This flow is responsible for informing the merchant's system about the outcome of different events related to a AutoPay
+transaction.
 
 ### Retry Frequency
-If the merchant server does not return a satisfactory response, retries are made at the following time intervals:
-* **First retry:** after 1 minute.
-* **Second retry:** after 5 minutes.
-* **Third retry:** after 10 minutes.
+If the merchant's server does not return a satisfactory response, the system will make up to **2 retries** at the
+following time intervals:
+
+| Retry | Interval (min) |
+|-------|----------------|
+| **1** | 1              |
+| **2** | 5              |
 
 ### Delivery Failure
-After exhausting 3 notification attempts, the system stops automatic sending and generates an error log detailing the
-unreported event.
+After exhausting the 3 notification attempts, the system stops automatic sending and generates an error log detailing
+the event that was not reported.
 
-## Flow Table
+## Retries per Flow
 
-| Stage            | Intervals (Backoff) - (minutes) | Attempt Limit | Check Balance? | Action on Attempt Exhaustion    |
-|------------------|---------------------------------|---------------|----------------|---------------------------------|
-| **Generation**   | 5, 10, and 20                   | 3             | Yes            | Subscription Failed             |
-| **Processing**   | 1, 3, and 5                     | 3             | No             | Billing and Subscription Failed |
-| **Settlement**   | 10, 20, and 30                  | 3             | Yes            | Warning Log (Audit)             |
-| **Notification** | 1, 5, and 10                    | 3             | No             | Error Log (Delivery Failure)    |
+| Flow             | Retry Intervals (min) | Retry Limit | Check Balance? | Action after exhausting retries          |
+|------------------|-----------------------|-------------|----------------|------------------------------------------|
+| **Generation**   | 5, 10                 | 2           | Yes            | AuyoPay and suscription Failed           |
+| **Processing**   | 1, 3                  | 2           | No             | AuyoPay, Billing and Subscription Failed |
+| **Settlement**   | 10, 20                | 2           | No             | Warning Log (Audit)                      |
+| **Notification** | 1, 5                  | 2           | No             | Error Log (Delivery Failure)             |
