@@ -6,26 +6,26 @@ import { HeroPattern } from '@/components/HeroPattern'
 
 El sistema de **Autopago** cuenta con un mecanismo de reintentos automáticos diseñado para garantizar la continuidad del
 recaudo ante fallos temporales de conexión o indisponibilidad de servicios externos. Dentro del flujo se contemplan
-cuatro puntos clave que cuentan con dicho mecanismo los cuales se detallan a continuación.
+cuatro puntos clave que cuentan con dicho mecanismo, los cuales se detallan a continuación.
 
 ## Generación
 
-En este flujo, el sistema identifica que se debe realizar un cobro y prepara la información para generarlo. Es en este
-punto es donde se realiza la consulta de balance en el servicio externo del comercio.
+En este flujo, el sistema identifica que se debe realizar un cobro y prepara la información para generarlo. Es aqui
+donde se realiza la consulta de balance en el servicio externo del comercio.
 
 ### Consulta de balance
-El sistema determina si debe consultar el valor a cobrar basándose en el tipo de cargo configurado en el Autopago
+El sistema determina si debe consultar el valor a cobrar basándose en el **tipo de cargo** configurado en el Autopago
 ([Ver detalle de Tipos de Cargo](/autopay/charge-types)).
 
 Los cargos que requieren de consulta son:
-* Saldo total (`TOTAL_BALANCE`): Se consulta al servicio del comercio el total de la deuda pendiente para el periodo
-actual.
-* Saldo mínimo (`MINIMUM_BALANCE`): Se consulta el valor mínimo requerido para mantener el servicio activo según el
+* **Saldo total (`TOTAL_BALANCE`)**: Se consulta al servicio del comercio el total de la deuda pendiente para el
+periodo actual.
+* **Saldo mínimo (`MINIMUM_BALANCE`)**: Se consulta el valor mínimo requerido para mantener el servicio activo según el
 reporte del comercio.
 
 ### Frecuencia de reintentos
-Si ocurre un error al consultar el balance o registrar el cobro, el sistema ejecutará hasta **2 reintentos** de registro del
-pago, basados en los siguientes intervalos de tiempo:
+Si ocurre un error al intentar consultar el balance o registrar el cobro por primera vez, el sistema ejecutará hasta
+**2 reintentos** mas de registro del pago, basados en los siguientes intervalos de tiempo:
 
 | Reintento | Intervalo (min) |
 |-----------|-----------------|
@@ -33,12 +33,12 @@ pago, basados en los siguientes intervalos de tiempo:
 | **2**     | 10              |
 
 ### Límite de intentos
-Si al agotar los 3 intentos no se logra registrar el cobro, el sistema desiste y el Autopago queda en estado fallido
+Si al agotar los 3 intentos no se logra registrar el cobro, el sistema desiste y el **Autopago** queda en estado fallido
 (`FAILED`).
 
 <Note type="warning">
-    Al fallar este proceso, no solo se afecta el cobro actual, sino que se actualiza el estado a fallido de todas las
-    cuotas pendientes por procesar que ya existieran para ese Autopago.
+    Al fallar este proceso, no solo se afecta el cobro actual, sino que se actualiza el estado de **todas las cuotas
+    pendientes por procesar (`FAILED`)** que ya existieran para ese Autopago.
 </Note>
 
 ## Procesamiento
@@ -78,8 +78,8 @@ Si el servicio del comercio no responde o falla al confirmar el asentamiento, el
 | **2**     | 20              |
 
 ### Fallo de asentamiento
-Al agotar los 3 intentos de consumo del servicio externo, el sistema de Autopago registra una advertencia en los logs
-para auditoría manual.
+Al agotar los 3 intentos de consumo del servicio externo, el sistema de Autopago registra una advertencia del fallo
+en los logs.
 
 ## Notificación
 Es el flujo encargado de informar al sistema del comercio sobre el resultado de diferentes eventos relacionados a un
@@ -100,9 +100,9 @@ el evento que no se notificó.
 
 ## Reintentos por flujo
 
-| Flujo             | Intervalos de reintentos (min) | Límite de reintentos | ¿Consulta balance? | Acción al agotar reintentos           |
-|-------------------|--------------------------------|----------------------|--------------------|---------------------------------------|
-| **Generación**    | 5, 10                          | 2                    | Si                 | Autopago Y suscripción fallida        |
-| **Procesamiento** | 1, 3                           | 2                    | No                 | Autopago, cobro y suscripción fallida |
-| **Asentamiento**  | 10, 20                         | 2                    | No                 | Log de advertencia (Auditoría)        |
-| **Notificación**  | 1, 5                           | 2                    | No                 | Log de error (Fallo de entrega)       |
+| Flujo             | Intervalos de reintentos (min) | Límite de reintentos | Total de intentos | ¿Consulta balance? | Acción al agotar reintentos           |
+|-------------------|--------------------------------|----------------------|-------------------|--------------------|---------------------------------------|
+| **Generación**    | 5, 10                          | 2                    | 3                 | Si                 | Autopago Y suscripción fallida        |
+| **Procesamiento** | 1, 3                           | 2                    | 3                 | No                 | Autopago, cobro y suscripción fallida |
+| **Asentamiento**  | 10, 20                         | 2                    | 3                 | No                 | Log de advertencia (Auditoría)        |
+| **Notificación**  | 1, 5                           | 2                    | 3                 | No                 | Log de error (Fallo de entrega)       |

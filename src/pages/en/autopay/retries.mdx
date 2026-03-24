@@ -10,22 +10,22 @@ this mechanism, which are detailed below.
 
 ## Generation
 
-In this flow, the system identifies that a charge needs to be processed and prepares the information to generate it. It
-is at this point that the balance is checked on the merchant's external service.
+In this workflow, the system identifies that a payment needs to be collected and prepares the information to generate
+it. This is where the balance inquiry is performed with the merchant's external service.
 
 ### Balance Inquiry
-The system determines whether to check the amount to be charged based on the charge type configured in AutoPay
+The system determines whether to check the amount to be charged based on the **charge type** configured in AutoPay
 ([See Charge Types Details](/autopay/charge-types)).
 
 The charges that require consultation are:
-* Total Balance (`TOTAL_BALANCE`): The total outstanding balance for the current period is checked with the merchant's
-service.
-* Minimum Balance (`MINIMUM_BALANCE`): The minimum balance required to maintain active service is checked, according to
-the merchant's report.
+* **Total Balance (`TOTAL_BALANCE`)**: The total outstanding balance for the current period is checked with the
+merchant's service.
+* **Minimum Balance (`MINIMUM_BALANCE`)**: The minimum balance required to maintain active service is checked, according
+to the merchant's report.
 
 ### Retry Frequency
-If an error occurs while checking the balance or registering the payment, the system will execute up to **2 retries**
-to register the payment, based on the following time intervals:
+If an error occurs while trying to check the balance or register the payment for the first time, the system will
+execute up to two additional payment registration attempts, based on the following time intervals:
 
 | Retry | Interval (min) |
 |-------|----------------|
@@ -33,12 +33,12 @@ to register the payment, based on the following time intervals:
 | **2** | 10             |
 
 ### Attempt Limit
-If the payment cannot be registered after 3 attempts, the system will give up and the AutoPay will be marked as
+If the payment cannot be registered after 3 attempts, the system will give up and the **AutoPay** will be marked as
 failed (`FAILED`).
 
 <Note type="warning">
-    If this process fails, not only is the current payment affected, but the status of all pending installments for that
-    AutoPay is updated to failed.
+    If this process fails, not only is the current payment affected, but the status of **all pending installments
+    (`FAILED`)** that already existed for that AutoPayment is updated.
 </Note>
 
 ## Processing
@@ -78,7 +78,7 @@ during the following time intervals:
 | **2** | 20             |
 
 ### Settlement Failure
-After exhausting the 3 attempts to consume the external service, the AutoPay system logs a warning for manual auditing.
+After exhausting the 3 attempts to use the external service, the Self-Pay system records a failure warning in the logs.
 
 ## Notification
 This flow is responsible for informing the merchant's system about the outcome of different events related to a AutoPay
@@ -99,9 +99,9 @@ the event that was not reported.
 
 ## Retries per Flow
 
-| Flow             | Retry Intervals (min) | Retry Limit | Check Balance? | Action after exhausting retries          |
-|------------------|-----------------------|-------------|----------------|------------------------------------------|
-| **Generation**   | 5, 10                 | 2           | Yes            | AuyoPay and suscription Failed           |
-| **Processing**   | 1, 3                  | 2           | No             | AuyoPay, Billing and Subscription Failed |
-| **Settlement**   | 10, 20                | 2           | No             | Warning Log (Audit)                      |
-| **Notification** | 1, 5                  | 2           | No             | Error Log (Delivery Failure)             |
+| Flow             | Retry Intervals (min) | Retry Limit | Total attempts | Check Balance? | Action after exhausting retries          |
+|------------------|-----------------------|-------------|----------------|----------------|------------------------------------------|
+| **Generation**   | 5, 10                 | 2           | 3              | Yes            | AuyoPay and suscription Failed           |
+| **Processing**   | 1, 3                  | 2           | 3              | No             | AuyoPay, Billing and Subscription Failed |
+| **Settlement**   | 10, 20                | 2           | 3              | No             | Warning Log (Audit)                      |
+| **Notification** | 1, 5                  | 2           | 3              | No             | Error Log (Delivery Failure)             |
