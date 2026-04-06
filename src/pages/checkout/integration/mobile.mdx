@@ -1,17 +1,99 @@
-export const description = 'Como integrar tu aplicacion Android correctamente.'
+export const description = 'Cómo integrar tu aplicación Android correctamente.'
 
-# Integracion con aplicacion móvil
+# Integración con aplicación móvil
+
+### Recomendación general
+
+> ⚠️ **No se recomienda el uso de WebView para el proceso de pago.** Aunque técnicamente es posible integrar el checkout dentro de un `WebView`, no es la opción más recomendada.
+
+Se recomienda utilizar browsers reales del sistema, ya que usan el motor nativo, comparten cookies con el browser del dispositivo y mantienen correctamente el contexto del usuario durante redirecciones (3DS, autenticaciones, wallets).
+
+| Opción          | Android            | iOS                    |
+| :-------------- | :----------------- | :--------------------- |
+| Browser externo | Chrome             | Safari                 |
+| Browser in-app  | Chrome Custom Tabs | SFSafariViewController |
+
+**¿Por qué no WebView?**
+
+- Restricciones en acciones del usuario (autoplay, popups, wallets).
+- Limitaciones en redirecciones entre dominios.
+- Comportamientos inconsistentes entre versiones del sistema operativo.
+- Mayor superficie de mantenimiento.
+
+---
+
+## Integración con Expo / React Native {{ id: "integration-with-expo" }}
+
+Una vez hayas obtenido una sesión de pago de tu servicio de backend, puedes iniciar el proceso de pago en la aplicación móvil. A diferencia de Android nativo, en Expo tienes tres opciones para abrir la `processUrl`, cada una con distintos niveles de compatibilidad y experiencia de usuario.
+
+### Browser in-app (recomendada)
+
+Usa `expo-web-browser` para abrir Chrome Custom Tabs (Android) o SFSafariViewController (iOS) sin salir de la app. Soporta 3DS y comparte las cookies del sistema.
+
+```bash
+npx expo install expo-web-browser
+```
+
+```javascript
+import * as WebBrowser from 'expo-web-browser'
+
+const result = await WebBrowser.openBrowserAsync(processUrl)
+```
+
+### Browser externo
+
+Abre la URL en el browser por defecto del dispositivo. Usa deep links con tu `returnUrl` y `cancelUrl` para que la app sea notificada al finalizar.
+
+```javascript
+import { Linking } from 'react-native'
+
+await Linking.openURL(processUrl)
+```
+
+### WebView (no recomendada)
+
+```bash
+npx expo install react-native-webview
+```
+
+```javascript
+import { WebView } from 'react-native-webview'
+;<WebView
+  source={{ uri: processUrl }}
+  javaScriptEnabled={true} // Requerido para ejecutar los scripts del checkout.
+  domStorageEnabled={true} // Mantiene el estado de la sesión entre redirecciones.
+  thirdPartyCookiesEnabled={true} // Necesario para 3DS y otras redirecciones de autenticación.
+  mediaPlaybackRequiresUserAction={false} //Solo si requieres reproducir video. Permite autoplay de video sin interacción del usuario. En iOS también requiere el atributo `muted` en el video.
+  allowsInlineMediaPlayback={true} // Usar junto con `mediaPlaybackRequiresUserAction={false}`.
+/>
+```
+
+### Ejemplo de integración
+
+Antes de integrar en tu app, puedes validar el comportamiento del checkout con las siguientes herramientas. Todas permiten ingresar la URL de la sesión y abrirla en distintos modos de navegación (WebView, browser externo y browser in-app).
+
+<GithubRepo
+  href="https://github.com/placetopay-org/expo-testing-app"
+  title="placetopay-org/expo-testing-app"
+  description="Repositorio de pruebas para validar la integración del checkout en distintos modos de navegación."
+/>
+
+El punto de entrada es `App.js`. La lógica del **browser in-app** (opción recomendada) está en el modo `inapp`, que usa `WebBrowser.openBrowserAsync`.
+
+También está disponible un [Snack en Expo](https://snack.expo.dev/@placetopay-dev-org/webcheckout-tests) para ejecución rápida sin configuración local.
+
+---
 
 ## Integración con Android (Kotlin) {{ id: "integration-with-android" }}
 
-Una vez hayas obtenido una sesión de pago de tu servicio de backend, puedes iniciar el proceso de pago en la aplicación móvil. Para esto debes hacer uso de los componentes `WebView` para realizar el proceso de integración.
+Una vez hayas obtenido una sesión de pago de tu servicio de backend, puedes iniciar el proceso de pago en la aplicación móvil. Consulta la [recomendación general](#mobile-recommendation) para elegir el modo de navegación más adecuado.
 
-Para cargar la `processUrl` en un `WebView`, puedes utilizar el método `loadUrl` de la clase `WebView`. Es importante que no olvides permitir tanto el **JavaScript** y las **Cookies** para el correcto funcionamiento de la sesión de pago, de lo contrario está no permitirá avanzar en el proceso.
+Si decides usar `WebView`, puedes cargar la `processUrl` con el método `loadUrl` de la clase `WebView`. Es importante que no olvides permitir tanto el **JavaScript** como las **Cookies** para el correcto funcionamiento de la sesión de pago, de lo contrario esta no permitirá avanzar en el proceso.
 
 ### Configurar la WebView
 
 Estas configuraciones ayudan a optimizar y personalizar la experiencia de navegación dentro del WebView.
-Es importante que puedas identificar cual es la **URL de retorno** y la **URL de cancelación** para poder cerrar el `WebView` una vez finalice el proceso de pago.
+Es importante que puedas identificar cuál es la **URL de retorno** y la **URL de cancelación** para poder cerrar el `WebView` una vez finalice el proceso de pago.
 
 ```kotlin
 import android.annotation.SuppressLint
@@ -71,7 +153,7 @@ fun CheckoutWebView(processUrl: String, returnUrl: String, cancelUrl: String, re
 ### Ejemplo de integración
 
 <GithubRepo
-    href="https://github.com/placetopay-org/checkout-android"
-    title="placetopay-org/checkout-android: Helper for integration with checkout in Android"
-    description="Helper for integration with checkout in Android. Contribute to placetopay-org/checkout-android development by creating an account on GitHub."
+  href="https://github.com/placetopay-org/checkout-android"
+  title="placetopay-org/checkout-android: Helper for integration with checkout in Android"
+  description="Helper for integration with checkout in Android. Contribute to placetopay-org/checkout-android development by creating an account on GitHub."
 />
