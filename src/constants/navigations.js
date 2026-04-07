@@ -244,6 +244,9 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Introducción', href: '/payments'
               },
+              {
+                title: 'Conversión dinámica de divisas', href: '/payments/currency-conversion',
+              },
             ],
           },
           {
