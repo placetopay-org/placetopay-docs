@@ -86,7 +86,7 @@ export function HomeLayout({ children, sections = [] }) {
         <main className="pb-16">
           <Prose as="article">{children}</Prose>
         </main>
-        <Footer withouLinks />
+        <Footer withoutLinks />
       </div>
     </SectionProvider>
   )
