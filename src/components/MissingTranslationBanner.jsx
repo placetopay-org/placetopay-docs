@@ -1,6 +1,6 @@
 import { Check } from 'iconsax-react'
 
-const MISSING_TRADUCTION_BANNER_TEXTS = {
+const MISSING_TRANSLATION_BANNER_TEXTS = {
   en: {
     title: 'A NOTICE',
     description:
@@ -19,10 +19,10 @@ export const MissingTranslationBanner = ({ locale = 'en' }) => {
                 <span className="flex rounded-lg">
                   <Check size="24" variant="TwoTone" />
                 </span>
-                {MISSING_TRADUCTION_BANNER_TEXTS[locale].title}
+                {MISSING_TRANSLATION_BANNER_TEXTS[locale].title}
               </h3>
               <p className="text-md leading-5 lg:leading-7">
-                {MISSING_TRADUCTION_BANNER_TEXTS[locale].description}
+                {MISSING_TRANSLATION_BANNER_TEXTS[locale].description}
               </p>
             </div>
           </div>
