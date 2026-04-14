@@ -346,14 +346,15 @@ export const TAB_NAVIGATION = {
                   { title: 'ACH Débito Bancario', href: '/payments/external-redirects/ach-bank-debit' },
                 ],
               },
-              {
-                title: 'Redireccionamientos externos',
-                links: [
-                  { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
-                  { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
-                  { title: 'Zunify', href: '/payments/external-redirects/zunify' },
-                ],
-              },
+               {
+                 title: 'Redireccionamientos externos',
+                 links: [
+                   { title: 'Bre-B', href: '/payments/external-redirects/bre-b' },
+                   { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
+                   { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
+                   { title: 'Zunify', href: '/payments/external-redirects/zunify' },
+                 ],
+               },
               {
                 title: 'Efectivo',
                 links: [
@@ -499,14 +500,15 @@ export const TAB_NAVIGATION = {
                   { title: 'ACH Bank Debit', href: '/payments/external-redirects/ach-bank-debit' },
                 ],
               },
-              {
-                title: 'External redirects',
-                links: [
-                  { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
-                  { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
-                  { title: 'Zunify', href: '/payments/external-redirects/zunify' },
-                ],
-              },
+               {
+                 title: 'External redirects',
+                 links: [
+                   { title: 'Bre-B', href: '/payments/external-redirects/bre-b' },
+                   { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
+                   { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
+                   { title: 'Zunify', href: '/payments/external-redirects/zunify' },
+                 ],
+               },
               {
                 title: 'Cash',
                 links: [
