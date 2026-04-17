@@ -349,6 +349,7 @@ export const TAB_NAVIGATION = {
                {
                  title: 'Redireccionamientos externos',
                  links: [
+                   { title: 'ATH Móvil', href: '/payments/external-redirects/ath-movil' },
                    { title: 'Bre-B', href: '/payments/external-redirects/bre-b' },
                    { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
                    { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
@@ -504,6 +505,7 @@ export const TAB_NAVIGATION = {
                {
                  title: 'External redirects',
                  links: [
+                   { title: 'ATH Móvil', href: '/payments/external-redirects/ath-movil' },
                    { title: 'Bre-B', href: '/payments/external-redirects/bre-b' },
                    { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
                    { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
