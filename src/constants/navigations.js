@@ -2038,6 +2038,10 @@ export const TAB_NAVIGATION = {
                 title: 'Acciones sobre integraciones de sitios',
                 href: '/core/reference/site/integrations'
               },
+              {
+                title: 'Acciones sobre anuncios',
+                href: '/core/reference/ads'
+              },
             ]
           },
         ],
@@ -2100,6 +2104,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Actions on Site Integrations',
                 href: '/core/reference/site/integrations'
+              },
+              {
+                title: 'Actions on Ads',
+                href: '/core/reference/ads'
               },
             ]
           },
