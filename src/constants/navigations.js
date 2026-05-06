@@ -2246,6 +2246,7 @@ export const TAB_NAVIGATION = {
               { title: 'Configuración de recurrencia', href: '/autopay/recurring-setup' },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
               { title: 'Tipos de Cobro', href: '/autopay/charge-types' },
+              { title: 'Estados', href: '/autopay/status'},
             ],
           },
         ],
@@ -2319,6 +2320,7 @@ export const TAB_NAVIGATION = {
               { title: 'Recurring setup', href: '/autopay/recurring-setup' },
               { title: 'Response codes', href: '/autopay/codes' },
               { title: 'Charge Types', href: '/autopay/charge-types' },
+              { title: 'States', href: '/autopay/status'},
             ],
           }
         ],
