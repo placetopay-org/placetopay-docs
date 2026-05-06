@@ -10,9 +10,7 @@ import logoAmex from '@/images/cards/american_express.svg'
 import logoPaypal from '@/images/cards/paypal.svg'
 import logoSafetifypay from '@/images/cards/safetypay.svg'
 import logoCodensa from '@/images/cards/codensa.svg'
-import logoComfandi from '@/images/cards/comfandi.svg'
 import logoCafam from '@/images/cards/cafam.svg'
-import logoMefia from '@/images/cards/mefia.svg'
 import logoAlkosto from '@/images/cards/alkosto.svg'
 import logoExito from '@/images/cards/exito_card.svg'
 import logoOki from '@/images/cards/oki.svg'
@@ -95,13 +93,7 @@ const groupsByCountry = [
         code: 'codensa',
         logo: logoCodensa,
       },
-      { name: 'Comfandi', code: 'comfandi', logo: logoComfandi },
       { name: 'CAFAM', code: 'cafam', logo: logoCafam },
-      {
-        name: { es: 'Tarjeta Mefia', en: 'Mefia' },
-        code: 'mefia',
-        logo: logoMefia,
-      },
       {
         name: { es: 'Tarjeta Éxito', en: 'Éxito' },
         code: 'exito',

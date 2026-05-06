@@ -244,6 +244,9 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Introducción', href: '/payments'
               },
+              {
+                title: 'Conversión dinámica de monedas', href: '/payments/currency-conversion',
+              },
             ],
           },
           {
@@ -343,14 +346,16 @@ export const TAB_NAVIGATION = {
                   { title: 'ACH Débito Bancario', href: '/payments/external-redirects/ach-bank-debit' },
                 ],
               },
-              {
-                title: 'Redireccionamientos externos',
-                links: [
-                  { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
-                  { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
-                  { title: 'Zunify', href: '/payments/external-redirects/zunify' },
-                ],
-              },
+               {
+                 title: 'Redireccionamientos externos',
+                 links: [
+                   { title: 'ATH Móvil', href: '/payments/external-redirects/ath-movil' },
+                   { title: 'Bre-B', href: '/payments/external-redirects/bre-b' },
+                   { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
+                   { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
+                   { title: 'Zunify', href: '/payments/external-redirects/zunify' },
+                 ],
+               },
               {
                 title: 'Efectivo',
                 links: [
@@ -361,6 +366,7 @@ export const TAB_NAVIGATION = {
                 title: 'Billeteras',
                 links: [
                   { title: 'Click to Pay', href: '/payments/wallets/clicktopay' },
+                  { title: 'Google Pay', href: '/payments/wallets/googlepay' },
                 ],
               }
             ],
@@ -395,6 +401,7 @@ export const TAB_NAVIGATION = {
             title: 'Payments',
             links: [
               { title: 'Introduction', href: '/payments' },
+              { title: 'Dynamic Currency Conversion', href: '/payments/currency-conversion' },
             ],
           },
           {
@@ -495,14 +502,16 @@ export const TAB_NAVIGATION = {
                   { title: 'ACH Bank Debit', href: '/payments/external-redirects/ach-bank-debit' },
                 ],
               },
-              {
-                title: 'External redirects',
-                links: [
-                  { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
-                  { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
-                  { title: 'Zunify', href: '/payments/external-redirects/zunify' },
-                ],
-              },
+               {
+                 title: 'External redirects',
+                 links: [
+                   { title: 'ATH Móvil', href: '/payments/external-redirects/ath-movil' },
+                   { title: 'Bre-B', href: '/payments/external-redirects/bre-b' },
+                   { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
+                   { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
+                   { title: 'Zunify', href: '/payments/external-redirects/zunify' },
+                 ],
+               },
               {
                 title: 'Cash',
                 links: [
@@ -513,6 +522,7 @@ export const TAB_NAVIGATION = {
                 title: 'Wallets',
                 links: [
                   { title: 'Click to Pay', href: '/payments/wallets/clicktopay' },
+                  { title: 'Google Pay', href: '/payments/wallets/googlepay' },
                 ],
               }
             ],
@@ -2235,7 +2245,7 @@ export const TAB_NAVIGATION = {
               { title: 'Autenticación de contratos', href: '/autopay/contract-authentication' },
               { title: 'Configuración de recurrencia', href: '/autopay/recurring-setup' },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
-              { title: 'Tipos de Cobro', href: '/autopay/charge-types'},
+              { title: 'Tipos de Cobro', href: '/autopay/charge-types' },
               { title: 'Estados', href: '/autopay/status'},
             ],
           },
@@ -2247,21 +2257,21 @@ export const TAB_NAVIGATION = {
         href: '/autopay/api',
         icon: DocumentCode,
         links: [
-            {
-                title: 'General',
-                links: [
-                    { title: 'Introducción', href: '/autopay/api' },
-                ]
-            },
-            {
-                title: 'API',
-                links: [
-                  { title: 'Crear o actualizar sesión de AutoPago', href: '/autopay/api/session' },
-                  { title: 'Consultar sesión de AutoPago', href: '/autopay/api/query' },
-                  { title: 'Cancelar AutoPago', href: '/autopay/api/cancel' },
-                  { title: 'Consulta de AutoPagos', href: '/autopay/api/search' },
-                  { title: 'Transacciones de AutoPago', href: '/autopay/api/transactions' },
-                ],
+          {
+            title: 'General',
+            links: [
+              { title: 'Introducción', href: '/autopay/api' },
+            ]
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Crear o actualizar sesión de AutoPago', href: '/autopay/api/session' },
+              { title: 'Consultar sesión de AutoPago', href: '/autopay/api/query' },
+              { title: 'Cancelar AutoPago', href: '/autopay/api/cancel' },
+              { title: 'Consulta de AutoPagos', href: '/autopay/api/search' },
+              { title: 'Transacciones de AutoPago', href: '/autopay/api/transactions' },
+            ],
           },
         ],
       },
