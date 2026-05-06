@@ -2247,6 +2247,7 @@ export const TAB_NAVIGATION = {
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
               { title: 'Reintentos', href: '/autopay/retries'},
               { title: 'Tipos de Cobro', href: '/autopay/charge-types'},
+              { title: 'Estados', href: '/autopay/status'},
             ],
           },
         ],
@@ -2321,6 +2322,7 @@ export const TAB_NAVIGATION = {
               { title: 'Response codes', href: '/autopay/codes' },
               { title: 'Retries', href: '/autopay/retries'},
               { title: 'Charge Types', href: '/autopay/charge-types' },
+              { title: 'States', href: '/autopay/status'},
             ],
           }
         ],
