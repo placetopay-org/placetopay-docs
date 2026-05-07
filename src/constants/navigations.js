@@ -94,7 +94,7 @@ export const NAMESPACES_SELECTOR = {
       icon: DocumentCode,
     },
     {
-      title: 'AutoPay (BETA)',
+      title: 'AutoPay',
       description: 'Gestión de AutoPagos',
       href: '/autopay',
       icon: Courthouse,
@@ -174,7 +174,7 @@ export const NAMESPACES_SELECTOR = {
       icon: DocumentCode,
     },
     {
-      title: 'AutoPay (BETA)',
+      title: 'AutoPay',
       description: 'AutoPay management',
       href: '/en/autopay',
       icon: Courthouse,
