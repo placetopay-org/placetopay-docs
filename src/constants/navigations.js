@@ -70,6 +70,12 @@ export const NAMESPACES_SELECTOR = {
       icon: Calendar,
     },
     {
+      title: 'Tokenización y Cobros masivos',
+      description: 'Tokenización y Cobros masivos',
+      href: '/tpm',
+      icon: Book,
+    },
+    {
       title: 'Account Validator',
       description: 'Verificación de cuentas',
       href: '/account-validator',
@@ -150,6 +156,12 @@ export const NAMESPACES_SELECTOR = {
       icon: Calendar,
     },
     {
+      title: 'Tokenization and Massive recurring',
+      description: 'Tokenization and Massive recurring',
+      href: '/en/tpm',
+      icon: Calendar,
+    },
+    {
       title: 'Account Validator',
       description: 'Account verification',
       href: '/account-validator',
@@ -199,6 +211,7 @@ export const NAMESPACE_ROUTES = {
   'token-requestor': 'tokenRequestor',
   'payment-links': 'paymentLinks',
   microsites: 'microsites',
+  tpm: 'tpm',
   ticket: 'ticket',
   core: 'core',
   'account-validator': 'accountValidator',
@@ -1915,6 +1928,56 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
+    tpm: {
+        [LANGUAGES_CODES.ES]: [
+            {
+                title: 'Documentación',
+                identifier: 'tpm',
+                href: '/tpm',
+                icon: Book,
+                links: [
+                    {
+                        title: 'Tokenización y cobros masivos',
+                        links: [{ title: 'Introducción', href: '/tpm' }],
+                    },
+                    {
+                        title: 'Integración',
+                        links: [
+                            { title: 'Tokenización', href: '/tpm/tokenization' },
+                            {
+                                title: 'Cobros Masivos',
+                                href: '/tpm/massive-recurring',
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+        [LANGUAGES_CODES.EN]: [
+            {
+                title: 'Documentation',
+                identifier: 'tpm',
+                href: '/tpm',
+                icon: Book,
+                links: [
+                    {
+                        title: 'Tokenization and massive recurring',
+                        links: [{ title: 'Introduction', href: '/tpm' }],
+                    },
+                    {
+                        title: 'Integration',
+                        links: [
+                            { title: 'Tokenization', href: '/tpm/tokenization' },
+                            {
+                                title: 'Massive Recurring',
+                                href: '/tpm/massive-recurring',
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    },
   ticket: {
     [LANGUAGES_CODES.ES]: [
       {
