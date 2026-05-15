@@ -8,24 +8,33 @@ Este mecanismo es recomendado cuando se necesita ejecutar una **gran cantidad de
 
 ## Flujo general del proceso {{ id: 'charge-flow' }}
 
-1. Se establece la conexión entre servidores, mediante **VPN** o red pública.
-2. Se generan y validan los datos de acceso para la comunicación **SFTP** (PlacetoPay es quien se conecta a los servidores del cliente).
+Antes de iniciar el procesamiento, el cliente debe compartir con PlacetoPay la información necesaria para ubicar y gestionar los archivos en su servicio SFTP:
+
+- **Ruta de entrada:** directorio donde el cliente depositará los archivos que PlacetoPay debe descargar y procesar.
+- **Patrón del nombre del archivo:** criterio utilizado para identificar los archivos a procesar. Puede definirse mediante un patrón simple, como `Visa*`, para tomar todos los archivos cuyo nombre inicie con `Visa`, o mediante una expresión regular compatible con la configuración acordada.
+- **Ruta de salida:** directorio donde PlacetoPay depositará los archivos resultantes una vez finalizado el procesamiento.
+
+<Note>
+    El nombre del archivo no está limitado a una convención única. PlacetoPay procesará los archivos que coincidan con la ruta de entrada y el patrón de búsqueda previamente configurados.
+</Note>
+
+El proceso de integración se ejecuta de la siguiente forma:
+
+1. Se establece la conexión entre servidores **SFTP**, mediante **VPN** o red pública.
+2. Se generan y validan los datos de acceso para la comunicación **SFTP**.
 3. Se define la periodicidad de procesamiento de archivos.
-4. El comercio genera y comparte su llave pública **PGP/RSA** a PlacetoPay.
-5. El comercio recibe y confía en la llave pública **PGP/RSA** de PlacetoPay.
-6. El comercio genera el archivo plano **CSV**.
-7. El archivo se cifra con la llave pública de PlacetoPay.
-8. El archivo se carga en el servidor con la convención:
-
-   ```text
-   EMPRESAX_YYYYMMDD.csv.asc
-9. Al finalizar el procesamiento, se cargará el archivo con la convención:
-
-   ```text
-   EMPRESAX_YYYYMMDD_RESULT.csv.asc
-10. El procedimiento se repite en cada periodo de recurrencia, desde los pasos 6 al 9.
-
-
+4. El cliente genera y comparte su llave pública **PGP/RSA** a PlacetoPay.
+5. El cliente recibe la llave pública **PGP/RSA** de PlacetoPay.
+6. El cliente genera un archivo CSV con la información necesaria para procesar los cobros.
+7. El archivo se cifra con la llave pública de PlacetoPay usando **PGP**.
+8. El cliente debe depositar el archivo en la ruta de entrada de su servicio SFTP, de acuerdo con el patrón del nombre compartido a PlacetoPay.
+9. PlacetoPay descarga desde el SFTP del cliente los archivos que coincidan con la configuración definida.
+10. PlacetoPay descifra el archivo.
+11. PlacetoPay genera un archivo de resultados.
+12. PlacetoPay cifra el archivo de resultados con PGP.
+13. PlacetoPay deposita el archivo resultante en la ruta de salida definida por el cliente dentro de su servicio SFTP.
+14. El cliente descifra la información.
+15. El cliente actualiza su base de datos con los tokens y subtokens recibidos.
 
 ## Estructura del archivo de cobro {{ id: 'charge-input-file' }}
 
