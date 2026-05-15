@@ -1,0 +1,187 @@
+# Massive Recurring
+
+The **massive recurring** service allows multiple recurring charges to be processed through encrypted CSV files. The merchant generates an input file containing the transactions to be executed and receives a response file with the final status of each charge.
+
+## When should this service be used?
+
+This mechanism is recommended when a **large number of recurring charges** must be executed and the file-based information exchange needs to be automated.
+
+## General process flow {{ id: 'charge-flow' }}
+
+1. The connection between servers is established through **VPN** or a public network.
+2. Access credentials for **SFTP** communication are generated and validated. PlacetoPay is the party that connects to the customer's servers.
+3. The file processing frequency is defined.
+4. The merchant generates and shares its **PGP/RSA** public key with PlacetoPay.
+5. The merchant receives and trusts PlacetoPay's **PGP/RSA** public key.
+6. The merchant generates the **CSV** flat file.
+7. The file is encrypted using PlacetoPay's public key.
+8. The file is uploaded to the server using the following naming convention:
+
+   ```text
+   EMPRESAX_YYYYMMDD.csv.asc
+   ```
+
+9. Once processing is complete, the response file is uploaded using the following naming convention:
+
+   ```text
+   EMPRESAX_YYYYMMDD_RESULT.csv.asc
+   ```
+
+10. The procedure is repeated during each recurrence period, covering steps 6 through 9.
+
+## Charge file structure {{ id: 'charge-input-file' }}
+
+### CSV file structure for charges
+
+The input file must be comma-separated, include headers, and preserve the column names described below.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="siteId" type="int">
+                Site identifier provided by PlacetoPay.
+            </Property>
+            <Property name="reference" type="string(32)">
+                Unique charge reference.
+            </Property>
+            <Property name="instrumentType" type="string(1)">
+                Instrument type to be used: `T` for Token or `S` for Subtoken.
+            </Property>
+            <Property name="instrument" type="string(64)">
+                Token or subtoken used to execute the charge.
+            </Property>
+            <Property name="currency" type="string(3)">
+                Currency according to ISO 421: `COP`, `USD`, or `EUR`.
+            </Property>
+            <Property name="amount" type="decimal(14,2)">
+                Final amount to be charged.
+            </Property>
+            <Property name="valueAddedTax" type="decimal(14,2)">
+                Amount corresponding to VAT.
+            </Property>
+            <Property name="exciseDuty" type="decimal(14,2)">
+                Amount corresponding to excise tax.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Input file example' }}
+        siteId,reference,instrumentType,instrument,currency,amount,valueAddedTax,exciseDuty
+        1001,KX00001,T,1860563980451111,COP,98185.71,15676.71,0
+        ```
+
+    </Col>
+</Row>
+
+<Note>
+    All fields are required. Decimal values must use a period (`.`).
+</Note>
+
+## Response file structure {{ id: 'charge-response-file' }}
+
+### Resulting CSV file structure
+
+The response file contains the processing result for each charge.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="siteId" type="int">
+                Site identifier provided by PlacetoPay.
+            </Property>
+            <Property name="reference" type="string(32)">
+                Charge reference.
+            </Property>
+            <Property name="status" type="string(20)">
+                Transaction status: `APPROVED`, `REJECTED`, or `FAILED`.
+            </Property>
+            <Property name="iso" type="string(2)">
+                Response reason code in ISO 8583 Response Code Version 1987 format.
+            </Property>
+            <Property name="base24" type="string(3)">
+                Response reason code in Base24 format.
+            </Property>
+            <Property name="currency" type="string(3)">
+                Currency in which the charge was processed: `COP`, `USD`, or `EUR`.
+            </Property>
+            <Property name="amount" type="decimal(14,2)">
+                Final amount charged.
+            </Property>
+            <Property name="discount" type="decimal(10,2)">
+                Discount applied to the transaction.
+            </Property>
+            <Property name="internalReference" type="string(20)">
+                Internal transaction code in PlacetoPay.
+            </Property>
+            <Property name="authorization" type="string(6)">
+                Transaction authorization code.
+            </Property>
+            <Property name="receipt" type="string(10)">
+                Transaction code in the network.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Response file example' }}
+        siteId,reference,status,iso,base24,currency,amount,discount,internalReference,authorization,receipt
+        1001,KX00001,APPROVED,00,000,COP,98185.71,1234.29,12345678901234567890,000000,0000000000
+        ```
+
+    </Col>
+</Row>
+
+<Note>
+    Decimal values must use a period (`.`). All fields are required. The file includes headers, and the header names correspond to those defined in the `name` property.
+</Note>
+
+## Formatting rules {{ id: 'charge-format-rules' }}
+
+| Rule | Description |
+|---|---|
+| Column separator | Comma (CSV) |
+| Headers | Required |
+| Fields | All fields are required |
+| Decimals | Must use a period as the separator (`11244.13`) |
+| Data length | The provided data types indicate maximum lengths; files are not fixed-width |
+
+## Operational considerations {{ id: 'charge-operational-notes' }}
+
+- The server where files are uploaded and downloaded must be accessible through **RSA keys** so the process can run automatically.
+- Processing time, from downloading the input file to uploading the response file, is variable and depends on the number of transactions, network conditions, and other factors.
+- A `cron job` can be created on the merchant's server to check for the availability of the response file every **30 minutes** after the initial upload.
+
+## PlacetoPay PGP public key {{ id: 'placetopay-pgp-public-key' }}
+
+```text
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+mQENBFqBz2MBCACqkuMSupJiYZ5pJQTK2H9yZW1vbag4XEPIGEH07dauSdaUqoWo
+PFlOpeT9PW4ndNdnMhs5PthSiyJwEYX08A5Cw4cxsBRZkuuYzA3YxBwVl79aJp2i
+8RP4HwMULzUDbfGDxwUNiOMSNYyd2MjOfvI7YJqGa0YcE1L8l2bG80k8z77gZpi8
+x0nUdWQvgLJzL2fTLkabwtRK/mnGQGEMfhjvvXERdRrdDdie6708POxopnAqHOaB
+yn4bW0JEow+Rug+O0mDHzab6H9MubVDmu/XV1tx1IGwyKqccfOVs1PY3QrV58X6x
+fbCjKPJ1oLbkYgK/gdRaw7FAnwf97rZn96u/ABEBAAG0TlBMQUNFIFRPIFBBWSAt
+IEZpbGUgdHJhbnNmZXIgKHd3dy5wbGFjZXRvcGF5LmNvbSkgPG9wZXJhY2lvbmVz
+QHBsYWNldG9wYXkuY29tPokBOAQTAQIAIgUCWoHPYwIbAwYLCQgHAwIGFQgCCQoL
+BBYCAwECHgECF4AACgkQCk2QHfYzXU+KBQf/ZId9DVaodMLCXmRF60LkQcvaN57z
+FN/71RGLd38KTUrOBapN6eYFCTwpqJbBjiMe6fz3VEyFnlQvaKFM7V3XPWtg8tb8
+qwdC9Yhm9D0PC68BJmKOfSKMj/fOn9KIr2lcO5neY98P9Qk+aoG7+7YALK3jX/n7
+CqFz28vPFKbnkudlyrkA15ZjHowacfCHmXX7KEBaRjibnBvPTT1INgU4xvxh8nLk
+KsbwUGcX710aY4M/oJbw2kPoHvuzQRNEv/FakiY7jMF/USGw+5RnHuG3ky+YgHs1
+sYyLBh8ufu+AhKWDsmJBEUtGpFhUGTuTCoay121UWKI0BF3zCUVKIWbXd7kBDQRa
+gc9jAQgArEyMHN+KCaoHk3OdQgGDMp2MGHb60cOfv9sXBqxF7knUuDFeEkfwwbTA
+RDNg3GmcQl4Swat9SCoEyTV5LvHfKjGZ4veh31rH9z+wVtL1ee1UochYRvbv6vQ+
+54dAVRnGQTlStHzRXp4Ix5NRU68NX7aHDGQ42qj6teOrP71LJwEpqMGnrQ39gMkK
+aCFeS1apyTZhS9T/B0O1EOuo1PwNt1QX9281ash9RfRCeeXgdserdRgcpqM68kKJ
+aqNNo0FNa3vHifE+B7NC1PE9DsS9I/uD9PeQrlhtHp/HeCG2JCN9EP38NOBAmedl
+Lh22uVcwhbL1I/qPSwl1on590p2BmQARAQABiQEfBBgBAgAJBQJagc9jAhsMAAoJ
+EApNkB32M11POgkH/3zPnovb20zm9vJj52UTFgEHjbbYxV6rowmxSs69tlvsE80U
+AK5wjoFh/arr7b91HHIxQtQ3s2AyIJa0CMn9tGvBrFtDGUBBR6IxjBBDKHErvdhp
+sv8EGtgvQNV8aqYX7pP2RYD/2DSC45ta5QPSS+7BcaAGGqcWulLCQHnyKDLS0B7S
+Q64/dO39F4PUFJAxANOxSMg0P/8eV2+4dV2gtLL7mGWjszXyoj8fMu/zr5K8Sy+B
+GriUzA3pUywgPwLSWZf3+0w7TqO9qEQNp4hLR3a2F9YPM4uU+sK6139g1a97elcx
+p/fbEnLsKkem3kN2w9VhEVjdnkoD0e1JAmDERTE=
+=NCpO
+-----END PGP PUBLIC KEY BLOCK-----
+```

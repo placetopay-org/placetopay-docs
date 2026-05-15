@@ -1,0 +1,146 @@
+# Tokenización masiva
+
+El servicio de **tokenización masiva** convierte información plana de tarjetas en identificadores más seguros (tokens) para su uso posterior en servicios de PlacetoPay.
+
+Al finalizar el proceso se obtiene:
+
+- Un **token** alfanumérico de **64 caracteres**.
+- Un **subtoken** numérico de **16 dígitos**.
+
+Ambos identificadores, al utilizarse en los servicios de PlacetoPay, conservan toda la funcionalidad de una tarjeta de crédito.
+
+## ¿Cómo funciona? {{ id: 'tokenization-flow' }}
+
+El proceso se ejecuta de la siguiente forma:
+
+1. El cliente genera un archivo CSV con las tarjetas a tokenizar.
+2. El archivo se cifra con **PGP**.
+3. El cliente envía el archivo al destinatario acordado ().
+4. PlacetoPay recibe el archivo.
+5. PlacetoPay descifra el archivo.
+6. PlacetoPay ejecuta un proceso batch de tokenización.
+7. PlacetoPay genera un archivo de resultados.
+8. PlacetoPay cifra el archivo de resultados con PGP.
+9. PlacetoPay entrega el archivo al cliente.
+10. El cliente descifra la información.
+11. El cliente actualiza su base de datos con los tokens y subtokens recibidos.
+
+Las tarjetas se deben enviar en un archivo plano separado por comas, normalmente con extensión `.csv`, y cifrado con **PGP**.
+
+<Note>
+    Si el archivo no tiene extensión, se tomará como un archivo CSV.
+</Note>
+
+Cada registro debe incluir un identificador que permita relacionar posteriormente la información tokenizada con la base de datos del cliente.
+
+<Note>
+    Cuando el proceso se realiza una sola vez, el documento indica que no tiene sentido montar SFTP exclusivamente para esa operación.
+</Note>
+
+## Formato del archivo de tarjetas {{ id: 'tokenization-input-file' }}
+
+El archivo debe estar separado por comas y contener las columnas en el orden indicado.
+
+Todos los campos descritos en esta sección son **requeridos**.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="Referencia" type="string">
+                Código identificador del registro, provisto por el cliente para relacionarlo con su base de datos. Debe ser único por registro.
+            </Property>
+            <Property name="PAN" type="string">
+                Número completo de la tarjeta, sin espacios.
+            </Property>
+            <Property name="Expiración" type="string">
+                Fecha de expiración de la tarjeta en formato `MM-YY`.
+            </Property>
+            <Property name="Tipo documento" type="string">
+                Tipo de documento del cliente: `CI`, `RUC` o `PPN`.
+            </Property>
+            <Property name="Número documento" type="string">
+                Número de documento del titular.
+            </Property>
+            <Property name="Nombre" type="string">
+                Nombre del titular.
+            </Property>
+            <Property name="Apellidos" type="string">
+                Apellidos del titular.
+            </Property>
+            <Property name="Celular" type="string">
+                Número de celular del titular.
+            </Property>
+            <Property name="Teléfono" type="string">
+                Número telefónico del titular.
+            </Property>
+            <Property name="Email" type="string">
+                Correo electrónico del titular.
+            </Property>
+            <Property name="Dirección" type="string">
+                Dirección del titular.
+            </Property>
+            <Property name="Ciudad" type="string">
+                Ciudad del titular.
+            </Property>
+            <Property name="País" type="string">
+                Código alpha-2 del país del titular, por ejemplo: `CO`, `EC`, `US`.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Ejemplo estructural de archivo de entrada' }}
+        Referencia,PAN,Expiración,Tipo documento,Número documento,Nombre,Apellidos,Celular,Teléfono,Email,Dirección,Ciudad,País
+        REF001,4111111111111111,12-28,CI,1234567890,Nombre,Apellido,3000000000,6000000,cliente@example.com,Calle 1,Medellín,CO
+        ```
+
+    </Col>
+</Row>
+
+<Note>
+    La columna `Referencia` debe ser única por registro para permitir la asociación correcta entre la información enviada y el resultado de la tokenización.
+</Note>
+
+Una vez generado el archivo plano, este debe cifrarse con PGP antes de ser enviado por el medio previamente acordado. Para realizar este proceso, se utilizará la llave pública compartida por PlacetoPay.
+
+Además, al momento de enviar el archivo, el cliente debe compartir su llave pública PGP, la cual será utilizada para cifrar el archivo resultante.
+
+## Archivo CSV de salida {{ id: 'tokenization-output-file' }}
+
+El archivo resultante sustituye la información de la tarjeta por los identificadores tokenizados generados durante el proceso.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="Referencia" type="string">
+                Código identificador del registro provisto por el cliente para relacionarlo con su base de datos.
+            </Property>
+            <Property name="Token" type="string(64)">
+                Código alfanumérico de 64 caracteres.
+            </Property>
+            <Property name="Subtoken" type="string(16)">
+                Código numérico de 16 dígitos.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Ejemplo estructural de archivo de salida' }}
+        Referencia,Token,Subtoken
+        REF001,abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890,1234567890123456
+        ```
+
+    </Col>
+</Row>
+
+## Cifrado con PGP {{ id: 'tokenization-pgp' }}
+
+Antes de enviar el archivo de entrada:
+
+1. El cliente debe cifrar el CSV con la llave pública que PlacetoPay comparta para el proceso.
+2. El cliente debe compartir su propia llave pública **PGP**, ya que PlacetoPay la utilizará para cifrar el archivo de resultados.
+
+<Note>
+    El intercambio de llaves públicas es obligatorio para mantener la confidencialidad de la información durante el proceso.
+</Note>
+

@@ -70,6 +70,12 @@ export const NAMESPACES_SELECTOR = {
       icon: Calendar,
     },
     {
+      title: 'Tokenización y Cobros masivos',
+      description: 'Tokenización y Cobros masivos',
+      href: '/tpm',
+      icon: Book,
+    },
+    {
       title: 'Account Validator',
       description: 'Verificación de cuentas',
       href: '/account-validator',
@@ -94,7 +100,7 @@ export const NAMESPACES_SELECTOR = {
       icon: DocumentCode,
     },
     {
-      title: 'AutoPay (BETA)',
+      title: 'AutoPay',
       description: 'Gestión de AutoPagos',
       href: '/autopay',
       icon: Courthouse,
@@ -150,6 +156,12 @@ export const NAMESPACES_SELECTOR = {
       icon: Calendar,
     },
     {
+      title: 'Tokenization and Massive recurring',
+      description: 'Tokenization and Massive recurring',
+      href: '/en/tpm',
+      icon: Calendar,
+    },
+    {
       title: 'Account Validator',
       description: 'Account verification',
       href: '/account-validator',
@@ -174,7 +186,7 @@ export const NAMESPACES_SELECTOR = {
       icon: DocumentCode,
     },
     {
-      title: 'AutoPay (BETA)',
+      title: 'AutoPay',
       description: 'AutoPay management',
       href: '/en/autopay',
       icon: Courthouse,
@@ -199,6 +211,7 @@ export const NAMESPACE_ROUTES = {
   'token-requestor': 'tokenRequestor',
   'payment-links': 'paymentLinks',
   microsites: 'microsites',
+  tpm: 'tpm',
   ticket: 'ticket',
   core: 'core',
   'account-validator': 'accountValidator',
@@ -1915,6 +1928,56 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
+    tpm: {
+        [LANGUAGES_CODES.ES]: [
+            {
+                title: 'Documentación',
+                identifier: 'tpm',
+                href: '/tpm',
+                icon: Book,
+                links: [
+                    {
+                        title: 'Tokenización y cobros masivos',
+                        links: [{ title: 'Introducción', href: '/tpm' }],
+                    },
+                    {
+                        title: 'Integración',
+                        links: [
+                            { title: 'Tokenización', href: '/tpm/tokenization' },
+                            {
+                                title: 'Cobros Masivos',
+                                href: '/tpm/massive-recurring',
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+        [LANGUAGES_CODES.EN]: [
+            {
+                title: 'Documentation',
+                identifier: 'tpm',
+                href: '/tpm',
+                icon: Book,
+                links: [
+                    {
+                        title: 'Tokenization and massive recurring',
+                        links: [{ title: 'Introduction', href: '/tpm' }],
+                    },
+                    {
+                        title: 'Integration',
+                        links: [
+                            { title: 'Tokenization', href: '/tpm/tokenization' },
+                            {
+                                title: 'Massive Recurring',
+                                href: '/tpm/massive-recurring',
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    },
   ticket: {
     [LANGUAGES_CODES.ES]: [
       {
@@ -2245,7 +2308,9 @@ export const TAB_NAVIGATION = {
               { title: 'Autenticación de contratos', href: '/autopay/contract-authentication' },
               { title: 'Configuración de recurrencia', href: '/autopay/recurring-setup' },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
-              { title: 'Tipos de Cobro', href: '/autopay/charge-types' },
+              { title: 'Reintentos', href: '/autopay/retries'},
+              { title: 'Tipos de Cobro', href: '/autopay/charge-types'},
+              { title: 'Estados', href: '/autopay/status'},
             ],
           },
         ],
@@ -2318,7 +2383,9 @@ export const TAB_NAVIGATION = {
               { title: 'Contract Authentication', href: '/autopay/contract-authentication' },
               { title: 'Recurring setup', href: '/autopay/recurring-setup' },
               { title: 'Response codes', href: '/autopay/codes' },
+              { title: 'Retries', href: '/autopay/retries'},
               { title: 'Charge Types', href: '/autopay/charge-types' },
+              { title: 'States', href: '/autopay/status'},
             ],
           }
         ],
