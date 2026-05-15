@@ -7,8 +7,8 @@ const guides = [
     name: { es: 'Cuenta de Placetopay', en: 'Placetopay account' },
     icon: () => <UserOctagon variant="TwoTone"/>,
     description: {
-      es: 'Debes tener una cuenta activa en PlacetoPay para acceder a tu sitio y tus credenciales API.',
-      en: 'You must have an active account in PlacetoPay to access your site and your API credentials.',
+      es: 'Debes tener una cuenta activa en Placetopay para acceder a tu sitio y tus credenciales API.',
+      en: 'You must have an active account in Placetopay to access your site and your API credentials.',
     },
   },
   {

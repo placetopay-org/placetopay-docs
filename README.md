@@ -1,6 +1,6 @@
-# PlacetoPay Docs
+# Placetopay Docs
 
-This documentation project contains all the information necessary to perform integrations with the PlacetoPay Checkout and PlacetoPay Gateway API services.
+This documentation project contains all the information necessary to perform integrations with the Placetopay Checkout and Placetopay Gateway API services.
 
 This project is made with the [Tailwind UI](https://tailwindui.com) Protocol template which was built using [Tailwind CSS](https://tailwindcss.com) and [Next.js](https://nextjs.org).
 
@@ -154,7 +154,7 @@ When creating or reviewing examples, ensure all data follows these patterns:
   - ❌ Tokens that could be mistaken for real credentials
 
 - **Card numbers**: Use industry-standard test numbers
-  - ✅ `4111111111111111` (widely recognized PlacetoPay test card)
+  - ✅ `4111111111111111` (widely recognized Placetopay test card)
   - ✅ `4000000000000002` (standard test card number)
   - ❌ Any sequence that could be a real card number
 
