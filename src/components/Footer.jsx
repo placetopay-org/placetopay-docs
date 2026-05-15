@@ -157,7 +157,7 @@ function SmallPrint() {
             aria-label="Home"
             className="font-semibold text-gray-200 hover:text-primary-500"
           >
-            Evertec PlacetoPay
+            Evertec Placetopay
           </Link>
         </p>
 
