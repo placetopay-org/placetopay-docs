@@ -67,9 +67,9 @@ When you arrive at the merchant's site, you must check the status of the session
 This can be achieved using the [API - Query session (getRequestInformation)](/en/checkout/api/reference/session#consultar-una-sesion) method.
 
 **Update and Business Rules**  
-According to the final status of the payment obtained, you must execute the corresponding business rules and update the information related to the payment in your system..
+According to the final status of the payment obtained, you must execute the corresponding business rules and update the information related to the payment in your system.
 
-## Sessions States {{ id: "checkout-session-states" }}
+## Session States {{ id: "checkout-session-states" }}
 
 Sessions can go through different states, each with its own meaning and sequence of changes. Below we present the possible states and how they relate to each other:
 
@@ -85,7 +85,7 @@ This state occurs when transactions have been approved, and the process has been
 **`REJECTED` Rejected:**
 This state occurs when the session is canceled by the user. It can also occur when the session reaches expiration time without an approved payment. _This is a final state of the process._
 
-**`APPROVED_PARTIAL` Partial Approved:**
+**`APPROVED_PARTIAL` Partially Approved:**
 It occurs in partial payment sessions when the user has paid a part of the total requested amount but another part is still pending or has failed.
 At this time the user can still complete the entire payment with other transactions.
 
@@ -99,7 +99,38 @@ At this time the process has already ended and cannot be completed. _This is a f
 ### States in partial payment sessions
 <PartialSessionStates></PartialSessionStates>
 
-## Whats Next? {{ id: "checkout-next" }}
+## Session Finalization {{ id: "session-finalization" }}
+
+A **checkout session** is the flow or process that allows the user to generate a final result. This result can be one of the following entities:
+
+- **Payment transaction** (`payment`): A single or multiple payment transaction depending on the configured session type.
+- **Tokenization** (`subscription`): A subscription that stores the user's payment method for future charges.
+- **Autopay** (`autopay`): An autopay that will enable automatic recurring charges.
+
+Once the checkout session has generated its final result, the session process **terminates definitively**. From this point forward, any modifications or additional operations must be performed on the **resulting entities** (payment, subscription, or autopay), not on the checkout session.
+
+<Note>
+Modifications made to the resulting entities **will not be reflected** in checkout session queries. The session represents only the moment of capture and creation of the result, not its subsequent lifecycle.
+</Note>
+
+### Post-session operations examples
+
+The following operations are performed on the resulting entities and will **not** affect the session state:
+
+- **Transaction reversal**: If a payment transaction (`payment`) is reversed later, this change will not be reflected when querying the session. The session will continue to show the `APPROVED` status it had at the time of its finalization.
+
+- **Payment refund**: Refunds (full or partial) are performed on the payment transaction, not on the session. When querying the session, you will not see information about refunds made.
+
+- **Subscription cancellation**: If a subscription (`subscription`) is canceled after being successfully created, the checkout session that originated it will continue to show the `APPROVED` status and will not reflect the cancellation.
+
+- **Autopay cancellation**: Similar to subscriptions, if an autopay (`autopay`) is deactivated or canceled, this change will not appear in the original session queries.
+
+To track or modify these entities, the integrating merchant must use the APIs corresponding to each entity type:
+- [Payments API](/en/checkout/api/reference/payment) for transactions
+- [Tokens API](/en/checkout/api/reference/token) for subscriptions
+- [Autopay API](/autopay/api) for autopays
+
+## What's Next? {{ id: "checkout-next" }}
 
 Done, now that you understand the life cycle you can continue with:
 

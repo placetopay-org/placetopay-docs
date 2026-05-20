@@ -1,0 +1,194 @@
+# Cobro masivo
+
+El servicio de **cobro masivo** permite procesar múltiples cobros recurrentes mediante archivos CSV cifrados. El comercio genera un archivo de entrada con las transacciones a ejecutar y recibe un archivo de respuesta con el estado final de cada cobro.
+
+## ¿Cuándo usar este servicio?
+
+Este mecanismo es recomendado cuando se necesita ejecutar una **gran cantidad de cobros de forma recurrente** y se desea automatizar el intercambio de información por archivos.
+
+## Flujo general del proceso {{ id: 'charge-flow' }}
+
+Antes de iniciar el procesamiento, el cliente debe compartir con PlacetoPay la información necesaria para ubicar y gestionar los archivos en su servicio SFTP:
+
+- **Ruta de entrada:** directorio donde el cliente depositará los archivos que PlacetoPay debe descargar y procesar.
+- **Patrón del nombre del archivo:** criterio utilizado para identificar los archivos a procesar. Puede definirse mediante un patrón simple, como `Visa*`, para tomar todos los archivos cuyo nombre inicie con `Visa`, o mediante una expresión regular compatible con la configuración acordada.
+- **Ruta de salida:** directorio donde PlacetoPay depositará los archivos resultantes una vez finalizado el procesamiento.
+
+<Note>
+    El nombre del archivo no está limitado a una convención única. PlacetoPay procesará los archivos que coincidan con la ruta de entrada y el patrón de búsqueda previamente configurados.
+</Note>
+
+El proceso de integración se ejecuta de la siguiente forma:
+
+1. Se establece la conexión entre servidores **SFTP**, mediante **VPN** o red pública.
+2. Se generan y validan los datos de acceso para la comunicación **SFTP**.
+3. Se define la periodicidad de procesamiento de archivos.
+4. El cliente genera y comparte su llave pública **PGP/RSA** a PlacetoPay.
+5. El cliente recibe la llave pública **PGP/RSA** de PlacetoPay.
+6. El cliente genera un archivo CSV con la información necesaria para procesar los cobros.
+7. El archivo se cifra con la llave pública de PlacetoPay usando **PGP**.
+8. El cliente debe depositar el archivo en la ruta de entrada de su servicio SFTP, de acuerdo con el patrón del nombre compartido a PlacetoPay.
+9. PlacetoPay descarga desde el SFTP del cliente los archivos que coincidan con la configuración definida.
+10. PlacetoPay descifra el archivo.
+11. PlacetoPay genera un archivo de resultados.
+12. PlacetoPay cifra el archivo de resultados con PGP.
+13. PlacetoPay deposita el archivo resultante en la ruta de salida definida por el cliente dentro de su servicio SFTP.
+14. El cliente descifra la información.
+15. El cliente actualiza su base de datos con los tokens y subtokens recibidos.
+
+## Estructura del archivo de cobro {{ id: 'charge-input-file' }}
+
+### Estructura del archivo CSV para cobrar
+
+El archivo de entrada debe estar separado por comas, incluir encabezado y respetar los nombres de columna descritos a continuación.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="siteId" type="int">
+                Identificador del sitio proporcionado por PlacetoPay.
+            </Property>
+            <Property name="reference" type="string(32)">
+                Referencia única del cobro.
+            </Property>
+            <Property name="instrumentType" type="string(1)">
+                Tipo de instrumento a usar: `T` para Token o `S` para Subtoken.
+            </Property>
+            <Property name="instrument" type="string(64)">
+                Token o subtoken utilizado para ejecutar el cobro.
+            </Property>
+            <Property name="currency" type="string(3)">
+                Moneda conforme a ISO 421: `COP`, `USD` o `EUR`.
+            </Property>
+            <Property name="amount" type="decimal(14,2)">
+                Monto definitivo a cobrar.
+            </Property>
+            <Property name="valueAddedTax" type="decimal(14,2)">
+                Monto correspondiente al IVA.
+            </Property>
+            <Property name="exciseDuty" type="decimal(14,2)">
+                Monto correspondiente al impuesto al consumo.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Ejemplo de archivo de entrada' }}
+        siteId,reference,instrumentType,instrument,currency,amount,valueAddedTax,exciseDuty
+        1001,KX00001,T,1860563980451111,COP,98185.71,15676.71,0
+        ```
+
+    </Col>
+</Row>
+
+<Note>
+    Todos los campos son requeridos. Los valores decimales deben separarse con punto (`.`).
+</Note>
+
+## Estructura del archivo de respuesta {{ id: 'charge-response-file' }}
+
+### Estructura del archivo CSV resultante
+
+El archivo de respuesta contiene el resultado del procesamiento de cada cobro.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="siteId" type="int">
+                Identificador del sitio proporcionado por PlacetoPay.
+            </Property>
+            <Property name="reference" type="string(32)">
+                Referencia del cobro.
+            </Property>
+            <Property name="status" type="string(20)">
+                Estado de la transacción: `APPROVED`, `REJECTED` o `FAILED`.
+            </Property>
+            <Property name="iso" type="string(2)">
+                Código del motivo de la respuesta en formato ISO 8583 Response Code Version 1987.
+            </Property>
+            <Property name="base24" type="string(3)">
+                Código del motivo de respuesta en formato Base24.
+            </Property>
+            <Property name="currency" type="string(3)">
+                Moneda en la cual se realizó el cobro: `COP`, `USD` o `EUR`.
+            </Property>
+            <Property name="amount" type="decimal(14,2)">
+                Monto definitivo cobrado.
+            </Property>
+            <Property name="discount" type="decimal(10,2)">
+                Descuento aplicado en la transacción.
+            </Property>
+            <Property name="internalReference" type="string(20)">
+                Código interno de la transacción en PlacetoPay.
+            </Property>
+            <Property name="authorization" type="string(6)">
+                Código de autorización de la transacción.
+            </Property>
+            <Property name="receipt" type="string(10)">
+                Código de la transacción en la red.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Ejemplo de archivo de respuesta' }}
+        siteId,reference,status,iso,base24,currency,amount,discount,internalReference,authorization,receipt
+        1001,KX00001,APPROVED,00,000,COP,98185.71,1234.29,12345678901234567890,000000,0000000000
+        ```
+
+    </Col>
+</Row>
+
+<Note>
+    Los valores decimales deben separarse con punto (`.`). Todos los campos son requeridos. El archivo contiene encabezado y los nombres del encabezado corresponden a los definidos en la propiedad `name`.
+</Note>
+
+## Reglas de formato {{ id: 'charge-format-rules' }}
+
+| Regla | Descripción |
+|---|---|
+| Separador de columnas | Coma (CSV) |
+| Encabezados | Obligatorios |
+| Campos | Todos son requeridos |
+| Decimales | Deben separarse con punto (`11244.13`) |
+| Longitud de datos | Los tipos de datos proporcionados indican longitudes máximas; los archivos no son de longitud fija |
+
+
+## Consideraciones operativas {{ id: 'charge-operational-notes' }}
+
+- El servidor donde se realice el cargue y descarga de archivos debe ser accesible mediante **llaves RSA** para que el proceso pueda ejecutarse automáticamente.
+- El tiempo de procesamiento, desde la descarga del archivo de entrada hasta la carga del archivo de respuesta, es variable y depende de la cantidad de transacciones, el estado de las redes, entre otros factores.
+- Se puede crear un `cron job` en el servidor del comercio para verificar la disponibilidad del archivo de respuesta cada **30 minutos** a partir del cargue inicial.
+
+## Llave pública PGP de PlacetoPay {{ id: 'placetopay-pgp-public-key' }}
+
+```text
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+mQENBFqBz2MBCACqkuMSupJiYZ5pJQTK2H9yZW1vbag4XEPIGEH07dauSdaUqoWo
+PFlOpeT9PW4ndNdnMhs5PthSiyJwEYX08A5Cw4cxsBRZkuuYzA3YxBwVl79aJp2i
+8RP4HwMULzUDbfGDxwUNiOMSNYyd2MjOfvI7YJqGa0YcE1L8l2bG80k8z77gZpi8
+x0nUdWQvgLJzL2fTLkabwtRK/mnGQGEMfhjvvXERdRrdDdie6708POxopnAqHOaB
+yn4bW0JEow+Rug+O0mDHzab6H9MubVDmu/XV1tx1IGwyKqccfOVs1PY3QrV58X6x
+fbCjKPJ1oLbkYgK/gdRaw7FAnwf97rZn96u/ABEBAAG0TlBMQUNFIFRPIFBBWSAt
+IEZpbGUgdHJhbnNmZXIgKHd3dy5wbGFjZXRvcGF5LmNvbSkgPG9wZXJhY2lvbmVz
+QHBsYWNldG9wYXkuY29tPokBOAQTAQIAIgUCWoHPYwIbAwYLCQgHAwIGFQgCCQoL
+BBYCAwECHgECF4AACgkQCk2QHfYzXU+KBQf/ZId9DVaodMLCXmRF60LkQcvaN57z
+FN/71RGLd38KTUrOBapN6eYFCTwpqJbBjiMe6fz3VEyFnlQvaKFM7V3XPWtg8tb8
+qwdC9Yhm9D0PC68BJmKOfSKMj/fOn9KIr2lcO5neY98P9Qk+aoG7+7YALK3jX/n7
+CqFz28vPFKbnkudlyrkA15ZjHowacfCHmXX7KEBaRjibnBvPTT1INgU4xvxh8nLk
+KsbwUGcX710aY4M/oJbw2kPoHvuzQRNEv/FakiY7jMF/USGw+5RnHuG3ky+YgHs1
+sYyLBh8ufu+AhKWDsmJBEUtGpFhUGTuTCoay121UWKI0BF3zCUVKIWbXd7kBDQRa
+gc9jAQgArEyMHN+KCaoHk3OdQgGDMp2MGHb60cOfv9sXBqxF7knUuDFeEkfwwbTA
+RDNg3GmcQl4Swat9SCoEyTV5LvHfKjGZ4veh31rH9z+wVtL1ee1UochYRvbv6vQ+
+54dAVRnGQTlStHzRXp4Ix5NRU68NX7aHDGQ42qj6teOrP71LJwEpqMGnrQ39gMkK
+aCFeS1apyTZhS9T/B0O1EOuo1PwNt1QX9281ash9RfRCeeXgdserdRgcpqM68kKJ
+aqNNo0FNa3vHifE+B7NC1PE9DsS9I/uD9PeQrlhtHp/HeCG2JCN9EP38NOBAmedl
+Lh22uVcwhbL1I/qPSwl1on590p2BmQARAQABiQEfBBgBAgAJBQJagc9jAhsMAAoJ
+EApNkB32M11POgkH/3zPnovb20zm9vJj52UTFgEHjbbYxV6rowmxSs69tlvsE80U
+AK5wjoFh/arr7b91HHIxQtQ3s2AyIJa0CMn9tGvBrFtDGUBBR6IxjBBDKHErvdhp
+sv8EGtgvQNV8aqYX7pP2RYD/2DSC45ta5QPSS+7BcaAGGqcWulLCQHnyKDLS0B7S
+Q64/dO39F4PUFJAxANOxSMg0P/8eV2+4dV2gtLL7mGWjszXyoj8fMu/zr5K8Sy+B
+GriUzA3pUywgPwLSWZf3+0w7TqO9qEQNp4hLR3a2F9YPM4uU+sK6139g1a97elcx
+p/fbEnLsKkem3kN2w9VhEVjdnkoD0e1JAmDERTE=
+=NCpO
+-----END PGP PUBLIC KEY BLOCK-----

@@ -35,8 +35,8 @@ En el siguiente diagrama se describe de forma visual y con más detalle el ciclo
 ### Iniciar Checkout
 
 **Crear una sesión de pago**  
-Para aceptar un pago a través de Checkout, es necesario crear una sesión de pago (**Checkout Sesssion**) utilizando el método [API - Crear sesión (CreateRequest)](/checkout/api/reference/session#crear-una-sesion).  
-Al llamar a este servicio, se obtendrá la URL de proceso (`processUrl`) y el identificador de solicitud (`requestId`).  
+Para aceptar un pago a través de Checkout, es necesario crear una sesión de pago (**Checkout Session**) utilizando el método [API - Crear sesión (CreateRequest)](/checkout/api/reference/session#crear-una-sesion).
+Al llamar a este servicio, se obtendrá la URL de proceso (`processUrl`) y el identificador de solicitud (`requestId`).
 Puedes ver más en el apartado [Crear Sesión](/checkout/api/reference/session#crear-una-sesion)
 
 **Registro del Pago en Proceso**  
@@ -76,7 +76,7 @@ Las sesiones pueden atravesar diferentes estados, cada uno con su propio signifi
 **`PENDING` Pendiente:**
 Se presenta en tres situaciones: en primer lugar, es el estado inicial de la sesión e indica que el proceso está en espera de acciones por parte del usuario;
 en segundo lugar, cuando hay transacciones rechazadas, permitiendo al usuario la oportunidad de realizar nuevos intentos;
-y, por ultimo, cuando existe una transacción pendiente de validación lo que indica que la sesión se encuentra en un estado de espera hasta que se confirme y valide la transacción.
+y, por último, cuando existe una transacción pendiente de validación lo que indica que la sesión se encuentra en un estado de espera hasta que se confirme y valide la transacción.
 En resumen, es un estado de espera e indica que el proceso no ha finalizado.
 
 **`APPROVED` Aprobado:**
@@ -99,9 +99,40 @@ En este momento el proceso ya ha finalizado y no se puede completar. _Este es un
 ### Estados en sesiones de pago parcial
 <PartialSessionStates></PartialSessionStates>
 
+## Finalización de la sesión {{ id: "session-finalization" }}
+
+Una **sesión de checkout** es el flujo o proceso que permite al usuario generar un resultado final. Este resultado puede ser una de las siguientes entidades:
+
+- **Transacción de pago** (`payment`): Una transacción de pago única o múltiple según el tipo de sesión configurada.
+- **Tokenización** (`subscription`): Una suscripción que almacena el método de pago del usuario para futuros cobros.
+- **Autopago** (`autopay`): Un autopago que permitirá realizar cobros automáticos recurrentes.
+
+Una vez que la sesión de checkout ha generado su resultado final, el proceso de la sesión **termina definitivamente**. A partir de este punto, cualquier modificación u operación adicional debe realizarse sobre las **entidades resultantes** (payment, subscription o autopay), no sobre la sesión de checkout.
+
+<Note>
+Las modificaciones que se realicen a las entidades resultantes **no se reflejarán** en las consultas de la sesión de checkout. La sesión representa únicamente el momento de captura y creación del resultado, no su ciclo de vida posterior.
+</Note>
+
+### Ejemplos de operaciones post-sesión
+
+Las siguientes operaciones se realizan sobre las entidades resultantes y **no** afectarán el estado de la sesión:
+
+- **Reverso de transacción**: Si una transacción de pago (`payment`) es reversada posteriormente, este cambio no se reflejará al consultar la sesión. La sesión seguirá mostrando el estado `APPROVED` que tenía al momento de su finalización.
+
+- **Reembolso de pago**: Los reembolsos (totales o parciales) se realizan sobre la transacción de pago, no sobre la sesión. Al consultar la sesión, no verás información sobre reembolsos realizados.
+
+- **Cancelación de suscripción**: Si una suscripción (`subscription`) es cancelada después de haber sido creada exitosamente, la sesión de checkout que la originó seguirá mostrando el estado `APPROVED` y no reflejará la cancelación.
+
+- **Cancelación de autopago**: Similar a las suscripciones, si un autopago (`autopay`) es desactivado o cancelado, este cambio no aparecerá en las consultas de la sesión original.
+
+Para realizar seguimiento o modificaciones de estas entidades, el comercio integrador debe utilizar las APIs correspondientes a cada tipo de entidad:
+- [API de Pagos](/checkout/api/reference/payment) para transacciones
+- [API de Tokens](/checkout/api/reference/token) para suscripciones
+- [API de Autopay](/autopay/api) para autopagos
+
 ## ¿Qué sigue? {{ id: "checkout-next" }}
 
-Listo, ahora que entiendes el ciclo de vída puedes continuar con:
+Listo, ahora que entiendes el ciclo de vida puedes continuar con:
 
 - [Crear Sesión](/checkout/create-session)
 - [Plugins y librerías](/checkout/plugins)
