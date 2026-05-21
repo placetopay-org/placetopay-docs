@@ -572,8 +572,8 @@ export const TAB_NAVIGATION = {
             title: 'Checkout',
             links: [
               { title: 'Introducción', href: '/checkout' },
-              { title: 'Cómo Funciona', href: '/checkout/how-checkout-works' },
-              { title: 'Plugins', href: '/checkout/plugins' },
+              { title: 'Cómo funciona', href: '/checkout/how-checkout-works' },
+              { title: 'Plugins y librerías', href: '/checkout/plugins' },
               { title: 'Lightbox', href: '/checkout/lightbox' },
               { title: 'Navegadores soportados', href: '/checkout/browser-support' },
             ],
@@ -588,10 +588,10 @@ export const TAB_NAVIGATION = {
               { title: 'Localización', href: '/checkout/localization' },
               { title: 'Tipos de documento', href: '/checkout/document-types' },
               {
-                title: 'Campos Adicionales',
+                title: 'Campos adicionales',
                 href: '/checkout/additional-fields',
               },
-              { title: 'Montos y Monedas', href: '/checkout/tax-details' },
+              { title: 'Montos y monedas', href: '/checkout/tax-details' },
               { title: 'Métodos de pago', href: '/checkout/payment-methods' },
               {
                 title: 'Como integrar con móvil',
@@ -671,7 +671,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Introduction', href: '/checkout' },
               { title: 'How it works', href: '/checkout/how-checkout-works' },
-              { title: 'Plugins', href: '/checkout/plugins' },
+              { title: 'Plugins and libraries', href: '/checkout/plugins' },
               { title: 'Lightbox', href: '/checkout/lightbox' },
               { title: 'Browser support', href: '/checkout/browser-support' },
             ],
@@ -736,7 +736,7 @@ export const TAB_NAVIGATION = {
           {
             title: 'Introduction',
             links: [
-              { title: 'API Policy', href: '/checkout/api/policy' },
+              { title: 'API policy', href: '/checkout/api/policy' },
               { title: 'Changelog', href: '/checkout/api/changelog' },
             ],
           },
@@ -941,11 +941,11 @@ export const TAB_NAVIGATION = {
                 href: '/gateway/webhooks',
               },
               {
-                title: 'Transaction Initiator Indicator',
+                title: 'Transaction initiator indicator',
                 href: '/gateway/initiator-indicator',
               },
               {
-                title: 'Payment Orchestrator',
+                title: 'Payment orchestrator',
                 href: '/gateway/orchestrator',
               },
             ],
@@ -980,7 +980,7 @@ export const TAB_NAVIGATION = {
               { title: '3DS process', href: '/gateway/api/reference/3ds' },
               { title: 'OTP process', href: '/gateway/api/reference/otp' },
               {
-                title: 'PinPad Operations',
+                title: 'PinPad operations',
                 href: '/gateway/api/reference/pinpad',
               },
               {
@@ -1017,11 +1017,11 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server'
               },
               {
-                title: '¿Qué es el Protocolo 3D-Secure?',
+                title: '¿Qué es el protocolo 3D-Secure?',
                 href: '/three-d-s-server/introduction',
               },
               {
-                title: 'Dominios y Componentes',
+                title: 'Dominios y componentes',
                 href: '/three-d-s-server/secure-protocol',
               },
               {
@@ -1071,7 +1071,7 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server/api/client-requirements',
               },
               {
-                title: 'Términos y Definiciones',
+                title: 'Términos y definiciones',
                 href: '/three-d-s-server/api/terms-and-definitions',
               },
               {
@@ -1089,7 +1089,7 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server/api/integration/authorization',
               },
               {
-                title: 'Tarjetas de Prueba',
+                title: 'Tarjetas de prueba',
                 href: '/three-d-s-server/api/integration/test-cards',
               },
             ],
@@ -1137,7 +1137,7 @@ export const TAB_NAVIGATION = {
             title: 'Transacciones',
             links: [
               {
-                title: 'API Detalle de una transacción',
+                title: 'API detalle de una transacción',
                 href: '/three-d-s-server/api/transactions',
               },
               {
@@ -1154,19 +1154,19 @@ export const TAB_NAVIGATION = {
             title: 'Comercios',
             links: [
               {
-                title: 'API Comercios',
+                title: 'API comercios',
                 href: '/three-d-s-server/api/merchants/create',
               },
               {
-                title: 'API Sucursales',
+                title: 'API sucursales',
                 href: '/three-d-s-server/api/merchants/branch',
               },
               {
-                title: 'API Suscripciones',
+                title: 'API suscripciones',
                 href: '/three-d-s-server/api/subscriptions/show',
               },
               {
-                title: 'API Tokens',
+                title: 'API tokens',
                 href: '/three-d-s-server/api/tokens/show',
               },
             ],
@@ -1189,31 +1189,31 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server'
               },
               {
-                title: 'What is the 3D-Secure Protocol?',
+                title: 'What is the 3D-Secure protocol?',
                 href: '/three-d-s-server/introduction',
               },
               {
-                title: 'Domains and Components',
+                title: 'Domains and components',
                 href: '/three-d-s-server/secure-protocol',
               },
               {
-                title: 'About the 3DS Server Component',
+                title: 'About the 3DS server component',
                 href: '/three-d-s-server/server-component',
               },
               {
-                title: 'Error Codes',
+                title: 'Error codes',
                 href: '/three-d-s-server/error-codes'
               },
               {
-                title: 'Frequently Asked Questions about 3DSS Functioning',
+                title: 'Frequently asked questions about 3DSS functioning',
                 href: '/three-d-s-server/faq',
               },
               {
-                title: 'HTTP Codes in the Authentication Process',
+                title: 'HTTP codes in the authentication process',
                 href: '/three-d-s-server/http-codes',
               },
               {
-                title: '3DS Server Service Flow',
+                title: '3DS server service flow',
                 href: '/three-d-s-server/service-flow',
               },
               {
@@ -1242,7 +1242,7 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server/api/client-requirements',
               },
               {
-                title: 'Terms and Definitions',
+                title: 'Terms and definitions',
                 href: '/three-d-s-server/api/terms-and-definitions',
               },
               {
@@ -1295,7 +1295,7 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server/api/sessions/rules',
               },
               {
-                title: 'API Sessions',
+                title: 'API sessions',
                 href: '/three-d-s-server/api/sessions'
               },
               {
@@ -1413,7 +1413,7 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/api/get-token-status',
               },
               {
-                title: 'Delete Token',
+                title: 'Delete token',
                 href: '/token-requestor/api/delete-token'
               },
             ],
@@ -1422,15 +1422,15 @@ export const TAB_NAVIGATION = {
             title: 'Api de administración',
             links: [
               {
-                title: 'Administración de Credenciales',
+                title: 'Administración de credenciales',
                 href: '/token-requestor/api/admin/credentials',
               },
               {
-                title: 'Administración de Sitios',
+                title: 'Administración de sitios',
                 href: '/token-requestor/api/admin/sites',
               },
               {
-                title: 'Administración de Comercios',
+                title: 'Administración de comercios',
                 href: '/token-requestor/api/admin/merchant',
               },
             ],
@@ -1474,7 +1474,7 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/integration/notifications',
               },
               {
-                title: 'Test Your Integration',
+                title: 'Test your integration',
                 href: '/token-requestor/integration/testing',
               },
             ],
@@ -1507,7 +1507,7 @@ export const TAB_NAVIGATION = {
                 href: '/token-requestor/api/get-token-status',
               },
               {
-                title: 'Delete Token',
+                title: 'Delete token',
                 href: '/token-requestor/api/delete-token'
               },
             ],
@@ -1516,15 +1516,15 @@ export const TAB_NAVIGATION = {
             title: 'Management API',
             links: [
               {
-                title: 'Credential Management',
+                title: 'Credential management',
                 href: '/token-requestor/api/admin/credentials',
               },
               {
-                title: 'Sites Management',
+                title: 'Sites management',
                 href: '/token-requestor/api/admin/sites',
               },
               {
-                title: 'Merchant Manegement',
+                title: 'Merchant management',
                 href: '/token-requestor/api/admin/merchant',
               },
             ],
@@ -1604,11 +1604,11 @@ export const TAB_NAVIGATION = {
                 href: '/acs/issuer-configuration'
               },
               {
-                title: 'Términos y Definiciones',
+                title: 'Términos y definiciones',
                 href: '/acs/terms-and-definitions',
               },
               {
-                title: 'Tarjetas de Prueba',
+                title: 'Tarjetas de prueba',
                 href: '/acs/test-cards'
               },
               {
@@ -1632,7 +1632,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Introduction', href: '/acs' },
               {
-                title: 'What is the 3D-Secure Protocol?',
+                title: 'What is the 3D-Secure protocol?',
                 href: '/acs/3-d-s-secure-protocol',
               },
               {
@@ -1644,15 +1644,15 @@ export const TAB_NAVIGATION = {
                 href: '/acs/issuer-configuration'
               },
               {
-                title: 'Terms and Definitions',
+                title: 'Terms and definitions',
                 href: '/acs/terms-and-definitions',
               },
               {
-                title: 'Test Cards',
+                title: 'Test cards',
                 href: '/acs/test-cards'
               },
               {
-                title: 'FAQs about ACS Functionality',
+                title: 'FAQs about ACS functionality',
                 href: '/acs/f-a-q'
               },
             ],
@@ -1713,7 +1713,7 @@ export const TAB_NAVIGATION = {
               { title: 'How it works', href: '/account-validator/how-to-work' },
               { title: 'User flow', href: '/account-validator/user-flow' },
               { title: 'Micro deposits', href: '/account-validator/micro-deposits' },
-              { title: 'Lightbox Support', href: '/account-validator/support' },
+              { title: 'Lightbox support', href: '/account-validator/support' },
               { title: 'Webhooks', href: '/account-validator/webhooks' },
             ],
           },
@@ -1750,7 +1750,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Introducción', href: '/payment-links' },
               {
-                title: 'Cómo Funciona',
+                title: 'Cómo funciona',
                 href: '/payment-links/how-payment-links-works',
               },
             ],
@@ -1795,7 +1795,7 @@ export const TAB_NAVIGATION = {
         icon: Book,
         links: [
           {
-            title: 'Payment Links',
+            title: 'Payment links',
             links: [
               { title: 'Introduction', href: '/payment-links' },
               {
@@ -2121,35 +2121,35 @@ export const TAB_NAVIGATION = {
                 href: '/core',
               },
               {
-                title: 'Actions on Merchants',
+                title: 'Actions on merchants',
                 href: '/core/reference/merchant'
               },
               {
-                title: 'Actions on Preferred Lists',
+                title: 'Actions on preferred lists',
                 href: '/core/reference/site/prefer-list'
               },
               {
-                title: 'Actions on Site Payment Methods',
+                title: 'Actions on site payment methods',
                 href: '/core/reference/site/payment-methods'
               },
               {
-                title: 'Actions on Payment Methods',
+                title: 'Actions on payment methods',
                 href: '/core/reference/merchant/payment-methods'
               },
               {
-                title: 'Actions on Sites',
+                title: 'Actions on sites',
                 href: '/core/reference/site'
               },
               {
-                title: 'Actions on Users',
+                title: 'Actions on users',
                 href: '/core/reference/user'
               },
               {
-                title: 'Actions on Plans',
+                title: 'Actions on plans',
                 href: '/core/reference/plans'
               },
               {
-                title: 'Additional Procedures',
+                title: 'Additional procedures',
                 href: '/core/reference/tools'
               },
               {
@@ -2157,11 +2157,11 @@ export const TAB_NAVIGATION = {
                 href: '/core/reference/invoice'
               },
               {
-                title: 'Actions on Merchant Integrations',
+                title: 'Actions on merchant integrations',
                 href: '/core/reference/merchant/integrations'
               },
               {
-                title: 'Actions on Site Integrations',
+                title: 'Actions on site integrations',
                 href: '/core/reference/site/integrations'
               },
             ]
@@ -2226,7 +2226,7 @@ export const TAB_NAVIGATION = {
               { title: 'Validar transacción', href: '/api-scudo/api/reference/validate' },
               { title: 'Notificar transacción', href: '/api-scudo/api/reference/notify' },
               { title: 'Obtener validación', href: '/api-scudo/api/reference/validation' },
-              { title: 'Busqueda de Validaciones', href: '/api-scudo/api/reference/search' },
+              { title: 'Busqueda de validaciones', href: '/api-scudo/api/reference/search' },
               {
                 title: '[Webhook] Notificación de transacción resuelta',
                 href: '/api-scudo/api/reference/notify-resolved-validation'
@@ -2275,7 +2275,7 @@ export const TAB_NAVIGATION = {
               { title: 'Validate transaction', href: '/api-scudo/api/reference/validate' },
               { title: 'Notify transaction', href: '/api-scudo/api/reference/notify' },
               { title: 'Get validation', href: '/api-scudo/api/reference/validation' },
-              { title: 'Search for Validations', href: '/api-scudo/api/reference/search' },
+              { title: 'Search for validations', href: '/api-scudo/api/reference/search' },
               {
                 title: '[Webhook] Notification of transaction resolved',
                 href: '/api-scudo/api/reference/notify-resolved-validation'
@@ -2309,7 +2309,7 @@ export const TAB_NAVIGATION = {
               { title: 'Configuración de recurrencia', href: '/autopay/recurring-setup' },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
               { title: 'Reintentos', href: '/autopay/retries'},
-              { title: 'Tipos de Cobro', href: '/autopay/charge-types'},
+              { title: 'Tipos de cobro', href: '/autopay/charge-types'},
               { title: 'Estados', href: '/autopay/status'},
             ],
           },
@@ -2380,7 +2380,7 @@ export const TAB_NAVIGATION = {
             title: 'Integration',
             links: [
               { title: 'API Authentication', href: '/autopay/authentication' },
-              { title: 'Contract Authentication', href: '/autopay/contract-authentication' },
+              { title: 'Contract authentication', href: '/autopay/contract-authentication' },
               { title: 'Recurring setup', href: '/autopay/recurring-setup' },
               { title: 'Response codes', href: '/autopay/codes' },
               { title: 'Retries', href: '/autopay/retries'},
@@ -2405,11 +2405,11 @@ export const TAB_NAVIGATION = {
           {
             title: 'API',
             links: [
-              { title: 'Create or Update an AutoPay Session', href: '/autopay/api/session' },
-              { title: 'Query an AutoPay Session', href: '/autopay/api/query' },
+              { title: 'Create or update an AutoPay session', href: '/autopay/api/session' },
+              { title: 'Query an AutoPay session', href: '/autopay/api/query' },
               { title: 'Cancel AutoPay', href: '/autopay/api/cancel' },
-              { title: 'AutoPay Search', href: '/autopay/api/search' },
-              { title: 'AutoPay Transactions', href: '/autopay/api/transactions' },
+              { title: 'AutoPay search', href: '/autopay/api/search' },
+              { title: 'AutoPay transactions', href: '/autopay/api/transactions' },
             ],
           },
         ],
@@ -2430,7 +2430,7 @@ export const TAB_NAVIGATION = {
             title: 'Services',
             links: [
               { title: 'Query amount to charge', href: '/autopay/contracts/balance' },
-              { title: 'Settle / Confirm Payment', href: '/autopay/contracts/settlement' },
+              { title: 'Settle / Confirm payment', href: '/autopay/contracts/settlement' },
               { title: 'Notifications (Webhook)', href: '/autopay/contracts/webhook' },
             ],
           },
@@ -2512,8 +2512,8 @@ export const TAB_NAVIGATION = {
           {
             title: 'API',
             links: [
-              { title: 'Botón de Pago - AIO', href: '/selfdeclarations/api/payment-button-AIO' },
-              { title: 'Information Request', href: '/selfdeclarations/api/information-request' },
+              { title: 'Botón de pago - AIO', href: '/selfdeclarations/api/payment-button-AIO' },
+              { title: 'Information request', href: '/selfdeclarations/api/information-request' },
               { title: 'Income PDF', href: '/selfdeclarations/api/income-pdf' },
               { title: 'Empresas - Creación/Actualización', href: '/selfdeclarations/api/companies' },
               { title: 'Usuarios - Creación/Actualizacion', href: '/selfdeclarations/api/company-bidders' },
@@ -2709,7 +2709,7 @@ export const TAB_NAVIGATION = {
                 href: '/invoices/integration/authentication',
               },
               {
-                title: 'Payment order statuses',
+                title: 'Payment order status',
                 href: '/invoices/integration/status',
               },
               {
