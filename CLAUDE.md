@@ -17,7 +17,7 @@ The build requires extra heap: `NODE_OPTIONS="--max-old-space-size=8192"` is set
 
 ## Architecture
 
-This is a **Next.js 14 static export** documentation site for PlacetoPay's payment integrations. All pages are exported to `/out` and deployed to AWS via SST (`sst.config.ts`). No server-side rendering.
+This is a **Next.js 14 static export** documentation site for Placetopay's payment integrations. All pages are exported to `/out` and deployed to AWS via SST (`sst.config.ts`). No server-side rendering.
 
 ### Internationalization
 
