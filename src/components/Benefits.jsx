@@ -58,7 +58,7 @@ const resources = [
     },
   },
   {
-    name: { es: 'Wallet PlacetoPay', en: 'PlacetoPay Wallet' },
+    name: { es: 'Wallet Placetopay', en: 'Placetopay Wallet' },
     description: {
       es: 'Con Checkout, tus clientes pueden aprovechar nuestra billetera digital, permitiéndoles guardar y gestionar sus medios de pago de forma segura. Esto agiliza el proceso de pago y brinda una mayor comodidad al realizar transacciones futuras.',
       en: 'With Checkout, your customers can take advantage of our digital wallet, allowing them to securely store and manage their payment methods. This streamlines the payment process and provides greater convenience when making future transactions.',
@@ -72,8 +72,8 @@ const resources = [
   {
     name: { es: 'Seguridad de la información', en: 'Information security' },
     description: {
-      es: 'Nos tomamos en serio la protección de los datos sensibles. PlacetoPay Checkout cumple con los estándares de seguridad de la industria, incluidos los lineamientos PCI, para garantizar la seguridad en la captura y procesamiento de la información de tarjetas.',
-      en: 'We take the protection of sensitive data seriously. PlacetoPay Checkout complies with industry security standards, including PCI guidelines, to ensure security in the capture and processing of card information.',
+      es: 'Nos tomamos en serio la protección de los datos sensibles. Placetopay Checkout cumple con los estándares de seguridad de la industria, incluidos los lineamientos PCI, para garantizar la seguridad en la captura y procesamiento de la información de tarjetas.',
+      en: 'We take the protection of sensitive data seriously. Placetopay Checkout complies with industry security standards, including PCI guidelines, to ensure security in the capture and processing of card information.',
     },
     icon: () => <SecuritySafe variant="TwoTone"/>,
     pattern: {
