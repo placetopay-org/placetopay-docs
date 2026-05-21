@@ -22,9 +22,6 @@ const nextConfig = {
   output: 'export',
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'mdx'],
-  experimental: {
-    scrollRestoration: true,
-  },
 }
 
 export default withSearch(withMDX(nextConfig))
