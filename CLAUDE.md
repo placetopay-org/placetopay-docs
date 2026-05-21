@@ -13,11 +13,11 @@ npm run generate:edit-on-github-routes  # Regenerate GitHub edit routes (require
 npm run scan:sensitive               # Scan pages/assets for sensitive data patterns
 ```
 
-The build requires extra heap: `NODE_OPTIONS="--max-old-space-size=8192"` is set automatically via the npm script.
+The build requires extra heap: `NODE_OPTIONS="--max-old-space-size=8192"` is set automatically via the npm script. The `--webpack` flag is required because Next.js 16 defaults to Turbopack, which cannot serialize the function-based MDX plugins used in this project.
 
 ## Architecture
 
-This is a **Next.js 14 static export** documentation site for Placetopay's payment integrations. All pages are exported to `/out` and deployed to AWS via SST (`sst.config.ts`). No server-side rendering.
+This is a **Next.js 16 static export** documentation site for Placetopay's payment integrations. All pages are exported to `/out` and deployed to AWS via SST (`sst.config.ts`). No server-side rendering.
 
 ### Internationalization
 
