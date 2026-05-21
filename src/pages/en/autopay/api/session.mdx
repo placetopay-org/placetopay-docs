@@ -1,0 +1,207 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+<HeroPattern />
+
+export const apiRefs = ['/autopay/session']
+
+
+## Create or update an AutoPay session {{ id: 'create-a-session', tag: 'POST', label: '/autopay/session' }}
+
+The AutoPay creation and update flow starts with this request, which generates a session. This process allows configuring scheduled and/or recurring payments in an automated way, providing a link to redirect the cardholder to the graphical interface so they can authorize the start or update of the autopay and select the payment method.
+
+### Flow
+
+1. **Initial request**: When performing the create or edit request, the system generates an AutoPay session and returns a redirect URL.
+
+2. **AutoPay interface**: The URL redirects the user to a graphical interface where they must:
+- Accept the terms and conditions of the autopay
+- Select their preferred payment method
+- Complete the payment method subscription process
+- Pass the required security validations
+
+3. **Activation**: Once the process is completed, you will receive a notification via webhook indicating the creation or update of the autopay. Alternatively, you can check the status using the [session query](/autopay/api/query) endpoint to verify whether the autopay has already been updated.
+
+<Note type="warning">
+    This API works as a **passthrough** to the Checkout URL, acting only as a bridge between the merchant and Checkout, without modifying the information sent.
+
+    For more information about the behavior, validations, and applicable contracts, refer to the official Checkout documentation at: [Create a Checkout session](/checkout/api/reference/session/#create-a-session).
+</Note>
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/autopay/session"
+            method="post"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <CodeGroup title="Request" tag="POST" label="/autopay/session">
+
+```bash {{ title: 'Session to create autopay - Fixed amount' }}
+            curl -X "POST" {{baseURl}}/autopay/session \
+            -H "Content-Type: application/json" \
+            -d '{
+                "auth": {
+                    "login": "aabbccdd1234567890aabbccdd123456",
+                    "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+                    "nonce": "NjE0OWVkODgwYjNhNw==",
+                    "seed": "2021-09-21T09:34:48-05:00"
+                },
+                "type": "autopay",
+                "autopay": {
+                    "action": "CREATE",
+                    "reference": "12345",
+                    "description": "Fixed amount autopay subscription",
+                    "dueDay": 15,
+                    "recurring": {
+                        "type": "FIXED",
+                        "periodicity": "M",
+                        "interval": "1",
+                        "maxPeriods": 12,
+                        "startDate": "2026-11-26",
+                        "nextPayment": "2026-12-05",
+                        "dueDate": "2027-11-26",
+                        "notificationUrl": "https://merchant.test/notification",
+                    },
+                    "amount": {
+                        "currency": "USD",
+                        "total": 100
+                    }
+                },
+                "returnUrl": "https://merchant.test/return",
+                "ipAddress": "127.0.0.1",
+                "userAgent": "PlacetoPay Sandbox",
+        }'
+```
+
+```bash {{ title: 'Session to create autopay - Total Amount' }}
+curl -X "POST" {{baseURl}}/autopay/session \
+  -H "Content-Type: application/json" \
+  -d '{
+            "auth": {
+                "login": "aabbccdd1234567890aabbccdd123456",
+                "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+                "nonce": "NjE0OWVkODgwYjNhNw==",
+                "seed": "2021-09-21T09:34:48-05:00"
+            },
+            "type": "autopay",
+            "autopay": {
+                "action": "CREATE",
+                "reference": "12345",
+                "description": "Fixed amount autopay subscription",
+                "dueDay": 15
+                "recurring": {
+                    "type": "TOTAL_BALANCE",
+                    "periodicity": "M",
+                    "interval": "1",
+                    "maxPeriods": 12,
+                    "startDate": "2026-11-26",
+                    "nextPayment": "2026-12-05",
+                    "dueDate": "2027-11-26",
+                    "notificationUrl": "https://merchant.test/notification",
+                }
+            },
+            "returnUrl": "https://merchant.test/return",
+            "ipAddress": "127.0.0.1",
+            "userAgent": "PlacetoPay Sandbox",
+        }'
+```
+
+```bash {{ title: 'Session to create autopay - Minimum Amount' }}
+curl -X "POST" {{baseURl}}/autopay/session \
+  -H "Content-Type: application/json" \
+  -d '{
+            "auth": {
+                "login": "aabbccdd1234567890aabbccdd123456",
+                "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+                "nonce": "NjE0OWVkODgwYjNhNw==",
+                "seed": "2021-09-21T09:34:48-05:00"
+            },
+            "type": "autopay",
+            "autopay": {
+                "action": "CREATE",
+                "reference": "12345",
+                "description": "Fixed amount autopay subscription",
+                "dueDay": 15
+                "recurring": {
+                    "type": "MINIMUM_BALANCE",
+                    "periodicity": "M",
+                    "interval": "1",
+                    "maxPeriods": 12,
+                    "startDate": "2026-11-26",
+                    "nextPayment": "2026-12-05",
+                    "dueDate": "2027-11-26",
+                    "notificationUrl": "https://merchant.test/notification",
+                }
+            },
+            "returnUrl": "https://merchant.test/return",
+            "ipAddress": "127.0.0.1",
+            "userAgent": "PlacetoPay Sandbox",
+        }'
+```
+
+```bash {{ title: 'Session to edit an autopay' }}
+curl -X "POST" {{baseURl}}/autopay/session \
+  -H "Content-Type: application/json" \
+  -d '{
+    "auth": {
+      "login": "aabbccdd1234567890aabbccdd123456",
+      "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+      "nonce": "NjE0OWVkODgwYjNhNw==",
+      "seed": "2021-09-21T09:34:48-05:00"
+    },
+    "type": "autopay",
+    "autopay": {
+      "action": "EDIT",
+      "reference": "12345",
+      "description": "Autopay registration fixed amount",
+      "id": "f7b347d7-c922-4c68-8750-99fb43c9e5ff"
+    },
+    "returnUrl": "https://merchant.test/return",
+    "ipAddress": "127.0.0.1",
+    "userAgent": "PlacetoPay Sandbox",
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/autopay/session"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Response">
+```json {{ title: '200' }}
+{
+  "status": {
+    "status": "OK",
+    "reason": "PC",
+    "message": "The request has been processed successfully",
+    "date": "2021-11-30T15:08:27-05:00"
+  },
+  "requestId": 1,
+  "processUrl": "https://checkout-co.placetopay.com/session/1/cc9b8690b1f7228c78b759ce27d7e80a",
+}
+```
+```json {{ title: '400' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": 400,
+    "message": "Authentication failed 102",
+    "date": "2021-11-30T15:12:25-05:00"
+  },
+}
+```
+    </CodeGroup>
+  </Col>
+</Row>

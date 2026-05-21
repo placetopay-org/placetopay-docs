@@ -1,12 +1,35 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+<HeroPattern />
+
 export const apiRefs = ['/autopay/settlement']
 
-## Asentar/Confirmar un pago {{ id: 'settlement', tag: 'POST', label: '{{baseURl}}/autopay/settlement' }}
+## Confirmar / Asentar pago {{ id: 'settlement', tag: 'POST', label: '/autopay/settlement' }}
+
+Este endpoint es el **cierre oficial** de una transacción exitosa. AutoPay invocará este servicio únicamente cuando un cobro haya sido **APROBADO** por la red financiera.
+
+Tu objetivo aquí es recibir la confirmación y registrar el pago en tu ERP, base de datos o sistema contable.
+
 <Note type="warning">
-    **baseURL**: Es la URL base del aplicativo del cliente/comercio la cual debe ser entregada por el mismo y configurada en el momento del onboarding del comercio con AutoPay.
+  **Endpoint del comercio:** La URL base (`{{baseURL}}`) corresponde a **tu propio servidor**.
+  Debes exponer este servicio en tu infraestructura y entregar la URL base durante el proceso de onboarding con AutoPay.
 </Note>
+
+<Note type="warning">
+    **Autenticación (Basic Authentication):** Este endpoint requiere autenticación vía header `Authorization`.
+    El comercio debe validar las credenciales configuradas para AutoPay en cada solicitud entrante. Ver más en [**Autenticación de contratos**](/autopay/contract-authentication).
+</Note>
+
+### Reglas de Negocio Recomendadas
+
+1.  **Idempotencia:** Es posible que, por intermitencias de red, recibas esta confirmación más de una vez para la misma transacción. Tu sistema debe validar si el pago ya fue asentado previamente y responder `200 OK` sin duplicar el registro.
+2.  **Validación de Monto:** Verifica que el `transaction.amount.total` coincida con lo que esperabas cobrar.
+3.  **Respuesta Rápida:** Este proceso es síncrono. Responde lo más rápido posible (`< 3s`) para finalizar el ciclo.
+
+---
+
 <Row>
     <Col>
-        Este endpoint se utiliza para confirmar un pago previamente procesado, enviando los detalles de la transacción.
         <ApiReader
             path="/autopay/settlement"
             method="POST"
@@ -18,13 +41,8 @@ export const apiRefs = ['/autopay/settlement']
 ```bash {{ title: 'Settle a payment' }}
 curl -X POST {{baseURl}}/autopay/settlement \
   -H "Content-Type: application/json" \
+  -H "Authorization: Basic <base64(username:password)>" \
   -d '{
-    "auth": {
-        "login": "aabbccdd1234567890aabbccdd123456",
-        "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
-        "nonce": "bmVybzNzYms4cmE=",
-        "seed": "2024-11-21T11:30:33-05:00"
-    },
     "reference": "ACC00012345",
     "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
     "transaction": {
@@ -57,7 +75,7 @@ curl -X POST {{baseURl}}/autopay/settlement \
       },
       "authorization": "739877",
       "receipt": "713329175945",
-      "type": "DISPERSION",
+      "type": "AUTH_ONLY",
       "refunded": false,
       "lastDigits": "0032",
       "provider": "CREDIBANCO",
@@ -112,24 +130,24 @@ curl -X POST {{baseURl}}/autopay/settlement \
   }
 }
 ```
-```json {{ title: '401: Autenticación inválida' }}
+```json {{ title: '400: Autenticación invalida' }}
 {
-  "status": {
-    "status": "FAILED",
-    "reason": "100",
-    "message": "Authentication no proporcionado (Encabezado de la autorización mal formada).",
-    "date": "2025-09-29T17:09:29-05:00"
-  }
+    "status": {
+        "status": "FAILED",
+        "reason": "BR",
+        "message": "Autenticación no proporcionada o encabezado Authorization mal formado.",
+        "date": "2025-09-29T17:09:29-05:00"
+    }
 }
 ```
-```json {{ title: '403: No autorizado' }}
+```json {{ title: '400: Autenticación invalida - Credenciales incorrectas' }}
 {
-  "status": {
-    "status": "FAILED",
-    "reason": "103",
-    "message": "Fecha del seed mayor de 5 minutos.",
-    "date": "2025-09-29T17:09:29-05:00"
-  }
+    "status": {
+        "status": "FAILED",
+        "reason": "101",
+        "message": "Credenciales inválidas.",
+        "date": "2025-09-29T17:09:29-05:00"
+   }
 }
 ```
         </CodeGroup>

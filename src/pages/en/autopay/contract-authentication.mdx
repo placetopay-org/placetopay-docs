@@ -1,0 +1,68 @@
+import { HeroPattern } from '@/components/HeroPattern'
+import { Note } from "@/components/Note";
+
+<HeroPattern />
+
+# Contract Authentication
+
+Since AutoPay will send requests to your server (Balance and Settlement), you need a mechanism to ensure that **it is really us** and not an attacker.
+
+We use the **HTTP Basic Authentication** standard.
+
+## Credentials
+
+Unlike the transactional API, in contracts **you define the credentials** and we use them.
+
+| Credential | Definition | Restrictions |
+| :--- | :--- | :--- |
+| **Username** | The username you defined for your integration. | Maximum **60 characters**. |
+| **Password** | The associated secure password. | Maximum **60 characters**. |
+
+<Note>
+  These credentials are configured during the Onboarding process [Service Activation](/autopay/#service-activation).
+</Note>
+
+## Authentication Object
+
+Authentication is sent in the **headers** of every HTTP request.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="Authorization" type="string">
+                Required header.
+                Sent in the format: <b>Basic base64(username:password)</b>
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```bash {{ 'title': 'Example Authentication (Header)' }}
+        Authorization: Basic bWVyY2hhbnRVc2VyOm1lcmNoYW50UGFzcw==
+        ```
+
+    </Col>
+</Row>
+
+---
+
+## How to validate authentication
+
+Your server must intercept every incoming request and execute the following security logic **before** processing any business data.
+
+### Validation algorithm
+
+1.  **Check Header:** Confirm that the request has the `Authorization` header.
+2.  **Check Scheme:** Ensure it starts with the keyword `Basic`.
+3.  **Decode:** Take the string after the space and Base64 decode it to get `username:password`.
+4.  **Compare:** Split the text by the colon (`:`) and compare the values with those configured in your environment variables.
+5.  **Decide:**
+    * If they match: **Allow access (HTTP 200)**.
+    * If they do not match: **Reject immediately (HTTP 401 Unauthorized)**.
+
+<Note type="warning">
+  **Critical security:** These credentials are private and allow data injection into your system.
+
+  * **HTTPS:** Basic authentication must always travel over encrypted channels.
+  * **Source code:** **Do not share** your credentials in public access areas like **GitHub**, nor include them in client-side code (Frontend). Always use them via environment variables on your server.
+</Note>

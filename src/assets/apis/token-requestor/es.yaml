@@ -48,6 +48,23 @@ paths:
                       type: object
                       description: Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos.
                       properties:
+                        brandToken:
+                          type: object
+                          required:
+                            - token
+                          x-conditional:
+                            - expiration
+                          description: Estructura que contiene la información del token.
+                          properties:
+                            token:
+                              type: string
+                              maxLength: 20
+                              description: 'Número del token'
+                            expiration:
+                              type: string
+                              description: 'Fecha de vencimiento del token (Requerido para Mastercard)'
+                              example: "12/23"
+                              format: "mm/YY"
                         card:
                           type: object
                           required:
@@ -243,6 +260,12 @@ paths:
                                 type: string
                                 description: Últimos 4 dígitos de la tarjeta tokenizada
                                 example: '1234'
+                              appliedPrograms:
+                                type: array
+                                description: Contenedor con los programas aplicados.
+                                  Cuando se reciba este campo, se trata de un programa aplicado por la marca durante la tokenización.
+                                  Para el caso de **Visa VCES**, este puede representar **cobros adicionales al adquirente**, debido a que la marca completa o corrige la fecha de expiración cuando esta no fue enviada o fue enviada vencida.
+                                example: ['VCES']
                 required:
                   - status
   /api/tokens/cryptogram:
@@ -290,10 +313,63 @@ paths:
                           example: 4761739001010010
                           minLength: 12
                           maxLength: 19
+                    threeDS:
+                      type: object
+                      description: Datos de autenticación 3DS asociados a la transacción.
+                      properties:
+                        eci:
+                          type: "string"
+                          minLength: 2
+                          description: "Indicador del resultado de la autenticación generado por el comercio electrónico."
+                          enum:
+                            - "02"
+                            - "01"
+                            - "00"
+                            - "05"
+                            - "06"
+                            - "07"
+                        cavv:
+                          type: "string"
+                          minLength: 28
+                          maxLength: 28
+                          nullable: true
+                          description: "Valor de autenticación para la franquicia."
+                          example: "AJkBABIWcQAAAAM5FwIzdGiYeHM"
                 isRecurring:
                   type: boolean
                   description: Identifica si el criptograma será usado para recurrencia o no
                   example: false
+                payment:
+                  type: object
+                  description: Información del pago para el cual se genera el criptograma.
+                  required:
+                    - amount
+                  properties:
+                    amount:
+                      $ref: "../base/es.yaml#/components/schemas/AmountBase"
+                metadata:
+                  type: object
+                  description: Información adicional de la solicitud.
+                  properties:
+                    threeDSAcquirerMerchantId:
+                      type: string
+                      description: Identificador del comercio adquirente utilizado en el proceso 3DS.
+                      example: "123"
+                    initiatorIndicator:
+                      type: string
+                      description: |
+                        Indica quién inicia la transacción y bajo qué acuerdo.
+                        Ver más en **[Indicador de iniciador de transacción](/gateway/initiator-indicator)**.
+                      enum:
+                        - "CARDHOLDER_COF"
+                        - "CARDHOLDER_RECURRING_VARIABLE_AMOUNT"
+                        - "CARDHOLDER_RECURRING_FIXED_AMOUNT"
+                        - "CARDHOLDER_WITH_INSTALLMENTS"
+                        - "MERCHANT_COF"
+                        - "MERCHANT_RECURRING_VARIABLE_AMOUNT"
+                        - "MERCHANT_RECURRING_FIXED_AMOUNT"
+                        - "MERCHANT_WITH_INSTALLMENTS"
+                      example: MERCHANT_COF
 
       responses:
         '200':
@@ -2301,7 +2377,7 @@ components:
         type:
           type: "string"
           description: "Tipo de documento de identificación."
-          maxLength: "4"
+          maxLength: "5"
           enum:
             - "CC"
             - "CE"
@@ -2347,7 +2423,7 @@ components:
         documentType:
           type: "string"
           description: "Tipo de documento de identificación."
-          maxLength: "4"
+          maxLength: "5"
           enum:
             - "CC"
             - "CE"

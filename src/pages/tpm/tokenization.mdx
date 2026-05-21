@@ -1,0 +1,149 @@
+# Tokenización masiva
+
+El servicio de **tokenización masiva** convierte información plana de tarjetas en identificadores más seguros (tokens) para su uso posterior en servicios de PlacetoPay.
+
+Al finalizar el proceso se obtiene:
+
+- Un **token** alfanumérico de **64 caracteres**.
+- Un **subtoken** numérico de **16 dígitos**.
+
+Ambos identificadores, al utilizarse en los servicios de PlacetoPay, conservan toda la funcionalidad de una tarjeta de crédito.
+
+## ¿Cómo funciona? {{ id: 'tokenization-flow' }}
+
+El proceso de integración se ejecuta de la siguiente forma:
+
+1. Se establece la conexión entre servidores **SFTP**, mediante **VPN** o red pública.
+2. Se generan y validan los datos de acceso para la comunicación **SFTP**.
+3. El cliente genera y comparte su llave pública **PGP/RSA** a PlacetoPay.
+4. El cliente recibe la llave pública **PGP/RSA** de PlacetoPay.
+5. El cliente genera un archivo CSV con las tarjetas a tokenizar.
+6. El archivo se cifra con la llave pública de PlacetoPay usando **PGP**.
+7. El cliente debe depositar el archivo en su servicio SFTP.
+8. PlacetoPay descarga el archivo desde el SFTP donde el cliente lo depositó.
+9. PlacetoPay descifra el archivo.
+10. PlacetoPay genera un archivo de resultados.
+11. PlacetoPay cifra el archivo de resultados con PGP.
+12. PlacetoPay deposita el archivo resultante en el SFTP del cliente.
+13. El cliente descifra la información.
+14. El cliente actualiza su base de datos con los tokens y subtokens recibidos.
+
+Las tarjetas se deben enviar en un archivo plano separado por comas, normalmente con extensión `.csv`, y cifrado con **PGP**.
+
+<Note>
+    Si el archivo no tiene extensión, se tomará como un archivo CSV.
+</Note>
+
+Cada registro debe incluir un identificador que permita relacionar posteriormente la información tokenizada con la base de datos del cliente.
+
+## Formato del archivo de tarjetas {{ id: 'tokenization-input-file' }}
+
+El archivo debe estar separado por comas y contener las columnas en el orden indicado.
+
+Todos los campos descritos en esta sección son **requeridos**.
+
+<Note>
+    El archivo debe utilizar codificación UTF-8.
+</Note>
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="reference" type="string">
+                Código identificador del registro, provisto por el cliente para relacionarlo con su base de datos. Debe ser único por registro.
+            </Property>
+            <Property name="pan" type="string">
+                Número completo de la tarjeta, sin espacios.
+            </Property>
+            <Property name="expiration" type="string">
+                Fecha de expiración de la tarjeta en formato `MM/YY` .
+            </Property>
+            <Property name="documentType" type="string">
+                Tipo de documento del cliente: `CI`, `RUC` o `PPN`.
+            </Property>
+            <Property name="document" type="string">
+                Número de documento del titular.
+            </Property>
+            <Property name="name" type="string">
+                Nombre del titular.
+            </Property>
+            <Property name="surname" type="string">
+                Apellidos del titular.
+            </Property>
+            <Property name="cellphone" type="string">
+                Número de celular del titular.
+            </Property>
+            <Property name="phone" type="string">
+                Número telefónico del titular.
+            </Property>
+            <Property name="email" type="string">
+                Correo electrónico del titular.
+            </Property>
+            <Property name="address" type="string">
+                Dirección del titular.
+            </Property>
+            <Property name="city" type="string">
+                Ciudad del titular.
+            </Property>
+            <Property name="country" type="string">
+                Código alpha-2 del país del titular, por ejemplo: `CO`, `EC`, `US`.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Ejemplo estructural de archivo de entrada' }}
+        reference,pan,expiration,documentType,document,name,surname,cellphone,phone,email,address,city,country
+        REF001,4111111111111111,12-28,CI,1234567890,Nombre,Apellido,3000000000,6000000,cliente@example.com,Calle 1,Medellín,CO
+        ```
+
+    </Col>
+</Row>
+
+<Note>
+    La columna `reference` debe ser única por registro para permitir la asociación correcta entre la información enviada y el resultado de la tokenización.
+</Note>
+
+Una vez generado el archivo plano, este debe cifrarse con PGP antes de ser enviado por el medio previamente acordado. Para realizar este proceso, se utilizará la llave pública compartida por PlacetoPay.
+
+Además, al momento de enviar el archivo, el cliente debe compartir su llave pública PGP, la cual será utilizada para cifrar el archivo resultante.
+
+## Archivo CSV de salida {{ id: 'tokenization-output-file' }}
+
+El archivo resultante sustituye la información de la tarjeta por los identificadores tokenizados generados durante el proceso.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="Referencia" type="string">
+                Código identificador del registro provisto por el cliente para relacionarlo con su base de datos.
+            </Property>
+            <Property name="Token" type="string(64)">
+                Código alfanumérico de 64 caracteres.
+            </Property>
+            <Property name="Subtoken" type="string(16)">
+                Código numérico de 16 dígitos.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Ejemplo estructural de archivo de salida' }}
+        Referencia,Token,Subtoken
+        REF001,abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890,1234567890123456
+        ```
+
+    </Col>
+</Row>
+
+## Cifrado con PGP {{ id: 'tokenization-pgp' }}
+
+Antes de enviar el archivo de entrada:
+
+1. El cliente debe cifrar el CSV con la llave pública que PlacetoPay comparta para el proceso.
+2. El cliente debe compartir su propia llave pública **PGP**, ya que PlacetoPay la utilizará para cifrar el archivo de resultados.
+
+<Note>
+    El intercambio de llaves públicas es obligatorio para mantener la confidencialidad de la información durante el proceso.
+</Note>
+

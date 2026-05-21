@@ -1,4 +1,4 @@
-import {LANGUAGES_CODES} from '@/components/LocaleProvider'
+import { LANGUAGES_CODES } from '@/components/LocaleProvider'
 import {
   Activity,
   Book,
@@ -70,6 +70,12 @@ export const NAMESPACES_SELECTOR = {
       icon: Calendar,
     },
     {
+      title: 'Tokenización y Cobros masivos',
+      description: 'Tokenización y Cobros masivos',
+      href: '/tpm',
+      icon: Book,
+    },
+    {
       title: 'Account Validator',
       description: 'Verificación de cuentas',
       href: '/account-validator',
@@ -94,7 +100,7 @@ export const NAMESPACES_SELECTOR = {
       icon: DocumentCode,
     },
     {
-      title: 'AutoPay (BETA)',
+      title: 'AutoPay',
       description: 'Gestión de AutoPagos',
       href: '/autopay',
       icon: Courthouse,
@@ -150,6 +156,12 @@ export const NAMESPACES_SELECTOR = {
       icon: Calendar,
     },
     {
+      title: 'Tokenization and Massive recurring',
+      description: 'Tokenization and Massive recurring',
+      href: '/en/tpm',
+      icon: Calendar,
+    },
+    {
       title: 'Account Validator',
       description: 'Account verification',
       href: '/account-validator',
@@ -174,7 +186,7 @@ export const NAMESPACES_SELECTOR = {
       icon: DocumentCode,
     },
     {
-      title: 'AutoPay (BETA)',
+      title: 'AutoPay',
       description: 'AutoPay management',
       href: '/en/autopay',
       icon: Courthouse,
@@ -199,6 +211,7 @@ export const NAMESPACE_ROUTES = {
   'token-requestor': 'tokenRequestor',
   'payment-links': 'paymentLinks',
   microsites: 'microsites',
+  tpm: 'tpm',
   ticket: 'ticket',
   core: 'core',
   'account-validator': 'accountValidator',
@@ -243,6 +256,9 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Introducción', href: '/payments'
+              },
+              {
+                title: 'Conversión dinámica de monedas', href: '/payments/currency-conversion',
               },
             ],
           },
@@ -340,15 +356,19 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Débitos bancarios',
                 links: [
-                  { title: 'ACH Débito Bancario', href: '/payments/bank-redirects/ach-bank-debit' },
+                  { title: 'ACH Débito Bancario', href: '/payments/external-redirects/ach-bank-debit' },
                 ],
               },
-              {
-                title: 'Redireccionamientos bancarios',
-                links: [
-                  { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
-                ],
-              },
+               {
+                 title: 'Redireccionamientos externos',
+                 links: [
+                   { title: 'ATH Móvil', href: '/payments/external-redirects/ath-movil' },
+                   { title: 'Bre-B', href: '/payments/external-redirects/bre-b' },
+                   { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
+                   { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
+                   { title: 'Zunify', href: '/payments/external-redirects/zunify' },
+                 ],
+               },
               {
                 title: 'Efectivo',
                 links: [
@@ -359,6 +379,7 @@ export const TAB_NAVIGATION = {
                 title: 'Billeteras',
                 links: [
                   { title: 'Click to Pay', href: '/payments/wallets/clicktopay' },
+                  { title: 'Google Pay', href: '/payments/wallets/googlepay' },
                 ],
               }
             ],
@@ -393,6 +414,7 @@ export const TAB_NAVIGATION = {
             title: 'Payments',
             links: [
               { title: 'Introduction', href: '/payments' },
+              { title: 'Dynamic Currency Conversion', href: '/payments/currency-conversion' },
             ],
           },
           {
@@ -490,15 +512,19 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Bank Debits',
                 links: [
-                  { title: 'ACH Bank Debit', href: '/payments/bank-redirects/ach-bank-debit' },
+                  { title: 'ACH Bank Debit', href: '/payments/external-redirects/ach-bank-debit' },
                 ],
               },
-              {
-                title: 'Bank redirects',
-                links: [
-                  { title: 'CeroPay', href: '/payments/bank-redirects/ceropay' },
-                ],
-              },
+               {
+                 title: 'External redirects',
+                 links: [
+                   { title: 'ATH Móvil', href: '/payments/external-redirects/ath-movil' },
+                   { title: 'Bre-B', href: '/payments/external-redirects/bre-b' },
+                   { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
+                   { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
+                   { title: 'Zunify', href: '/payments/external-redirects/zunify' },
+                 ],
+               },
               {
                 title: 'Cash',
                 links: [
@@ -509,6 +535,7 @@ export const TAB_NAVIGATION = {
                 title: 'Wallets',
                 links: [
                   { title: 'Click to Pay', href: '/payments/wallets/clicktopay' },
+                  { title: 'Google Pay', href: '/payments/wallets/googlepay' },
                 ],
               }
             ],
@@ -990,7 +1017,7 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server'
               },
               {
-                title: '¿Qué es el Protocolo 3-D Secure?',
+                title: '¿Qué es el Protocolo 3D-Secure?',
                 href: '/three-d-s-server/introduction',
               },
               {
@@ -1135,10 +1162,6 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server/api/merchants/branch',
               },
               {
-                title: 'Suscribir Modelos',
-                href: '/three-d-s-server/api/merchants/enrolment',
-              },
-              {
                 title: 'API Suscripciones',
                 href: '/three-d-s-server/api/subscriptions/show',
               },
@@ -1166,7 +1189,7 @@ export const TAB_NAVIGATION = {
                 href: '/three-d-s-server'
               },
               {
-                title: 'What is the 3-D Secure Protocol?',
+                title: 'What is the 3D-Secure Protocol?',
                 href: '/three-d-s-server/introduction',
               },
               {
@@ -1187,7 +1210,7 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'HTTP Codes in the Authentication Process',
-                href: '/three-d-s-server/http-Codes',
+                href: '/three-d-s-server/http-codes',
               },
               {
                 title: '3DS Server Service Flow',
@@ -1308,10 +1331,6 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Branches API',
                 href: '/three-d-s-server/api/merchants/branch',
-              },
-              {
-                title: 'Enrolment model',
-                href: '/three-d-s-server/api/merchants/enrolment',
               },
               {
                 title: 'Subscriptions API',
@@ -1572,7 +1591,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Introducción', href: '/acs' },
               {
-                title: '¿Qué es el Protocolo 3-D Secure?',
+                title: '¿Qué es el Protocolo 3D-Secure?',
                 href: '/acs/3-d-s-secure-protocol',
               },
               {
@@ -1613,7 +1632,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Introduction', href: '/acs' },
               {
-                title: 'What is the 3-D Secure Protocol?',
+                title: 'What is the 3D-Secure Protocol?',
                 href: '/acs/3-d-s-secure-protocol',
               },
               {
@@ -1909,6 +1928,56 @@ export const TAB_NAVIGATION = {
       },
     ],
   },
+    tpm: {
+        [LANGUAGES_CODES.ES]: [
+            {
+                title: 'Documentación',
+                identifier: 'tpm',
+                href: '/tpm',
+                icon: Book,
+                links: [
+                    {
+                        title: 'Tokenización y cobros masivos',
+                        links: [{ title: 'Introducción', href: '/tpm' }],
+                    },
+                    {
+                        title: 'Integración',
+                        links: [
+                            { title: 'Tokenización', href: '/tpm/tokenization' },
+                            {
+                                title: 'Cobros Masivos',
+                                href: '/tpm/massive-recurring',
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+        [LANGUAGES_CODES.EN]: [
+            {
+                title: 'Documentation',
+                identifier: 'tpm',
+                href: '/tpm',
+                icon: Book,
+                links: [
+                    {
+                        title: 'Tokenization and massive recurring',
+                        links: [{ title: 'Introduction', href: '/tpm' }],
+                    },
+                    {
+                        title: 'Integration',
+                        links: [
+                            { title: 'Tokenization', href: '/tpm/tokenization' },
+                            {
+                                title: 'Massive Recurring',
+                                href: '/tpm/massive-recurring',
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    },
   ticket: {
     [LANGUAGES_CODES.ES]: [
       {
@@ -2226,13 +2295,22 @@ export const TAB_NAVIGATION = {
         icon: Book,
         links: [
           {
-            title: '',
+            title: 'Autopay',
             links: [
               { title: 'Introducción', href: '/autopay' },
-              { title: 'Autenticación', href: '/autopay/authentication' },
+              { title: 'Cómo funciona', href: '/autopay/how-autopay-works' },
+            ],
+          },
+          {
+            title: 'Integración',
+            links: [
+              { title: 'Autenticación API', href: '/autopay/authentication' },
+              { title: 'Autenticación de contratos', href: '/autopay/contract-authentication' },
+              { title: 'Configuración de recurrencia', href: '/autopay/recurring-setup' },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
-              { title: 'Cargos en AutoPay', href: '/autopay/charge-types'},
-              { title: 'Descripción de notificaciones', href: '/autopay/webhook-description'}
+              { title: 'Reintentos', href: '/autopay/retries'},
+              { title: 'Tipos de Cobro', href: '/autopay/charge-types'},
+              { title: 'Estados', href: '/autopay/status'},
             ],
           },
         ],
@@ -2243,21 +2321,21 @@ export const TAB_NAVIGATION = {
         href: '/autopay/api',
         icon: DocumentCode,
         links: [
-            {
-                title: 'General',
-                links: [
-                    { title: 'Introducción', href: '/autopay/api' },
-                ]
-            },
-            {
-                title: 'API',
-                links: [
-                  { title: 'Crear sesión de AutoPago', href: '/autopay/api/create' },
-                  { title: 'Actualizar AutoPago', href: '/autopay/api/update' },
-                  { title: 'Cancelar AutoPago', href: '/autopay/api/cancel' },
-                  { title: 'Consulta de AutoPagos', href: '/autopay/api/search' },
-                  { title: 'Transacciones de AutoPago', href: '/autopay/api/transactions' },
-                ],
+          {
+            title: 'General',
+            links: [
+              { title: 'Introducción', href: '/autopay/api' },
+            ]
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Crear o actualizar sesión de AutoPago', href: '/autopay/api/session' },
+              { title: 'Consultar sesión de AutoPago', href: '/autopay/api/query' },
+              { title: 'Cancelar AutoPago', href: '/autopay/api/cancel' },
+              { title: 'Consulta de AutoPagos', href: '/autopay/api/search' },
+              { title: 'Transacciones de AutoPago', href: '/autopay/api/transactions' },
+            ],
           },
         ],
       },
@@ -2268,23 +2346,97 @@ export const TAB_NAVIGATION = {
         icon: DocumentCode,
         links: [
           {
-              title: 'Documentos',
-              links: [
-                  {title: 'Introducción', href: '/autopay/contracts'},
-              ],
+            title: 'Documentos',
+            links: [
+              { title: 'Introducción', href: '/autopay/contracts' },
+            ],
           },
           {
             title: 'Servicios',
             links: [
               { title: 'Consultar monto a cobrar', href: '/autopay/contracts/balance' },
-              { title: 'Asentamiento', href: '/autopay/contracts/settlement' },
+              { title: 'Confirmar / Asentar pago', href: '/autopay/contracts/settlement' },
               { title: 'Notificaciones (Webhook)', href: '/autopay/contracts/webhook' },
             ],
           },
         ],
       },
     ],
-    [LANGUAGES_CODES.EN]: [],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentation',
+        identifier: 'autopay',
+        href: '/en/autopay',
+        icon: Book,
+        links: [
+          {
+            title: 'Autopay',
+            links: [
+              { title: 'Introduction', href: '/autopay' },
+              { title: 'How it works', href: '/autopay/how-autopay-works' },
+            ],
+          },
+          {
+            title: 'Integration',
+            links: [
+              { title: 'API Authentication', href: '/autopay/authentication' },
+              { title: 'Contract Authentication', href: '/autopay/contract-authentication' },
+              { title: 'Recurring setup', href: '/autopay/recurring-setup' },
+              { title: 'Response codes', href: '/autopay/codes' },
+              { title: 'Retries', href: '/autopay/retries'},
+              { title: 'Charge Types', href: '/autopay/charge-types' },
+              { title: 'States', href: '/autopay/status'},
+            ],
+          }
+        ],
+      },
+      {
+        title: 'API',
+        identifier: '/autopay/api',
+        href: '/en/autopay/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'General',
+            links: [
+              { title: 'Introduction', href: '/autopay/api' },
+            ]
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Create or Update an AutoPay Session', href: '/autopay/api/session' },
+              { title: 'Query an AutoPay Session', href: '/autopay/api/query' },
+              { title: 'Cancel AutoPay', href: '/autopay/api/cancel' },
+              { title: 'AutoPay Search', href: '/autopay/api/search' },
+              { title: 'AutoPay Transactions', href: '/autopay/api/transactions' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'Contracts',
+        identifier: '/autopay/contracts',
+        href: '/en/autopay/contracts',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Documents',
+            links: [
+              { title: 'Introduction', href: '/autopay/contracts' },
+            ],
+          },
+          {
+            title: 'Services',
+            links: [
+              { title: 'Query amount to charge', href: '/autopay/contracts/balance' },
+              { title: 'Settle / Confirm Payment', href: '/autopay/contracts/settlement' },
+              { title: 'Notifications (Webhook)', href: '/autopay/contracts/webhook' },
+            ],
+          },
+        ],
+      },
+    ],
   },
   selfdeclarations: {
     [LANGUAGES_CODES.ES]: [

@@ -215,10 +215,10 @@ function EditThisPage() {
   )
 }
 
-export function Footer({ withouLinks }) {
+export function Footer({ withoutLinks }) {
   return (
     <footer className="mx-auto max-w-2xl space-y-10 pb-16 lg:max-w-5xl">
-      {!withouLinks && <PageNavigation />}
+      {!withoutLinks && <PageNavigation />}
       <div className="flex w-full justify-end">
         <EditThisPage />
       </div>

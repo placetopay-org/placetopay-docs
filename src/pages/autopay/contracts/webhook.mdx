@@ -1,13 +1,68 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+<HeroPattern />
+
 export const apiRefs = ['/autopay/webhook']
 
-## Notificaciones {{ id: 'webhook', tag: 'POST', label: '{{baseURl}}/autopay/webhook' }}
-<Note type="warning">
-    **baseURL**: Es la URL base del aplicativo del cliente/comercio la cual debe ser entregada por el mismo y configurada en el momento del onboarding del comercio con AutoPay.
+# Notificaciones (Webhooks)
+
+**AutoPay** utilizará este endpoint para informarte sobre **cobros fallidos** y cambios en el ciclo de vida del autopago.
+
+<Note>
+  **Importante:**
+  1. Las transacciones **aprobadas** se envían exclusivamente a través de [Settlement](/autopay/contracts/settlement).
+  2. Aunque este endpoint pertenece a contratos y existe una [Autenticación de contratos](/autopay/contracts/authentication), la integridad del mensaje debe validarse mediante la **Firma Digital** descrita a continuación.
 </Note>
+
+### Eventos disponibles {{ id: 'event-types' }}
+
+| Evento | Descripción |
+| :--- | :--- |
+| `AUTOPAY_CREATED` | El usuario finalizó el registro y el autopago está activo. |
+| `AUTOPAY_UPDATED` | Se actualizó el medio de pago o las reglas del autopago. |
+| `AUTOPAY_TRANSACTION_FAILED` | Un intento de cobro automático falló (ej. fondos insuficientes). |
+| `AUTOPAY_CANCELED` | El autopago ha sido cancelado y no generará más cobros. |
+
+## Validación de seguridad (firmas) {{ id: 'security-validation' }}
+
+Es **crítico** verificar que la notificación proviene realmente de Placetopay. Para ello, firmamos cada mensaje digitalmente. Debes replicar este proceso en tu servidor y comparar el resultado.
+
+**Ejemplo de validación:**
+
+Supongamos que tu `secretKey` es `ABC123example456trankey+789abc012def3456ABC=` y recibes el siguiente payload:
+
+```json {{ title: '1. Payload Recibido' }}
+{
+   "id": "111111-2222-3333-4444-555555555555",
+   "type": "AUTOPAY_TRANSACTION_FAILED",
+   "date": "2023-01-01 12:00:00",
+   "signature": "sha256:a1b2c3d4e5..."
+}
+```
+
+### Proceso paso a paso
+
+1.  **Concatenar:** Une los valores de `id`, `type`, `date` y tu `secretKey` (en este orden exacto, sin espacios ni separadores).
+    > Cadena = `111111-2222-3333-4444-555555555555` + `AUTOPAY_TRANSACTION_FAILED` + `2023-01-01 12:00:00` + `ABC123example456trankey+789abc012def3456ABC=`
+
+2.  **Hashear:** Aplica el algoritmo **SHA-256** a la cadena resultante.
+
+3.  **Comparar:** Si tu hash coincide con la `signature` recibida (omitiendo el prefijo `sha256:`), la petición es auténtica.
+
+<Note type="warning">
+  Si la firma no coincide, responde **HTTP 400** e ignora el mensaje. **Nunca** expongas tu `secretKey` en el frontend o repositorios públicos.
+</Note>
+
+---
+
+## Estructura del webhook {{ id: 'webhook', tag: 'POST', label: '/autopay/webhook' }}
+
+<Note>
+  **Recomendación:** El webhook es una notificación de evento. Para garantizar que tienes la información más reciente y detallada, se recomienda consultar la API de [Buscar AutoPagos](/autopay/api/search) usando el `id` recibido.
+</Note>
+
 <Row>
     <Col>
-        Debe exponer un endpoint conforme al siguiente contrato. AutoPay enviará notificaciones a dicho endpoint cada vez que un autopago sea eliminado, actualizado, se haya actualizado el medio de pago o desactivado.
-        Ver [Descripción de notificaciones](/autopay/webhook-description) para más información.
         <ApiReader
             path="/autopay/webhook"
             method="POST"
@@ -16,55 +71,45 @@ export const apiRefs = ['/autopay/webhook']
     </Col>
     <Col sticky={true}>
         <CodeGroup title="Solicitud" tag="POST" label="{{baseURl}}/autopay/webhook">
+            ```json {{ 'title': 'Creación de un AutoPago' }}
+            {
+                "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                "reference": "ACC00012345",
+                "type": "AUTOPAY_CREATED",
+                "date": "2023-01-19 15:57:23",
+                "signature": "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
+            }
+            ```
             ```json {{ 'title': 'Actualización del AutoPago' }}
             {
-                "auth": {
-                    "login": "aabbccdd1234567890aabbccdd123456",
-                    "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
-                    "nonce": "bmVybzNzYms4cmE=",
-                    "seed": "2024-11-21T11:30:33-05:00"
-                },
-                "reference": "ACC00012345",
                 "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                "reference": "ACC00012345",
                 "type": "AUTOPAY_UPDATED",
                 "date": "2023-01-19 15:57:23",
+                "signature": "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
             }
             ```
 
             ```json {{ 'title': 'Falla al cobrar un AutoPago' }}
             {
-                "auth": {
-                    "login": "aabbccdd1234567890aabbccdd123456",
-                    "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
-                    "nonce": "bmVybzNzYms4cmE=",
-                    "seed": "2024-11-21T11:30:33-05:00"
-                },
-                "reference": "ACC00012345",
                 "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
-                "type": "AUTOPAY_FAILED",
+                "reference": "ACC00012345",
+                "type": "AUTOPAY_TRANSACTION_FAILED",
                 "date": "2023-01-19 15:57:23",
-                "data":  {
-                    "transactionId": "6ea5c934-2a4d-409a-8bd6-e1568cfc771f",
-                    "reason": "XA"
-                }
+                "signature": "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s",
+                "additional": {
+                    "transactionID": "CFed8XTioVhyG3CGHhJrpgpyM8k1phj3"
+                },
             }
             ```
 
-            ```json {{ 'title': 'Eliminación de AutoPago' }}
+            ```json {{ 'title': 'Cancelación de AutoPago' }}
             {
-                "auth": {
-                    "login": "aabbccdd1234567890aabbccdd123456",
-                    "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
-                    "nonce": "bmVybzNzYms4cmE=",
-                    "seed": "2024-11-21T11:30:33-05:00"
-                },
-                "reference": "ACC00012345",
                 "id": "2972c13d-6315-4da3-80d7-64c24eb232ad",
+                "reference": "ACC00012345",
                 "type": "AUTOPAY_CANCELED",
                 "date": "2023-01-19 15:57:23",
-                "data": {
-                    "reason": "?F"
-                }
+                "signature": "sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s"
             }
             ```
         </CodeGroup>
@@ -92,16 +137,6 @@ export const apiRefs = ['/autopay/webhook']
                      "date": "2025-09-29T17:09:29-05:00"
                   },
                 }
-            ```
-            ```json {{ title: '404: Factura no encontrada' }}
-            {
-                "status": {
-                    "status": "FAILED",
-                    "reason": "NF",
-                    "message": "Factura no encontrada",
-                    "date": "2025-09-29T17:09:29-05:00"
-                },
-            }
             ```
             ```json {{ title: '401: Firma inválida' }}
             {

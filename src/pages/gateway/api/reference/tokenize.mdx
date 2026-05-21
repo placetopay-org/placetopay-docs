@@ -9,6 +9,8 @@ export const apiRefs = ['/gateway/tokenize', '/invalidate', '/gateway/token']
 
         > Previamente al consumo de este servicio se debe consultar el de información para saber si es necesario o no generar un OTP al cliente y en caso de ser necesario, solicitar el token a la persona y enviarlo en el consumo.
 
+         <Note type="error"> La autenticación 3D Secure (3DS) aplica únicamente a la transacción inicial de tokenización. Las transacciones posteriores realizadas con el token no están autenticadas por 3DS; por lo tanto, ante reclamaciones o contracargos, la responsabilidad recae en el comercio. Considere este escenario dentro de su gestión de riesgo.  En caso de requirir habilitarlo para las transacciones posteriores por favor comunicate con tu comercial asignado para analizar tu caso </Note>
+
         <ApiReader
             path="/gateway/tokenize"
             method="post"
@@ -301,6 +303,26 @@ curl -X "POST" https://api-co-dev.placetopay.ws/invalidate \
 
     <Col sticky>
         <CodeGroup title="Solicitud" tag="POST" label="/gateway/token">
+```bash {{ title: 'ID' }}
+curl -X "POST" https://api-co-dev.placetopay.ws/gateway/token \
+-H "Content-Type: application/json" \
+-d '{
+    "locale": "es_CO",
+    "auth": {
+        "login":"aabbccdd1234567890aabbccdd123456",
+        "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+        "nonce":"NjE0OWVkODgwYjNhNw==",
+        "seed":"2021-09-21T09:34:48-05:00"
+    },
+    "instrument": {
+        "token": {
+            "id": 123,
+        }
+    }
+}'
+```
+
+
 ```bash {{ title: 'Token' }}
 curl -X "POST" https://api-co-dev.placetopay.ws/gateway/token \
 -H "Content-Type: application/json" \
@@ -352,6 +374,7 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/token \
     },
     "instrument": {
         "token": {
+            "id": 123,
             "token": "faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891",
             "subtoken": "fakesubtoken00005"
         }
@@ -374,7 +397,7 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/token \
     <Col sticky>
         <br />
         <CodeGroup title="Respuesta">
-```json {{ title: '200' }}
+```json {{ title: '200 - Card' }}
 {
     "status": {
         "status": "OK",
@@ -393,6 +416,33 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/token \
         "lastDigits": "1111",
         "validUntil": "12/29",
         "owner": "John Doe",
+        "bin": "411111",
+        "accountType": null,
+        "isPromotedToBrandToken": false
+    }
+}
+```
+```json {{ title: '200 - ACH Account' }}
+{
+    "status": {
+        "status": "OK",
+        "reason": "00",
+        "message": "La petición se ha procesado correctamente",
+        "date": "2021-06-17T11:29:37-05:00"
+    },
+    "data": {
+        "id": 1,
+        "type": "account",
+        "token": "faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891",
+        "subtoken": "fakesubtoken00005",
+        "franchise": "ach",
+        "franchiseName": "ACH",
+        "issuerName": "TESTING",
+        "lastDigits": "1111",
+        "validUntil": "12/29",
+        "owner": "John Doe",
+        "bin": null,
+        "accountType": "SAV",
     }
 }
 ```

@@ -1,0 +1,67 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+<HeroPattern />
+
+# Autenticación de Contratos
+
+Dado que AutoPay enviará peticiones a tu servidor (Balance y Settlement), necesitas un mecanismo para asegurarte de que **realmente somos nosotros** y no un atacante.
+
+Utilizamos el estándar **HTTP Basic Authentication**.
+
+## Credenciales
+
+A diferencia de la API transaccional, en los contratos **tú defines las credenciales** y nosotros las utilizamos.
+
+| Credencial | Definición | Restricciones |
+| :--- | :--- | :--- |
+| **Username** | El nombre de usuario que definiste para tu integración. | Máximo **60 caracteres**. |
+| **Password** | La contraseña segura asociada. | Máximo **60 caracteres**. |
+
+<Note>
+  Estas credenciales se configuran en el proceso de Onboarding [Solicitud de activación](/autopay/#service-activation).
+</Note>
+
+## Objeto Authentication
+
+La autenticación se envía en los **headers** de cada solicitud HTTP.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="Authorization" type="string">
+                Header requerido.
+                Se envía con el formato: <b>Basic base64(username:password)</b>
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```bash {{ 'title': 'Autenticación de Ejemplo (Header)' }}
+        Authorization: Basic bWVyY2hhbnRVc2VyOm1lcmNoYW50UGFzcw==
+        ```
+
+    </Col>
+</Row>
+
+---
+
+## Cómo validar la autenticación
+
+Tu servidor debe interceptar cada petición entrante y ejecutar la siguiente lógica de seguridad **antes** de procesar cualquier dato de negocio.
+
+### Algoritmo de validación
+
+1.  **Verificar Cabecera:** Confirma que la petición tiene el header `Authorization`.
+2.  **Verificar Esquema:** Asegúrate de que empieza con la palabra clave `Basic`.
+3.  **Decodificar:** Toma la cadena después del espacio y decodifícala de Base64 para obtener `username:password`.
+4.  **Comparar:** Separa el texto por los dos puntos (`:`) y compara los valores con los que tienes configurados en tus variables de entorno.
+5.  **Decidir:**
+    * Si coinciden: **Permite el acceso (HTTP 200)**.
+    * Si no coinciden: **Rechaza inmediatamente (HTTP 401 Unauthorized)**.
+
+<Note type="warning">
+  **Seguridad crítica:** Estas credenciales son privadas y permiten inyectar datos en tu sistema.
+
+  * **HTTPS:** La autenticación Basic debe viajar siempre sobre canales cifrados.
+  * **Código fuente:** **No compartas** tus credenciales en áreas de acceso público como **GitHub**, ni las incluyas en código del lado del cliente (Frontend). Úsalas siempre mediante variables de entorno en tu servidor.
+</Note>

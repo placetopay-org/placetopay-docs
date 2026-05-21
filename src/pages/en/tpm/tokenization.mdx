@@ -1,0 +1,148 @@
+# Tokenization
+
+The **tokenization** service converts plain card data into more secure identifiers (tokens) for later use in PlacetoPay services.
+
+At the end of the process, the following are obtained:
+
+- An alphanumeric **token** with **64 characters**.
+- A numeric **subtoken** with **16 digits**.
+
+Both identifiers, when used in PlacetoPay services, retain the full functionality of a credit card.
+
+## How does it work? {{ id: 'tokenization-flow' }}
+
+The integration process is carried out as follows:
+
+1. The connection between **SFTP** servers is established through **VPN** or a public network.
+2. Access credentials for **SFTP** communication are generated and validated.
+3. The customer generates and shares its **PGP/RSA** public key with PlacetoPay.
+4. The customer receives PlacetoPay's **PGP/RSA** public key.
+5. The customer generates a CSV file containing the cards to be tokenized.
+6. The file is encrypted with PlacetoPay's public key using **PGP**.
+7. The customer must upload the file to its SFTP service.
+8. PlacetoPay downloads the file from the SFTP service where the customer uploaded it.
+9. PlacetoPay decrypts the file.
+10. PlacetoPay generates a results file.
+11. PlacetoPay encrypts the results file with PGP.
+12. PlacetoPay uploads the resulting file to the customer's SFTP service.
+13. The customer decrypts the information.
+14. The customer updates its database with the received tokens and subtokens.
+
+Cards must be sent in a comma-separated flat file, usually with a `.csv` extension, and encrypted with **PGP**.
+
+<Note>
+    If the file does not have an extension, it will be treated as a CSV file.
+</Note>
+
+Each record must include an identifier that allows the tokenized information to be later matched with the customer's database.
+
+## Card file format {{ id: 'tokenization-input-file' }}
+
+The file must be comma-separated and contain the columns in the specified order.
+
+All fields described in this section are **required**.
+
+<Note>
+    The file must use UTF-8 encoding.
+</Note>
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="reference" type="string">
+                Record identifier code provided by the customer to link it to their database. It must be unique per record.
+            </Property>
+            <Property name="pan" type="string">
+                Full card number, without spaces.
+            </Property>
+            <Property name="expiration" type="string">
+                Card expiration date in `MM/YY` format.
+            </Property>
+            <Property name="documentType" type="string">
+                Customer document type: `CI`, `RUC`, or `PPN`.
+            </Property>
+            <Property name="document" type="string">
+                Cardholder document number.
+            </Property>
+            <Property name="name" type="string">
+                Cardholder first name.
+            </Property>
+            <Property name="surname" type="string">
+                Cardholder last name.
+            </Property>
+            <Property name="cellphone" type="string">
+                Cardholder mobile phone number.
+            </Property>
+            <Property name="phone" type="string">
+                Cardholder phone number.
+            </Property>
+            <Property name="email" type="string">
+                Cardholder email address.
+            </Property>
+            <Property name="address" type="string">
+                Cardholder address.
+            </Property>
+            <Property name="city" type="string">
+                Cardholder city.
+            </Property>
+            <Property name="country" type="string">
+                Cardholder country alpha-2 code, for example: `CO`, `EC`, `US`.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Input file structure example' }}
+        reference,pan,expiration,documentType,document,name,surname,cellphone,phone,email,address,city,country
+        REF001,4111111111111111,12-28,CI,1234567890,Name,LastName,3000000000,6000000,customer@example.com,Street 1,Medellin,CO
+        ```
+
+    </Col>
+</Row>
+
+<Note>
+    The `reference` column must be unique per record to ensure the correct association between the submitted information and the tokenization result.
+</Note>
+
+Once the flat file has been generated, it must be encrypted with PGP before being sent through the previously agreed channel. This process must be performed using the public key shared by PlacetoPay.
+
+In addition, when sending the file, the customer must share their PGP public key, which will be used to encrypt the resulting file.
+
+## Output CSV file {{ id: 'tokenization-output-file' }}
+
+The resulting file replaces the card information with the tokenized identifiers generated during the process.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="Referencia" type="string">
+                Record identifier code provided by the customer.
+            </Property>
+            <Property name="Token" type="string(64)">
+                Alphanumeric code with 64 characters.
+            </Property>
+            <Property name="Subtoken" type="string(16)">
+                Numeric code with 16 digits.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Output file structure example' }}
+        Reference,Token,Subtoken
+        REF001,abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890,1234567890123456
+        ```
+
+    </Col>
+</Row>
+
+## PGP encryption {{ id: 'tokenization-pgp' }}
+
+Before sending the input file:
+
+1. The customer must encrypt the CSV using the public key shared by PlacetoPay for the process.
+2. The customer must share its own **PGP** public key, since PlacetoPay will use it to encrypt the results file.
+
+<Note>
+    Public key exchange is mandatory to preserve the confidentiality of the information throughout the process.
+</Note>
