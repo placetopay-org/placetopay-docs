@@ -16,6 +16,10 @@ const TITLES = {
     es: 'Respuesta',
     en: 'Response',
   },
+  body: {
+    es: 'Cuerpo',
+    en: 'Body',
+  },
   params: {
     es: {
       params: 'Parámetros',
@@ -384,72 +388,83 @@ export const ApiParams = ({ params = [], type = 'params' }) => {
   )
 }
 
-export const ApiRequest = ({ request = {} }) => {
+export const ApiRequest = ({ request = {}, params = [] }) => {
   const { locale } = useLocale()
-  const [selected, setSelected] = useState(0);
+  const [selected, setSelected] = useState(0)
+
+  const headers = params ? params.filter((p) => p.in === 'header') : []
 
   const requestBody =
-    request?.content?.['application/json'] ??
-    request?.content?.['multipart/form-data']
+      request?.content?.['application/json'] ??
+      request?.content?.['multipart/form-data']
   let body = requestBody?.schema
-
   const multiBodies = requestBody?.schema.oneOf ?? requestBody?.schema.anyOf ?? [];
   const isMulti = multiBodies.length > 0;
-
   if (isMulti) {
     body = multiBodies[selected]
   }
 
-  if (!body?.properties) {
+  if (!body?.properties && headers.length === 0) {
     return null
   }
 
   return (
-    <>
-      <div className="flex items-baseline justify-between">
-        <h3>{TITLES.request[locale]}</h3>
+      <>
+        <div className="flex items-baseline justify-between">
+          <h3>{TITLES.request[locale]}</h3>
+          {isMulti && (
+              <select
+                  className="bg-inherit"
+                  onChange={(evt) => setSelected(evt.target.value)}
+              >
+                {multiBodies.map((element, key) => (
+                    <option key={`request-${key}`} value={key}>{element.title}</option>
+                ))}
+              </select>
+          )}
+        </div>
 
-        {isMulti && (
-          <select
-            className="bg-inherit"
-            onChange={(evt) => setSelected(evt.target.value)}
-          >
-            {multiBodies.map((element, key) => (
-                <option key={`request-${key}`} value={key}>{element.title}</option>
-            ))}
-          </select>
+        {headers.length > 0 && (
+            <div className="mb-6">
+              <ApiParams params={headers} type="header" />
+            </div>
         )}
-      </div>
 
-      {body.deprecated && (
-        <Note type='warning'>{TITLES.deprecated[locale]}</Note>
-      )}
+        {body && (
+            <>
+              {headers.length > 0 && (
+                  <h3>{TITLES.body[locale]}</h3>
+              )}
 
-      {body.description && (
-        <ReactMarkdown>{body.description}</ReactMarkdown>
-      )}
+              {body.deprecated && (
+                  <Note type='warning'>{TITLES.deprecated[locale]}</Note>
+              )}
 
-      <ApiProperties
-        properties={Object.entries(body?.properties || {})}
-        requireds={body?.required || []}
-        conditionals={body?.['x-conditional'] || []}
-      />
-    </>
+              {body.description && (
+                  <ReactMarkdown>{body.description}</ReactMarkdown>
+              )}
+
+              <ApiProperties
+                  properties={Object.entries(body?.properties || {})}
+                  requireds={body?.required || []}
+                  conditionals={body?.['x-conditional'] || []}
+              />
+            </>
+        )}
+      </>
   )
 }
-
 export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
   let data = api?.[path]
   if (type !== 'params') data = data?.[method.toLowerCase()]
-
   if (!data) {
     throw new Error(
-      `Method ${method} not found in API definition for path ${path}`
+        `Method ${method} not found in API definition for path ${path}`
     )
   }
 
   if (type === 'request') {
-    return <ApiRequest request={data.requestBody} />
+    return <ApiRequest request={data.requestBody} params={data.parameters} />
   }
 
   if (type === 'response') {
