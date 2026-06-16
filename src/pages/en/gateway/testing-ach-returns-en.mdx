@@ -1,0 +1,338 @@
+import { CountryFlags } from '@/components/Flags'
+
+export const description = 'Testing guide for ACH return simulation in test environment with mock accounts and webhook examples.';
+
+# ACH Returns Simulation in Test Environment
+
+<Note>
+**⚠️ Test Environment Only**
+
+This documentation describes the ACH return simulator available exclusively in the **test environment** (test/sandbox). The behaviors described here DO NOT apply to production.
+</Note>
+
+To facilitate development and testing of integrations that handle ACH returns, Placetopay provides a set of mock bank accounts that simulate different return scenarios. {{ className: 'lead' }}
+
+## Mock accounts for testing
+
+Use the following bank accounts in your test transactions to simulate different ACH return scenarios:
+
+| Account Number | Initial Behavior | Return Code | Timing | Description |
+|----------------|------------------|-------------|--------|-------------|
+| **1111222233334444** | ✅ Approves | - | - | Successful transaction without return |
+| **1111222233335555** | ✅ Approves → ❌ Returns | **R01** | Synchronous (immediate) | Insufficient funds |
+| **1111222233336666** | ✅ Approves → ❌ Returns | **R09** | Asynchronous (~5 min) | Uncollected funds |
+
+### Behavior details
+
+#### Account A: No return (1111222233334444)
+- **Initial status:** APPROVED
+- **Final result:** Successful transaction
+- **Webhook:** No return webhook is sent
+- **Use case:** Test successful complete flow
+
+#### Account B: Synchronous return R01 (1111222233335555)
+- **Initial status:** APPROVED
+- **Final result:** CHARGEBACK with code R01
+- **Webhook:** Sent immediately after approval
+- **Reason:** Insufficient funds
+- **Use case:** Test immediate return handling
+
+#### Account C: Asynchronous return R09 (1111222233336666)
+- **Initial status:** APPROVED
+- **Final result:** CHARGEBACK with code R09 (after ~5 minutes)
+- **Webhook:** Sent approximately 5 minutes after the transaction
+- **Reason:** Uncollected funds
+- **Use case:** Test asynchronous return handling and delayed webhooks
+
+<Note>
+**About return timing**
+
+Asynchronous returns in the test environment are generated after approximately 5 minutes to allow testing without waiting 1-2 days as in production. In the production environment, ACH returns can occur up to 2 business days after the initial transaction.
+</Note>
+
+## NACHA return codes
+
+The simulated return codes correspond to standard NACHA codes:
+
+| Code | Description | Category |
+|------|-------------|----------|
+| **R01** | Insufficient funds | Funds return |
+| **R02** | Account closed | Administrative return |
+| **R03** | No account/Unable to locate account | Administrative return |
+| **R09** | Uncollected funds | Funds return |
+
+For more information about return codes, see [ACH Bank Debit - Return codes](/en/payments/external-redirects/ach-bank-debit#ach-return-codes-and-their-meaning).
+
+## Return webhook format
+
+When an ACH return occurs in the simulator, a webhook with the `chargeback.created` event is sent to the URL configured in your test site.
+
+### Headers
+
+```plaintext {{ title: 'Webhook Headers' }}
+X-Signature: [HMAC-SHA256 hash of body with your test tranKey]
+Content-Type: application/json
+Accept: application/json
+```
+
+### Webhook body
+
+```json {{ title: 'Webhook Example - R01 Return' }}
+{
+  "time": "2026-06-02T10:00:00-05:00",
+  "type": "chargeback.created",
+  "data": {
+    "status": {
+      "status": "APPROVED",
+      "reason": "R01",
+      "message": "Insufficient funds",
+      "date": "2026-06-02T10:00:00-05:00"
+    },
+    "date": "2026-06-02T10:00:00-05:00",
+    "transactionDate": "2026-06-02T09:55:00-05:00",
+    "internalReference": 12345,
+    "reference": "TEST_ACH_RETURN_001",
+    "paymentMethod": "EBACH",
+    "franchise": "ach",
+    "franchiseName": "Ebus ACH",
+    "issuerName": null,
+    "amount": {
+      "taxes": [
+        {
+          "kind": "valueAddedTax",
+          "amount": 0,
+          "base": 0
+        }
+      ],
+      "currency": "USD",
+      "total": 10000
+    },
+    "conversion": {
+      "from": {
+        "currency": "USD",
+        "total": 10000
+      },
+      "to": {
+        "currency": "USD",
+        "total": 10000
+      },
+      "factor": 1
+    },
+    "authorization": "TEST_AUTH_001",
+    "receipt": null,
+    "type": "CHARGEBACK",
+    "refunded": false,
+    "lastDigits": null,
+    "provider": null,
+    "discount": null,
+    "processorFields": {
+      "id": "test_processor_id_12345",
+      "b24": "R01"
+    },
+    "additional": {
+      "merchantCode": "TEST_MERCHANT_123",
+      "terminalNumber": "TEST_TERMINAL_001",
+      "bankName": "Test Bank",
+      "accountNumber": "4444"
+    }
+  }
+}
+```
+
+```json {{ title: 'Webhook Example - R09 Return' }}
+{
+  "time": "2026-06-02T10:05:00-05:00",
+  "type": "chargeback.created",
+  "data": {
+    "status": {
+      "status": "APPROVED",
+      "reason": "R09",
+      "message": "Uncollected funds",
+      "date": "2026-06-02T10:05:00-05:00"
+    },
+    "date": "2026-06-02T10:05:00-05:00",
+    "transactionDate": "2026-06-02T10:00:00-05:00",
+    "internalReference": 12346,
+    "reference": "TEST_ACH_RETURN_002",
+    "paymentMethod": "EBACH",
+    "franchise": "ach",
+    "franchiseName": "Ebus ACH",
+    "issuerName": null,
+    "amount": {
+      "taxes": [
+        {
+          "kind": "valueAddedTax",
+          "amount": 0,
+          "base": 0
+        }
+      ],
+      "currency": "USD",
+      "total": 15000
+    },
+    "conversion": {
+      "from": {
+        "currency": "USD",
+        "total": 15000
+      },
+      "to": {
+        "currency": "USD",
+        "total": 15000
+      },
+      "factor": 1
+    },
+    "authorization": "TEST_AUTH_002",
+    "receipt": null,
+    "type": "CHARGEBACK",
+    "refunded": false,
+    "lastDigits": null,
+    "provider": null,
+    "discount": null,
+    "processorFields": {
+      "id": "test_processor_id_67890",
+      "b24": "R09"
+    },
+    "additional": {
+      "merchantCode": "TEST_MERCHANT_123",
+      "terminalNumber": "TEST_TERMINAL_001",
+      "bankName": "Test Bank",
+      "accountNumber": "6666"
+    }
+  }
+}
+```
+
+## Webhook configuration in test environment
+
+### 1. Register webhook URL
+
+To receive webhooks in the test environment, contact the Placetopay operations team and provide:
+- URL where you will receive webhooks (must be HTTPS)
+- Associated test site
+
+### 2. Recommended testing tools
+
+If you don't have a publicly exposed server, you can use services like:
+- **webhook.site** - Generates temporary URLs to inspect webhooks
+- **ngrok** - Tunnel to your local development environment
+- **RequestBin** - HTTP request collector
+
+### 3. Signature validation
+
+It's important to validate the `X-Signature` webhook signature even in the test environment to ensure your implementation works correctly in production.
+
+```javascript {{ title: 'Validation in Node.js' }}
+const crypto = require('crypto');
+
+function validateWebhookSignature(body, signature, tranKey) {
+  // Generate the signature locally
+  const generatedSignature = crypto
+    .createHmac('sha256', tranKey)
+    .update(JSON.stringify(body))
+    .digest('hex');
+
+  // Compare with received signature
+  return generatedSignature === signature;
+}
+
+// Use in your endpoint
+app.post('/webhook/ach-returns', (req, res) => {
+  const receivedSignature = req.headers['x-signature'];
+  const body = req.body;
+  const tranKey = process.env.PLACETOPAY_TRANKEY_TEST; // Your test tranKey
+
+  if (validateWebhookSignature(body, receivedSignature, tranKey)) {
+    console.log('Authentic webhook received');
+
+    // Process the ACH return
+    const returnData = body.data;
+    const returnCode = returnData.status.reason; // R01, R09, etc.
+    const reference = returnData.reference;
+
+    // Your business logic here
+
+    res.status(200).json({ received: true });
+  } else {
+    console.log('Invalid signature - webhook rejected');
+    res.status(401).json({ error: 'Invalid signature' });
+  }
+});
+```
+
+## Query returns via API
+
+In addition to webhooks, you can query ACH returns generated in your tests using the reports API:
+
+```bash {{ title: 'Request return report' }}
+curl -X POST https://test.placetopay.com/redirection/api/report \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TEST_TOKEN" \
+  -d '{
+    "type": ["CHARGEBACK"],
+    "from": "2026-06-01T00:00:00-05:00",
+    "to": "2026-06-02T23:59:59-05:00"
+  }'
+```
+
+For more information about the reports API, see [Report of operations carried out](/en/gateway/api/reference/report).
+
+## Recommended testing flow
+
+1. **Configure webhook** - Register your test webhook URL with the operations team
+
+2. **Test account without return (Account A)**
+   - Create transaction with account `1111222233334444`
+   - Verify that the transaction approves
+   - Confirm that NO return webhook is received
+
+3. **Test synchronous return (Account B)**
+   - Create transaction with account `1111222233335555`
+   - Verify that the transaction approves initially
+   - Receive and validate R01 return webhook (immediate)
+   - Validate webhook signature
+   - Implement return handling logic
+
+4. **Test asynchronous return (Account C)**
+   - Create transaction with account `1111222233336666`
+   - Verify that the transaction approves
+   - Wait ~5 minutes
+   - Receive and validate R09 return webhook
+   - Confirm that your system handles delayed returns
+
+5. **Query returns via API**
+   - Generate return report
+   - Verify that returns appear correctly
+
+## Related resources
+
+- [Webhooks - ACH Returns](/en/gateway/webhooks) - Complete webhook documentation
+- [ACH Bank Debit](/en/payments/external-redirects/ach-bank-debit) - General ACH information
+- [Transactions API](/en/gateway/api/reference/transaction) - Process ACH transactions
+- [Reports API](/en/gateway/api/reference/report) - Query generated returns
+
+## FAQs
+
+<details>
+<summary>Can I use these accounts in production?</summary>
+<p>No. These accounts are exclusive to the test environment and will not work in production. In production, ACH returns occur naturally according to the real conditions of your customers' bank accounts.</p>
+</details>
+
+<details>
+<summary>Why does the asynchronous return take only 5 minutes instead of 1-2 days?</summary>
+<p>To facilitate testing and development, the simulator generates asynchronous returns after approximately 5 minutes. In production, ACH returns can take up to 2 business days according to banking regulations.</p>
+</details>
+
+<details>
+<summary>How do I know if a webhook is from test or production?</summary>
+<p>Check the site URL in your configuration. Test webhooks come from sites configured at <code>test.placetopay.com</code>, while production ones come from <code>checkout.placetopay.com</code> or other production domains. You can also verify webhook data (references, merchant codes, etc.).</p>
+</details>
+
+<details>
+<summary>Can I simulate other return codes besides R01 and R09?</summary>
+<p>Currently, the simulator supports R01 (insufficient funds) and R09 (uncollected funds). If you need to test other scenarios, contact the Placetopay technical support team.</p>
+</details>
+
+<details>
+<summary>What if I don't receive the return webhook?</summary>
+<p>Verify that: 1) Your webhook URL is correctly configured, 2) Your server is publicly accessible via HTTPS, 3) Your endpoint responds with code 200. You can query generated returns using the reports API as an alternative.</p>
+</details>
+
