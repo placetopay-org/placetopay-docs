@@ -348,6 +348,10 @@ export const TAB_NAVIGATION = {
             title: 'Medios de pago',
             links: [
               {
+                title: 'Introducción',
+                href: '/payments/payment-methods/introduction',
+              },
+              {
                 title: 'Tarjetas',
                 links: [
                   { title: 'EBT', href: '/payments/cards/ebt' },
@@ -503,6 +507,10 @@ export const TAB_NAVIGATION = {
           {
             title: 'Payment methods',
             links: [
+              {
+                title: 'Introduction',
+                href: '/payments/payment-methods/introduction',
+              },
               {
                 title: 'Cards',
                 links: [
