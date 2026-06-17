@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { LANGUAGES_CODES } from '@/components/LocaleProvider'
+import { useLocale } from '@/components/LocaleProvider'
 import { TAB_NAVIGATION } from '@/constants/navigations'
 
 function getPaymentMethodsSection(locale) {
@@ -11,7 +11,8 @@ function getPaymentMethodsSection(locale) {
 }
 
 export function PaymentMethodsList() {
-  const categories = getPaymentMethodsSection(LANGUAGES_CODES.EN)
+  const { locale } = useLocale()
+  const categories = getPaymentMethodsSection(locale)
 
   return (
     <div>
