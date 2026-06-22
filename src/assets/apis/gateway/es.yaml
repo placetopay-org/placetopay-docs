@@ -1221,7 +1221,38 @@ paths:
                       bin: "411076"
                       expiration: "1228"
                       installments: 1
-      description: "Permite realizar un reembolso, re-autorización o checkout sobre una transacción existente"
+        200 Confirm:
+          description: "Respuesta Aprobada de una confirmación"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "../base/es.yaml#/components/schemas/Status"
+                  date:
+                    type: "string"
+                    description: "Fecha de la solicitud de operación"
+                    example: "2021-09-20T21:56:29-05:00"
+                  transactionDate:
+                    type: "string"
+                    description: "Fecha de ejecución de la operación."
+                    example: "2021-09-20T21:56:29-05:00"
+                  internalReference:
+                    type: "integer"
+                    description: "Referencia interna de la operación."
+                    nullable: true
+                  type:
+                    type: "string"
+                    description: "Tipo de transacción"
+                    enum:
+                      - "AUTH_CONFIRM"
+                      - "AUTH_CANCEL"
+                  transactionProcessed:
+                    type: object
+                    description: "Objeto que contiene la información de la transacción original procesada."
+                    $ref: "../base/es.yaml#/components/schemas/Transaction"
+      description: "Permite realizar un reembolso, re-autorización, checkout, confirmación o cancelación sobre una transacción existente"
       tags:
         - "Acciones sobre transacciones"
       requestBody:
@@ -1232,6 +1263,7 @@ paths:
               properties:
                 locale:
                   type: "string"
+                  description: "Contiene el código de localización"
                   example: "es-CO"
                 auth:
                   $ref: "../base/es.yaml#/components/schemas/Authentication"
@@ -1241,11 +1273,20 @@ paths:
                     Tipo de operación a realizar sobre la transacción
 
                     `reverse` para revesar una transacción.
+
                     `reauthorization` para modificar una transacción de checkin.
+                    
                     `checkout` para cerrar y cobrar una transacción de checkin.
+                    
                     `refund` para rembolsar una transacción.
+                    
                     `process`, para aprobar de manera manual una transacción.
+                    
                     `void` para cancelar el procesamiento de una transacción pendiente de aprobación manual.
+                    
+                    `confirm` para procesar una transacción pendiente de confirmación.
+                    
+                    `cancel` para cancelar una transacción pendiente de confirmación.
                   enum:
                     - "reverse"
                     - "refund"
@@ -1254,6 +1295,8 @@ paths:
                     - "dispersion"
                     - "checkout"
                     - "reauthorization"
+                    - "confirm"
+                    - "cancel"
                   example: "reverse"
                 internalReference:
                   type: "number"
@@ -1289,6 +1332,14 @@ paths:
                               Valor total en la moneda base indicada
 
                               EJ: `1000` Valor total en la moneda base indicada
+                ipAddress:
+                  type: "string"
+                  description: "Dirección IP del cliente"
+                  example: "127.0.0.1"
+                userAgent:
+                  type: "string"
+                  description: "Agente de usuario del cliente"
+                  example: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
               required:
                 - "auth"
                 - "action"

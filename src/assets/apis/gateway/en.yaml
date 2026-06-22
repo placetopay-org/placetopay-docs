@@ -1219,7 +1219,38 @@ paths:
                       bin: "411076"
                       expiration: "1228"
                       installments: 1
-      description: "Allows you to perform a reversal, re-authorization, refund or checkout on an existing transaction"
+        200 Confirm:
+          description: "Response of the a confirmation transaction."
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "../base/es.yaml#/components/schemas/Status"
+                  date:
+                    type: "string"
+                    description: "Date of the operation request"
+                    example: "2021-09-20T21:56:29-05:00"
+                  transactionDate:
+                    type: "string"
+                    description: "Date of execution of the operation"
+                    example: "2021-09-20T21:56:29-05:00"
+                  internalReference:
+                    type: "integer"
+                    description: "Internal reference of the operation"
+                    nullable: true
+                  type:
+                    type: "string"
+                    description: "Transaction type"
+                    enum:
+                      - "AUTH_CONFIRM"
+                      - "AUTH_CANCEL"
+                  transactionProcessed:
+                    type: object
+                    description: "Object containing the information of the original processed transaction."
+                    $ref: "../base/es.yaml#/components/schemas/Transaction"
+      description: "Allows you to perform a reversal, re-authorization, refund, checkout, confirmation or cancellation on an existing transaction"
       tags:
         - "Actions on transactions"
       requestBody:
@@ -1230,6 +1261,7 @@ paths:
               properties:
                 locale:
                   type: "string"
+                  description: "Localization code"
                   example: "es-CO"
                 auth:
                   $ref: "../base/en.yaml#/components/schemas/Authentication"
@@ -1239,11 +1271,20 @@ paths:
                     Type of operation to be performed on the transaction
                     
                     `reverse` to reverse a transaction.
+                    
                     `reauthorization` to modify a checkin transaction.
+                    
                     `checkout` to close and collect a checkin transaction.
+                    
                     `refund` to refund a transaction.
+                    
                     `process`, to manually approve a transaction.
+                    
                     `void` to cancel processing of a transaction pending manual approval.
+                    
+                    `confirm` to confirm a transaction pending confirmation.
+                    
+                    `cancel` to cancel a transaction pending confirmation.
                   enum:
                     - "reverse"
                     - "refund"
@@ -1252,6 +1293,8 @@ paths:
                     - "dispersion"
                     - "checkout"
                     - "reauthorization"
+                    - "confirm"
+                    - "cancel"
                   example: "reverse"
                 internalReference:
                   type: "number"
@@ -1287,6 +1330,14 @@ paths:
                               Total value in indicated base currency
 
                               EJ: `1000` Total value in indicated base currency
+                ipAddress:
+                  type: "string"
+                  description: "Client IP address"
+                  example: "127.0.0.1"
+                userAgent:
+                  type: "string"
+                  description: "Customer User Agent"
+                  example: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
               required:
                 - "auth"
                 - "action"
