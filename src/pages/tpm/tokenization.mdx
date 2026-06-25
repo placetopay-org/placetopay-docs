@@ -1,4 +1,6 @@
-# Tokenización masiva
+export const sectionMode = 'nav';
+
+## Tokenización masiva
 
 El servicio de **tokenización masiva** convierte información plana de tarjetas en identificadores más seguros (tokens) para su uso posterior en servicios de Placetopay.
 
@@ -9,8 +11,8 @@ Al finalizar el proceso se obtiene:
 
 Ambos identificadores, al utilizarse en los servicios de Placetopay, conservan toda la funcionalidad de una tarjeta de crédito.
 
-## ¿Cómo funciona? {{ id: 'tokenization-flow' }}
-
+## Flujo general del proceso {{ id: 'tokenization-flow' }}
+---
 El proceso de integración se ejecuta de la siguiente forma:
 
 1. Se establece la conexión entre servidores **SFTP**, mediante **VPN** o red pública.
@@ -36,17 +38,28 @@ Las tarjetas se deben enviar en un archivo plano separado por comas, normalmente
 
 Cada registro debe incluir un identificador que permita relacionar posteriormente la información tokenizada con la base de datos del cliente.
 
-## Formato del archivo de tarjetas {{ id: 'tokenization-input-file' }}
+### Cifrado con PGP {{ id: 'tokenization-pgp' }}
+
+Antes de enviar el archivo de entrada:
+
+1. El cliente debe cifrar el CSV con la llave pública que Placetopay comparta para el proceso.
+2. El cliente debe compartir su propia llave pública **PGP**, ya que Placetopay la utilizará para cifrar el archivo de resultados.
+
+<Note>
+    El intercambio de llaves públicas es obligatorio para mantener la confidencialidad de la información durante el proceso.
+</Note>
+
+
+## Tokenización de tarjetas {{ id: 'tokenization-input-file' }}
+---
+### Formato del achivo
 
 El archivo debe estar separado por comas y contener las columnas en el orden indicado.
 
 <Note>
-    El archivo debe utilizar codificación UTF-8.
-</Note>
-
-
-<Note>
-    Se recomienda proveer todos los campos con el fin de fortalecer la seguridad, trazabilidad y seguimiento del registro.
+        **IMPORTANTE**
+        - El archivo debe utilizar codificación UTF-8.
+        - Se recomienda proveer todos los campos con el fin de fortalecer la seguridad, trazabilidad y seguimiento del registro.
 </Note>
 
 <Row>
@@ -111,7 +124,7 @@ Una vez generado el archivo plano, este debe cifrarse con PGP antes de ser envia
 
 Además, al momento de enviar el archivo, el cliente debe compartir su llave pública PGP, la cual será utilizada para cifrar el archivo resultante.
 
-## Archivo CSV de salida {{ id: 'tokenization-output-file' }}
+### Archivo CSV de salida
 
 El archivo resultante sustituye la información de la tarjeta por los identificadores tokenizados generados durante el proceso.
 
@@ -139,14 +152,103 @@ El archivo resultante sustituye la información de la tarjeta por los identifica
     </Col>
 </Row>
 
-## Cifrado con PGP {{ id: 'tokenization-pgp' }}
+## Tokenización de cuentas
+---
+### Formato del achivo
 
-Antes de enviar el archivo de entrada:
-
-1. El cliente debe cifrar el CSV con la llave pública que Placetopay comparta para el proceso.
-2. El cliente debe compartir su propia llave pública **PGP**, ya que Placetopay la utilizará para cifrar el archivo de resultados.
+El archivo debe estar separado por comas y contener las columnas en el orden indicado.
 
 <Note>
-    El intercambio de llaves públicas es obligatorio para mantener la confidencialidad de la información durante el proceso.
+    **IMPORTANTE**
+    - El archivo debe utilizar codificación UTF-8.
+    - Se recomienda proveer todos los campos con el fin de fortalecer la seguridad, trazabilidad y seguimiento del registro.
 </Note>
 
+<Row>
+    <Col>
+        <Properties>
+            <Property name="reference" type="string">
+                Código identificador del registro, provisto por el cliente para relacionarlo con su base de datos. Debe ser único por registro.
+            </Property>
+            <Property name="accountNumber" type="string">
+                Número completo de la cuenta, sin espacios.
+            </Property>
+            <Property name="bankCode" type="string">
+                Número de Ruta (Tambien conocido como ABA Number).
+            </Property>
+            <Property name="accountType" type="string">
+                Tipo de cuenta: `SAV`, `DDA` o `CCD`.
+            </Property>
+            <Property name="name" type="string" isRequired={false}>
+                Nombre del titular.
+            </Property>
+            <Property name="surname" type="string" isRequired={false}>
+                Apellidos del titular.
+            </Property>
+            <Property name="cellphone" type="string" isRequired={false}>
+                Número de celular del titular.
+            </Property>
+            <Property name="email" type="string">
+                Correo electrónico del titular.
+            </Property>
+            <Property name="address" type="string" isRequired={false}>
+                Dirección del titular.
+            </Property>
+            <Property name="city" type="string" isRequired={false}>
+                Ciudad del titular.
+            </Property>
+            <Property name="country" type="string" isRequired={false}>
+                Código alpha-2 del país del titular, por ejemplo: `CO`, `EC`, `US`.
+            </Property>
+            <Property name="customerAccountNumber" type="string" isRequired={false}>
+                Número identificador de la cuenta del cliente
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Ejemplo estructural de archivo de entrada' }}
+        reference,accountNumber,bankCode,accountType,name,surname,cellphone,email,address,city,country,customerAccountNumber
+        REF001,123456789,221571415,CCD,Nombre,Apellido,6000000,cliente@example.com,Calle 1,Medellín,CO,ABCD1234567890
+        ```
+
+    </Col>
+</Row>
+
+<Note>
+    **NOTAS**
+    - La columna `reference` debe ser única por registro para permitir la asociación correcta entre la información enviada y el resultado de la tokenización.
+    - La columna `customerAccountNumber` permite, tanto en procesos internos como en procesos externos realizados en Puerto Rico (ya sea para el pago de servicios o a proveedores), identificar al titular de la transacción y relacionarlo en distintos reportes de conciliación.
+</Note>
+
+Una vez generado el archivo plano, este debe cifrarse con PGP antes de ser enviado por el medio previamente acordado. Para realizar este proceso, se utilizará la llave pública compartida por Placetopay.
+
+Además, al momento de enviar el archivo, el cliente debe compartir su llave pública PGP, la cual será utilizada para cifrar el archivo resultante.
+
+### Archivo CSV de salida {{ id: 'tokenization-output-file' }}
+
+El archivo resultante sustituye la información de la tarjeta por los identificadores tokenizados generados durante el proceso.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="Referencia" type="string">
+                Código identificador del registro provisto por el cliente para relacionarlo con su base de datos.
+            </Property>
+            <Property name="Token" type="string(64)">
+                Código alfanumérico de 64 caracteres.
+            </Property>
+            <Property name="Subtoken" type="string(16)">
+                Código numérico de 16 dígitos.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Ejemplo estructural de archivo de salida' }}
+        Referencia,Token,Subtoken
+        REF001,abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890,1234567890123456
+        ```
+
+    </Col>
+</Row>
