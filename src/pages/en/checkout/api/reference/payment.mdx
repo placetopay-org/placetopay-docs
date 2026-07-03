@@ -13,7 +13,7 @@ A transaction made by the user within a payment session is identified as payment
 
 <Row>
     <Col>
-        It allows you to perform basic preauthorization operations such as `checkout`, `reauthorization`, (Does not apply to Puerto Rico) on the other hand it also allows you to reverse an approved payment with the internal reference code `reverse`.
+        It allows you to perform basic preauthorization operations such as `checkout`, `reauthorization`, (Does not apply to Puerto Rico) and to reverse an approved payment with the internal reference code `reverse`. Additionally, transactions created with `requiresConfirmation` can be confirmed (`confirm`) or cancelled (`cancel`).
 
         <ApiReader
             path="/api/transaction"
@@ -71,6 +71,34 @@ curl -X "POST" https://checkout-test.placetopay.com/api/transaction \
         },
         "internalReference": 640,
         "action": "reverse"
+    }"
+```
+```bash {{ title: 'Confirm' }}
+curl -X "POST" https://checkout-test.placetopay.com/api/transaction \
+    -H "Content-Type: application/json" \
+    -d "{
+        "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "NjE0OWVkODgwYjNhNw==",
+            "seed": "2021-09-21T09:34:48-05:00"
+        },
+        "internalReference": 84,
+        "action": "confirm"
+    }"
+```
+```bash {{ title: 'Cancel' }}
+curl -X "POST" https://checkout-test.placetopay.com/api/transaction \
+    -H "Content-Type: application/json" \
+    -d "{
+        "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "NjE0OWVkODgwYjNhNw==",
+            "seed": "2021-09-21T09:34:48-05:00"
+        },
+        "internalReference": 84,
+        "action": "cancel"
     }"
 ```
         </CodeGroup>
@@ -256,14 +284,14 @@ curl -X "POST" https://checkout-test.placetopay.com/api/transaction \
     "status": {
         "status": "APPROVED",
         "reason": "00",
-        "message": "Aprobada",
+        "message": "Approved",
         "date": "2021-11-30T09:37:46-05:00"
     },
     "payment": {
         "status": {
         "status": "APPROVED",
         "reason": "00",
-        "message": "Aprobada",
+        "message": "Approved",
         "date": "2021-11-30T09:37:46-05:00"
         },
         "internalReference": 644,
@@ -286,6 +314,94 @@ curl -X "POST" https://checkout-test.placetopay.com/api/transaction \
         "receipt": "499435368733",
         "franchise": "PS_VS",
         "refunded": false
+    }
+}
+```
+```json {{ title: 'Confirm' }}
+{
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "Approved",
+        "date": "2025-01-21T21:20:07-05:00"
+    },
+    "payment": {
+        "status": {
+            "status": "APPROVED",
+            "reason": "00",
+            "message": "Approved",
+            "date": "2025-01-21T21:20:07-05:00"
+        },
+        "internalReference": 84,
+        "paymentMethod": "visa",
+        "paymentMethodName": "Visa",
+        "issuerName": "JPMORGAN CHASE BANK, N.A.",
+        "amount": {
+            "from": { "currency": "USD", "total": 100 },
+            "to": { "currency": "USD", "total": 100 },
+            "factor": 1
+        },
+        "authorization": "000000",
+        "reference": "TEST_VISA",
+        "receipt": "426882",
+        "franchise": "CR_VS",
+        "refunded": false
+    }
+}
+```
+```json {{ title: 'Cancel' }}
+{
+    "status": {
+        "status": "REJECTED",
+        "reason": "?C",
+        "message": "Cancelled by merchant",
+        "date": "2025-01-21T21:20:07-05:00"
+    },
+    "payment": {
+        "status": {
+            "status": "REJECTED",
+            "reason": "?C",
+            "message": "Cancelled by merchant",
+            "date": "2025-01-21T21:20:07-05:00"
+        },
+        "internalReference": 84,
+        "paymentMethod": "visa",
+        "paymentMethodName": "Visa",
+        "issuerName": "JPMORGAN CHASE BANK, N.A.",
+        "amount": {
+            "from": { "currency": "USD", "total": 100 },
+            "to": { "currency": "USD", "total": 100 },
+            "factor": 1
+        },
+        "authorization": "000000",
+        "reference": "TEST_VISA",
+        "receipt": "426882",
+        "franchise": "CR_VS",
+        "refunded": false
+    }
+}
+```
+        </CodeGroup>
+
+        <br />
+        <CodeGroup title="Error responses">
+```json {{ title: 'Session Not Supported' }}
+{
+    "status": {
+        "status": "FAILED",
+        "reason": "request_not_valid",
+        "message": "The action [confirm] is not supported for this session",
+        "date": "2025-01-21T21:20:07-05:00"
+    }
+}
+```
+```json {{ title: 'Invalid State' }}
+{
+    "status": {
+        "status": "FAILED",
+        "reason": "request_not_valid",
+        "message": "The action [confirm] is only available for transactions in pending confirmation state",
+        "date": "2025-01-21T21:20:07-05:00"
     }
 }
 ```

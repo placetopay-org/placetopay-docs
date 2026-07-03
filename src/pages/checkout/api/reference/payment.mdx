@@ -13,7 +13,7 @@ Se identifica como pago, a una transacción realizada por el usuario dentro de u
 
 <Row>
     <Col>
-        Permite realizar operaciones básicas de preauthorización como `checkout`, `reauthorization`, (No aplica para Puerto Rico) por otro lado también permite revertir un pago aprobado con el código de referencia interna `reverse`.
+        Permite realizar operaciones básicas de preauthorización como `checkout`, `reauthorization`, (No aplica para Puerto Rico) y revertir un pago aprobado con el código de referencia interna `reverse`. Adicionalmente, las transacciones creadas con `requiresConfirmation` pueden ser confirmadas (`confirm`) o canceladas (`cancel`).
 
         <ApiReader
             path="/api/transaction"
@@ -71,6 +71,34 @@ curl -X "POST" https://checkout-test.placetopay.com/api/transaction \
         },
         "internalReference": 640,
         "action": "reverse"
+    }"
+```
+```bash {{ title: 'CONFIRM' }}
+curl -X "POST" https://checkout-test.placetopay.com/api/transaction \
+    -H "Content-Type: application/json" \
+    -d "{
+        "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "NjE0OWVkODgwYjNhNw==",
+            "seed": "2021-09-21T09:34:48-05:00"
+        },
+        "internalReference": 84,
+        "action": "confirm"
+    }"
+```
+```bash {{ title: 'CANCEL' }}
+curl -X "POST" https://checkout-test.placetopay.com/api/transaction \
+    -H "Content-Type: application/json" \
+    -d "{
+        "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "NjE0OWVkODgwYjNhNw==",
+            "seed": "2021-09-21T09:34:48-05:00"
+        },
+        "internalReference": 84,
+        "action": "cancel"
     }"
 ```
         </CodeGroup>
@@ -286,6 +314,94 @@ curl -X "POST" https://checkout-test.placetopay.com/api/transaction \
         "receipt": "499435368733",
         "franchise": "PS_VS",
         "refunded": false
+    }
+}
+```
+```json {{ title: 'Confirmar' }}
+{
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "Aprobada",
+        "date": "2025-01-21T21:20:07-05:00"
+    },
+    "payment": {
+        "status": {
+            "status": "APPROVED",
+            "reason": "00",
+            "message": "Aprobada",
+            "date": "2025-01-21T21:20:07-05:00"
+        },
+        "internalReference": 84,
+        "paymentMethod": "visa",
+        "paymentMethodName": "Visa",
+        "issuerName": "JPMORGAN CHASE BANK, N.A.",
+        "amount": {
+            "from": { "currency": "USD", "total": 100 },
+            "to": { "currency": "USD", "total": 100 },
+            "factor": 1
+        },
+        "authorization": "000000",
+        "reference": "TEST_VISA",
+        "receipt": "426882",
+        "franchise": "CR_VS",
+        "refunded": false
+    }
+}
+```
+```json {{ title: 'Cancelar' }}
+{
+    "status": {
+        "status": "REJECTED",
+        "reason": "?C",
+        "message": "Cancelada por el comercio",
+        "date": "2025-01-21T21:20:07-05:00"
+    },
+    "payment": {
+        "status": {
+            "status": "REJECTED",
+            "reason": "?C",
+            "message": "Cancelada por el comercio",
+            "date": "2025-01-21T21:20:07-05:00"
+        },
+        "internalReference": 84,
+        "paymentMethod": "visa",
+        "paymentMethodName": "Visa",
+        "issuerName": "JPMORGAN CHASE BANK, N.A.",
+        "amount": {
+            "from": { "currency": "USD", "total": 100 },
+            "to": { "currency": "USD", "total": 100 },
+            "factor": 1
+        },
+        "authorization": "000000",
+        "reference": "TEST_VISA",
+        "receipt": "426882",
+        "franchise": "CR_VS",
+        "refunded": false
+    }
+}
+```
+        </CodeGroup>
+
+        <br />
+        <CodeGroup title="Respuestas de error">
+```json {{ title: 'Sesión No Soportada' }}
+{
+    "status": {
+        "status": "FAILED",
+        "reason": "request_not_valid",
+        "message": "La acción [confirm] no está soportada para esta sesión",
+        "date": "2025-01-21T21:20:07-05:00"
+    }
+}
+```
+```json {{ title: 'Estado Inválido' }}
+{
+    "status": {
+        "status": "FAILED",
+        "reason": "request_not_valid",
+        "message": "La acción [confirm] solo está disponible para transacciones en estado pendiente de confirmación",
+        "date": "2025-01-21T21:20:07-05:00"
     }
 }
 ```
