@@ -1,5 +1,6 @@
 import SessionStates from "@/components/react-flow/SessionStates";
 import PartialSessionStates from "@/components/react-flow/PartialSessionStates";
+import ConfirmationFlowStates from "@/components/react-flow/ConfirmationFlowStates";
 import IntegrationSequence from "@/components/react-flow/SequenceDiagram/Diagrams/Checkout/es/IntegrationSequence"
 
 export const description =
@@ -69,6 +70,43 @@ Esto se puede lograr utilizando el método [API - Consultar sesión (getRequestI
 **Actualización y Reglas de Negocio**  
 Según el estado final del pago obtenido, debes ejecutar las reglas de negocio correspondientes y actualizar la información relacionada con el pago en tu sistema.
 
+### Flujo de Confirmación de Transacciones
+
+El flujo de confirmación te permite revisar transacciones antes de la aprobación final. Esto es útil para prevención de fraude, revisión manual o validación de reglas de negocio.
+
+**Cómo Habilitarlo**
+
+Agrega `metadata.requiresConfirmation: true` al crear una sesión. El sitio del comercio debe tener habilitada la configuración `allowConfirmationFlow` — contacta al soporte de Placetopay para activarla.
+
+**Flujos Soportados**
+
+- Pagos simples (`payment`)
+- Suscripciones (`subscription`)
+- Pagos con dispersión (`payment.dispersion`)
+- Flujo check-in (`type: checkin`)
+
+**Flujos No Soportados**
+
+- Pagos con `allowPartial: true`
+- Pagos con `subscribe: true`
+- Pagos recurrentes (`payment.recurring`)
+- Sesiones de autopago (`type: autopay`)
+
+**Flujo del Proceso**
+
+1. El usuario completa el pago en Checkout
+2. La transacción se crea en estado `PENDING_CONFIRMATION` mientras la sesión permanece `PENDING`
+3. El comercio recibe una notificación y consulta la sesión para revisar los detalles de la transacción
+4. El comercio llama a `confirm` o `cancel` mediante el endpoint de [Acciones de Transacción](/checkout/api/reference/payment#acciones-de-transaccion)
+5. Se envía una notificación final con el estado definitivo de la transacción
+
+**Notas de Comportamiento**
+
+- `session.skipResult` se fuerza a `true` — el usuario regresa al comercio inmediatamente después del pago
+- El `redirectUrl` en la respuesta del proceso es `null`
+- La sesión permanece `PENDING` mientras la transacción espera confirmación
+- El campo `amount` **no es requerido** para las acciones `confirm` o `cancel`
+
 ## Estados de sesión {{ id: "checkout-session-states" }}
 
 Las sesiones pueden atravesar diferentes estados, cada uno con su propio significado y secuencia de cambios. A continuación, presentamos los estados posibles y cómo se relacionan entre sí:
@@ -76,7 +114,7 @@ Las sesiones pueden atravesar diferentes estados, cada uno con su propio signifi
 **`PENDING` Pendiente:**
 Se presenta en tres situaciones: en primer lugar, es el estado inicial de la sesión e indica que el proceso está en espera de acciones por parte del usuario;
 en segundo lugar, cuando hay transacciones rechazadas, permitiendo al usuario la oportunidad de realizar nuevos intentos;
-y, por último, cuando existe una transacción pendiente de validación lo que indica que la sesión se encuentra en un estado de espera hasta que se confirme y valide la transacción.
+y, por último, cuando existe una transacción en estado `PENDING_CONFIRMATION`, indicando que la sesión se encuentra en espera hasta que el comercio confirme o cancele la transacción.
 En resumen, es un estado de espera e indica que el proceso no ha finalizado.
 
 **`APPROVED` Aprobado:**
@@ -98,6 +136,9 @@ En este momento el proceso ya ha finalizado y no se puede completar. _Este es un
 
 ### Estados en sesiones de pago parcial
 <PartialSessionStates></PartialSessionStates>
+
+### Estados en sesiones de pago pendiente de confirmación
+<ConfirmationFlowStates />
 
 ## Finalización de la sesión {{ id: "session-finalization" }}
 
