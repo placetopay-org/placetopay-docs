@@ -791,6 +791,52 @@ paths:
                         internalReference: 421694
                         paymentMethodName: Visa
                     subscription: null
+                Pendiente de Confirmación:
+                  value:
+                    requestId: 1
+                    status:
+                      status: PENDING
+                      reason: PT
+                      message: La petición se encuentra pendiente
+                      date: '2025-01-21T21:20:07-05:00'
+                    request:
+                      locale: es_CO
+                      payment:
+                        reference: 'TEST_VISA'
+                        description: Pago de prueba
+                        amount:
+                          currency: USD
+                          total: 100
+                      metadata:
+                        requiresConfirmation: true
+                      returnUrl: 'https://comercio.com/retorno'
+                      ipAddress: 127.0.0.1
+                      userAgent: Placetopay Sandbox
+                      expiration: '2026-12-30T00:00:00-05:00'
+                    payment:
+                      - status:
+                          status: PENDING_CONFIRMATION
+                          reason: PT
+                          message: Transacción pendiente de confirmación
+                          date: '2025-01-21T21:20:07-05:00'
+                        internalReference: 84
+                        paymentMethod: visa
+                        paymentMethodName: Visa
+                        issuerName: 'JPMORGAN CHASE BANK, N.A.'
+                        amount:
+                          from:
+                            currency: USD
+                            total: 100
+                          to:
+                            currency: USD
+                            total: 100
+                          factor: 1
+                        authorization: '000000'
+                        reference: 'TEST_VISA'
+                        receipt: '426882'
+                        franchise: CR_VS
+                        refunded: false
+                    subscription: null
       description: |
         Obtiene la información de la sesión, si en la sesión hay transacciones se muestra el detalle de las mismas.
       requestBody:
@@ -1276,7 +1322,98 @@ paths:
                       receipt: '499435368733'
                       franchise: PS_VS
                       refunded: false
-      description: 'Permite realizar operaciones básicas de preauthorización como `checkout`, `reauthorization`, (No aplica para Puerto Rico)  por otro lado también permite revertir un pago aprobado con el código de referencia interna `reverse`.'
+                Confirmar:
+                  value:
+                    status:
+                      status: APPROVED
+                      reason: '00'
+                      message: Aprobada
+                      date: '2025-01-21T21:20:07-05:00'
+                    payment:
+                      status:
+                        status: APPROVED
+                        reason: '00'
+                        message: Aprobada
+                        date: '2025-01-21T21:20:07-05:00'
+                      internalReference: 84
+                      paymentMethod: visa
+                      paymentMethodName: Visa
+                      issuerName: 'JPMORGAN CHASE BANK, N.A.'
+                      amount:
+                        from:
+                          currency: USD
+                          total: 100
+                        to:
+                          currency: USD
+                          total: 100
+                        factor: 1
+                      authorization: '000000'
+                      reference: 'TEST_VISA'
+                      receipt: '426882'
+                      franchise: CR_VS
+                      refunded: false
+                Cancelar:
+                  value:
+                    status:
+                      status: REJECTED
+                      reason: '?C'
+                      message: Cancelada por el comercio
+                      date: '2025-01-21T21:20:07-05:00'
+                    payment:
+                      status:
+                        status: REJECTED
+                        reason: '?C'
+                        message: Cancelada por el comercio
+                        date: '2025-01-21T21:20:07-05:00'
+                      internalReference: 84
+                      paymentMethod: visa
+                      paymentMethodName: Visa
+                      issuerName: 'JPMORGAN CHASE BANK, N.A.'
+                      amount:
+                        from:
+                          currency: USD
+                          total: 100
+                        to:
+                          currency: USD
+                          total: 100
+                        factor: 1
+                      authorization: '000000'
+                      reference: 'TEST_VISA'
+                      receipt: '426882'
+                      franchise: CR_VS
+                      refunded: false
+        '400':
+          description: Solicitud inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+              examples:
+                SesiónNoSoportada:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: request_not_valid
+                      message: La acción [confirm] no está soportada para esta sesión
+                      date: '2025-01-21T21:20:07-05:00'
+                TransacciónNoPendienteConfirmación:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: request_not_valid
+                      message: La acción [confirm] solo está disponible para transacciones en estado pendiente de confirmación
+                      date: '2025-01-21T21:20:07-05:00'
+                ServicioNoDisponible:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: transaction_request_error
+                      message: La transacción ya ha sido expirada
+                      date: '2025-01-21T21:20:07-05:00'
+      description: 'Permite realizar operaciones básicas de preauthorización como `checkout`, `reauthorization`, (No aplica para Puerto Rico). También permite confirmar (`confirm`) o cancelar (`cancel`) transacciones en estado PENDING_CONFIRMATION, y revertir un pago aprobado con `reverse`.'
       requestBody:
         content:
           application/json:
@@ -1316,6 +1453,24 @@ paths:
                     seed: '2021-09-21T09:34:48-05:00'
                   internalReference: 123
                   action: reverse
+              Confirmar:
+                value:
+                  auth:
+                    login: aabbccdd1234567890aabbccdd123456
+                    tranKey: ABC123example456trankey+789abc012def3456ABC=
+                    nonce: NjE0OWVkODgwYjNhNw==
+                    seed: '2021-09-21T09:34:48-05:00'
+                  internalReference: 84
+                  action: confirm
+              Cancelar:
+                value:
+                  auth:
+                    login: aabbccdd1234567890aabbccdd123456
+                    tranKey: ABC123example456trankey+789abc012def3456ABC=
+                    nonce: NjE0OWVkODgwYjNhNw==
+                    seed: '2021-09-21T09:34:48-05:00'
+                  internalReference: 84
+                  action: cancel
         description: ''
       x-internal: false
   /api/instrument/invalidate:
@@ -1859,7 +2014,7 @@ components:
         - reference
         - description
       description: |
-        [BETA] Detalle del autopago a generar. El usuario debe registrar un medio de pago para que se realicen cobros automáticos sobre ese medio de pago segun las condiciones pactadas. Es requerido cuando `type` es `autopay`.
+        Detalle del autopago a generar. El usuario debe registrar un medio de pago para que se realicen cobros automáticos sobre ese medio de pago segun las condiciones pactadas. Es requerido cuando `type` es `autopay`.
       properties:
         action:
           type: enum
@@ -2191,6 +2346,7 @@ components:
           enum:
             - APPROVED
             - PENDING
+            - PENDING_CONFIRMATION
             - REJECTED
             - APPROVED_PARTIAL
             - PARTIAL_EXPIRED
@@ -2904,7 +3060,7 @@ components:
     TransactionActionRequest:
       title: TransactionActionRequest
       type: object
-      description: 'Estructura que permite realizar solicitudes de preauthorización como `checkout`, `reauthorization` y `reverse`'
+      description: 'Estructura que permite realizar solicitudes de preauthorización como `checkout`, `reauthorization`, `reverse`, `confirm` y `cancel`'
       x-examples:
         checkout example:
           internalReference: 1
@@ -2921,6 +3077,12 @@ components:
         reverse example:
           internalReference: 1
           action: reverse
+        confirm example:
+          internalReference: 1
+          action: confirm
+        cancel example:
+          internalReference: 1
+          action: cancel
       examples: []
       required:
         - auth
@@ -2934,14 +3096,18 @@ components:
             - enum
           description: |
             Tipo de operación a realizar sobre la transacción
-            
-            `reverse` para reembolsar una transacción.   
-            `reauthorization` para modificar una transacción de checkin.   
+
+            `reverse` para reembolsar una transacción.
+            `reauthorization` para modificar una transacción de checkin.
             `checkout` para cerrar y cobrar una transacción de checkin.
+            `confirm` para confirmar una transacción en estado PENDING_CONFIRMATION.
+            `cancel` para cancelar una transacción en estado PENDING_CONFIRMATION.
           enum:
             - checkout
             - reauthorization
             - reverse
+            - confirm
+            - cancel
           example: checkout
         internalReference:
           $ref: '#/components/schemas/InternalReference'
@@ -3749,6 +3915,13 @@ components:
             description: "ID del beneficiario asociado a la cuenta receptora en una transacción PSE. Requerido para comercios con categoría “Servicios Financieros"
         kount:
           $ref: '../base/es.yaml#/components/schemas/KountMetadata'
+        requiresConfirmation:
+          type: "boolean"
+          description: |
+            Indica si la transacción requiere confirmación del comercio previo a su procesamiento final.
+            Cuando se establece en `true`, la transacción se creará en estado PENDING_CONFIRMATION
+            y el comercio deberá llamar a confirm o cancel mediante el endpoint de acciones de transacción.
+          example: true
   securitySchemes: {}
   responses:
     StatusResponse:
