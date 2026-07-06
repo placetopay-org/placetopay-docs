@@ -1,6 +1,95 @@
-export const description = 'Conoce cómo funciona el proceso de integración para sesiones que requieren confirmación'
+import ConfirmationFlowStates from "@/components/react-flow/ConfirmationFlowStates";
+import ConfirmationIntegration from "@/components/react-flow/SequenceDiagram/Diagrams/Checkout/ConfirmationIntegration"
 
-# Flujo de transacciones con confirmación
+export const description =
+  'Aprende cómo funciona el flujo de confirmación de transacciones en Checkout y cómo integrarlo en tu sitio o aplicación.'
+
+# Sesiones con confirmación
+
+En Checkout, es posible habilitar el flujo de sesiones con confirmación. En este tipo de sesiones, el usuario o tarjetahabiente completa el proceso en el navegador ingresando los datos del medio de pago, pero la ejecución de la autorización queda en espera de "confirmación". El comercio debe integrar una nueva acción para indicar que se debe ejecutar el proceso de autorización al medio de pago capturado.
+
+Este tipo de transacciones permite al comercio revisar transacciones antes de la aprobación final. Esto es útil para casos de uso donde el comercio requiere ejecutar validación de reglas de negocio antes de que ejecute la autorización al medio de pago.
+
+## Ciclo de vida
+
+1. Cuando tus usuarios estén listos para completar el proceso de pago, tu aplicación debe crear un `CheckoutSession`.
+2. Redireccionar al usuario a la URL provista, esta URL contiene nuestro Checkout con todas sus funcionalidades listas.
+3. El usuario ingresa los datos requeridos para completar el pago.
+4. El usuario es redireccionado de vuelta al sitio del comercio.
+5. El comercio debe consultar el estado de la sesión para revisar los detalles del proceso.
+6. El comercio debe "confirmar" para que se haga la ejecución de la autorización del pago o "cancelar" para que ya no se pueda completar la transacción en proceso.
+7. Después de la confirmación, una notificación es enviada para que la aplicación conozca el estado del pago.
 
 
-## FAQs
+## Integración {{ id: "confirmation-integration" }}
+
+Este tipo de sesiones sólo se soporta para "Sesiones de pago básico"
+
+En el siguiente diagrama se describe de forma visual y con más detalle el flujo de integración para sesiones con confirmación:
+
+<ConfirmationIntegration />
+
+### Iniciar Checkout
+
+**Crear una sesión con confirmación**  
+Para aceptar un pago a través de Checkout con flujo de confirmación, es necesario crear una sesión de pago (**Checkout Session**) con `metadata.requiresConfirmation: true` utilizando el método [API - Crear sesión (CreateRequest)](/checkout/api/reference/session#crear-una-sesion). Al llamar a este servicio, se obtendrá la URL de proceso (`processUrl`) y el identificador de solicitud (`requestId`). Puedes ver más en el apartado [Crear Sesión](/checkout/create-session).
+
+El sitio del comercio debe tener habilitada la configuración `allowConfirmationFlow` — contacta al soporte de Placetopay para activarla.
+
+**Registro del Pago en Proceso**  
+En tu sistema, crear un registro que relacione el pago en proceso con el `requestId` proporcionado.  
+El estado inicial de todos los pagos es pendiente (`PENDING`).
+
+**Redirección del Usuario**  
+El usuario debe ser redireccionado a la URL de proceso (`processUrl`) proporcionada por Placetopay Checkout.
+
+**Proceso de Pago**  
+En la interfaz de Checkout, el usuario completará el proceso de pago ingresando los datos del medio de pago. Checkout se encargará de recopilar todos los datos necesarios.
+
+**Redirección de vuelta al sitio del comercio**  
+Una vez que el proceso de pago esté completo, el usuario puede ser redirigido de vuelta a la URL de retorno (`returnUrl`) especificada en la solicitud inicial (`CreateRequest`).
+
+En este punto es probable que el proceso de pago haya finalizado. Para conocer el estado del pago debes consultar el estado de la sesión.
+
+### Consultar la sesión
+
+**Consulta del estado de la sesión**  
+Al llegar al sitio del comercio, se debe consultar el estado de la sesión.  
+Esto se puede lograr utilizando el método [API - Consultar sesión (getRequestInformation)](/checkout/api/reference/session#query-a-session).
+
+En este punto la sesión tiene un estado `PENDING`, con una transacción adjunta con estado `PENDING_CONFIRMATION`. Esto indica que ya es posible realizar la acción de confirmación o cancelación.
+
+**Revisión y Reglas de Negocio**  
+Revisa los detalles de la transacción y, según tus reglas de negocio, decide si confirmar o cancelar.
+
+### Confirmar o Cancelar
+
+Según la revisión de la transacción, el comercio debe ejecutar una de las siguientes acciones mediante el endpoint de [Acciones de Transacción](/checkout/api/reference/payment#acciones-de-transaccion):
+
+- **Confirmar (`confirm`)**: El comercio autoriza el procesamiento de la transacción.
+  - En este punto se ejecuta la autorización al medio de pago y se hace el cobro correspondiente. 
+  - Esta acción puede fallar pues depende de la red procesadora del medio de pago. 
+  - Esta acción se puede realizar en una ventana de tiempo desde la captura del medio de pago. Después de esa ventana de tiempo, la sesión queda en estado `REJECTED` y la transacción queda en estado `REJECTED`.
+- **Cancelar (`cancel`)**: La transacción es cancelada por el comercio.
+  - Si el comercio decide cancelar, no se va a ejecutar la autorización y no se harán cobros al medio de pago.
+  - Al cancelar, la sesión queda en estado `CANCELED` y la transacción queda en estado `REJECTED`.
+  - Para reintentar, se debe crear una nueva sesión.
+
+## Estados de sesión {{ id: "confirmation-session-states" }}
+
+A continuación, se muestran los estados posibles en una sesión con flujo de confirmación y cómo se relacionan entre sí:
+
+<ConfirmationFlowStates />
+
+## Mejores prácticas {{ id: "confirmation-best-practices" }}
+
+### Usar skipResult
+
+Debido a que una sesión con confirmación siempre queda en estado `PENDING` hasta que el comercio la confirme o cancele, es recomendable utilizar la opción [Omitir resultado (skipResult)](/checkout/skip-result) para que el usuario sea redireccionado de vuelta al sitio del comercio inmediatamente después de completar el pago, sin esperar en la vista de resultado de Checkout.
+
+## Consideraciones de Seguridad {{ id: 'confirmation-security-considerations' }}
+
+**Los endpoints de Webcheckout NO deben consumirse directamente desde el navegador** (ej: JavaScript/AJAX). Esto expone credenciales API y datos sensibles a riesgos de:
+- **Interceptación de claves** por scripts maliciosos
+- **Exposición de datos** en consola del cliente
+- **Vulnerabilidad a ataques XSS**

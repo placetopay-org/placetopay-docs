@@ -631,7 +631,7 @@ export const TAB_NAVIGATION = {
                 href: '/checkout/attempts-limit',
               },
               {
-                title: 'Transacciones con confirmación',
+                title: 'Sesiones con confirmación',
                 href: '/checkout/confirmation-flow',
               }
             ],
@@ -734,6 +734,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Process retries',
                 href: '/checkout/attempts-limit',
+              },
+              {
+                title: 'Session with confirmation',
+                href: '/checkout/confirmation-flow',
               },
             ],
           },
