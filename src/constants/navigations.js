@@ -630,6 +630,10 @@ export const TAB_NAVIGATION = {
                 title: 'Reintentos del proceso',
                 href: '/checkout/attempts-limit',
               },
+              {
+                title: 'Transacciones con confirmación',
+                href: '/checkout/confirmation-flow',
+              }
             ],
           },
         ],
