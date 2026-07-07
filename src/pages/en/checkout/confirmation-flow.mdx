@@ -1,0 +1,95 @@
+import ConfirmationFlowStates from "@/components/react-flow/ConfirmationFlowStates";
+import ConfirmationIntegration from "@/components/react-flow/SequenceDiagram/Diagrams/Checkout/ConfirmationIntegration"
+
+export const description =
+  'Learn how the transaction confirmation flow works in Checkout and how to integrate it into your site or application.'
+
+# Transaction Confirmation Flow
+
+In Checkout, you can enable the session confirmation flow. In this type of session, the user or cardholder completes the process in the browser by entering the payment method details, but the authorization execution remains pending "confirmation". The merchant must integrate a new action to indicate that the authorization process should be executed against the captured payment method.
+
+This type of transaction allows the merchant to review transactions before final approval. This is useful for use cases where the merchant needs to run business rule validations before the payment method authorization is executed.
+
+## Lifecycle
+
+1. When your users are ready to complete the payment process, your application must create a `CheckoutSession`.
+2. Redirect the user to the provided URL; this URL contains our Checkout with all its features ready.
+3. The user enters the data required to complete the payment.
+4. The user is redirected back to the merchant's site.
+5. The merchant must query the session status to review the process details.
+6. The merchant must "confirm" for the payment authorization to be executed or "cancel" so the in-process transaction cannot be completed.
+7. After confirmation, a notification is sent so the application knows the payment status.
+
+
+## Integration {{ id: "confirmation-integration" }}
+
+This type of session is only supported for "Basic payment sessions"
+
+The following diagram visually describes in more detail the integration flow for sessions with confirmation:
+
+<ConfirmationIntegration />
+
+### Start Checkout
+
+**Create a session with confirmation**  
+To accept a payment through Checkout with confirmation flow, you must create a payment session (**Checkout Session**) with `metadata.requiresConfirmation: true` using the [API - Create session (CreateRequest)](/en/checkout/api/reference/session#crear-una-sesion) method. When calling this service, you will obtain the process URL (`processUrl`) and the request identifier (`requestId`). See more in the [Create Session](/en/checkout/create-session) section.
+
+The merchant's site must have the `allowConfirmationFlow` setting enabled — contact Placetopay support to activate it.
+
+**Register the Payment in Process**  
+In your system, create a record that links the payment in process with the provided `requestId`.  
+The initial status of all payments is pending (`PENDING`).
+
+**User Redirection**  
+The user must be redirected to the process URL (`processUrl`) provided by Placetopay Checkout.
+
+**Payment Process**  
+In the Checkout interface, the user will complete the payment process by entering the payment method details. Checkout will handle collecting all the necessary data.
+
+**Redirect back to the merchant's site**  
+Once the payment process is complete, the user can be redirected back to the return URL (`returnUrl`) specified in the initial request (`CreateRequest`).
+
+At this point the payment process is likely finished. To know the payment status you must query the session status.
+
+### Query the session
+
+**Query the session status**  
+Upon arriving at the merchant's site, the session status must be queried.  
+This can be done using the [API - Query session (getRequestInformation)](/en/checkout/api/reference/session#query-a-session) method.
+
+At this point the session has a `PENDING` status, with an attached transaction in `PENDING_CONFIRMATION` status. This indicates that the confirm or cancel action can now be performed.
+
+**Review and Business Rules**  
+Review the transaction details and, based on your business rules, decide whether to confirm or cancel.
+
+### Confirm or Cancel
+
+Based on the transaction review, the merchant must execute one of the following actions via the [Transaction Actions](/en/checkout/api/reference/payment#acciones-de-transaccion) endpoint:
+
+- **Confirm (`confirm`)**: The merchant authorizes the transaction processing.
+  - At this point the authorization to the payment method is executed and the corresponding charge is made. 
+  - This action may fail as it depends on the payment method processing network. 
+  - This action can be performed within a time window from the payment method capture. After that time window, the session enters `REJECTED` status and the transaction enters `REJECTED` status.
+- **Cancel (`cancel`)**: The transaction is cancelled by the merchant.
+  - If the merchant decides to cancel, the authorization will not be executed and no charges will be made to the payment method.
+  - Upon cancellation, the session enters `CANCELED` status and the transaction enters `REJECTED` status.
+  - To retry, a new session must be created.
+
+## Session States {{ id: "confirmation-session-states" }}
+
+Below are the possible states in a confirmation flow session and how they relate to each other:
+
+<ConfirmationFlowStates />
+
+## Best Practices {{ id: "confirmation-best-practices" }}
+
+### Use skipResult
+
+Since a confirmation session always remains in `PENDING` state until the merchant confirms or cancels it, it is recommended to use the [Skip result (skipResult)](/checkout/skip-result) option so the user is redirected back to the merchant's site immediately after completing the payment, without waiting on the Checkout result view.
+
+## Security Considerations {{ id: 'confirmation-security-considerations' }}
+
+**Webcheckout endpoints MUST NOT be accessed directly from the browser** (e.g., JavaScript/AJAX). Doing so exposes API credentials and sensitive data to risks such as:
+- **Key interception** by malicious scripts
+- **Data exposure** in the client console
+- **Vulnerability to XSS attacks**

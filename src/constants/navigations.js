@@ -630,6 +630,10 @@ export const TAB_NAVIGATION = {
                 title: 'Reintentos del proceso',
                 href: '/checkout/attempts-limit',
               },
+              {
+                title: 'Sesiones con confirmación',
+                href: '/checkout/confirmation-flow',
+              }
             ],
           },
         ],
@@ -730,6 +734,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Process retries',
                 href: '/checkout/attempts-limit',
+              },
+              {
+                title: 'Session with confirmation',
+                href: '/checkout/confirmation-flow',
               },
             ],
           },
