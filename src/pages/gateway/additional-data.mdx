@@ -50,19 +50,23 @@ Existen datos adicionales que son recibidos en respuesta a la solicitud de proce
 
 <AdditionalDataExamples/>
 
-## Credit {{ id: 'additional-data-credit' }}
-Este campo especifica la cantidad de cuotas disponibles para financiar el monto total de un pago, acompañado de una descripción de las condiciones de financiamiento.
-La descripción de los créditos depende directamente de sus propiedades `installments`, `code` y `groupCode`, así como del proveedor a través del cual se está procesando el pago.
+## Crédito (Credit) {{ id: 'additional-data-credit' }}
+Este campo especifica las opciones de crédito disponibles para financiar el monto total de un pago. La estructura del arreglo `credits` depende del proveedor y de la configuración del servicio.
 
-### Estructura:
+Existen dos formas de informar créditos:
+
+- **Estructura agrupada**: agrupa una misma condición de crédito en `installments` y usa `type`, `code` y `groupCode` como códigos del proveedor.
+- **Estructura por cuota**: informa cada opción de financiación como un elemento independiente y usa `kind` como identificador funcional de la modalidad de crédito.
+
+### Estructura agrupada:
 - **type**: Identificador que representa el tipo de crédito.
 - **groupCode**: Código que agrupa los créditos por categoría.
 - **installments**: Cantidad de cuotas disponibles para el crédito.
 - **code**: Código único asociado al crédito específico.
 - **description**: Descripción detallada de las condiciones de financiamiento.
 
-### Créditos por proveedor
-### **DATAFAST** - **MEDIANET** - **AUSTRO** -  **INTERDIN**
+## Créditos por proveedor  {{ id: 'additional-data-credit-providers' }}
+### **DATAFAST** - **MEDIANET** - **AUSTRO** -  **INTERDIN** {{ id: 'additional-data-credit-providers-default' }}
 Comparten la misma estructura y descripción de sus créditos de acuerdo al `groupCode` y `code`:
 
 | groupCode | description              |                                                         |
@@ -96,7 +100,7 @@ Comparten la misma estructura y descripción de sus créditos de acuerdo al `gro
   ]
 ```
 
-### REDEBAN
+### REDEBAN {{ id: 'additional-data-credit-providers-redeban' }}
 
 | groupCode | description              |            |
 |-----------| ------------------------ |----------- |
@@ -112,7 +116,7 @@ Comparten la misma estructura y descripción de sus créditos de acuerdo al `gro
 }
 ```
 
-### TRANSERVER
+### TRANSERVER {{ id: 'additional-data-credit-providers-transerver' }}
 | groupCode | description              |           |
 |-----------| ------------------------ |---------- |
 | Q         | PLAN 0                   |           |
@@ -137,7 +141,7 @@ Comparten la misma estructura y descripción de sus créditos de acuerdo al `gro
   ]
 ```
 
-### PAYESTUDIO
+### PAYSTUDIO  {{ id: 'additional-data-credit-providers-paystudio' }}
 | groupCode | installments             | description            |
 |-----------| ------------------------ |----------------------- |
 | Q         | [1,12]                   | Cuotas                 |
@@ -170,3 +174,85 @@ Comparten la misma estructura y descripción de sus créditos de acuerdo al `gro
  ]
 
 ```
+
+### PAYSTUDIO flavour TS con estructura por cuota  {{ id: 'additional-data-credit-providers-paystudio-ts' }}
+Esta estructura está disponible por ahora solo para servicios PAYSTUDIO con `flavour` igual a `TS`. Los demás proveedores y otros valores de `flavour` en PAYSTUDIO continúan usando la estructura agrupada descrita anteriormente.
+
+En PAYSTUDIO flavour `TS`, `credits` se entrega sin `type`, `code`, `groupCode` ni `installments`. Cada elemento representa una sola opción de financiación.
+
+#### **Estructura:**
+- **installment**: Número de cuotas de la opción.
+- **description**: Texto visible para el pagador.
+- **kind**: Clasificación de la modalidad de crédito. Este valor reemplaza los códigos de red al momento de seleccionar y procesar la cuota.
+
+```json
+[
+  {
+    "installment": 1,
+    "description": "Sin cuotas",
+    "kind": "ISSUER_NOT_FEE"
+  },
+  {
+    "installment": 2,
+    "description": "Cuotas sin interés",
+    "kind": "MERCHANT_WITHOUT_INTEREST"
+  },
+  {
+    "installment": 3,
+    "description": "Cuotas sin interés",
+    "kind": "ISSUER_WITHOUT_INTEREST"
+  },
+  {
+    "installment": 6,
+    "description": "Cuotas",
+    "kind": "ISSUER_UNKNOWN_01"
+  }
+]
+```
+
+En esta estructura, el integrador debe enviar el `kind` de la opción seleccionada dentro de `instrument.credit` junto con el número de cuota:
+
+```json
+{
+  "instrument": {
+    "credit": {
+      "installment": 6,
+      "kind": "ISSUER_UNKNOWN_01"
+    }
+  }
+}
+```
+
+Si se envía `kind` junto con `type` o `code`, `kind` tiene prioridad para servicios PAYSTUDIO flavour `TS` con esta estructura. Si no se envía `credit`, se usará el crédito por defecto de una cuota.
+
+#### **Valores de `kind`**
+El valor de `kind` se construye con el formato `ORIGEN_MODALIDAD`:
+
+| Origen | Significado |
+|--------|-------------|
+| `MERCHANT` | Crédito del comercio |
+| `ISSUER` | Crédito del emisor |
+| `ACQUIRER` | Crédito del adquirente |
+| `AVERAGE` | Crédito promedio |
+
+| Modalidad | Significado |
+|-----------|-------------|
+| `NOT_FEE` | Pago sin cuotas o crédito corriente |
+| `WITHOUT_INTEREST` | Cuotas sin interés |
+| `UNKNOWN_XX` | Cuotas cuya condición de interés debe resolverse con el subtipo `XX` del proveedor |
+
+#### **Ejemplos de equivalencia:**
+
+| salePlan | subType | installment | kind |
+|----------|---------|-------------|------|
+| `01` | `00` | `1` | `MERCHANT_NOT_FEE` |
+| `01` | `00` | `2` o más | `MERCHANT_WITHOUT_INTEREST` |
+| `02` | `02` | `1` | `ISSUER_NOT_FEE` |
+| `02` | `04` | `2` o más | `ISSUER_WITHOUT_INTEREST` |
+| `02` | `00` | `2` o más | `ISSUER_UNKNOWN_00` |
+| `02` | `01` | `2` o más | `ISSUER_UNKNOWN_01` |
+| `02` | `03` | `2` o más | `ISSUER_UNKNOWN_03` |
+| `03` | `00` | `2` o más | `ACQUIRER_UNKNOWN_00` |
+| `04` | `00` | `2` o más | `AVERAGE_UNKNOWN_00` |
+
+Para créditos `UNKNOWN_XX` en PAYSTUDIO flavour `TS`, usa el servicio de intereses antes de procesar cuando sea necesario conocer el valor final de la cuota. Si el servicio no puede determinar la tasa aplicable, la solicitud puede ser rechazada con razón `NR`.
