@@ -83,6 +83,27 @@ paths:
                           type: "integer"
                           description: Index of the Payment method to select from a list of available payment methods. This field is only required when using the Payment Orchestrator flow.
                           example: 2
+                - title: "Paystudio TS"
+                  type: "object"
+                  properties:
+                    locale:
+                      type: "string"
+                      description: "Determines the response language"
+                      example: "en-US"
+                    auth:
+                      $ref: "../base/en.yaml#/components/schemas/Authentication"
+                    instrument:
+                      $ref: "#/components/schemas/Instrument"
+                    payment:
+                      $ref: "../base/en.yaml#/components/schemas/Payment"
+                    ipAddress:
+                      type: "string"
+                    userAgent:
+                      type: "string"
+                  required:
+                    - "auth"
+                    - "payment"
+                    - "instrument"
                 - title: "PSE"
                   type: "object"
                   properties:
@@ -404,6 +425,62 @@ paths:
                       requireCardExpiration:
                         type: "boolean"
                         description: "Indicates whether the card's expiration date is required to process the transaction."
+                      allowedDocumentTypes:
+                        type: "array"
+                        description: "Indicates the document types allowed for the transaction."
+                        items:
+                          type: "string"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "serviceCode"
+                  - title: "Paystudio TS"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "../base/en.yaml#/components/schemas/Status"
+                      provider:
+                        type: "string"
+                        example: "PAYSTUDIO"
+                        description: "Indicates which provider will be used in the transaction"
+                      serviceCode:
+                        type: "string"
+                        description: "Indicates the service code that will process the transaction"
+                        example: "PS_VS"
+                      cardTypes:
+                        type: "array"
+                        description: "Indicates the card types supported by the provider"
+                        items:
+                          $ref: "#/components/schemas/CardType"
+                      cardType:
+                        $ref: "#/components/schemas/CardType"
+                      displayInterest:
+                        type: "boolean"
+                        description: "Indicates whether transaction interest must be displayed"
+                      requiereOtp:
+                        type: "boolean"
+                        description: "Indicates whether the OTP flow must be performed"
+                      requiereCvv2:
+                        type: "boolean"
+                        description: "Indicates whether CVV is required for transaction processing"
+                      threeDS:
+                        type: "string"
+                        enum:
+                          - "optional"
+                          - "required"
+                          - "unsupported"
+                        description: "Indicates whether 3DS is necessary"
+                      credits:
+                        type: "array"
+                        description: "Indicates the credits available by provider. Structure under the **per-installment structure** model. See more at [Credit](/en/gateway/additional-data#additional-data-credit)"
+                        items:
+                          $ref: "#/components/schemas/CreditPerInstallment"
+                      hasForwarding:
+                        type: "boolean"
+                        description: "Indicates whether the payment method has transaction forwarding configured"
+                      requireCardExpiration:
+                        type: "boolean"
+                        description: "Indicates whether the card expiration date is required to process the transaction."
                       allowedDocumentTypes:
                         type: "array"
                         description: "Indicates the document types allowed for the transaction."
@@ -1330,6 +1407,15 @@ paths:
                               Total value in indicated base currency
 
                               EJ: `1000` Total value in indicated base currency
+                instrument:
+                  type: "object"
+                  description: "Structure that contains information about the means of payment to be used in a transaction. This structure is variable according to the request that is generated. Each service requires that one or another data be used."
+                  items:
+                    type: "object"
+                    properties:
+                      credit:
+                        description: "Selected credit to process. Available for action `confirm`"
+                        $ref: "#/components/schemas/CreditPerInstallment"
                 ipAddress:
                   type: "string"
                   description: "Client IP address"
@@ -1342,6 +1428,7 @@ paths:
                 - "auth"
                 - "action"
                 - "internalReference"
+              x-conditional: credit
             examples:
               Reembolso:
                 value:
@@ -3652,7 +3739,7 @@ components:
     Credit:
       title: "Credit"
       type: "object"
-      description: "Structure that contains information on the type of credit"
+      description: "Structure that contains information about the credit type. See more at [Credit](/en/gateway/additional-data#additional-data-credit)"
       properties:
         code:
           type: "string"
@@ -3663,6 +3750,32 @@ components:
           type: "string"
         installment:
           type: "integer"
+        installments:
+          type: "array"
+          items:
+            type: "integer"
+        kind:
+          type: "string"
+          description: "Classification of the credit modality. (Paystudio TS)"
+        description:
+          type: "string"
+    CreditPerInstallment:
+      title: "Credit"
+      type: "object"
+      description: "Structure that contains information about the credit type. See more at [Credit](/en/gateway/additional-data#additional-data-credit-providers-paystudio-ts)"
+      properties:
+        installment:
+          type: "integer"
+          description: "Number of installments"
+        kind:
+          type: "string"
+          description: "Classification of the credit modality."
+        description:
+          type: "string"
+          description: "Credit description."
+      required:
+        - installment
+        - kind
     Pocket:
       title: "Pocket"
       type: "object"
