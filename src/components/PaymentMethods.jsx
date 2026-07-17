@@ -26,6 +26,7 @@ import logoAthMovil from '@/images/cards/ath_movil.svg'
 import logoAthCard from '@/images/cards/ath_card.svg'
 import logoTarjetaClave from '@/images/cards/tarjeta_clave.svg'
 import logoACH from '@/images/cards/ach.svg'
+import logoNequi from '@/images/cards/nequi.svg'
 import { Heading } from './Heading'
 import { useLocale } from './LocaleProvider'
 
@@ -109,7 +110,12 @@ const groupsByCountry = [
         name: { es: 'Billetera Compensar', en: 'Wallet Compensar' },
         code: 'procesa',
         logo: logoCompensar,
-      }
+      },
+      {
+        name: 'Nequi (vía PSE)',
+        code: ['pse', 'PSENQ'],
+        logo: logoNequi,
+      },
     ],
   },
 

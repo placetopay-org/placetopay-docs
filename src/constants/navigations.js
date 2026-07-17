@@ -371,6 +371,7 @@ export const TAB_NAVIGATION = {
                    { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
                    { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
                    { title: 'Zunify', href: '/payments/external-redirects/zunify' },
+                   { title: 'Nequi', href: '/payments/external-redirects/nequi-pse' },
                  ],
                },
               {
@@ -531,6 +532,7 @@ export const TAB_NAVIGATION = {
                    { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
                    { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
                    { title: 'Zunify', href: '/payments/external-redirects/zunify' },
+                   { title: 'Nequi', href: '/payments/external-redirects/nequi-pse' },
                  ],
                },
               {
