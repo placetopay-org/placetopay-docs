@@ -95,7 +95,7 @@ const plugins = [
 
 const libraries = [
   {
-    href: 'https://github.com/dnetix/redirection',
+    href: 'https://github.com/placetopay-org/sdk-checkout-php',
     name: 'PHP',
     description: {
       es: 'Lenguaje de programación de código abierto, especialmente adecuado para el desarrollo web',
@@ -105,7 +105,7 @@ const libraries = [
     action: { es: 'Ver más', en: 'See more' },
   },
   {
-    href: 'https://github.com/placetopay/redirection-csharp-sdk',
+    href: 'https://github.com/placetopay-org/sdk-checkout-dotnet',
     name: 'C#',
     description: {
       es: 'Lenguaje de programación moderno y orientado a objetos desarrollado por Microsoft',
@@ -115,7 +115,7 @@ const libraries = [
     action: { es: 'Ver más', en: 'See more' },
   },
   {
-    href: 'https://github.com/placetopay/java-placetopay',
+    href: 'https://github.com/placetopay-org/sdk-checkout-java',
     name: 'Java',
     description: {
       es: 'Lenguaje de programación de alto nivel y orientado a objetos',
@@ -125,7 +125,7 @@ const libraries = [
     action: { es: 'Ver más', en: 'See more' },
   },
   {
-    href: 'https://github.com/andrextor/python-checkout',
+    href: 'https://github.com/placetopay-org/sdk-checkout-python',
     name: 'Python',
     description: {
       es: 'Lenguaje de programación versátil y de alto nivel, ampliamente utilizado en el desarrollo de aplicaciones modernas.',
