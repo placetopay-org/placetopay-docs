@@ -630,11 +630,11 @@ export const apiRefs = ['/gateway/information', '/gateway/interests', '/gateway/
 
 ---
 
-## Interest Calculation (Ecuador only) {{ id: 'interests-request', tag: 'POST', label: '/gateway/interests' }}
+## Interest Calculation {{ id: 'interests-request', tag: 'POST', label: '/gateway/interests' }}
 
 <Row>
     <Col>
-        This service should be consumed if the card requires interest to be displayed (displayInterest set to true) and as an example of this way the values ​​are displayed in the redirection service.
+        This service must be consumed if the card requires interest to be displayed (`displayInterest` set to `true`) or its credit conditions allow it (see condition in [Credits by provider](/en/gateway/additional-data/#additional-data-credit-providers)). It is available for flows that expose interest calculation, including Ecuador and Chile with PAYSTUDIO `TS` flavour.
 
         <ApiReader
             path="/gateway/interests"
@@ -645,7 +645,7 @@ export const apiRefs = ['/gateway/information', '/gateway/interests', '/gateway/
 
     <Col sticky>
         <CodeGroup title="Request" tag="POST" label="/gateway/interests">
-```bash {{ title: 'cURL' }}
+```bash {{ title: 'Paystudio TS Chile' }}
 curl -X "POST" https://api-co-dev.placetopay.ws/gateway/interests \
 -H "Content-Type: application/json" \
 -d '{
@@ -684,6 +684,44 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/interests \
     "userAgent": "Testing"
 }'
 ```
+```bash {{ title: 'Paystudio TS Chile' }}
+curl -X "POST" https://api-co-dev.placetopay.ws/gateway/interests \
+-H "Content-Type: application/json" \
+-d '{
+            "auth": {
+                "login":"aabbccdd1234567890aabbccdd123456",
+                "tranKey":"ABC123example456trankey+789abc012def3456ABC=",
+                "nonce":"NjE0OWVkODgwYjNhNw==",
+                "seed":"2021-09-21T09:34:48-05:00"
+            },
+            "payer": {
+                "name": "John",
+                "email": "john.doe@example.com"
+            },
+            "payment": {
+                "reference": "TEST_PAYSTUDIO_TS_INTEREST",
+                "description": "Test with interest",
+                "amount": {
+                    "currency": "CLP",
+                    "total": 50000
+                }
+            },
+            "instrument": {
+                "card": {
+                    "number": "4111111111111111",
+                    "expiration": "12/20",
+                    "cvv": "123"
+                },
+                "credit": {
+                    "installment": 2,
+                    "kind": "MERCHANT_WITHOUT_INTEREST"
+                }
+            },
+            "locale": "es_CO",
+            "ipAddress": "127.0.0.1",
+            "userAgent": "Testing"
+        }'
+            ```
         </CodeGroup>
     </Col>
 </Row>
@@ -727,6 +765,34 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/interests \
             "factor": 0.0003333333333333333
         }
     }
+```
+```json {{ title: 'PAYSTUDIO TS' }}
+{
+    "status": {
+        "status": "OK",
+        "reason": "00",
+        "message": "The request has been successfully processed",
+        "date": "2021-09-22T16:08:19-05:00"
+    },
+    "provider": "PAYSTUDIO",
+    "values": {
+        "original": 50000,
+        "installment": 25000,
+        "interest": 0,
+        "total": 50000
+    },
+    "conversion": {
+        "from": {
+            "currency": "COP",
+            "total": 3000
+        },
+        "to": {
+            "currency": "USD",
+            "total": 1
+        },
+        "factor": 0.0003333333333333333
+    }
+}
 ```
         </CodeGroup>
     </Col>
