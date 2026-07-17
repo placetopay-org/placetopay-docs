@@ -83,6 +83,27 @@ paths:
                           type: "integer"
                           description: Índice de medio de pago a seleccionar dentro de una lista de medios de pago disponibles. Este campo es requerido solo cuando se desee emplear el flujo de orquestador de pagos.
                           example: 2
+                - title: "Paystudio TS"
+                  type: "object"
+                  properties:
+                    locale:
+                      type: "string"
+                      description: "Determina el idioma de la respuesta"
+                      example: "es-CO"
+                    auth:
+                      $ref: "../base/es.yaml#/components/schemas/Authentication"
+                    instrument:
+                      $ref: "#/components/schemas/Instrument"
+                    payment:
+                      $ref: "../base/es.yaml#/components/schemas/Payment"
+                    ipAddress:
+                      type: "string"
+                    userAgent:
+                      type: "string"
+                  required:
+                    - "auth"
+                    - "payment"
+                    - "instrument"
                 - title: "PSE"
                   type: "object"
                   properties:
@@ -401,6 +422,62 @@ paths:
                       availablePaymentMethods:
                         type: "integer"
                         description: "Indica el total de medios de pago disponibles para procesar. Se indicará en la respuesta solo si se trata de selección de servicio por medio de índice."
+                      requireCardExpiration:
+                        type: "boolean"
+                        description: "Indica si se requiere la fecha de vencimiento de la tarjeta para procesar la transacción."
+                      allowedDocumentTypes:
+                        type: "array"
+                        description: "Indica los tipos de documentos permitidos para la transacción."
+                        items:
+                          type: "string"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "serviceCode"
+                  - title: "Paystudio TS"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "../base/es.yaml#/components/schemas/Status"
+                      provider:
+                        type: "string"
+                        example: "PAYSTUDIO"
+                        description: "Indica cual proveedor será utilizado en la transacción"
+                      serviceCode:
+                        type: "string"
+                        description: "Indica el código del servicio que procesará la transacción"
+                        example: "PS_VS"
+                      cardTypes:
+                        type: "array"
+                        description: "Indica los tipos de tarjeta soportados por el proveedor"
+                        items:
+                          $ref: "#/components/schemas/CardType"
+                      cardType:
+                        $ref: "#/components/schemas/CardType"
+                      displayInterest:
+                        type: "boolean"
+                        description: "Indica si es requerido mostrar los intereses de la transacción"
+                      requiereOtp:
+                        type: "boolean"
+                        description: "Indica si es necesario realizar el flujo de OTP"
+                      requiereCvv2:
+                        type: "boolean"
+                        description: "Indica si es requerido enviar CVV para el procesamiento de la transacción"
+                      threeDS:
+                        type: "string"
+                        enum:
+                          - "optional"
+                          - "required"
+                          - "unsupported"
+                        description: "Indica si es necesario 3DS"
+                      credits:
+                        type: "array"
+                        description: "Indica los créditos disponibles por proveedor. Estructura bajo el modelo **estructura por cuota**. Ver más en [Crédito](/gateway/additional-data#additional-data-credit)"
+                        items:
+                          $ref: "#/components/schemas/CreditPerInstallment"
+                      hasForwarding:
+                        type: "boolean"
+                        description: "Indica si el medio de pago tiene configurado enrutamiento transaccional"
                       requireCardExpiration:
                         type: "boolean"
                         description: "Indica si se requiere la fecha de vencimiento de la tarjeta para procesar la transacción."
@@ -1334,31 +1411,13 @@ paths:
                               EJ: `1000` Valor total en la moneda base indicada
                 instrument:
                   type: "object"
-                  description: "Estructura que contiene información del instrumento de pago, empleado solo durante confirmación de transacciones"
-                  properties:
-                    credit:
-                      type: "object"
-                      required:
-                        - "kind"
-                        - "installment"
-                      properties:
-                        kind:
-                          type: "string"
-                          description: Tipo de crédito a emplear en el procesamiento de la transacción en una confirmación.
-                          enum: [
-                            "MERCHANT_NOT_FEE",
-                            "MERCHANT_WITHOUT_INTEREST",
-                            "ISSUER_NOT_FEE",
-                            "ISSUER_WITHOUT_INTEREST",
-                            "ISSUER_UNKNOWN_00",
-                            "ISSUER_UNKNOWN_01",
-                            "ISSUER_UNKNOWN_03",
-                            "ACQUIRER_UNKNOWN_00",
-                            "AVERAGE_UNKNOWN_00"
-                          ]
-                        installment:
-                          type: "integer"
-                          description: "Número de cuotas a pagar"
+                  description: "Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
+                  items:
+                    type: "object"
+                    properties:
+                      credit:
+                        description: "Credito seleccionado para procesar. Disponible para action `confirm`"
+                        $ref: "#/components/schemas/CreditPerInstallment"
                 ipAddress:
                   type: "string"
                   description: "Dirección IP del cliente"
@@ -1371,6 +1430,7 @@ paths:
                 - "auth"
                 - "action"
                 - "internalReference"
+              x-conditional: credit
             examples:
               Reembolsos:
                 value:
@@ -3433,7 +3493,7 @@ components:
     Credit:
       title: "Credit"
       type: "object"
-      description: "Estructura que contiene la información del tipo de crédito"
+      description: "Estructura que contiene la información del tipo de crédito. Ver más en [Crédito](/gateway/additional-data#additional-data-credit)"
       properties:
         code:
           type: "string"
@@ -3443,6 +3503,32 @@ components:
           type: "string"
         installment:
           type: "integer"
+        installments:
+          type: "array"
+          items:
+            type: "integer"
+        kind:
+          type: "string"
+          description: "Clasificación de la modalidad de crédito. (Paystudio TS)"
+        description:
+          type: "string"
+    CreditPerInstallment:
+      title: "Credit"
+      type: "object"
+      description: "Estructura que contiene la información del tipo de crédito. Ver más en [Crédito](/gateway/additional-data#additional-data-credit-providers-paystudio-ts)"
+      properties:
+        installment:
+          type: "integer"
+          description: "Numero de cuotas"
+        kind:
+          type: "string"
+          description: "Clasificación de la modalidad de crédito."
+        description:
+          type: "string"
+          description: "Descripción del crédito."
+      required:
+        installment
+        kind
     Pocket:
       title: "Pocket"
       type: "object"
