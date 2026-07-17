@@ -801,6 +801,10 @@ export const TAB_NAVIGATION = {
                 title: 'Números de tarjetas de pruebas',
                 href: '/gateway/testing-card',
               },
+              {
+                title: 'Simulación de retornos ACH',
+                href: '/gateway/testing-ach-returns',
+              },
               { title: 'Código de aerolíneas', href: '/gateway/airline-codes' },
               { title: 'Tipos de documentos', href: '/gateway/document-types' },
               {
@@ -921,6 +925,10 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Authentication', href: '/gateway/authentication' },
               { title: 'Test card numbers', href: '/gateway/testing-card' },
+              {
+                title: 'ACH Returns Simulation',
+                href: '/gateway/testing-ach-returns',
+              },
               { title: 'Airline codes', href: '/gateway/airline-codes' },
               { title: 'Document types', href: '/gateway/document-types' },
               {
