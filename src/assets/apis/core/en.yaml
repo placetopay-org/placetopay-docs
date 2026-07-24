@@ -4413,6 +4413,34 @@ paths:
                         la autenticación no contiene todos los parámetros requeridos
                         (login, tranKey, seed, nonce)
                       date: "2021-09-21T09:34:48-05:00"
+        "422":
+          description: Unprocessable Entity - Validation Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+              examples:
+                Invalid ad type:
+                  value:
+                    message: "The field type is invalid"
+                    errors:
+                      type:
+                        - "The field type is invalid"
+                Invalid pagination:
+                  value:
+                    message: "The pagination.perPage field must be at least 1."
+                    errors:
+                      pagination.perPage:
+                        - "The pagination.perPage field must be at least 1."
         "500":
           description: Internal Server Error
           content:
@@ -13733,8 +13761,7 @@ paths:
       summary: Ads search
       operationId: post-core-ads-search
       description:
-        "This service allows querying the ads available for the site. \nIt is possible to use filtering through the parameters: :
-        \"type\".\n\n\n> ### Note \n>\n> **It is not required to enter all the parameters for the filter.*\n\nIf custom pagination is required, send the 'pagination' parameter in the request."
+        "This service allows querying the ads available for the site. Only active ads (where end_date is greater than or equal to the current date) are returned. Results are sorted by start_date in ascending order.\n\nIt is possible to use filtering through the parameters: \"type\".\n\n> ### Note\n>\n> **It is not required to enter all the parameters for the filter.**\n\nIf custom pagination is required, send the 'pagination' parameter in the request."
       responses:
         "200":
           description: OK
@@ -13785,19 +13812,36 @@ paths:
                         type: error
                         content: kjhbfgklihsdfv;ipdn
                         logo: https://panel.test/storage/ads/favicon.jpeg
-                        start_date: "2026-03-31 12:00:00"
-                        end_date: "2026-05-07 12:00:00"
+                        start_date: "2026-03-31T12:00:00-05:00"
+                        end_date: "2026-05-07T12:00:00-05:00"
                       - id: 4
                         type: info
                         content: hola <b>test</b>
                         logo: null
-                        start_date: "2026-04-01 12:00:00"
-                        end_date: "2026-04-29 12:00:00"
+                        start_date: "2026-04-01T12:00:00-05:00"
+                        end_date: "2026-04-29T12:00:00-05:00"
                     pagination:
                       total: 2
                       perPage: 10
                       currentPage: 1
                       lastPage: 1
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Invalid type:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: BR
+                      message: The selected type field is invalid.
+                      date: "2026-07-24T13:16:59-05:00"
         "401":
           description: Unauthorized
           content:
@@ -13827,7 +13871,7 @@ paths:
                   "$ref": "#/components/schemas/Autentication"
                 type:
                   type: string
-                  description: Code of the add type to filter the search
+                  description: Code of the add type to filter the search (case-sensitive, lowercase only).
                   example: info
                   enum:
                     - info

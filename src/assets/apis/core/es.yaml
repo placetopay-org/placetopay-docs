@@ -4409,6 +4409,34 @@ paths:
                         la autenticación no contiene todos los parámetros requeridos
                         (login, tranKey, seed, nonce)
                       date: "2021-09-21T09:34:48-05:00"
+        "422":
+          description: Unprocessable Entity - Error de Validación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+              examples:
+                Tipo de anuncio inválido:
+                  value:
+                    message: "El campo type seleccionado es inválido."
+                    errors:
+                      type:
+                        - "El campo type seleccionado es inválido."
+                Paginación inválida:
+                  value:
+                    message: "El campo pagination.perPage es inválido"
+                    errors:
+                      pagination.perPage:
+                        - "EL campo pagination.perPage es inválido"
         "500":
           description: Internal Server Error
           content:
@@ -13725,10 +13753,7 @@ paths:
       summary: Consulta de anuncios
       operationId: post-core-ads-search
       description:
-          "Este servicio permite consultar los anuncios disponibles para el sitio. \n
-          Es posible emplear filtrado por medio de los parámetros: \"type\".\n\n\n> ### Nota \n>\n> *No es requerido
-          ingresar todos los parámetros para el filtro.*\n\nSi requiere el uso de paginación
-          personalizada, debe enviar el parámetro 'pagination' junto a los filtros de la búsqueda."
+          "Este servicio permite consultar los anuncios disponibles para el sitio. Solo se retornan anuncios activos (cuya fecha de fin sea mayor o igual a la fecha actual). Los resultados se ordenan por fecha de inicio (start_date) en orden ascendente.\n\nEs posible emplear filtrado por medio de los parámetros: \"type\".\n\n> ### Nota\n>\n> *No es requerido ingresar todos los parámetros para el filtro.*\n\nSi requiere el uso de paginación personalizada, debe enviar el parámetro 'pagination' junto a los filtros de la búsqueda."
       responses:
         "200":
           description: OK
@@ -13779,19 +13804,36 @@ paths:
                         type: error
                         content: kjhbfgklihsdfv;ipdn
                         logo: https://panel.test/storage/ads/favicon.jpeg
-                        start_date: "2026-03-31 12:00:00"
-                        end_date: "2026-05-07 12:00:00"
+                        start_date: "2026-03-31T12:00:00-05:00"
+                        end_date: "2026-05-07T12:00:00-05:00"
                       - id: 4
                         type: info
                         content: hola <b>test</b>
                         logo: null
-                        start_date: "2026-04-01 12:00:00"
-                        end_date: "2026-04-29 12:00:00"
+                        start_date: "2026-04-01T12:00:00-05:00"
+                        end_date: "2026-04-29T12:00:00-05:00"
                     pagination:
                       total: 2
                       perPage: 10
                       currentPage: 1
                       lastPage: 1
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Tipo inválido:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: BR
+                      message: El campo type seleccionado es inválido.
+                      date: "2026-07-24T13:16:59-05:00"
         "401":
           description: Unauthorized
           content:
@@ -13821,7 +13863,7 @@ paths:
                   "$ref": "#/components/schemas/Autentication"
                 type:
                   type: string
-                  description: Código del tipo de anuncio a consultar.
+                  description: Código del tipo de anuncio a consultar (case-sensitive, solo minúsculas).
                   example: info
                   enum:
                     - info
