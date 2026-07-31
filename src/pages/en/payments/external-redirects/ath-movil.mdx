@@ -2,60 +2,236 @@ import athMovil from '@/images/cards/ath_movil.svg'
 import { PageTitle } from '@/components/PageTitle'
 import { CountryFlags } from '@/components/Flags'
 
-export const description = 'Discover ATH Móvil: a Puerto Rico payment method where the user approves on their phone and the checkout session updates with the payment result.'
+export const description = 'Integrate ATH Móvil in Puerto Rico through Webcheckout or Gateway, with request examples, status queries, and sandbox test cases.'
 
 <PageTitle title='ATH Móvil' imageSrc={athMovil}/>
 <CountryFlags countries="PR" prefix="Available for: " className='mt-4'/>
 
-ATH Móvil allows the payer to approve the transaction from their phone, while the merchant handles status confirmation according to the integration model.
+ATH Móvil allows the payer to authorize a charge from the application installed on their phone. The payment is processed asynchronously: the initial response normally remains `PENDING` and is later updated with the payer's decision.
 
-## ATH Móvil Benefits
+## Payment flow {{ id: 'payment-flow' }}
 
-- **Instant transfers**: Send and receive money in real time using a mobile phone number.
-- **Broad financial participation**: Works with participating banks and credit unions in the ATH Móvil ecosystem.
-- **Security and speed for daily transactions**: Delivers a secure experience for everyday payments and transfers.
-
-## Use Cases
-
-- **Merchants in Puerto Rico**: Ideal for businesses that want to enable ATH Móvil as a local payment option.
-- **Second-device payment approval**: The buyer confirms the transaction on their phone while keeping checkout open.
-
-## Payment Method Behavior
-
-ATH Móvil is categorized as a redirection payment method in the integration model, where approval is completed on the payer's phone and the session is updated with the transaction status.
+1. The merchant creates a Webcheckout session or processes a transaction through Gateway.
+2. The payer receives the charge request and approves or rejects it from ATH Móvil.
+3. The transaction remains `PENDING` while waiting for the decision.
+4. Placetopay queries the result and updates the transaction.
+5. The merchant obtains the final status by querying the Webcheckout session or the Gateway internal reference.
 
 ![ATH Móvil payment flow](/en/payments/ath-movil/pm-ath-movil-flow.png)
 
-### Webcheckout Flow
+## Prerequisites {{ id: 'requirements' }}
 
-1. The user selects **ATH Móvil** as the payment method.
-2. The user completes their payment information and confirms the payment.
-3. The payment remains pending while the user approves from their phone.
-4. Webcheckout periodically checks the transaction status.
-5. When the status changes, the session updates and shows the final result.
+- Request ATH Móvil enablement for the Placetopay site that will process the charges.
+- The merchant category code (MCC) must be configured.
+- Process payments in `USD`.
+- Use the `ATHMV` code to identify the payment method.
+- Send the payer's phone number with Puerto Rico's international dialing code, for example `+1787...` or `+1939...`.
 
-- **Integrations through**: [Webcheckout](/en/checkout)
-  The user approves the payment from their phone and the Checkout session updates with the final transaction outcome.
+## Webcheckout integration {{ id: 'webcheckout-integration' }}
 
-- **Integrations through**: [Gateway](/en/gateway)
-  Integration is asynchronous. After creating/processing the transaction, the integrator must query status via API until the final result is obtained.
+Webcheckout manages the payment experience and status updates. To display only ATH Móvil, create a session through [`POST /api/session`](/en/checkout/api/reference/session#create-a-session) and send `paymentMethod` with the `ATHMV` value.
 
-  To get the final transaction status, send a request to [Query transaction by internal reference](/en/gateway/api/reference/transaction#query-request).
+If you include `payer`, the data is prefilled and cannot be modified by the payer. If you omit it, Webcheckout will request the required data before processing the payment.
 
-## Restrictions and Considerations
+### Session creation request
 
-- **Asynchronous Gateway flow**: The merchant must implement API status polling until a final result is available.
-- **Pending state during approval**: The transaction remains pending while the user confirms the payment on their phone.
-- **Regional availability**: ATH Móvil applies to operations in Puerto Rico.
+```json
+{
+  "auth": {
+    "login": "aabbccdd1234567890aabbccdd123456",
+    "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+    "nonce": "NmJmMG1hNmJmOQ==",
+    "seed": "2026-07-31T10:15:30-04:00"
+  },
+  "payment": {
+    "reference": "ATHMV-ORDER-1001",
+    "description": "Test purchase",
+    "amount": {
+      "currency": "USD",
+      "total": 10
+    }
+  },
+  "payer": {
+    "name": "John",
+    "surname": "Doe",
+    "email": "john.doe@example.com",
+    "mobile": "+19391111114"
+  },
+  "paymentMethod": "ATHMV",
+  "returnUrl": "https://merchant.example.com/payment-result",
+  "ipAddress": "127.0.0.1",
+  "userAgent": "Mozilla/5.0"
+}
+```
 
-## FAQs
+### Session creation response
+
+```json
+{
+  "status": {
+    "status": "OK",
+    "reason": "PC",
+    "message": "The request has been successfully processed",
+    "date": "2026-07-31T10:15:31-04:00"
+  },
+  "requestId": 12345,
+  "processUrl": "https://checkout-test.placetopay.com/session/12345/example-session-key"
+}
+```
+
+Redirect the payer to `processUrl`. After payment, do not use the browser return as financial confirmation: query [`POST /api/session/:requestId`](/en/checkout/api/reference/session#query-a-session) and validate the status reported by Placetopay.
+
+## Gateway integration {{ id: 'gateway-integration' }}
+
+Gateway allows the merchant application to initiate the charge. Send a request to [`POST /gateway/process`](/en/gateway/api/reference/transaction#process-request) with the payer's phone number and the `ATHMV` redirection instrument.
+
+### Processing request
+
+```json
+{
+  "auth": {
+    "login": "aabbccdd1234567890aabbccdd123456",
+    "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+    "nonce": "NmJmMG1hNmJmOQ==",
+    "seed": "2026-07-31T10:15:30-04:00"
+  },
+  "payment": {
+    "reference": "ATHMV-ORDER-1001",
+    "description": "Test purchase",
+    "amount": {
+      "currency": "USD",
+      "total": 10
+    }
+  },
+  "payer": {
+    "name": "John",
+    "surname": "Doe",
+    "email": "john.doe@example.com",
+    "mobile": "+19391111114"
+  },
+  "instrument": {
+    "redirection": {
+      "paymentMethod": "ATHMV"
+    }
+  },
+  "ipAddress": "127.0.0.1",
+  "userAgent": "Mozilla/5.0"
+}
+```
+
+### Initial response
+
+An accepted initial response is `PENDING`. Store `internalReference`, because it is the identifier required to query the result.
+
+```json
+{
+  "status": {
+    "status": "PENDING",
+    "reason": "?-",
+    "message": "Pending transaction",
+    "date": "2026-07-31T10:15:31-04:00"
+  },
+  "internalReference": 485,
+  "reference": "ATHMV-ORDER-1001",
+  "paymentMethod": "ATHMV",
+  "franchise": "athmv",
+  "franchiseName": "ATH Móvil",
+  "amount": {
+    "currency": "USD",
+    "total": 10
+  },
+  "provider": "ATH-MOVIL",
+  "redirection": {
+    "paymentMethod": "ATHMV",
+    "processURL": "https://rest.test/mock/redirection/example",
+    "additional": {
+      "expiration": "2026-07-31T10:35:31-04:00"
+    }
+  }
+}
+```
+
+`redirection.additional.expiration` indicates when payment confirmation expires. `redirection.processURL` is returned only in sandbox to open the simulator; in production it is normally `null`, because the payer completes approval from ATH Móvil.
+
+### Querying the result
+
+Query [`POST /gateway/query`](/en/gateway/api/reference/transaction#query-request) with the internal reference from the initial response.
+
+```json
+{
+  "auth": {
+    "login": "aabbccdd1234567890aabbccdd123456",
+    "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+    "nonce": "NmJmMG1hNmJmOQ==",
+    "seed": "2026-07-31T10:16:00-04:00"
+  },
+  "internalReference": 485
+}
+```
+
+An approved transaction returns a response like the following:
+
+```json
+{
+  "status": {
+    "status": "APPROVED",
+    "reason": "00",
+    "message": "Approved",
+    "date": "2026-07-31T10:16:01-04:00"
+  },
+  "internalReference": 485,
+  "reference": "ATHMV-ORDER-1001",
+  "paymentMethod": "ATHMV",
+  "franchise": "athmv",
+  "franchiseName": "ATH Móvil",
+  "amount": {
+    "currency": "USD",
+    "total": 10
+  },
+  "authorization": "000000",
+  "provider": "ATH-MOVIL"
+}
+```
+
+While the status is `PENDING`, repeat the query at a controlled interval. Stop querying when you receive `APPROVED`, `REJECTED`, or `FAILED`, or when the reported expiration is reached. If a query times out, keep the transaction pending and query again; do not automatically create another charge.
+
+## Validations and considerations {{ id: 'validations' }}
+
+| Field or condition | Validation |
+| --- | --- |
+| `payment.amount.currency` | Must be `USD`. |
+| `payment.amount.total` | Must be greater than zero after applying taxes and amount details. |
+| `payer.mobile` | Required for Gateway and must include `+1` and a Puerto Rico area code. |
+| `instrument.redirection.paymentMethod` | Must be exactly `ATHMV` in Gateway. |
+| `paymentMethod` | Use `ATHMV` in Webcheckout to restrict the session to this payment method. |
+| Merchant MCC | Must be configured for the site before processing transactions. |
+| Initial status | A `PENDING` response means the charge was received, not approved. |
+| `redirection.processURL` | Available only in sandbox; production integrations must not depend on it. |
+
+Subsequent operations available for a transaction depend on its status and the site configuration. For refunds or reversals, see [Operations on a transaction](/en/gateway/api/reference/transaction#transaction-request).
+
+## Sandbox test cases {{ id: 'sandbox-test-cases' }}
+
+For test sites, the simulator determines its behavior from `payer.mobile`. Always send the international `+1` prefix; without it, the expected test case will not be activated.
+
+| Phone | Expected result |
+| --- | --- |
+| `+19391111114` | The query ends in `APPROVED`. |
+| `+19391111112` | The query ends in `REJECTED` due to cancellation. |
+| `+19391111113` | The query ends in `FAILED`. |
+| `+19391111111` | The transaction remains `PENDING`. |
+| `+19391111117` | The query ends in `FAILED` due to an expired token. |
+| `+19391111120` | The query simulates a timeout and the transaction remains `PENDING`. |
+| `+19391111178` | Processing fails immediately due to an expired token. |
+
+## FAQs {{ id: 'faqs' }}
 
 <details>
 <summary>How do I enable ATH Móvil in my Placetopay account?</summary>
-<p>Contact our operations team to enable this functionality on your sites via servicioposventa@placetopay.com.</p>
+<p>Contact our operations team to enable this functionality for your sites at servicioposventa@placetopay.com.</p>
 </details>
 
 <details>
-<summary>How can I integrate ATH Móvil?</summary>
-<p>ATH Móvil is available through Webcheckout and Gateway integration. In Gateway, you must query the transaction status via API until the final result is reached.</p>
+<summary>Should I redirect the user in a Gateway integration?</summary>
+<p>Not in production. The user approves the charge from the ATH Móvil application, and the merchant queries the result using the internal reference. The redirection URL is provided only in sandbox to access the simulator.</p>
 </details>
