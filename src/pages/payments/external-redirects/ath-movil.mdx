@@ -3,34 +3,46 @@ import { PageTitle } from '@/components/PageTitle'
 import { CountryFlags } from '@/components/Flags'
 import { CodeGroup } from '@/components/mdx'
 
-export const description = 'Integra ATH Móvil en Puerto Rico mediante Gateway, con ejemplos REST, consulta de estado y casos de prueba en sandbox.'
+export const description = 'Descubre ATH Móvil: medio de pago para Puerto Rico donde el usuario aprueba el pago desde su teléfono y la sesión se actualiza con el resultado.'
 
 <PageTitle title='ATH Móvil' imageSrc={athMovil}/>
 <CountryFlags countries="PR" prefix="Disponible para: " className='mt-4'/>
 
-ATH Móvil permite que el pagador autorice un cobro desde la aplicación instalada en su teléfono. El pago se procesa de forma asíncrona: la respuesta inicial normalmente queda en estado `PENDING` y luego se actualiza con la decisión del pagador.
+ATH Móvil permite que el pagador autorice la transacción desde su teléfono, mientras el comercio gestiona la confirmación del estado según su integración.
 
-## Flujo de pago {{ id: 'payment-flow' }}
+## Beneficios de ATH Móvil {{ id: 'benefits' }}
 
-1. El comercio procesa una transacción mediante la API REST de Gateway.
-2. El pagador recibe la solicitud de cobro y la aprueba o rechaza desde ATH Móvil.
-3. La transacción permanece en `PENDING` mientras espera la decisión.
-4. Placetopay consulta el resultado y actualiza la transacción.
-5. El comercio obtiene el estado final consultando la referencia interna de Gateway.
+- **Transferencias inmediatas**: Permite enviar y recibir dinero al instante usando el número de celular.
+- **Amplia participación financiera**: Opera con bancos y cooperativas participantes del ecosistema ATH Móvil.
+- **Seguridad y rapidez en el día a día**: Ofrece una experiencia segura para pagos y transferencias cotidianas.
+
+## Casos de uso {{ id: 'use-cases' }}
+
+- **Comercios en Puerto Rico**: Ideal para negocios que quieren habilitar ATH Móvil como alternativa de pago local.
+- **Pagos con confirmación en segundo dispositivo**: El comprador confirma la transacción en su teléfono mientras mantiene abierto el checkout.
+
+## Comportamiento del medio de pago {{ id: 'payment-method-behavior' }}
+
+ATH Móvil es un medio de pago de tipo redirección en su modelo de integración, donde la aprobación se completa desde el teléfono del pagador y el estado se actualiza en la sesión.
 
 ![Flujo de pago ATH Móvil](/payments/ath-movil/pm-ath-movil-flow.png)
 
-## Requisitos previos {{ id: 'requirements' }}
+### Flujo en Webcheckout {{ id: 'webcheckout-flow' }}
 
-- Solicita la habilitación de ATH Móvil para el sitio de Placetopay que realizará los cobros.
-- El comercio debe tener configurado su código de categoría comercial (MCC).
-- Procesa los pagos en `USD`.
-- Usa el código `ATHMV` para identificar el medio de pago.
-- Envía el teléfono del pagador con el código internacional de Puerto Rico, por ejemplo `+1787...` o `+1939...`.
+1. El usuario selecciona **ATH Móvil** como medio de pago.
+2. El usuario completa su información y confirma el pago.
+3. El pago queda en estado pendiente mientras el usuario aprueba desde su teléfono.
+4. Webcheckout consulta periódicamente el estado de la transacción.
+5. Cuando cambia el estado, la sesión se actualiza y muestra el resultado final al usuario.
 
-## Integración REST por Gateway {{ id: 'gateway-integration' }}
+- **Integraciones por**: [Webcheckout](/checkout)
+  El usuario aprueba el pago desde su teléfono y la sesión de Checkout se actualiza con el estado final de la transacción.
 
-La imagen anterior muestra la experiencia del pagador. La implementación del comercio utiliza únicamente los endpoints REST de información, procesamiento y consulta de transacción.
+## Integración por Gateway {{ id: 'gateway-integration' }}
+
+La integración por [Gateway](/gateway) es asíncrona. Después de crear o procesar la transacción, el integrador debe consultar su estado por API hasta obtener el resultado final.
+
+Para obtener el estado final, realiza una petición a [Consulta de transacción por referencia interna](/gateway/api/reference/transaction#query-request).
 
 ### Secuencia de implementación {{ id: 'implementation-sequence' }}
 
@@ -45,7 +57,7 @@ Los ejemplos cURL de las siguientes secciones muestran cómo construir y enviar 
 
 <Row>
   <Col>
-    El endpoint de [información](/gateway/api/reference/information#information-request) permite consultar las capacidades del servicio antes de procesar el cobro. Para ATH Móvil, envía el teléfono del pagador y el instrumento de redirección `ATHMV`.
+    El endpoint de [información](/gateway/api/reference/information#information-request) permite consultar las capacidades del servicio antes de procesar el cobro. Para ATH Móvil, envía los datos del pago y el instrumento de redirección `ATHMV`.
 
     <Properties classNames="my-6">
       <Property name="auth" type="Authentication">
@@ -53,9 +65,6 @@ Los ejemplos cURL de las siguientes secciones muestran cómo construir y enviar 
       </Property>
       <Property name="locale" type="string" isRequired={false}>
         Idioma de la respuesta, por ejemplo `es_CO`.
-      </Property>
-      <Property name="payer.mobile" type="string">
-        Teléfono del pagador con el prefijo internacional `+1`.
       </Property>
       <Property name="payment.reference" type="string">
         Referencia única del pago en el comercio.
@@ -68,12 +77,6 @@ Los ejemplos cURL de las siguientes secciones muestran cómo construir y enviar 
       </Property>
       <Property name="instrument.redirection.paymentMethod" type="string">
         Código del medio de pago. Debe ser `ATHMV`.
-      </Property>
-      <Property name="ipAddress" type="string" isRequired={false}>
-        Dirección IP desde la que se origina la solicitud.
-      </Property>
-      <Property name="userAgent" type="string" isRequired={false}>
-        Agente de usuario desde el que se origina la solicitud.
       </Property>
     </Properties>
   </Col>
@@ -91,12 +94,6 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/information \
       "nonce": "NjE0OWVkODgwYjNhNw==",
       "seed": "2026-07-31T10:15:30-04:00"
     },
-    "payer": {
-      "name": "John",
-      "surname": "Doe",
-      "email": "john.doe@example.com",
-      "mobile": "+19391111114"
-    },
     "payment": {
       "reference": "ATHMV-ORDER-1001",
       "description": "Compra de prueba",
@@ -109,9 +106,7 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/information \
       "redirection": {
         "paymentMethod": "ATHMV"
       }
-    },
-    "ipAddress": "127.0.0.1",
-    "userAgent": "Placetopay Sandbox"
+    }
   }'
 ```
     </CodeGroup>
@@ -214,6 +209,9 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/information \
       <Property name="userAgent" type="string" isRequired={false}>
         Agente de usuario desde el que se origina la solicitud.
       </Property>
+      <Property name="fingerprint" type="string" isRequired={false}>
+        Identificador del dispositivo que origina la solicitud.
+      </Property>
     </Properties>
   </Col>
 
@@ -232,7 +230,6 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/process \
     },
     "payer": {
       "name": "John",
-      "surname": "Doe",
       "email": "john.doe@example.com",
       "mobile": "+19391111114"
     },
@@ -250,7 +247,8 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/process \
       }
     },
     "ipAddress": "127.0.0.1",
-    "userAgent": "Placetopay Sandbox"
+    "userAgent": "Placetopay Sandbox",
+    "fingerprint": "089d01d43a296a2705c27790e3613dc1"
   }'
 ```
     </CodeGroup>
@@ -366,9 +364,6 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/process \
       <Property name="auth" type="Authentication">
         Credenciales de autenticación del sitio.
       </Property>
-      <Property name="locale" type="string" isRequired={false}>
-        Idioma de la respuesta, por ejemplo `es_CO`.
-      </Property>
       <Property name="internalReference" type="number">
         Identificador recibido en la respuesta de `/gateway/process`.
       </Property>
@@ -381,7 +376,6 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/process \
 curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
   -H "Content-Type: application/json" \
   -d '{
-    "locale": "es_CO",
     "auth": {
       "login": "aabbccdd1234567890aabbccdd123456",
       "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
@@ -494,7 +488,13 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
   </Col>
 </Row>
 
-## Validaciones y consideraciones {{ id: 'validations' }}
+## Restricciones y consideraciones {{ id: 'validations' }}
+
+- **Flujo asíncrono en Gateway**: El comercio debe implementar la consulta de estado por API hasta obtener un resultado final.
+- **Estado pendiente durante la aprobación**: La transacción permanece pendiente mientras el usuario confirma el pago en su teléfono.
+- **Disponibilidad por región**: ATH Móvil aplica para operaciones en Puerto Rico.
+
+Para la integración por Gateway, también considera las siguientes validaciones:
 
 | Campo o condición | Validación |
 | --- | --- |
@@ -507,6 +507,8 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
 | `redirection.processURL` | Solo está disponible en sandbox; no debe ser requerido por la integración productiva. |
 
 Las operaciones posteriores disponibles para una transacción dependen de su estado y de la configuración del sitio. Para reembolsos o reversos, consulta [Operaciones sobre una transacción](/gateway/api/reference/transaction#transaction-request).
+
+La petición de procesamiento admite montos decimales, impuestos en `payment.amount.taxes` y propinas mediante `payment.amount.details` con `kind: "tip"`.
 
 ## Casos de prueba en sandbox {{ id: 'sandbox-test-cases' }}
 
@@ -527,6 +529,11 @@ En sitios de prueba, el simulador determina el comportamiento a partir de `payer
 <details>
 <summary>¿Cómo configurar ATH Móvil en tu cuenta de Placetopay?</summary>
 <p>Contacta a nuestro equipo de operaciones para habilitar esta funcionalidad en tus sitios a través del correo servicioposventa@placetopay.com.</p>
+</details>
+
+<details>
+<summary>¿Cómo puedo integrar ATH Móvil?</summary>
+<p>ATH Móvil está disponible en Webcheckout e integración con Gateway. En Gateway, debes procesar la transacción y consultar su estado por API hasta obtener el resultado final.</p>
 </details>
 
 <details>

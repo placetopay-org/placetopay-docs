@@ -3,34 +3,46 @@ import { PageTitle } from '@/components/PageTitle'
 import { CountryFlags } from '@/components/Flags'
 import { CodeGroup } from '@/components/mdx'
 
-export const description = 'Integrate ATH Móvil in Puerto Rico through Gateway, with REST examples, status queries, and sandbox test cases.'
+export const description = 'Discover ATH Móvil: a Puerto Rico payment method where the user approves on their phone and the checkout session updates with the payment result.'
 
 <PageTitle title='ATH Móvil' imageSrc={athMovil}/>
 <CountryFlags countries="PR" prefix="Available for: " className='mt-4'/>
 
-ATH Móvil allows the payer to authorize a charge from the application installed on their phone. The payment is processed asynchronously: the initial response normally remains `PENDING` and is later updated with the payer's decision.
+ATH Móvil allows the payer to approve the transaction from their phone, while the merchant handles status confirmation according to the integration model.
 
-## Payment flow {{ id: 'payment-flow' }}
+## ATH Móvil Benefits {{ id: 'benefits' }}
 
-1. The merchant processes a transaction through the Gateway REST API.
-2. The payer receives the charge request and approves or rejects it from ATH Móvil.
-3. The transaction remains `PENDING` while waiting for the decision.
-4. Placetopay queries the result and updates the transaction.
-5. The merchant obtains the final status by querying the Gateway internal reference.
+- **Instant transfers**: Send and receive money in real time using a mobile phone number.
+- **Broad financial participation**: Works with participating banks and credit unions in the ATH Móvil ecosystem.
+- **Security and speed for daily transactions**: Delivers a secure experience for everyday payments and transfers.
+
+## Use Cases {{ id: 'use-cases' }}
+
+- **Merchants in Puerto Rico**: Ideal for businesses that want to enable ATH Móvil as a local payment option.
+- **Second-device payment approval**: The buyer confirms the transaction on their phone while keeping checkout open.
+
+## Payment Method Behavior {{ id: 'payment-method-behavior' }}
+
+ATH Móvil is categorized as a redirection payment method in the integration model, where approval is completed on the payer's phone and the session is updated with the transaction status.
 
 ![ATH Móvil payment flow](/en/payments/ath-movil/pm-ath-movil-flow.png)
 
-## Prerequisites {{ id: 'requirements' }}
+### Webcheckout Flow {{ id: 'webcheckout-flow' }}
 
-- Request ATH Móvil enablement for the Placetopay site that will process the charges.
-- The merchant category code (MCC) must be configured.
-- Process payments in `USD`.
-- Use the `ATHMV` code to identify the payment method.
-- Send the payer's phone number with Puerto Rico's international dialing code, for example `+1787...` or `+1939...`.
+1. The user selects **ATH Móvil** as the payment method.
+2. The user completes their payment information and confirms the payment.
+3. The payment remains pending while the user approves from their phone.
+4. Webcheckout periodically checks the transaction status.
+5. When the status changes, the session updates and shows the final result.
 
-## REST integration through Gateway {{ id: 'gateway-integration' }}
+- **Integrations through**: [Webcheckout](/en/checkout)
+  The user approves the payment from their phone and the Checkout session updates with the final transaction outcome.
 
-The image above shows the payer experience. The merchant implementation uses only the REST information, transaction processing, and transaction query endpoints.
+## Gateway Integration {{ id: 'gateway-integration' }}
+
+[Gateway](/en/gateway) integration is asynchronous. After creating or processing the transaction, the integrator must query its status via API until the final result is obtained.
+
+To obtain the final status, send a request to [Query transaction by internal reference](/en/gateway/api/reference/transaction#query-request).
 
 ### Implementation sequence {{ id: 'implementation-sequence' }}
 
@@ -45,7 +57,7 @@ The cURL examples in the following sections show how to build and send each REST
 
 <Row>
   <Col>
-    The [information](/en/gateway/api/reference/information#information-request) endpoint lets you query service capabilities before processing the charge. For ATH Móvil, send the payer's phone number and the `ATHMV` redirection instrument.
+    The [information](/en/gateway/api/reference/information#information-request) endpoint lets you query service capabilities before processing the charge. For ATH Móvil, send the payment data and the `ATHMV` redirection instrument.
 
     <Properties classNames="my-6">
       <Property name="auth" type="Authentication">
@@ -53,9 +65,6 @@ The cURL examples in the following sections show how to build and send each REST
       </Property>
       <Property name="locale" type="string" isRequired={false}>
         Response language, for example `en_US`.
-      </Property>
-      <Property name="payer.mobile" type="string">
-        Payer's phone number with the international `+1` prefix.
       </Property>
       <Property name="payment.reference" type="string">
         Unique payment reference assigned by the merchant.
@@ -68,12 +77,6 @@ The cURL examples in the following sections show how to build and send each REST
       </Property>
       <Property name="instrument.redirection.paymentMethod" type="string">
         Payment method code. It must be `ATHMV`.
-      </Property>
-      <Property name="ipAddress" type="string" isRequired={false}>
-        IP address from which the request originates.
-      </Property>
-      <Property name="userAgent" type="string" isRequired={false}>
-        User agent from which the request originates.
       </Property>
     </Properties>
   </Col>
@@ -91,12 +94,6 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/information \
       "nonce": "NjE0OWVkODgwYjNhNw==",
       "seed": "2026-07-31T10:15:30-04:00"
     },
-    "payer": {
-      "name": "John",
-      "surname": "Doe",
-      "email": "john.doe@example.com",
-      "mobile": "+19391111114"
-    },
     "payment": {
       "reference": "ATHMV-ORDER-1001",
       "description": "Test purchase",
@@ -109,9 +106,7 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/information \
       "redirection": {
         "paymentMethod": "ATHMV"
       }
-    },
-    "ipAddress": "127.0.0.1",
-    "userAgent": "Placetopay Sandbox"
+    }
   }'
 ```
     </CodeGroup>
@@ -214,6 +209,9 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/information \
       <Property name="userAgent" type="string" isRequired={false}>
         User agent from which the request originates.
       </Property>
+      <Property name="fingerprint" type="string" isRequired={false}>
+        Identifier of the device from which the request originates.
+      </Property>
     </Properties>
   </Col>
 
@@ -232,7 +230,6 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/process \
     },
     "payer": {
       "name": "John",
-      "surname": "Doe",
       "email": "john.doe@example.com",
       "mobile": "+19391111114"
     },
@@ -250,7 +247,8 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/process \
       }
     },
     "ipAddress": "127.0.0.1",
-    "userAgent": "Placetopay Sandbox"
+    "userAgent": "Placetopay Sandbox",
+    "fingerprint": "089d01d43a296a2705c27790e3613dc1"
   }'
 ```
     </CodeGroup>
@@ -366,9 +364,6 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/process \
       <Property name="auth" type="Authentication">
         Site authentication credentials.
       </Property>
-      <Property name="locale" type="string" isRequired={false}>
-        Response language, for example `en_US`.
-      </Property>
       <Property name="internalReference" type="number">
         Identifier returned in the `/gateway/process` response.
       </Property>
@@ -381,7 +376,6 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/process \
 curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
   -H "Content-Type: application/json" \
   -d '{
-    "locale": "en_US",
     "auth": {
       "login": "aabbccdd1234567890aabbccdd123456",
       "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
@@ -494,7 +488,13 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
   </Col>
 </Row>
 
-## Validations and considerations {{ id: 'validations' }}
+## Restrictions and Considerations {{ id: 'validations' }}
+
+- **Asynchronous Gateway flow**: The merchant must implement API status polling until a final result is available.
+- **Pending state during approval**: The transaction remains pending while the user confirms the payment on their phone.
+- **Regional availability**: ATH Móvil applies to operations in Puerto Rico.
+
+For the Gateway integration, also consider the following validations:
 
 | Field or condition | Validation |
 | --- | --- |
@@ -507,6 +507,8 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
 | `redirection.processURL` | Available only in sandbox; production integrations must not depend on it. |
 
 Subsequent operations available for a transaction depend on its status and the site configuration. For refunds or reversals, see [Operations on a transaction](/en/gateway/api/reference/transaction#transaction-request).
+
+The processing request supports decimal amounts, taxes in `payment.amount.taxes`, and tips through `payment.amount.details` with `kind: "tip"`.
 
 ## Sandbox test cases {{ id: 'sandbox-test-cases' }}
 
@@ -527,6 +529,11 @@ For test sites, the simulator determines its behavior from `payer.mobile`. Alway
 <details>
 <summary>How do I enable ATH Móvil in my Placetopay account?</summary>
 <p>Contact our operations team to enable this functionality for your sites at servicioposventa@placetopay.com.</p>
+</details>
+
+<details>
+<summary>How can I integrate ATH Móvil?</summary>
+<p>ATH Móvil is available through Webcheckout and Gateway integration. In Gateway, process the transaction and query its status through the API until a final result is returned.</p>
 </details>
 
 <details>
