@@ -1,8 +1,9 @@
 import athMovil from '@/images/cards/ath_movil.svg'
 import { PageTitle } from '@/components/PageTitle'
 import { CountryFlags } from '@/components/Flags'
+import { CodeGroup } from '@/components/mdx'
 
-export const description = 'Integra ATH Móvil en Puerto Rico mediante Webcheckout o Gateway, con ejemplos de solicitud, consulta de estado y casos de prueba en sandbox.'
+export const description = 'Integra ATH Móvil en Puerto Rico mediante Gateway, con ejemplos REST, consulta de estado y casos de prueba en sandbox.'
 
 <PageTitle title='ATH Móvil' imageSrc={athMovil}/>
 <CountryFlags countries="PR" prefix="Disponible para: " className='mt-4'/>
@@ -11,11 +12,11 @@ ATH Móvil permite que el pagador autorice un cobro desde la aplicación instala
 
 ## Flujo de pago {{ id: 'payment-flow' }}
 
-1. El comercio crea una sesión de Webcheckout o procesa una transacción por Gateway.
+1. El comercio procesa una transacción mediante la API REST de Gateway.
 2. El pagador recibe la solicitud de cobro y la aprueba o rechaza desde ATH Móvil.
 3. La transacción permanece en `PENDING` mientras espera la decisión.
 4. Placetopay consulta el resultado y actualiza la transacción.
-5. El comercio obtiene el estado final consultando la sesión de Webcheckout o la referencia interna de Gateway.
+5. El comercio obtiene el estado final consultando la referencia interna de Gateway.
 
 ![Flujo de pago ATH Móvil](/payments/ath-movil/pm-ath-movil-flow.png)
 
@@ -27,151 +28,252 @@ ATH Móvil permite que el pagador autorice un cobro desde la aplicación instala
 - Usa el código `ATHMV` para identificar el medio de pago.
 - Envía el teléfono del pagador con el código internacional de Puerto Rico, por ejemplo `+1787...` o `+1939...`.
 
-## Integración por Webcheckout {{ id: 'webcheckout-integration' }}
+## Integración REST por Gateway {{ id: 'gateway-integration' }}
 
-Webcheckout administra la experiencia de pago y la actualización del estado. Para mostrar únicamente ATH Móvil, crea una sesión mediante [`POST /api/session`](/checkout/api/reference/session#create-a-session) y envía `paymentMethod` con el valor `ATHMV`.
+La imagen anterior muestra la experiencia del pagador. La implementación del comercio utiliza únicamente los endpoints REST de información, procesamiento y consulta de transacción.
 
-Si incluyes `payer`, sus datos quedan prellenados y no pueden ser modificados por el pagador. Si no lo incluyes, Webcheckout solicitará los datos necesarios antes de procesar el pago.
+### Secuencia de implementación {{ id: 'implementation-sequence' }}
 
-### Solicitud de creación de sesión
+1. Consulta las capacidades de ATH Móvil mediante `POST /gateway/information`.
+2. Envía el cobro mediante `POST /gateway/process`.
+3. Conserva el `internalReference` de la respuesta inicial.
+4. Consulta `POST /gateway/query` mientras el estado sea `PENDING` y detente al recibir un estado final o alcanzar la expiración.
 
-```json
-{
-  "auth": {
-    "login": "aabbccdd1234567890aabbccdd123456",
-    "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
-    "nonce": "NmJmMG1hNmJmOQ==",
-    "seed": "2026-07-31T10:15:30-04:00"
-  },
-  "payment": {
-    "reference": "ATHMV-ORDER-1001",
-    "description": "Compra de prueba",
-    "amount": {
-      "currency": "USD",
-      "total": 10
-    }
-  },
-  "payer": {
-    "name": "John",
-    "surname": "Doe",
-    "email": "john.doe@example.com",
-    "mobile": "+19391111114"
-  },
-  "paymentMethod": "ATHMV",
-  "returnUrl": "https://merchant.example.com/payment-result",
-  "ipAddress": "127.0.0.1",
-  "userAgent": "Mozilla/5.0"
-}
+Los ejemplos cURL de las siguientes secciones muestran cómo construir y enviar cada petición REST. Las respuestas muestran los datos que el comercio debe procesar en cada paso.
+
+### Consultar información {{ id: 'gateway-information', tag: 'POST', label: '/gateway/information' }}
+
+<Row>
+  <Col>
+    El endpoint de [información](/gateway/api/reference/information#information-request) permite consultar las capacidades del servicio antes de procesar el cobro. Para ATH Móvil, envía el teléfono del pagador y el instrumento de redirección `ATHMV`.
+  </Col>
+
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/gateway/information">
+```bash {{ title: 'cURL' }}
+curl -X "POST" https://api-co-dev.placetopay.ws/gateway/information \
+  -H "Content-Type: application/json" \
+  -d '{
+    "locale": "es_CO",
+    "auth": {
+      "login": "aabbccdd1234567890aabbccdd123456",
+      "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+      "nonce": "NjE0OWVkODgwYjNhNw==",
+      "seed": "2026-07-31T10:15:30-04:00"
+    },
+    "payer": {
+      "name": "John",
+      "surname": "Doe",
+      "email": "john.doe@example.com",
+      "mobile": "+19391111114"
+    },
+    "payment": {
+      "reference": "ATHMV-ORDER-1001",
+      "description": "Compra de prueba",
+      "amount": {
+        "currency": "USD",
+        "total": 10
+      }
+    },
+    "instrument": {
+      "redirection": {
+        "paymentMethod": "ATHMV"
+      }
+    },
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Placetopay Sandbox"
+  }'
 ```
+    </CodeGroup>
+  </Col>
+</Row>
 
-### Respuesta de creación de sesión
+<Row>
+  <Col>
+    `requireRedirection: true` identifica a ATH Móvil como un servicio de autorización externa. No requiere datos de tarjeta, CVV ni OTP dentro de Gateway.
+  </Col>
 
-```json
+  <Col sticky>
+    <br />
+    <CodeGroup title="Respuesta">
+```json {{ title: '200' }}
 {
   "status": {
     "status": "OK",
-    "reason": "PC",
+    "reason": "00",
     "message": "La petición se ha procesado correctamente",
     "date": "2026-07-31T10:15:31-04:00"
   },
-  "requestId": 12345,
-  "processUrl": "https://checkout-test.placetopay.com/session/12345/example-session-key"
+  "provider": "ATH-MOVIL",
+  "serviceCode": "ATHMV",
+  "requireRedirection": true,
+  "cardType": null,
+  "cardTypes": null,
+  "displayInterest": false,
+  "requireOtp": false,
+  "requireCvv2": false,
+  "threeDS": "unsupported",
+  "credits": []
 }
 ```
+    </CodeGroup>
+  </Col>
+</Row>
 
-Redirige al pagador a `processUrl`. Después del pago, no uses el retorno del navegador como confirmación financiera: consulta [`POST /api/session/:requestId`](/checkout/api/reference/session#query-a-session) y valida el estado reportado por Placetopay.
+### Procesar una transacción {{ id: 'gateway-process', tag: 'POST', label: '/gateway/process' }}
 
-## Integración por Gateway {{ id: 'gateway-integration' }}
+<Row>
+  <Col>
+    Envía el cobro al endpoint de [procesamiento de transacción](/gateway/api/reference/transaction#process-request). `payer.mobile` y `instrument.redirection.paymentMethod` son los campos particulares del flujo ATH Móvil.
+  </Col>
 
-Gateway permite iniciar el cobro desde la aplicación del comercio. Envía una solicitud a [`POST /gateway/process`](/gateway/api/reference/transaction#process-request) con el teléfono del pagador y el instrumento de redirección `ATHMV`.
-
-### Solicitud de procesamiento
-
-```json
-{
-  "auth": {
-    "login": "aabbccdd1234567890aabbccdd123456",
-    "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
-    "nonce": "NmJmMG1hNmJmOQ==",
-    "seed": "2026-07-31T10:15:30-04:00"
-  },
-  "payment": {
-    "reference": "ATHMV-ORDER-1001",
-    "description": "Compra de prueba",
-    "amount": {
-      "currency": "USD",
-      "total": 10
-    }
-  },
-  "payer": {
-    "name": "John",
-    "surname": "Doe",
-    "email": "john.doe@example.com",
-    "mobile": "+19391111114"
-  },
-  "instrument": {
-    "redirection": {
-      "paymentMethod": "ATHMV"
-    }
-  },
-  "ipAddress": "127.0.0.1",
-  "userAgent": "Mozilla/5.0"
-}
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/gateway/process">
+```bash {{ title: 'cURL' }}
+curl -X "POST" https://api-co-dev.placetopay.ws/gateway/process \
+  -H "Content-Type: application/json" \
+  -d '{
+    "locale": "es_CO",
+    "auth": {
+      "login": "aabbccdd1234567890aabbccdd123456",
+      "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+      "nonce": "NjE0OWVkODgwYjNhNw==",
+      "seed": "2026-07-31T10:15:30-04:00"
+    },
+    "payer": {
+      "name": "John",
+      "surname": "Doe",
+      "email": "john.doe@example.com",
+      "mobile": "+19391111114"
+    },
+    "payment": {
+      "reference": "ATHMV-ORDER-1001",
+      "description": "Compra de prueba",
+      "amount": {
+        "currency": "USD",
+        "total": 10
+      }
+    },
+    "instrument": {
+      "redirection": {
+        "paymentMethod": "ATHMV"
+      }
+    },
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Placetopay Sandbox"
+  }'
 ```
+    </CodeGroup>
+  </Col>
+</Row>
 
-### Respuesta inicial
+<Row>
+  <Col>
+    La respuesta inicial normalmente es `PENDING`. Conserva `internalReference`, porque es el identificador requerido para consultar el resultado.
 
-La respuesta inicial aceptada es `PENDING`. Conserva `internalReference`, porque es el identificador requerido para consultar el resultado.
+    `redirection.additional.expiration` indica hasta cuándo puede confirmarse el pago. `redirection.processURL` se devuelve únicamente en sandbox para abrir el simulador; en producción normalmente es `null`.
+  </Col>
 
-```json
+  <Col sticky>
+    <br />
+    <CodeGroup title="Respuesta">
+```json {{ title: 'Pendiente' }}
 {
   "status": {
     "status": "PENDING",
     "reason": "?-",
-    "message": "Transacción pendiente",
+    "message": "Transacción pendiente. Por favor consulte con su entidad financiera si el débito fue realizado",
     "date": "2026-07-31T10:15:31-04:00"
   },
+  "date": "2026-07-31T10:15:31-04:00",
+  "transactionDate": "2026-07-31T10:15:31-04:00",
   "internalReference": 485,
   "reference": "ATHMV-ORDER-1001",
   "paymentMethod": "ATHMV",
   "franchise": "athmv",
   "franchiseName": "ATH Móvil",
+  "issuerName": null,
   "amount": {
     "currency": "USD",
     "total": 10
   },
+  "conversion": {
+    "from": {
+      "currency": "USD",
+      "total": 10
+    },
+    "to": {
+      "currency": "USD",
+      "total": 10
+    },
+    "factor": 1
+  },
+  "authorization": "000000",
+  "receipt": null,
+  "type": "AUTH_ONLY",
+  "refunded": false,
+  "lastDigits": null,
   "provider": "ATH-MOVIL",
+  "discount": null,
+  "processorFields": {
+    "id": "63671893972dc2326463f93642910630",
+    "b24": "?-",
+    "paymentURL": "https://rest.test/mock/redirection/63671893972dc2326463f93642910630"
+  },
+  "additional": {
+    "onTest": true
+  },
   "redirection": {
     "paymentMethod": "ATHMV",
-    "processURL": "https://rest.test/mock/redirection/example",
+    "processURL": "https://rest.test/mock/redirection/63671893972dc2326463f93642910630",
     "additional": {
       "expiration": "2026-07-31T10:35:31-04:00"
     }
   }
 }
 ```
+    </CodeGroup>
+  </Col>
+</Row>
 
-`redirection.additional.expiration` indica hasta cuándo puede confirmarse el pago. `redirection.processURL` se devuelve únicamente en sandbox para abrir el simulador; en producción normalmente es `null`, porque el pagador completa la aprobación desde ATH Móvil.
+### Consultar el resultado {{ id: 'gateway-query', tag: 'POST', label: '/gateway/query' }}
 
-### Consulta del resultado
+<Row>
+  <Col>
+    Consulta el endpoint de [transacción por referencia interna](/gateway/api/reference/transaction#query-request) con el `internalReference` recibido al procesar el pago.
+  </Col>
 
-Consulta [`POST /gateway/query`](/gateway/api/reference/transaction#query-request) con la referencia interna de la respuesta inicial.
-
-```json
-{
-  "auth": {
-    "login": "aabbccdd1234567890aabbccdd123456",
-    "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
-    "nonce": "NmJmMG1hNmJmOQ==",
-    "seed": "2026-07-31T10:16:00-04:00"
-  },
-  "internalReference": 485
-}
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/gateway/query">
+```bash {{ title: 'cURL' }}
+curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
+  -H "Content-Type: application/json" \
+  -d '{
+    "locale": "es_CO",
+    "auth": {
+      "login": "aabbccdd1234567890aabbccdd123456",
+      "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+      "nonce": "NjE0OWVkODgwYjNhNw==",
+      "seed": "2026-07-31T10:16:00-04:00"
+    },
+    "internalReference": 485
+  }'
 ```
+    </CodeGroup>
+  </Col>
+</Row>
 
-Una transacción aprobada devuelve una respuesta como la siguiente:
+<Row>
+  <Col>
+    Mientras el estado sea `PENDING`, repite la consulta con un intervalo controlado. Detén las consultas cuando recibas `APPROVED`, `REJECTED` o `FAILED`, o cuando se alcance la expiración informada.
 
-```json
+    Ante un timeout de consulta, conserva la transacción como pendiente y vuelve a consultar; no generes otro cobro automáticamente.
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Respuesta">
+```json {{ title: 'Aprobada' }}
 {
   "status": {
     "status": "APPROVED",
@@ -179,21 +281,56 @@ Una transacción aprobada devuelve una respuesta como la siguiente:
     "message": "Aprobada",
     "date": "2026-07-31T10:16:01-04:00"
   },
+  "date": "2026-07-31T10:15:31-04:00",
+  "transactionDate": "2026-07-31T10:16:01-04:00",
   "internalReference": 485,
   "reference": "ATHMV-ORDER-1001",
   "paymentMethod": "ATHMV",
   "franchise": "athmv",
   "franchiseName": "ATH Móvil",
+  "issuerName": null,
   "amount": {
     "currency": "USD",
     "total": 10
   },
+  "conversion": {
+    "from": {
+      "currency": "USD",
+      "total": 10
+    },
+    "to": {
+      "currency": "USD",
+      "total": 10
+    },
+    "factor": 1
+  },
   "authorization": "000000",
-  "provider": "ATH-MOVIL"
+  "receipt": "426882",
+  "type": "AUTH_ONLY",
+  "refunded": false,
+  "lastDigits": null,
+  "provider": "ATH-MOVIL",
+  "discount": null,
+  "processorFields": {
+    "id": "63671893972dc2326463f93642910630",
+    "b24": "00",
+    "paymentURL": "https://rest.test/mock/redirection/63671893972dc2326463f93642910630"
+  },
+  "additional": {
+    "onTest": true
+  },
+  "redirection": {
+    "paymentMethod": "ATHMV",
+    "processURL": "https://rest.test/mock/redirection/63671893972dc2326463f93642910630",
+    "additional": {
+      "expiration": "2026-07-31T10:35:31-04:00"
+    }
+  }
 }
 ```
-
-Mientras el estado sea `PENDING`, repite la consulta con un intervalo controlado. Detén las consultas cuando recibas `APPROVED`, `REJECTED` o `FAILED`, o cuando se alcance la expiración informada. Ante un timeout de consulta, conserva la transacción como pendiente y vuelve a consultar; no generes otro cobro automáticamente.
+    </CodeGroup>
+  </Col>
+</Row>
 
 ## Validaciones y consideraciones {{ id: 'validations' }}
 
@@ -203,7 +340,6 @@ Mientras el estado sea `PENDING`, repite la consulta con un intervalo controlado
 | `payment.amount.total` | Debe ser mayor que cero después de aplicar impuestos y detalles del monto. |
 | `payer.mobile` | Es obligatorio para Gateway y debe incluir `+1` y el código de área de Puerto Rico. |
 | `instrument.redirection.paymentMethod` | En Gateway debe ser exactamente `ATHMV`. |
-| `paymentMethod` | En Webcheckout usa `ATHMV` para restringir la sesión a este medio de pago. |
 | MCC del comercio | Debe estar configurado en el sitio antes de procesar transacciones. |
 | Estado inicial | Una respuesta `PENDING` indica que el cobro fue recibido, no que fue aprobado. |
 | `redirection.processURL` | Solo está disponible en sandbox; no debe ser requerido por la integración productiva. |
