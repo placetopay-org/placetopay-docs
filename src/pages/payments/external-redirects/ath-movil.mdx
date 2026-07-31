@@ -46,6 +46,36 @@ Los ejemplos cURL de las siguientes secciones muestran cómo construir y enviar 
 <Row>
   <Col>
     El endpoint de [información](/gateway/api/reference/information#information-request) permite consultar las capacidades del servicio antes de procesar el cobro. Para ATH Móvil, envía el teléfono del pagador y el instrumento de redirección `ATHMV`.
+
+    <Properties classNames="my-6">
+      <Property name="auth" type="Authentication">
+        Credenciales de autenticación del sitio.
+      </Property>
+      <Property name="locale" type="string" isRequired={false}>
+        Idioma de la respuesta, por ejemplo `es_CO`.
+      </Property>
+      <Property name="payer.mobile" type="string">
+        Teléfono del pagador con el prefijo internacional `+1`.
+      </Property>
+      <Property name="payment.reference" type="string">
+        Referencia única del pago en el comercio.
+      </Property>
+      <Property name="payment.amount.currency" type="string">
+        Moneda del pago. Para ATH Móvil debe ser `USD`.
+      </Property>
+      <Property name="payment.amount.total" type="number">
+        Valor total del cobro, mayor que cero.
+      </Property>
+      <Property name="instrument.redirection.paymentMethod" type="string">
+        Código del medio de pago. Debe ser `ATHMV`.
+      </Property>
+      <Property name="ipAddress" type="string" isRequired={false}>
+        Dirección IP desde la que se origina la solicitud.
+      </Property>
+      <Property name="userAgent" type="string" isRequired={false}>
+        Agente de usuario desde el que se origina la solicitud.
+      </Property>
+    </Properties>
   </Col>
 
   <Col sticky>
@@ -91,6 +121,33 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/information \
 <Row>
   <Col>
     `requireRedirection: true` identifica a ATH Móvil como un servicio de autorización externa. No requiere datos de tarjeta, CVV ni OTP dentro de Gateway.
+
+    <Properties classNames="my-6">
+      <Property name="status" type="Status">
+        Resultado general de la solicitud de información.
+      </Property>
+      <Property name="provider" type="string">
+        Proveedor que procesará la operación: `ATH-MOVIL`.
+      </Property>
+      <Property name="serviceCode" type="string">
+        Código del servicio habilitado: `ATHMV`.
+      </Property>
+      <Property name="requireRedirection" type="boolean">
+        Indica que la autorización ocurre en un aplicativo externo.
+      </Property>
+      <Property name="requireOtp" type="boolean">
+        Para ATH Móvil se devuelve `false`.
+      </Property>
+      <Property name="requireCvv2" type="boolean">
+        Para ATH Móvil se devuelve `false`.
+      </Property>
+      <Property name="threeDS" type="string">
+        Para ATH Móvil se devuelve `unsupported`.
+      </Property>
+      <Property name="credits" type="array">
+        Opciones de crédito disponibles; para ATH Móvil se devuelve vacío.
+      </Property>
+    </Properties>
   </Col>
 
   <Col sticky>
@@ -125,6 +182,39 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/information \
 <Row>
   <Col>
     Envía el cobro al endpoint de [procesamiento de transacción](/gateway/api/reference/transaction#process-request). `payer.mobile` y `instrument.redirection.paymentMethod` son los campos particulares del flujo ATH Móvil.
+
+    <Properties classNames="my-6">
+      <Property name="auth" type="Authentication">
+        Credenciales de autenticación del sitio.
+      </Property>
+      <Property name="locale" type="string" isRequired={false}>
+        Idioma de la respuesta, por ejemplo `es_CO`.
+      </Property>
+      <Property name="payer" type="Person">
+        Datos del pagador. `mobile` es obligatorio para ATH Móvil y debe incluir `+1`.
+      </Property>
+      <Property name="payment.reference" type="string">
+        Referencia única del pago en el comercio.
+      </Property>
+      <Property name="payment.description" type="string" isRequired={false}>
+        Descripción del pago.
+      </Property>
+      <Property name="payment.amount.currency" type="string">
+        Moneda del pago. Para ATH Móvil debe ser `USD`.
+      </Property>
+      <Property name="payment.amount.total" type="number">
+        Valor total del cobro, mayor que cero.
+      </Property>
+      <Property name="instrument.redirection.paymentMethod" type="string">
+        Código del medio de pago. Debe ser `ATHMV`.
+      </Property>
+      <Property name="ipAddress" type="string" isRequired={false}>
+        Dirección IP desde la que se origina la solicitud.
+      </Property>
+      <Property name="userAgent" type="string" isRequired={false}>
+        Agente de usuario desde el que se origina la solicitud.
+      </Property>
+    </Properties>
   </Col>
 
   <Col sticky>
@@ -172,6 +262,36 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/process \
     La respuesta inicial normalmente es `PENDING`. Conserva `internalReference`, porque es el identificador requerido para consultar el resultado.
 
     `redirection.additional.expiration` indica hasta cuándo puede confirmarse el pago. `redirection.processURL` se devuelve únicamente en sandbox para abrir el simulador; en producción normalmente es `null`.
+
+    <Properties classNames="my-6">
+      <Property name="status" type="Status">
+        Estado inicial de la transacción; normalmente `PENDING`.
+      </Property>
+      <Property name="internalReference" type="number">
+        Identificador que debe conservarse para consultar la transacción.
+      </Property>
+      <Property name="reference" type="string">
+        Referencia enviada por el comercio.
+      </Property>
+      <Property name="paymentMethod" type="string">
+        Código del medio de pago: `ATHMV`.
+      </Property>
+      <Property name="amount" type="Amount">
+        Moneda y valor procesados.
+      </Property>
+      <Property name="provider" type="string">
+        Proveedor que procesa la operación: `ATH-MOVIL`.
+      </Property>
+      <Property name="processorFields" type="object">
+        Identificadores y códigos de respuesta entregados por el procesador.
+      </Property>
+      <Property name="redirection.processURL" type="string|null" isRequired={false}>
+        URL del simulador. Solo se devuelve en sandbox.
+      </Property>
+      <Property name="redirection.additional.expiration" type="date-time">
+        Fecha límite para confirmar el pago.
+      </Property>
+    </Properties>
   </Col>
 
   <Col sticky>
@@ -241,6 +361,18 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/process \
 <Row>
   <Col>
     Consulta el endpoint de [transacción por referencia interna](/gateway/api/reference/transaction#query-request) con el `internalReference` recibido al procesar el pago.
+
+    <Properties classNames="my-6">
+      <Property name="auth" type="Authentication">
+        Credenciales de autenticación del sitio.
+      </Property>
+      <Property name="locale" type="string" isRequired={false}>
+        Idioma de la respuesta, por ejemplo `es_CO`.
+      </Property>
+      <Property name="internalReference" type="number">
+        Identificador recibido en la respuesta de `/gateway/process`.
+      </Property>
+    </Properties>
   </Col>
 
   <Col sticky>
@@ -268,6 +400,36 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
     Mientras el estado sea `PENDING`, repite la consulta con un intervalo controlado. Detén las consultas cuando recibas `APPROVED`, `REJECTED` o `FAILED`, o cuando se alcance la expiración informada.
 
     Ante un timeout de consulta, conserva la transacción como pendiente y vuelve a consultar; no generes otro cobro automáticamente.
+
+    <Properties classNames="my-6">
+      <Property name="status" type="Status">
+        Estado actual de la transacción: `PENDING`, `APPROVED`, `REJECTED` o `FAILED`.
+      </Property>
+      <Property name="internalReference" type="number">
+        Identificador interno de la transacción.
+      </Property>
+      <Property name="reference" type="string">
+        Referencia enviada por el comercio.
+      </Property>
+      <Property name="paymentMethod" type="string">
+        Código del medio de pago: `ATHMV`.
+      </Property>
+      <Property name="amount" type="Amount">
+        Moneda y valor procesados.
+      </Property>
+      <Property name="authorization" type="string|null">
+        Código de autorización cuando el pago fue aprobado.
+      </Property>
+      <Property name="receipt" type="string|null">
+        Comprobante entregado por el procesador, cuando aplique.
+      </Property>
+      <Property name="provider" type="string">
+        Proveedor que procesó la operación: `ATH-MOVIL`.
+      </Property>
+      <Property name="redirection.additional.expiration" type="date-time">
+        Fecha límite de confirmación de la sesión de pago.
+      </Property>
+    </Properties>
   </Col>
 
   <Col sticky>
