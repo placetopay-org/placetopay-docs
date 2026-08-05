@@ -3191,7 +3191,27 @@ export const TAB_NAVIGATION = {
         identifier: 'msv-service/api',
         href: '/msv-service/api',
         icon: DocumentCode,
-        links: [],
+        links: [
+          {
+            title: 'General',
+            links: [{ title: 'Introduction', href: '/msv-service/api' }],
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Login', href: '/msv-service/api/login' },
+              { title: 'Validation', href: '/msv-service/api/validation' },
+              {
+                title: 'Validation Query',
+                href: '/msv-service/api/validation-query',
+              },
+              {
+                title: 'Notification',
+                href: '/msv-service/api/notification',
+              },
+            ],
+          },
+        ],
       },
     ],
   },
