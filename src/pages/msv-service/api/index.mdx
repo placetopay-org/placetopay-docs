@@ -1,0 +1,55 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+<HeroPattern />
+
+# Referencia API MSV Service
+
+Bienvenido a la referencia técnica de MSV Service. Nuestra API está construida bajo principios RESTful, utiliza **JSON** para el intercambio de datos y códigos de respuesta HTTP estándar.
+
+## Entornos y base URL
+
+Todas las solicitudes deben enviarse a las siguientes URL base, dependiendo del entorno en el que te encuentres:
+
+| Entorno | Base URL | Descripción |
+| :--- | :--- | :--- |
+| **Producción** | `http://msv-service.placetopay.com/` | Entorno transaccional real. |
+
+## Webhook
+
+Para el uso del **Webhook** debes configurar en tu servidor una URL que reciba la notificación mediante `POST` con la siguiente estructura:
+
+```json
+    {
+        "status": {
+            "status": "APPROVED",
+            "reason": null,
+            "message": "El usuario ha respondido",
+            "date": "2022-08-08 17:23:49"
+        },
+        "token": "d996b93d-4e81-4896-8f73-aa21010d08de",
+        "reference": "0122333444455555",
+        "kind": "horus",
+        "signature": "feb3e7cc76939c346f9640573a208662f30704ab"
+    }
+```
+
+Puedes validar que se trate de una respuesta de PlacetoPay haciendo un HASH256 con los datos `token` + `status.status` + `status.date` + `secret_token`. Para el caso del ejemplo y si el secret_token del user fuera ABCD1234 sería:
+
+```php
+hash('sha256', "d996b93d-4e81-4896-8f73-aa21010d08deAPPROVED2022-08-08 17:23:49ABCD1234")
+```
+
+Si este valor coincide con el valor proporcionado por el signature, puedes autenticar la respuesta y proceder a persistir el registro en la base de datos.
+
+Bajo ninguna circunstancia reveles exponiendo tu `secret_token` en ninguna parte accesible a los clientes o usuarios de tu aplicación.
+
+---
+
+## Servicios disponibles
+
+Explora los endpoints disponibles:
+
+* [**Login**](/msv-service/api/login): El punto de entrada. Permite crear un nuevo autopago o editar uno existente.
+* [**Validation**](/msv-service/api/validation): Consulta el estado y detalles de tus autopagos.
+* [**Validation query**](/msv-service/api/validation-query): Obtén el historial de cobros realizados sobre un autopago específico.
+* [**Notification**](/msv-service/api/notification): Detén un autopago para evitar futuros cobros.
