@@ -8,7 +8,7 @@ export const EmailIcon = ({ className }) => {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <g transform="translate(10 8) scale(0.86)">
+      <g transform="translate(16 3) scale(0.95)">
         <rect x="4" y="6" width="132" height="84" rx="10" fill="#D1D5DB" />
         <rect x="4" y="6" width="132" height="11" rx="10" fill="#F9FAFB" />
         <circle cx="12" cy="11.5" r="1.6" fill="#E5E7EB" />
@@ -50,6 +50,7 @@ export const EmailIcon = ({ className }) => {
     </svg>
   )
 }
+
 
 
 
