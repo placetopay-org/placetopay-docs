@@ -1,0 +1,58 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+<HeroPattern />
+
+# MSV Service API Reference
+
+Welcome to the MSV Service technical reference. Our API is built under RESTful principles, uses **JSON** for data exchange, and standard HTTP response codes.
+
+## ¿What is MSV Service?
+It is a service that allows you to send notification or validation messages using channels such as WhatsApp, SMS, or email.
+
+## Environments and base URL
+
+All requests must be sent to the following base URL, depending on your environment:
+
+| Environment | Base URL | Description |
+| :--- | :--- | :--- |
+| **Production** | `http://msv-service.placetopay.com/` | Real transactional environment. |
+
+## Webhook
+
+To use the **Webhook**, you must configure a URL on your server to receive `POST` notifications with the following structure:
+
+```json
+    {
+        "status": {
+            "status": "APPROVED",
+            "reason": null,
+            "message": "The user has responded",
+            "date": "2022-08-08 17:23:49"
+        },
+        "token": "d996b93d-4e81-4896-8f73-aa21010d08de",
+        "reference": "0122333444455555",
+        "kind": "horus",
+        "signature": "feb3e7cc76939c346f9640573a208662f30704ab"
+    }
+```
+
+You can validate that the response comes from PlacetoPay by generating a SHA-256 hash with the following data: `token` + `status.status` + `status.date` + `secret_token`. For this example, if the user secret token is ABCD1234, it would be:
+
+```php
+hash('sha256', "d996b93d-4e81-4896-8f73-aa21010d08deAPPROVED2022-08-08 17:23:49ABCD1234")
+```
+
+If this value matches the `signature` value, you can authenticate the response and proceed to persist the record in your database.
+
+Under no circumstances should you expose your `secret_token` in any location accessible to your customers or application users.
+
+---
+
+## Available services
+
+Explore the available endpoints:
+
+* [**Login**](/en/msv-service/api/login): Allows you to obtain a token to make API requests.
+* [**Validation**](/en/msv-service/api/validation): Create a validation request.
+* [**Validation query**](/en/msv-service/api/validation-query): Check the previously created validation request.
+* [**Notification**](/en/msv-service/api/notification): Create a notification request.

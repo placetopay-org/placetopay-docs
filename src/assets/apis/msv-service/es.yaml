@@ -1,0 +1,1145 @@
+openapi: 3.1.0
+info:
+  title: MSV Service
+  version: '1.0'
+  description: |
+    ## Descripción:
+    Este servicio permite enviar mensajes de notificación o validación empleando canales como whatsapp, sms o email.
+
+    ## Webhook:
+    Para el uso del **webhook** debes configurar un tu servidor una URL que reciba la notificación mediante **POST** con la siguiente estructura:
+
+    ~~~ json
+    {
+      "status": {
+        "status": "APPROVED",
+        "reason": null,
+        "message": "El usuario ha respondido",
+        "date": "2022-08-08 17:23:49"
+      },
+      "token": "d996b93d-4e81-4896-8f73-aa21010d08de",
+      "reference": "0122333444455555",
+      "kind": "horus"
+      "signature": "feb3e7cc76939c346f9640573a208662f30704ab"
+    }
+    ~~~
+
+    Puedes validar que se trate de una respuesta de PlacetoPay haciendo un HASH256 con los datos **token + status.status + status.date + secret_token**. Para el caso del ejemplo y si el **secret_token** del user fuera ABCD1234 sería:
+    ~~~
+    hash('sha256',"d996b93d-4e81-4896-8f73-aa21010d08deAPPROVED2022-08-08 17:23:49ABCD1234")
+    ~~~
+
+    Si este valor coincide con el valor proporcionado por el **signature**, puedes autenticar la respuesta y proceder a persistir el registro en la base de datos.
+
+
+    Bajo ninguna circunstancia reveles exponiendo tu **secret_token** en ninguna parte accesible a los clientes o usuarios de su aplicación.
+  contact:
+    name: ''
+    email: ''
+    url: https://69fnf1fnzg.execute-api.us-east-1.amazonaws.com/
+  termsOfService: https://69fnf1fnzg.execute-api.us-east-1.amazonaws.com/
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://msv-service.placetopay.com/
+    description: Prod
+paths:
+  "/api/login":
+    post:
+      summary: Login
+      operationId: post-api-login
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  example-1:
+                    status:
+                      status: OK
+                      reason:
+                      message:
+                      date: '2022-08-16T13:12:18+00:00'
+                    access_token: 5d791fa9-91c2-401a-a20e-8e9569e5edec|gYs7WRqfd2NEgiJHOWbaXmyESa1JH4Gs98FDfXBE
+                    secret_token: DYJKxUKzgzFaXK2UYkqOy6xd7X1suCnn
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la respuesta
+                        example: OK
+                      reason:
+                        type: string
+                        description: Código de respuesta
+                        example: 'null'
+                      message:
+                        type: string
+                        description: Descripción de la respuesta
+                        example: 'null'
+                      date:
+                        type: string
+                        format: date-time
+                        description: Fecha y hora respuesta
+                        example: '2022-08-16T13:12:18+00:00'
+                  access_token:
+                    type: string
+                    description: token de acceso del usuario
+                    example: 5d791fa9-91c2-401a-a20e-8e9569e5edec|gYs7WRqfd2NEgiJHOWbaXmyESa1JH4Gs98FDfXBE
+                  secret_token:
+                    type: string
+                    description: Secret token del usuario
+                    example: DYJKxUKzgzFaXK2UYkqOy6xd7X1suCnn
+              examples:
+                example-1:
+                  value:
+                    status:
+                      status: OK
+                      reason:
+                      message:
+                      date: '2022-08-16T13:12:18+00:00'
+                    access_token: 5d791fa9-91c2-401a-a20e-8e9569e5edec|gYs7WRqfd2NEgiJHOWbaXmyESa1JH4Gs98FDfXBE
+                    secret_token: DYJKxUKzgzFaXK2UYkqOy6xd7X1suCnn
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  example-1:
+                    status:
+                      status: FAILED
+                      reason:
+                      message: These credentials do not match our records.
+                      date: '2022-08-16T13:27:04+00:00'
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la respuesta
+                        example: FAILED
+                      reason:
+                        type: string
+                        description: Código de respuesta
+                        example: 'null'
+                      message:
+                        type: string
+                        description: Descripción de la respuesta
+                        example: These credentials do not match our records.
+                      date:
+                        type: string
+                        description: Fecha y hora respuesta
+                        format: date-time
+                        example: '2022-08-16T13:27:04+00:00'
+              examples:
+                example-1:
+                  value:
+                    status:
+                      status: FAILED
+                      reason:
+                      message: These credentials do not match our records.
+                      date: '2022-08-16T13:27:04+00:00'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  example-1:
+                    status:
+                      status: FAILED
+                      reason:
+                      message: The username field is required.
+                      date: '2022-08-16T13:22:18+00:00'
+                    errors:
+                      username:
+                        - The username field is required.
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la respuesta
+                        example: FAILED
+                      reason:
+                        type: string
+                        description: Código de respuesta
+                        example: 'null'
+                      message:
+                        type: string
+                        description: Descripción de la respuesta
+                        example: The username field is required.
+                      date:
+                        type: string
+                        description: Fecha y hora respuesta
+                        example: '2022-08-16T13:22:18+00:00'
+                  errors:
+                    type: object
+                    description: Estructura de errores
+                    properties:
+                      key:
+                        type: array
+                        description: Campo que no supera la validación
+                        items:
+                          type: string
+                          example: username
+              examples:
+                example-1:
+                  value:
+                    status:
+                      status: FAILED
+                      reason:
+                      message: The username field is required.
+                      date: '2022-08-16T13:22:18+00:00'
+                    errors:
+                      username:
+                        - The username field is required.
+      description: Obtener token para realizar peticiones a la API.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              x-examples:
+                example-1:
+                  user: RestService
+                  password: password
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  description: Nombre de la aplicación usuario
+                  example: RestService
+                password:
+                  type: string
+                  description: Contraseña definida por el usuario
+                  example: password
+            examples: {}
+        description: ''
+      parameters: []
+  "/api/validations":
+    parameters: []
+    post:
+      summary: Validation
+      operationId: postapi-request
+      responses:
+        '200':
+          description: Webhook Response
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  example-1:
+                    status:
+                      status: APPROVED
+                      message: El usuario ha respondido
+                      date: '2022-08-08 17:23:49'
+                    token: d996b93d-4e81-4896-8f73-aa21010d08de
+                    reference: '0122333444455555'
+                    kind: horus
+                    signature: feb3e7cc76939c346f9640573a208662f30704ab
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la respuesta
+                        enum:
+                          - PENDING
+                          - APPROVED
+                          - REJECTED
+                          - EXPIRED
+                      reason:
+                        type:
+                          - string
+                          - 'null'
+                        description: Código de respuesta
+                        example: 'null'
+                      message:
+                        type: string
+                        description: Descripción de la respuesta
+                        example: El usuario ha respondidio.
+                      date:
+                        type: string
+                        format: date-time
+                        description: Fecha y hora de respuesta
+                        example: '2022-08-12T22:27:27+00:00'
+                  reference:
+                    type: string
+                    description: identificador del item a validar
+                    example: '0122333444455555'
+                  token:
+                    type: string
+                    description: uuid identificador de la solicitud
+                    example: d996b93d-4e81-4896-8f73-aa21010d08de
+                  kind:
+                    type: string
+                    description: Clasificación de la solicitud
+                    example: horus
+                  signature:
+                    type: string
+                    description: Firma de la petición, compuesto por hash('sha256',
+                      token + status.status + status.date + secret_token)
+                    example: feb3e7cc76939c346f9640573a208662f30704ab
+        '201':
+          description: Validation Response
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  example-1:
+                    status:
+                      status: PENDING
+                      message: Pendiente
+                      date: '2022-07-08T09:34:48-05:00'
+                    token: 89f2b2dc-27a6-498d-a94b-578ab0e82a05
+                    reference: '994887395'
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la respuesta
+                        enum:
+                          - PENDING
+                          - APPROVED
+                          - REJECTED
+                          - EXPIRED
+                      reason:
+                        type:
+                          - string
+                          - 'null'
+                        description: Código de respuesta
+                        example: '200'
+                      message:
+                        type: string
+                        description: Descripción de la respuesta
+                        example: Transacción pendiente de aprobación
+                      date:
+                        type: string
+                        description: Fecha y hora de respuesta
+                        format: date-time
+                        example: '2022-08-08 17:23:49'
+                  reference:
+                    type: string
+                    description: identificador del item a validar
+                    example: '0122333444455555'
+                  token:
+                    type: string
+                    description: uuid identificador de la solicitud
+                    example: d996b93d-4e81-4896-8f73-aa21010d08de
+                  kind:
+                    type: string
+                    description: Clasificación de la solicitud
+                    example: horus
+        '400':
+          description: Exception
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  example-1:
+                    status:
+                      status: FAILED
+                      reason: '402'
+                      message: "[HTTP 400] Unable to create record: The 'To' number
+                        +571234567890 is not a valid phone number."
+                      date: '2022-08-08 17:23:49'
+                    token: d996b93d-4e81-4896-8f73-aa21010d08de
+                    reference: '0122333444455555'
+                    kind: horus
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la respuesta
+                        example: FAILED
+                      reason:
+                        type:
+                          - string
+                          - 'null'
+                        description: Código de respuesta
+                        example: '400'
+                      message:
+                        type: string
+                        description: Descripción de la respuesta
+                        example: "[HTTP 400] Unable to create record: The 'To' number
+                          +571234567890 is not a valid phone number."
+                      date:
+                        type: string
+                        description: Fecha y hora de respuesta
+                        format: date-time
+                        example: '2022-08-08 17:23:49'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  example-1:
+                    status:
+                      status: FAILED
+                      reason:
+                      message: El campo message es obligatorio.
+                      date: '2022-08-12T14:50:01+00:00'
+                    errors:
+                      message:
+                        - El campo message es obligatorio.
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la respuesta
+                        example: FAILED
+                      reason:
+                        type:
+                          - string
+                          - 'null'
+                        description: Código de la respuesta
+                        example: '400'
+                      message:
+                        type: string
+                        description: Descripción de la respuesta
+                        example: El campo message es obligatorio
+                      date:
+                        type: string
+                        description: Fecha y hora de respuesta
+                        format: date-time
+                        example: '2022-08-12T14:50:01+00:00'
+                  errors:
+                    type: object
+                    description: Estructura de errores
+                    properties:
+                      key:
+                        type: array
+                        description: Campo que no supera la validación
+                        minItems: 1
+                        items:
+                          type: string
+              examples:
+                example-1:
+                  value:
+                    status:
+                      status: FAILED
+                      reason:
+                      message: El campo message es obligatorio.
+                      date: '2022-08-12T14:50:01+00:00'
+                    errors:
+                      message:
+                        - El campo message es obligatorio.
+      description: Este servicio crea una solicitud de validación.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              x-examples:
+                example-1:
+                  locale: es
+                  reference: '994887395'
+                  action: notification
+                  message: this is a very long and generic message
+                  kind: Horus
+                  webhook_url: https://domain.com/
+                  minutes_by_expire: 15
+                  buttons:
+                    approve: approved option
+                    reject: reject option
+                  channels:
+                    sms:
+                      phone_number: "+571234567890"
+                      short_message: this is a short message used on sms channel
+                    whatsapp:
+                      phone_number: "+571234567890"
+                      short_message: this is a short message used on whatsapp channel
+                    email:
+                      email: example@email.com
+                      subject: an example subject for email
+              required:
+                - reference
+                - message
+                - webhook_url
+                - channels
+              properties:
+                locale:
+                  type: string
+                  example: es
+                  description: Define el idioma a usar en formato ISO 639-1
+                  minLength: 2
+                  maxLength: 2
+                reference:
+                  type: string
+                  description: identificador del item a validar
+                  example: ref-12548
+                message:
+                  type: string
+                  description: Mensaje que se visualizará en el correo electrónico
+                    y en vista de aprobación.
+                kind:
+                  type: string
+                  description: Campo para clasificar una solicitud
+                  example: Horus
+                webhook_url:
+                  type: string
+                  description: url en que se notificará la respuesta de la solicitud
+                  example: https://example-url.com/
+                minutes_by_expire:
+                  type: integer
+                  example: 20
+                  minimum: 1
+                  maximum: 60
+                  description: Número de minutos en que tarda en expirar una solicitud.
+                    (valor por defecto 30, mínimo 1, máximo 60)
+                buttons:
+                  type: object
+                  description: Estructura que indica el mensaje de las opciones de
+                    aprobación o rechazo
+                  minProperties: 2
+                  maxProperties: 2
+                  required:
+                    - approve
+                    - reject
+                  properties:
+                    approve:
+                      type: string
+                      description: Mensaje que se presenta en la opción de aprobación
+                      example: si, aceptar, acepto
+                    reject:
+                      type: string
+                      description: Mensaje que se presenta en la opción de rechazo
+                      example: no, rechazar, rechazo
+                channels:
+                  type: object
+                  description: Estructura requerida para definir el detalle del canal
+                    a utilizar
+                  properties:
+                    sms:
+                      type: object
+                      required:
+                        - phone_number
+                        - short_message
+                      properties:
+                        phone_number:
+                          type: string
+                          description: Número telefónico en formato E.164
+                          example: "+573124567890"
+                          pattern: "^\\+?[1-9]\\d{11,14}$"
+                        short_message:
+                          type: string
+                          description: mensaje corto que se visualizará en sms
+                    whatsapp:
+                      type: object
+                      required:
+                        - phone_number
+                        - template
+                      properties:
+                        phone_number:
+                          type: string
+                          description: Número telefónico en formato E.164
+                          example: "+573124567890"
+                          pattern: "^\\+?[1-9]\\d{11,14}$"
+                        template:
+                          type: object
+                          description: plantilla mensaje whatsapp
+                          required:
+                            - name
+                            - parameters
+                          properties:
+                            name:
+                              type: string
+                              example: hello_world
+                            lang:
+                              type: string
+                              example: en_US
+                              description: El idioma esta definido por la plantilla
+                                creada en meta
+                            parameters:
+                              type: array
+                              description: |-
+                                Para establecer la posición del enlace en la plantilla usar [URL_VALIDATION] ejemplo:
+
+                                ["Name","Price","Merchant","[URL_VALIDATION]"]
+                              items:
+                                type: string
+                    email:
+                      type: object
+                      required:
+                        - email
+                        - subject
+                      properties:
+                        email:
+                          type: string
+                          description: Dirección de correo electrónico
+                          format: email
+                          example: dnetix@yopmail.com
+                        subject:
+                          type: string
+                          description: Asunto del correo electrónico
+                          example: Asunto correo
+            examples:
+              Email:
+                value:
+                  locale: es
+                  reference: ref-12548
+                  message: Example Validation
+                  kind: Horus
+                  webhook_url: https://example-url.com/
+                  minutes_by_expire: 10
+                  buttons:
+                    approve: si, aceptar, acepto
+                    reject: no, rechazar, rechazo
+                  channels:
+                    email:
+                      email: dnetix@yopmail.com
+                      subject: Asunto correo
+              Whatsapp:
+                value:
+                  locale: es
+                  reference: ref-12548
+                  message: Example Validation
+                  kind: Horus
+                  webhook_url: https://example-url.com/
+                  minutes_by_expire: 10
+                  buttons:
+                    approve: si, aceptar, acepto
+                    reject: no, rechazar, rechazo
+                  channels:
+                    whatsapp:
+                      phone_number: "+573124567890"
+                      template:
+                        name: msv_transaction
+                        lang: es
+                        parameters:
+                          - Name
+                          - Price
+                          - Merchant
+                          - "[URL_VALIDATION]"
+              SMS:
+                value:
+                  locale: es
+                  reference: ref-12548
+                  message: Example Validation
+                  kind: Horus
+                  webhook_url: https://example-url.com/
+                  minutes_by_expire: 10
+                  buttons:
+                    approve: Aceptar
+                    reject: Rechazar
+                  channels:
+                    sms:
+                      phone_number: "+573124567890"
+                      short_message: SMS Message
+              All:
+                value:
+                  locale: es
+                  reference: ref-12548
+                  message: Example Validation
+                  kind: Horus
+                  webhook_url: https://example-url.com/
+                  minutes_by_expire: 20
+                  buttons:
+                    approve: si, aceptar, acepto
+                    reject: no, rechazar, rechazo
+                  channels:
+                    sms:
+                      phone_number: "+573124567890"
+                      short_message: SMS Message
+                    whatsapp:
+                      phone_number: "+573124567890"
+                      template:
+                        name: hello_world
+                        lang: en_US
+                        parameters:
+                          - Name
+                          - Price
+                          - Merchant
+                          - "[URL_VALIDATION]"
+                    email:
+                      email: dnetix@yopmail.com
+                      subject: Asunto correo
+          application/xml:
+            schema:
+              type: object
+              properties: {}
+        description: ''
+      parameters: []
+      security:
+        - Bearer: []
+  "/api/validation-query":
+    post:
+      summary: Validation query
+      operationId: post-api-validation-query
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  example-1:
+                    status:
+                      status: APPROVED
+                      message: Status validation is APPROVED
+                      date: '2022-08-08T16:25:45.839608Z'
+                    token: d996b93d-4e81-4896-8f73-aa21010d08de
+                    reference: '0122333444455555'
+                    kind: horus
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la validación
+                        enum:
+                          - PENDING
+                          - APPROVED
+                          - REJECTED
+                          - EXPIRED
+                        example: PENDING
+                      reason:
+                        type:
+                          - string
+                          - 'null'
+                        description: Código de respuesta
+                        example: 'null'
+                      message:
+                        type: string
+                        description: Descripción de la respuesta
+                        example: Status validation is PENDING
+                      date:
+                        type: string
+                        description: Fecha y hora de respuesta
+                        example: '2022-08-16T15:06:36+00:00'
+                        format: date-time
+                  token:
+                    type: string
+                    description: uuid identificador de la solicitud
+                    example: d996b93d-4e81-4896-8f73-aa21010d08de
+                  reference:
+                    type: string
+                    description: Identificador del item a validar
+                    example: '0122333444455555'
+                  kind:
+                    type: string
+                    description: Campo para clasificar una solicitud
+                    example: horus
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  example-1:
+                    message: The password field is required.
+                    errors:
+                      password:
+                        - The password field is required.
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la respuesta
+                        example: FAILED
+                      reason:
+                        type:
+                          - string
+                          - 'null'
+                        description: Código de la respuesta
+                        example: '400'
+                      message:
+                        type: string
+                        example: El campo token es obligatorio
+                      date:
+                        type: string
+                        description: Fecha y hora de respuesta
+                        example: '2022-08-12T14:50:01+00:00'
+                  errors:
+                    type: object
+                    description: Estructura de errores
+                    properties:
+                      key:
+                        type: array
+                        description: Campo que no supera la validación
+                        items:
+                          type: string
+              examples:
+                example-1:
+                  value:
+                    message: The token field is required.
+                    errors:
+                      token:
+                        - The token field is required.
+      description: Consulta de solicitud de validación previamente creada.
+      security:
+        - Bearer: []
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: a99e9b26-bc32-4454-b49b-68e08f1976ab
+                  description: Token generado en el método Validations
+              required:
+                - token
+  "/api/notifications":
+    parameters: []
+    post:
+      summary: Notification
+      operationId: postapi-requests
+      responses:
+        '200':
+          description: Notification Response
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  example-1:
+                    status:
+                      status: PENDING
+                      message: Pendiente
+                      date: '2022-07-08T09:34:48-05:00'
+                    token: 89f2b2dc-27a6-498d-a94b-578ab0e82a05
+                    reference: '994887395'
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la respuesta
+                        example: Ok
+                      reason:
+                        type:
+                          - string
+                          - 'null'
+                        description: Código de respuesta
+                        example: 'null'
+                      message:
+                        type: string
+                        description: Descripción de la respuesta
+                        example: El mensaje fue enviado exitosamente
+                      date:
+                        type: string
+                        description: Fecha y hora de respuesta
+                        format: date-time
+                        example: '2022-08-12T15:44:17+00:00'
+              examples:
+                Ok:
+                  value:
+                    status:
+                      status: Ok
+                      reason: 'null'
+                      message: El mensaje fue enviado exitosamente
+                      date: '2022-08-12T15:44:17+00:00'
+        '400':
+          description: Exception
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  example-1:
+                    status:
+                      status: APPROVED
+                      message: El usuario ha respondido
+                      date: '2022-08-08 17:23:49'
+                    token: d996b93d-4e81-4896-8f73-aa21010d08de
+                    reference: '0122333444455555'
+                    kind: horus
+                    signature: feb3e7cc76939c346f9640573a208662f30704ab
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la respuesta
+                        example: FAILED
+                      reason:
+                        type:
+                          - string
+                          - 'null'
+                        description: Código de respuesta
+                        example: '400'
+                      message:
+                        type: string
+                        description: Descripción de la respuesta
+                        example: "[HTTP 400] Unable to create record: The 'To' number
+                          +571234567890 is not a valid phone number."
+                      date:
+                        type: string
+                        format: date-time
+                        description: Fecha y hora de respuesta
+                        example: '2022-08-12T14:50:01+00:00'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  example-1:
+                    status:
+                      status: FAILED
+                      reason:
+                      message: El campo message es obligatorio.
+                      date: '2022-08-12T14:50:01+00:00'
+                    errors:
+                      message:
+                        - El campo message es obligatorio.
+                properties:
+                  status:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Estado de la respuesta
+                        example: FAILED
+                      reason:
+                        type:
+                          - string
+                          - 'null'
+                        description: Código de respuesta
+                        example: '400'
+                      message:
+                        type: string
+                        description: Descripción de la respuesta
+                        example: El campo message es obligatorio.
+                      date:
+                        type: string
+                        format: date-time
+                        description: Fecha y hora de respuesta
+                        example: '2022-08-12T14:50:01+00:00'
+                  errors:
+                    type: object
+                    description: Estructura de errores
+                    properties:
+                      key:
+                        type: array
+                        description: Campo que no supera la validación
+                        minItems: 1
+                        items:
+                          type: string
+                          example: locale
+              examples:
+                example-1:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: '400'
+                      message: El campo message es obligatorio.
+                      date: '2022-08-12T14:50:01+00:00'
+                    errors:
+                      message:
+                        - El campo message es obligatorio.
+      description: Este servicio crea una solicitud de notificación.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              x-examples:
+                example-1:
+                  locale: es
+                  reference: '994887395'
+                  action: notification
+                  message: this is a very long and generic message
+                  kind: Horus
+                  webhook_url: https://domain.com/
+                  minutes_by_expire: 15
+                  buttons:
+                    approve: approved option
+                    reject: reject option
+                  channels:
+                    sms:
+                      phone_number: "+571234567890"
+                      short_message: this is a short message used on sms channel
+                    whatsapp:
+                      phone_number: "+571234567890"
+                      short_message: this is a short message used on whatsapp channel
+                    email:
+                      email: example@email.com
+                      subject: an example subject for email
+              required:
+                - message
+                - channels
+              properties:
+                locale:
+                  type: string
+                  minLength: 2
+                  maxLength: 2
+                  example: es
+                  description: Define el idioma a usar en formato ISO 639-1
+                message:
+                  type: string
+                  description: Mensaje que se visualizará en correo electrónico.
+                  example: this is a very long and generic message
+                kind:
+                  type: string
+                  description: Campo para clasificar una solicitud
+                  example: Horus
+                channels:
+                  type: object
+                  description: Estructura requerida para definir el detalle del canal
+                    a utilizar
+                  properties:
+                    sms:
+                      type: object
+                      required:
+                        - phone_number
+                        - short_message
+                      properties:
+                        phone_number:
+                          type: string
+                          description: Número telefónico en formato E.164
+                          example: "+573124567890"
+                          pattern: "^\\+?[1-9]\\d{11,14}$"
+                        short_message:
+                          type: string
+                          description: mensaje corto que se visualizará en sms
+                          example: sms message
+                    whatsapp:
+                      type: object
+                      required:
+                        - phone_number
+                        - template
+                      properties:
+                        phone_number:
+                          type: string
+                          description: Número telefónico en formato E.164
+                          example: "+573124567890"
+                          pattern: "^\\+?[1-9]\\d{11,14}$"
+                        template:
+                          type: object
+                          description: plantilla mensaje whatsapp
+                          required:
+                            - name
+                            - parameters
+                          properties:
+                            name:
+                              type: string
+                              example: hello_world
+                            lang:
+                              type: string
+                              example: en_US
+                              description: El idioma esta definido por la plantilla
+                                creada en meta
+                            parameters:
+                              type: array
+                              description: Ejemplo:["Name","Price","Merchant"]
+                              items:
+                                type: string
+                    email:
+                      type: object
+                      required:
+                        - email
+                        - subject
+                      properties:
+                        email:
+                          type: string
+                          description: Dirección de correo electrónico
+                          format: email
+                          example: test@email.com
+                        subject:
+                          type: string
+                          description: Asunto del correo electrónico
+                          example: asunto correo
+                site_id:
+                  type: integer
+                  x-stoplight:
+                    id: 2c8tpihdr5e35
+                  description: Id del sitio
+                  example: 123
+            examples:
+              All:
+                value:
+                  locale: es
+                  message: this is a very long and generic message
+                  kind: Horus
+                  channels:
+                    whatsapp:
+                      phone_number: "+573124567890"
+                      template:
+                        name: hello_world
+                        lang: en_US
+                        parameters:
+                          - name
+                    sms:
+                      phone_number: "+573124567890"
+                      short_message: sms message
+                    email:
+                      email: mail@test.com
+                      subject: email subject
+              Email:
+                value:
+                  locale: es
+                  message: this is a very long and generic message
+                  kind: Horus
+                  channels:
+                    email:
+                      email: test@email.com
+                      subject: asunto correo
+              Whatsapp:
+                value:
+                  locale: es
+                  message: this is a very long and generic message
+                  kind: Horus
+                  channels:
+                    whatsapp:
+                      phone_number: "+573124567890"
+                      template:
+                        name: hello_world
+                        lang: en_US
+                        parameters:
+                          - name
+              SMS:
+                value:
+                  locale: es
+                  message: this is a very long and generic message
+                  kind: Horus
+                  channels:
+                    sms:
+                      phone_number: "+573124567890"
+                      short_message: sms message
+        description: ''
+      security:
+        - Bearer: []
+      parameters: []
+components:
+  schemas: {}
+  responses: {}
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer

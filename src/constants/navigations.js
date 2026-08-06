@@ -8,7 +8,8 @@ import {
   Link,
   MonitorMobbile,
   SecurityCard,
-  ShieldTick
+  ShieldTick,
+  SmsTracking,
 } from 'iconsax-react'
 
 /**
@@ -105,6 +106,12 @@ export const NAMESPACES_SELECTOR = {
       href: '/autopay',
       icon: Courthouse,
     },
+    {
+      title: 'MSV Service',
+      description: 'Servicio de notificaciones',
+      href: '/msv-service/api',
+      icon: SmsTracking,
+    },
   ],
   [LANGUAGES_CODES.EN]: [
     {
@@ -191,6 +198,12 @@ export const NAMESPACES_SELECTOR = {
       href: '/en/autopay',
       icon: Courthouse,
     },
+    {
+      title: 'MSV Service',
+      description: 'Notification service',
+      href: '/en/msv-service/api',
+      icon: SmsTracking,
+    },
   ],
 }
 
@@ -219,6 +232,7 @@ export const NAMESPACE_ROUTES = {
   'selfdeclarations': 'selfdeclarations',
   invoices: 'invoices',
   'autopay': 'autopay',
+  'msv-service': 'msvService',
 }
 
 /**
@@ -255,33 +269,51 @@ export const TAB_NAVIGATION = {
             title: 'Pagos',
             links: [
               {
-                title: 'Introducción', href: '/payments'
+                title: 'Introducción',
+                href: '/payments',
               },
               {
-                title: 'Conversión dinámica de monedas', href: '/payments/currency-conversion',
+                title: 'Conversión dinámica de monedas',
+                href: '/payments/currency-conversion',
               },
             ],
           },
           {
             title: 'Gestiona tu cuenta en nuestro Dash',
             links: [
-              { title: 'Introducción', href: '/payments/newpanel/introduction' },
+              {
+                title: 'Introducción',
+                href: '/payments/newpanel/introduction',
+              },
               {
                 title: 'Ingreso a Dash',
                 links: [
-                  { title: 'Migración de usuario', href: '/payments/newpanel/users/migration' },
-                  { title: 'Creación de usuario', href: '/payments/newpanel/users/createuser' },
-
+                  {
+                    title: 'Migración de usuario',
+                    href: '/payments/newpanel/users/migration',
+                  },
+                  {
+                    title: 'Creación de usuario',
+                    href: '/payments/newpanel/users/createuser',
+                  },
                 ],
               },
               {
-                title: 'Transacciones', links: [
-                  { title: 'Consulta de transacciones', href: '/payments/newpanel/transaction/search' }
+                title: 'Transacciones',
+                links: [
+                  {
+                    title: 'Consulta de transacciones',
+                    href: '/payments/newpanel/transaction/search',
+                  },
                 ],
               },
               {
-                title: 'Reportes transaccionales', links: [
-                  { title: 'Exportes y estadísticas', href: '/payments/newpanel/reports/export' }
+                title: 'Reportes transaccionales',
+                links: [
+                  {
+                    title: 'Exportes y estadísticas',
+                    href: '/payments/newpanel/reports/export',
+                  },
                 ],
               },
             ],
@@ -289,9 +321,18 @@ export const TAB_NAVIGATION = {
           {
             title: 'Link de pagos',
             links: [
-              { title: 'Introducción', href: '/payments/payments-links/introduction' },
-              { title: 'Crear link de pagos', href: '/payments/payments-links/create-payment-link' },
-              { title: 'Gestionar link de pagos', href: '/payments/payments-links/link-management' }
+              {
+                title: 'Introducción',
+                href: '/payments/payments-links/introduction',
+              },
+              {
+                title: 'Crear link de pagos',
+                href: '/payments/payments-links/create-payment-link',
+              },
+              {
+                title: 'Gestionar link de pagos',
+                href: '/payments/payments-links/link-management',
+              },
             ],
           },
           {
@@ -304,18 +345,34 @@ export const TAB_NAVIGATION = {
           {
             title: 'Micrositios',
             links: [
-              { title: 'Introducción', href: '/payments/introduction-to-microsites' },
               {
-                title: 'Micrositio Abierto', links: [
-                  { title: 'Introducción', href: '/payments/microsite-open/introduction' },
-                  { title: 'Estructura de Campos', href: '/payments/microsite-open/fields' },
-
+                title: 'Introducción',
+                href: '/payments/introduction-to-microsites',
+              },
+              {
+                title: 'Micrositio Abierto',
+                links: [
+                  {
+                    title: 'Introducción',
+                    href: '/payments/microsite-open/introduction',
+                  },
+                  {
+                    title: 'Estructura de Campos',
+                    href: '/payments/microsite-open/fields',
+                  },
                 ],
               },
               {
-                title: 'Micrositio Cerrado', links: [
-                  { title: 'Introducción', href: '/payments/microsite-closed/introduction' },
-                  { title: 'Carga de Órdenes', href: '/payments/microsite-closed/charge-invoice' },
+                title: 'Micrositio Cerrado',
+                links: [
+                  {
+                    title: 'Introducción',
+                    href: '/payments/microsite-closed/introduction',
+                  },
+                  {
+                    title: 'Carga de Órdenes',
+                    href: '/payments/microsite-closed/charge-invoice',
+                  },
                 ],
               },
             ],
@@ -323,15 +380,33 @@ export const TAB_NAVIGATION = {
           {
             title: 'Micrositio Personalizado',
             links: [
-              { title: 'Introducción', href: '/payments/microsite-customized/introduction' },
-              { title: 'Cómo Funciona', href: '/payments/microsite-customized/how-to-work' },
+              {
+                title: 'Introducción',
+                href: '/payments/microsite-customized/introduction',
+              },
+              {
+                title: 'Cómo Funciona',
+                href: '/payments/microsite-customized/how-to-work',
+              },
               {
                 title: 'Integración',
                 links: [
-                  { title: 'Autenticación', href: '/payments/microsite-customized/authentication' },
-                  { title: 'Servicios', href: '/payments/microsite-customized/services' },
-                  { title: 'Manejo de errores', href: '/payments/microsite-customized/error-handling' },
-                  { title: 'Estructuras de datos', href: '/payments/microsite-customized/data-structures' },
+                  {
+                    title: 'Autenticación',
+                    href: '/payments/microsite-customized/authentication',
+                  },
+                  {
+                    title: 'Servicios',
+                    href: '/payments/microsite-customized/services',
+                  },
+                  {
+                    title: 'Manejo de errores',
+                    href: '/payments/microsite-customized/error-handling',
+                  },
+                  {
+                    title: 'Estructuras de datos',
+                    href: '/payments/microsite-customized/data-structures',
+                  },
                 ],
               },
             ],
@@ -339,7 +414,10 @@ export const TAB_NAVIGATION = {
           {
             title: 'Flujos de Pago',
             links: [
-              { title: 'Proceso de pago en WebCheckout', href: '/payments/process-pay' },
+              {
+                title: 'Proceso de pago en WebCheckout',
+                href: '/payments/process-pay',
+              },
               { title: 'Preautorización', href: '/payments/preauthorization' },
               { title: 'Conciliación', href: '/payments/conciliation' },
             ],
@@ -353,26 +431,42 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Tarjetas',
-                links: [
-                  { title: 'EBT', href: '/payments/cards/ebt' },
-                ],
+                links: [{ title: 'EBT', href: '/payments/cards/ebt' }],
               },
               {
                 title: 'Débitos bancarios',
                 links: [
-                  { title: 'ACH Débito Bancario', href: '/payments/external-redirects/ach-bank-debit' },
+                  {
+                    title: 'ACH Débito Bancario',
+                    href: '/payments/external-redirects/ach-bank-debit',
+                  },
                 ],
               },
-               {
-                 title: 'Redireccionamientos externos',
-                 links: [
-                   { title: 'ATH Móvil', href: '/payments/external-redirects/ath-movil' },
-                   { title: 'Bre-B', href: '/payments/external-redirects/bre-b' },
-                   { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
-                   { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
-                   { title: 'Zunify', href: '/payments/external-redirects/zunify' },
-                 ],
-               },
+              {
+                title: 'Redireccionamientos externos',
+                links: [
+                  {
+                    title: 'ATH Móvil',
+                    href: '/payments/external-redirects/ath-movil',
+                  },
+                  {
+                    title: 'Bre-B',
+                    href: '/payments/external-redirects/bre-b',
+                  },
+                  {
+                    title: 'CeroPay',
+                    href: '/payments/external-redirects/ceropay',
+                  },
+                  {
+                    title: 'Deuna!',
+                    href: '/payments/external-redirects/deuna',
+                  },
+                  {
+                    title: 'Zunify',
+                    href: '/payments/external-redirects/zunify',
+                  },
+                ],
+              },
               {
                 title: 'Efectivo',
                 links: [
@@ -382,30 +476,39 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Billeteras',
                 links: [
-                  { title: 'Click to Pay', href: '/payments/wallets/clicktopay' },
+                  {
+                    title: 'Click to Pay',
+                    href: '/payments/wallets/clicktopay',
+                  },
                   { title: 'Google Pay', href: '/payments/wallets/googlepay' },
                 ],
-              }
+              },
             ],
           },
           {
             title: 'Integraciones',
             links: [
-              { title: 'Modificadores de transacción', href: '/payments/integrations/transaction-modifiers' },
+              {
+                title: 'Modificadores de transacción',
+                href: '/payments/integrations/transaction-modifiers',
+              },
             ],
           },
           {
             title: 'Reportes de conciliación bancaria ',
             links: [
-              { title: 'Reportes de conciliación bancaria', href: '/payments/bank-reports/bank-reports-pr' },
+              {
+                title: 'Reportes de conciliación bancaria',
+                href: '/payments/bank-reports/bank-reports-pr',
+              },
               {
                 title: 'Ejemplos de reportes de conciliación bancaria',
-                href: '/payments/bank-reports/bank-reports-pr-examples'
+                href: '/payments/bank-reports/bank-reports-pr-examples',
               },
             ],
-          }
+          },
         ],
-      }
+      },
     ],
     [LANGUAGES_CODES.EN]: [
       {
@@ -418,29 +521,48 @@ export const TAB_NAVIGATION = {
             title: 'Payments',
             links: [
               { title: 'Introduction', href: '/payments' },
-              { title: 'Dynamic Currency Conversion', href: '/payments/currency-conversion' },
+              {
+                title: 'Dynamic Currency Conversion',
+                href: '/payments/currency-conversion',
+              },
             ],
           },
           {
             title: 'Manage your account on our Dash',
             links: [
-              { title: 'Introduction', href: '/payments/newpanel/introduction' },
+              {
+                title: 'Introduction',
+                href: '/payments/newpanel/introduction',
+              },
               {
                 title: 'Access to Dash',
                 links: [
-                  { title: 'User migration', href: '/payments/newpanel/users/migration' },
-                  { title: 'User creation', href: '/payments/newpanel/users/createuser' },
-
+                  {
+                    title: 'User migration',
+                    href: '/payments/newpanel/users/migration',
+                  },
+                  {
+                    title: 'User creation',
+                    href: '/payments/newpanel/users/createuser',
+                  },
                 ],
               },
               {
-                title: 'Transactions', links: [
-                  { title: 'Transaction inquiry', href: '/payments/newpanel/transaction/search' }
+                title: 'Transactions',
+                links: [
+                  {
+                    title: 'Transaction inquiry',
+                    href: '/payments/newpanel/transaction/search',
+                  },
                 ],
               },
               {
-                title: 'Transactional reports', links: [
-                  { title: 'Exports and statistics', href: '/payments/newpanel/reports/export' }
+                title: 'Transactional reports',
+                links: [
+                  {
+                    title: 'Exports and statistics',
+                    href: '/payments/newpanel/reports/export',
+                  },
                 ],
               },
             ],
@@ -448,9 +570,18 @@ export const TAB_NAVIGATION = {
           {
             title: 'Payment Links',
             links: [
-              { title: 'Introduction', href: '/payments/payments-links/introduction' },
-              { title: 'Create Payment Link', href: '/payments/payments-links/create-payment-link' },
-              { title: 'Manage Payment Links', href: '/payments/payments-links/link-management' }
+              {
+                title: 'Introduction',
+                href: '/payments/payments-links/introduction',
+              },
+              {
+                title: 'Create Payment Link',
+                href: '/payments/payments-links/create-payment-link',
+              },
+              {
+                title: 'Manage Payment Links',
+                href: '/payments/payments-links/link-management',
+              },
             ],
           },
           {
@@ -463,19 +594,34 @@ export const TAB_NAVIGATION = {
           {
             title: 'Microsites',
             links: [
-              { title: 'Introduction', href: '/payments/introduction-to-microsites' },
+              {
+                title: 'Introduction',
+                href: '/payments/introduction-to-microsites',
+              },
               {
                 title: 'Open Microsite',
                 links: [
-                  { title: 'Introduction', href: '/payments/microsite-open/introduction' },
-                  { title: 'Field Structure', href: '/payments/microsite-open/fields' },
+                  {
+                    title: 'Introduction',
+                    href: '/payments/microsite-open/introduction',
+                  },
+                  {
+                    title: 'Field Structure',
+                    href: '/payments/microsite-open/fields',
+                  },
                 ],
               },
               {
                 title: 'Closed Microsite',
                 links: [
-                  { title: 'Introduction', href: '/payments/microsite-closed/introduction' },
-                  { title: 'Order Upload', href: '/payments/microsite-closed/charge-invoice' },
+                  {
+                    title: 'Introduction',
+                    href: '/payments/microsite-closed/introduction',
+                  },
+                  {
+                    title: 'Order Upload',
+                    href: '/payments/microsite-closed/charge-invoice',
+                  },
                 ],
               },
             ],
@@ -483,15 +629,33 @@ export const TAB_NAVIGATION = {
           {
             title: 'Custom Microsite',
             links: [
-              { title: 'Introduction', href: '/payments/microsite-customized/introduction' },
-              { title: 'How to Work', href: '/payments/microsite-customized/how-to-work' },
+              {
+                title: 'Introduction',
+                href: '/payments/microsite-customized/introduction',
+              },
+              {
+                title: 'How to Work',
+                href: '/payments/microsite-customized/how-to-work',
+              },
               {
                 title: 'Integration',
                 links: [
-                  { title: 'Authentication', href: '/payments/microsite-customized/authentication' },
-                  { title: 'Services', href: '/payments/microsite-customized/services' },
-                  { title: 'Error handling', href: '/payments/microsite-customized/error-handling' },
-                  { title: 'Data structures', href: '/payments/microsite-customized/data-structures' },
+                  {
+                    title: 'Authentication',
+                    href: '/payments/microsite-customized/authentication',
+                  },
+                  {
+                    title: 'Services',
+                    href: '/payments/microsite-customized/services',
+                  },
+                  {
+                    title: 'Error handling',
+                    href: '/payments/microsite-customized/error-handling',
+                  },
+                  {
+                    title: 'Data structures',
+                    href: '/payments/microsite-customized/data-structures',
+                  },
                 ],
               },
             ],
@@ -499,7 +663,10 @@ export const TAB_NAVIGATION = {
           {
             title: 'Payment Flows',
             links: [
-              { title: 'Payment Process in Web Checkout', href: '/payments/process-pay' },
+              {
+                title: 'Payment Process in Web Checkout',
+                href: '/payments/process-pay',
+              },
               { title: 'Preauthorization', href: '/payments/preauthorization' },
               { title: 'Conciliation', href: '/payments/conciliation' },
             ],
@@ -513,57 +680,80 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Cards',
-                links: [
-                  { title: 'EBT', href: '/payments/cards/ebt' },
-                ],
+                links: [{ title: 'EBT', href: '/payments/cards/ebt' }],
               },
               {
                 title: 'Bank Debits',
                 links: [
-                  { title: 'ACH Bank Debit', href: '/payments/external-redirects/ach-bank-debit' },
+                  {
+                    title: 'ACH Bank Debit',
+                    href: '/payments/external-redirects/ach-bank-debit',
+                  },
                 ],
               },
-               {
-                 title: 'External redirects',
-                 links: [
-                   { title: 'ATH Móvil', href: '/payments/external-redirects/ath-movil' },
-                   { title: 'Bre-B', href: '/payments/external-redirects/bre-b' },
-                   { title: 'CeroPay', href: '/payments/external-redirects/ceropay' },
-                   { title: 'Deuna!', href: '/payments/external-redirects/deuna' },
-                   { title: 'Zunify', href: '/payments/external-redirects/zunify' },
-                 ],
-               },
+              {
+                title: 'External redirects',
+                links: [
+                  {
+                    title: 'ATH Móvil',
+                    href: '/payments/external-redirects/ath-movil',
+                  },
+                  {
+                    title: 'Bre-B',
+                    href: '/payments/external-redirects/bre-b',
+                  },
+                  {
+                    title: 'CeroPay',
+                    href: '/payments/external-redirects/ceropay',
+                  },
+                  {
+                    title: 'Deuna!',
+                    href: '/payments/external-redirects/deuna',
+                  },
+                  {
+                    title: 'Zunify',
+                    href: '/payments/external-redirects/zunify',
+                  },
+                ],
+              },
               {
                 title: 'Cash',
-                links: [
-                  { title: 'Cash payment', href: '/payments/cash/cash' },
-                ],
+                links: [{ title: 'Cash payment', href: '/payments/cash/cash' }],
               },
               {
                 title: 'Wallets',
                 links: [
-                  { title: 'Click to Pay', href: '/payments/wallets/clicktopay' },
+                  {
+                    title: 'Click to Pay',
+                    href: '/payments/wallets/clicktopay',
+                  },
                   { title: 'Google Pay', href: '/payments/wallets/googlepay' },
                 ],
-              }
+              },
             ],
           },
           {
             title: 'Integrations',
             links: [
-              { title: 'Transaction Modifiers', href: '/payments/integrations/transaction-modifiers' },
+              {
+                title: 'Transaction Modifiers',
+                href: '/payments/integrations/transaction-modifiers',
+              },
             ],
           },
           {
             title: 'Bank reconciliation reports',
             links: [
-              { title: 'Bank reconciliation reports', href: '/payments/bank-reports/bank-reports-pr' },
+              {
+                title: 'Bank reconciliation reports',
+                href: '/payments/bank-reports/bank-reports-pr',
+              },
               {
                 title: 'Examples of bank reconciliation reports',
-                href: '/payments/bank-reports/bank-reports-pr-examples'
+                href: '/payments/bank-reports/bank-reports-pr-examples',
               },
             ],
-          }
+          },
         ],
       },
     ],
@@ -583,7 +773,10 @@ export const TAB_NAVIGATION = {
               { title: 'Cómo funciona', href: '/checkout/how-checkout-works' },
               { title: 'Plugins y librerías', href: '/checkout/plugins' },
               { title: 'Lightbox', href: '/checkout/lightbox' },
-              { title: 'Navegadores soportados', href: '/checkout/browser-support' },
+              {
+                title: 'Navegadores soportados',
+                href: '/checkout/browser-support',
+              },
             ],
           },
           {
@@ -633,7 +826,7 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Sesiones con confirmación',
                 href: '/checkout/confirmation-flow',
-              }
+              },
             ],
           },
         ],
@@ -661,11 +854,18 @@ export const TAB_NAVIGATION = {
               { title: 'Pagos', href: '/checkout/api/reference/payment' },
               { title: 'Token', href: '/checkout/api/reference/token' },
               {
-                title: 'Gateway', links: [
-                  { title: 'Information', href: '/checkout/api/reference/gateway/information' },
-                  { title: 'Token', href: '/checkout/api/reference/gateway/token' },
+                title: 'Gateway',
+                links: [
+                  {
+                    title: 'Information',
+                    href: '/checkout/api/reference/gateway/information',
+                  },
+                  {
+                    title: 'Token',
+                    href: '/checkout/api/reference/gateway/token',
+                  },
                 ],
-              }
+              },
             ],
           },
         ],
@@ -763,12 +963,19 @@ export const TAB_NAVIGATION = {
               { title: 'Payments', href: '/checkout/api/reference/payment' },
               { title: 'Token', href: '/checkout/api/reference/token' },
               {
-                title: 'Gateway', links: [
-                  { title: 'Information', href: '/checkout/api/reference/gateway/information' },
-                  { title: 'Token', href: '/checkout/api/reference/gateway/token' },
+                title: 'Gateway',
+                links: [
+                  {
+                    title: 'Information',
+                    href: '/checkout/api/reference/gateway/information',
+                  },
+                  {
+                    title: 'Token',
+                    href: '/checkout/api/reference/gateway/token',
+                  },
                 ],
-              }
-            ]
+              },
+            ],
           },
         ],
       },
@@ -1030,7 +1237,7 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Introducción',
-                href: '/three-d-s-server'
+                href: '/three-d-s-server',
               },
               {
                 title: '¿Qué es el protocolo 3D-Secure?',
@@ -1080,7 +1287,7 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Inicio',
-                href: '/three-d-s-server/api'
+                href: '/three-d-s-server/api',
               },
               {
                 title: 'Requerimientos para el cliente que va a integrarse',
@@ -1202,7 +1409,7 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Introduction',
-                href: '/three-d-s-server'
+                href: '/three-d-s-server',
               },
               {
                 title: 'What is the 3D-Secure protocol?',
@@ -1218,7 +1425,7 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Error codes',
-                href: '/three-d-s-server/error-codes'
+                href: '/three-d-s-server/error-codes',
               },
               {
                 title: 'Frequently asked questions about 3DSS functioning',
@@ -1251,7 +1458,7 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Home',
-                href: '/three-d-s-server/api'
+                href: '/three-d-s-server/api',
               },
               {
                 title: 'Requirements for the client who is going to integrate',
@@ -1277,7 +1484,7 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Test Cards',
-                href: '/three-d-s-server/api/integration/test-cards'
+                href: '/three-d-s-server/api/integration/test-cards',
               },
             ],
           },
@@ -1312,7 +1519,7 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'API sessions',
-                href: '/three-d-s-server/api/sessions'
+                href: '/three-d-s-server/api/sessions',
               },
               {
                 title: 'Additional data',
@@ -1375,7 +1582,7 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Introducción',
-                href: '/token-requestor'
+                href: '/token-requestor',
               },
               {
                 title: 'Definiciones clave',
@@ -1423,14 +1630,17 @@ export const TAB_NAVIGATION = {
                 title: 'Enroll card',
                 href: '/token-requestor/api/enroll-card',
               },
-              { title: 'Get cryptogram', href: '/token-requestor/api/checkout' },
+              {
+                title: 'Get cryptogram',
+                href: '/token-requestor/api/checkout',
+              },
               {
                 title: 'Get token status',
                 href: '/token-requestor/api/get-token-status',
               },
               {
                 title: 'Delete token',
-                href: '/token-requestor/api/delete-token'
+                href: '/token-requestor/api/delete-token',
               },
             ],
           },
@@ -1466,7 +1676,7 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Introduction',
-                href: '/token-requestor'
+                href: '/token-requestor',
               },
               {
                 title: 'Key definitions',
@@ -1516,7 +1726,7 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Get cryptogram',
-                href: '/token-requestor/api/checkout'
+                href: '/token-requestor/api/checkout',
               },
               {
                 title: 'Get token status',
@@ -1524,7 +1734,7 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Delete token',
-                href: '/token-requestor/api/delete-token'
+                href: '/token-requestor/api/delete-token',
               },
             ],
           },
@@ -1566,9 +1776,12 @@ export const TAB_NAVIGATION = {
         href: '/sdks/pinpad/api',
         icon: DocumentCode,
         links: [
-          { title: 'API SDKs', links: [{ title: 'PinPad', href: '/sdks/pinpad/api' }] }
+          {
+            title: 'API SDKs',
+            links: [{ title: 'PinPad', href: '/sdks/pinpad/api' }],
+          },
         ],
-      }
+      },
     ],
     [LANGUAGES_CODES.EN]: [
       {
@@ -1589,9 +1802,12 @@ export const TAB_NAVIGATION = {
         href: '/en/sdks/pinpad/api',
         icon: DocumentCode,
         links: [
-          { title: 'API SDKs', links: [{ title: 'PinPad', href: '/sdks/pinpad/api' }] }
+          {
+            title: 'API SDKs',
+            links: [{ title: 'PinPad', href: '/sdks/pinpad/api' }],
+          },
         ],
-      }
+      },
     ],
   },
   acs: {
@@ -1617,7 +1833,7 @@ export const TAB_NAVIGATION = {
 
               {
                 title: 'Emisores en ACS',
-                href: '/acs/issuer-configuration'
+                href: '/acs/issuer-configuration',
               },
               {
                 title: 'Términos y definiciones',
@@ -1625,7 +1841,7 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Tarjetas de prueba',
-                href: '/acs/test-cards'
+                href: '/acs/test-cards',
               },
               {
                 title: 'Preguntas frecuentes sobre el funcionamiento ACS',
@@ -1657,7 +1873,7 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Issuers in ACS',
-                href: '/acs/issuer-configuration'
+                href: '/acs/issuer-configuration',
               },
               {
                 title: 'Terms and definitions',
@@ -1665,11 +1881,11 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Test cards',
-                href: '/acs/test-cards'
+                href: '/acs/test-cards',
               },
               {
                 title: 'FAQs about ACS functionality',
-                href: '/acs/f-a-q'
+                href: '/acs/f-a-q',
               },
             ],
           },
@@ -1689,11 +1905,26 @@ export const TAB_NAVIGATION = {
             title: 'Account Validator',
             links: [
               { title: 'Introducción', href: '/account-validator' },
-              { title: '¿Cómo funciona?', href: '/account-validator/how-to-work' },
-              { title: 'Flujo del usuario', href: '/account-validator/user-flow' },
-              { title: 'Micro depósitos', href: '/account-validator/micro-deposits' },
-              { title: 'Soporte para Lightbox', href: '/account-validator/support' },
-              { title: 'Webhook de Eventos', href: '/account-validator/webhooks' },
+              {
+                title: '¿Cómo funciona?',
+                href: '/account-validator/how-to-work',
+              },
+              {
+                title: 'Flujo del usuario',
+                href: '/account-validator/user-flow',
+              },
+              {
+                title: 'Micro depósitos',
+                href: '/account-validator/micro-deposits',
+              },
+              {
+                title: 'Soporte para Lightbox',
+                href: '/account-validator/support',
+              },
+              {
+                title: 'Webhook de Eventos',
+                href: '/account-validator/webhooks',
+              },
             ],
           },
         ],
@@ -1707,9 +1938,15 @@ export const TAB_NAVIGATION = {
           {
             title: 'API',
             links: [
-              { title: 'Url de ambientes', href: '/account-validator/api/environment-urls' },
+              {
+                title: 'Url de ambientes',
+                href: '/account-validator/api/environment-urls',
+              },
               { title: 'Sesión', href: '/account-validator/api/session' },
-              { title: 'Validador de cuenta', href: '/account-validator/api/validate-existing-account' },
+              {
+                title: 'Validador de cuenta',
+                href: '/account-validator/api/validate-existing-account',
+              },
             ],
           },
         ],
@@ -1728,7 +1965,10 @@ export const TAB_NAVIGATION = {
               { title: 'Introduction', href: '/account-validator' },
               { title: 'How it works', href: '/account-validator/how-to-work' },
               { title: 'User flow', href: '/account-validator/user-flow' },
-              { title: 'Micro deposits', href: '/account-validator/micro-deposits' },
+              {
+                title: 'Micro deposits',
+                href: '/account-validator/micro-deposits',
+              },
               { title: 'Lightbox support', href: '/account-validator/support' },
               { title: 'Webhooks', href: '/account-validator/webhooks' },
             ],
@@ -1744,9 +1984,15 @@ export const TAB_NAVIGATION = {
           {
             title: 'API',
             links: [
-              { title: 'Environment URLs', href: '/account-validator/api/environment-urls' },
+              {
+                title: 'Environment URLs',
+                href: '/account-validator/api/environment-urls',
+              },
               { title: 'Session', href: '/account-validator/api/session' },
-              { title: 'Account validator', href: '/account-validator/api/validate-existing-account' },
+              {
+                title: 'Account validator',
+                href: '/account-validator/api/validate-existing-account',
+              },
             ],
           },
         ],
@@ -1866,9 +2112,7 @@ export const TAB_NAVIGATION = {
         links: [
           {
             title: 'Micrositios',
-            links: [
-              { title: 'Introducción', href: '/microsites' },
-            ],
+            links: [{ title: 'Introducción', href: '/microsites' }],
           },
           {
             title: 'Integración',
@@ -1896,7 +2140,7 @@ export const TAB_NAVIGATION = {
                 href: '/microsites/api/reference/microsites',
               },
             ],
-          }
+          },
         ],
       },
     ],
@@ -1909,9 +2153,7 @@ export const TAB_NAVIGATION = {
         links: [
           {
             title: 'Microsites',
-            links: [
-              { title: 'Introduction', href: '/microsites' },
-            ],
+            links: [{ title: 'Introduction', href: '/microsites' }],
           },
           {
             title: 'Integration',
@@ -1939,61 +2181,61 @@ export const TAB_NAVIGATION = {
                 href: '/microsites/api/reference/microsites',
               },
             ],
-          }
+          },
         ],
       },
     ],
   },
-    tpm: {
-        [LANGUAGES_CODES.ES]: [
-            {
-                title: 'Documentación',
-                identifier: 'tpm',
-                href: '/tpm',
-                icon: Book,
-                links: [
-                    {
-                        title: 'Tokenización y cobros masivos',
-                        links: [{ title: 'Introducción', href: '/tpm' }],
-                    },
-                    {
-                        title: 'Integración',
-                        links: [
-                            { title: 'Tokenización', href: '/tpm/tokenization' },
-                            {
-                                title: 'Cobros Masivos',
-                                href: '/tpm/massive-recurring',
-                            },
-                        ],
-                    },
-                ],
-            },
+  tpm: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'tpm',
+        href: '/tpm',
+        icon: Book,
+        links: [
+          {
+            title: 'Tokenización y cobros masivos',
+            links: [{ title: 'Introducción', href: '/tpm' }],
+          },
+          {
+            title: 'Integración',
+            links: [
+              { title: 'Tokenización', href: '/tpm/tokenization' },
+              {
+                title: 'Cobros Masivos',
+                href: '/tpm/massive-recurring',
+              },
+            ],
+          },
         ],
-        [LANGUAGES_CODES.EN]: [
-            {
-                title: 'Documentation',
-                identifier: 'tpm',
-                href: '/tpm',
-                icon: Book,
-                links: [
-                    {
-                        title: 'Tokenization and massive recurring',
-                        links: [{ title: 'Introduction', href: '/tpm' }],
-                    },
-                    {
-                        title: 'Integration',
-                        links: [
-                            { title: 'Tokenization', href: '/tpm/tokenization' },
-                            {
-                                title: 'Massive Recurring',
-                                href: '/tpm/massive-recurring',
-                            },
-                        ],
-                    },
-                ],
-            },
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentation',
+        identifier: 'tpm',
+        href: '/tpm',
+        icon: Book,
+        links: [
+          {
+            title: 'Tokenization and massive recurring',
+            links: [{ title: 'Introduction', href: '/tpm' }],
+          },
+          {
+            title: 'Integration',
+            links: [
+              { title: 'Tokenization', href: '/tpm/tokenization' },
+              {
+                title: 'Massive Recurring',
+                href: '/tpm/massive-recurring',
+              },
+            ],
+          },
         ],
-    },
+      },
+    ],
+  },
   ticket: {
     [LANGUAGES_CODES.ES]: [
       {
@@ -2024,7 +2266,7 @@ export const TAB_NAVIGATION = {
             ],
           },
         ],
-      }
+      },
     ],
     [LANGUAGES_CODES.EN]: [
       {
@@ -2055,7 +2297,7 @@ export const TAB_NAVIGATION = {
             ],
           },
         ],
-      }
+      },
     ],
   },
   core: {
@@ -2075,49 +2317,49 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Acciones sobre comercios',
-                href: '/core/reference/merchant'
+                href: '/core/reference/merchant',
               },
               {
                 title: 'Acciones sobre lista de preferidos',
-                href: '/core/reference/site/prefer-list'
+                href: '/core/reference/site/prefer-list',
               },
               {
                 title: 'Acciones sobre medios de pago de sitios',
-                href: '/core/reference/site/payment-methods'
+                href: '/core/reference/site/payment-methods',
               },
               {
                 title: 'Acciones sobre métodos de pago',
-                href: '/core/reference/merchant/payment-methods'
+                href: '/core/reference/merchant/payment-methods',
               },
               {
                 title: 'Acciones sobre sitios',
-                href: '/core/reference/site'
+                href: '/core/reference/site',
               },
               {
                 title: 'Acciones sobre usuarios',
-                href: '/core/reference/user'
+                href: '/core/reference/user',
               },
               {
                 title: 'Acciones sobre planes',
-                href: '/core/reference/plans'
+                href: '/core/reference/plans',
               },
               {
                 title: 'Procedimientos adicionales',
-                href: '/core/reference/tools'
+                href: '/core/reference/tools',
               },
               {
                 title: 'Acciones sobre facturas',
-                href: '/core/reference/invoice'
+                href: '/core/reference/invoice',
               },
               {
                 title: 'Acciones sobre integraciones de comercios',
-                href: '/core/reference/merchant/integrations'
+                href: '/core/reference/merchant/integrations',
               },
               {
                 title: 'Acciones sobre integraciones de sitios',
-                href: '/core/reference/site/integrations'
+                href: '/core/reference/site/integrations',
               },
-            ]
+            ],
           },
         ],
       },
@@ -2138,53 +2380,53 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Actions on merchants',
-                href: '/core/reference/merchant'
+                href: '/core/reference/merchant',
               },
               {
                 title: 'Actions on preferred lists',
-                href: '/core/reference/site/prefer-list'
+                href: '/core/reference/site/prefer-list',
               },
               {
                 title: 'Actions on site payment methods',
-                href: '/core/reference/site/payment-methods'
+                href: '/core/reference/site/payment-methods',
               },
               {
                 title: 'Actions on payment methods',
-                href: '/core/reference/merchant/payment-methods'
+                href: '/core/reference/merchant/payment-methods',
               },
               {
                 title: 'Actions on sites',
-                href: '/core/reference/site'
+                href: '/core/reference/site',
               },
               {
                 title: 'Actions on users',
-                href: '/core/reference/user'
+                href: '/core/reference/user',
               },
               {
                 title: 'Actions on plans',
-                href: '/core/reference/plans'
+                href: '/core/reference/plans',
               },
               {
                 title: 'Additional procedures',
-                href: '/core/reference/tools'
+                href: '/core/reference/tools',
               },
               {
                 title: 'Actions on invoices',
-                href: '/core/reference/invoice'
+                href: '/core/reference/invoice',
               },
               {
                 title: 'Actions on merchant integrations',
-                href: '/core/reference/merchant/integrations'
+                href: '/core/reference/merchant/integrations',
               },
               {
                 title: 'Actions on site integrations',
-                href: '/core/reference/site/integrations'
+                href: '/core/reference/site/integrations',
               },
-            ]
+            ],
           },
         ],
-      }
-    ]
+      },
+    ],
   },
   apiScudo: {
     [LANGUAGES_CODES.ES]: [
@@ -2219,14 +2461,11 @@ export const TAB_NAVIGATION = {
                 href: '/api-scudo/document-types',
               },
             ],
-
           },
           {
             title: 'Reglas',
-            links: [
-              { title: 'Kount', href: '/api-scudo/kount' }
-            ]
-          }
+            links: [{ title: 'Kount', href: '/api-scudo/kount' }],
+          },
         ],
       },
       {
@@ -2238,14 +2477,29 @@ export const TAB_NAVIGATION = {
           {
             title: 'API',
             links: [
-              { title: 'Directorio de ambientes', href: '/api-scudo/api/reference/environments' },
-              { title: 'Validar transacción', href: '/api-scudo/api/reference/validate' },
-              { title: 'Notificar transacción', href: '/api-scudo/api/reference/notify' },
-              { title: 'Obtener validación', href: '/api-scudo/api/reference/validation' },
-              { title: 'Busqueda de validaciones', href: '/api-scudo/api/reference/search' },
+              {
+                title: 'Directorio de ambientes',
+                href: '/api-scudo/api/reference/environments',
+              },
+              {
+                title: 'Validar transacción',
+                href: '/api-scudo/api/reference/validate',
+              },
+              {
+                title: 'Notificar transacción',
+                href: '/api-scudo/api/reference/notify',
+              },
+              {
+                title: 'Obtener validación',
+                href: '/api-scudo/api/reference/validation',
+              },
+              {
+                title: 'Busqueda de validaciones',
+                href: '/api-scudo/api/reference/search',
+              },
               {
                 title: '[Webhook] Notificación de transacción resuelta',
-                href: '/api-scudo/api/reference/notify-resolved-validation'
+                href: '/api-scudo/api/reference/notify-resolved-validation',
               },
             ],
           },
@@ -2267,15 +2521,13 @@ export const TAB_NAVIGATION = {
               { title: 'Data elements', href: '/api-scudo/elements' },
               { title: 'Signature', href: '/api-scudo/signature' },
               { title: 'Amounts format', href: '/api-scudo/amounts-format' },
-              { title: 'Types of document', href: '/api-scudo/document-types', },
+              { title: 'Types of document', href: '/api-scudo/document-types' },
             ],
           },
           {
             title: 'Rules',
-            links: [
-              { title: 'Kount', href: '/api-scudo/kount' }
-            ]
-          }
+            links: [{ title: 'Kount', href: '/api-scudo/kount' }],
+          },
         ],
       },
       {
@@ -2287,14 +2539,29 @@ export const TAB_NAVIGATION = {
           {
             title: 'API',
             links: [
-              { title: 'Environments directory', href: '/api-scudo/api/reference/environments' },
-              { title: 'Validate transaction', href: '/api-scudo/api/reference/validate' },
-              { title: 'Notify transaction', href: '/api-scudo/api/reference/notify' },
-              { title: 'Get validation', href: '/api-scudo/api/reference/validation' },
-              { title: 'Search for validations', href: '/api-scudo/api/reference/search' },
+              {
+                title: 'Environments directory',
+                href: '/api-scudo/api/reference/environments',
+              },
+              {
+                title: 'Validate transaction',
+                href: '/api-scudo/api/reference/validate',
+              },
+              {
+                title: 'Notify transaction',
+                href: '/api-scudo/api/reference/notify',
+              },
+              {
+                title: 'Get validation',
+                href: '/api-scudo/api/reference/validation',
+              },
+              {
+                title: 'Search for validations',
+                href: '/api-scudo/api/reference/search',
+              },
               {
                 title: '[Webhook] Notification of transaction resolved',
-                href: '/api-scudo/api/reference/notify-resolved-validation'
+                href: '/api-scudo/api/reference/notify-resolved-validation',
               },
             ],
           },
@@ -2321,12 +2588,18 @@ export const TAB_NAVIGATION = {
             title: 'Integración',
             links: [
               { title: 'Autenticación API', href: '/autopay/authentication' },
-              { title: 'Autenticación de contratos', href: '/autopay/contract-authentication' },
-              { title: 'Configuración de recurrencia', href: '/autopay/recurring-setup' },
+              {
+                title: 'Autenticación de contratos',
+                href: '/autopay/contract-authentication',
+              },
+              {
+                title: 'Configuración de recurrencia',
+                href: '/autopay/recurring-setup',
+              },
               { title: 'Códigos de respuesta', href: '/autopay/codes' },
-              { title: 'Reintentos', href: '/autopay/retries'},
-              { title: 'Tipos de cobro', href: '/autopay/charge-types'},
-              { title: 'Estados', href: '/autopay/status'},
+              { title: 'Reintentos', href: '/autopay/retries' },
+              { title: 'Tipos de cobro', href: '/autopay/charge-types' },
+              { title: 'Estados', href: '/autopay/status' },
             ],
           },
         ],
@@ -2339,18 +2612,25 @@ export const TAB_NAVIGATION = {
         links: [
           {
             title: 'General',
-            links: [
-              { title: 'Introducción', href: '/autopay/api' },
-            ]
+            links: [{ title: 'Introducción', href: '/autopay/api' }],
           },
           {
             title: 'API',
             links: [
-              { title: 'Crear o actualizar sesión de AutoPago', href: '/autopay/api/session' },
-              { title: 'Consultar sesión de AutoPago', href: '/autopay/api/query' },
+              {
+                title: 'Crear o actualizar sesión de AutoPago',
+                href: '/autopay/api/session',
+              },
+              {
+                title: 'Consultar sesión de AutoPago',
+                href: '/autopay/api/query',
+              },
               { title: 'Cancelar AutoPago', href: '/autopay/api/cancel' },
               { title: 'Consulta de AutoPagos', href: '/autopay/api/search' },
-              { title: 'Transacciones de AutoPago', href: '/autopay/api/transactions' },
+              {
+                title: 'Transacciones de AutoPago',
+                href: '/autopay/api/transactions',
+              },
             ],
           },
         ],
@@ -2363,16 +2643,23 @@ export const TAB_NAVIGATION = {
         links: [
           {
             title: 'Documentos',
-            links: [
-              { title: 'Introducción', href: '/autopay/contracts' },
-            ],
+            links: [{ title: 'Introducción', href: '/autopay/contracts' }],
           },
           {
             title: 'Servicios',
             links: [
-              { title: 'Consultar monto a cobrar', href: '/autopay/contracts/balance' },
-              { title: 'Confirmar / Asentar pago', href: '/autopay/contracts/settlement' },
-              { title: 'Notificaciones (Webhook)', href: '/autopay/contracts/webhook' },
+              {
+                title: 'Consultar monto a cobrar',
+                href: '/autopay/contracts/balance',
+              },
+              {
+                title: 'Confirmar / Asentar pago',
+                href: '/autopay/contracts/settlement',
+              },
+              {
+                title: 'Notificaciones (Webhook)',
+                href: '/autopay/contracts/webhook',
+              },
             ],
           },
         ],
@@ -2396,14 +2683,17 @@ export const TAB_NAVIGATION = {
             title: 'Integration',
             links: [
               { title: 'API Authentication', href: '/autopay/authentication' },
-              { title: 'Contract authentication', href: '/autopay/contract-authentication' },
+              {
+                title: 'Contract authentication',
+                href: '/autopay/contract-authentication',
+              },
               { title: 'Recurring setup', href: '/autopay/recurring-setup' },
               { title: 'Response codes', href: '/autopay/codes' },
-              { title: 'Retries', href: '/autopay/retries'},
+              { title: 'Retries', href: '/autopay/retries' },
               { title: 'Charge Types', href: '/autopay/charge-types' },
-              { title: 'States', href: '/autopay/status'},
+              { title: 'States', href: '/autopay/status' },
             ],
-          }
+          },
         ],
       },
       {
@@ -2414,18 +2704,22 @@ export const TAB_NAVIGATION = {
         links: [
           {
             title: 'General',
-            links: [
-              { title: 'Introduction', href: '/autopay/api' },
-            ]
+            links: [{ title: 'Introduction', href: '/autopay/api' }],
           },
           {
             title: 'API',
             links: [
-              { title: 'Create or update an AutoPay session', href: '/autopay/api/session' },
+              {
+                title: 'Create or update an AutoPay session',
+                href: '/autopay/api/session',
+              },
               { title: 'Query an AutoPay session', href: '/autopay/api/query' },
               { title: 'Cancel AutoPay', href: '/autopay/api/cancel' },
               { title: 'AutoPay search', href: '/autopay/api/search' },
-              { title: 'AutoPay transactions', href: '/autopay/api/transactions' },
+              {
+                title: 'AutoPay transactions',
+                href: '/autopay/api/transactions',
+              },
             ],
           },
         ],
@@ -2438,16 +2732,23 @@ export const TAB_NAVIGATION = {
         links: [
           {
             title: 'Documents',
-            links: [
-              { title: 'Introduction', href: '/autopay/contracts' },
-            ],
+            links: [{ title: 'Introduction', href: '/autopay/contracts' }],
           },
           {
             title: 'Services',
             links: [
-              { title: 'Query amount to charge', href: '/autopay/contracts/balance' },
-              { title: 'Settle / Confirm payment', href: '/autopay/contracts/settlement' },
-              { title: 'Notifications (Webhook)', href: '/autopay/contracts/webhook' },
+              {
+                title: 'Query amount to charge',
+                href: '/autopay/contracts/balance',
+              },
+              {
+                title: 'Settle / Confirm payment',
+                href: '/autopay/contracts/settlement',
+              },
+              {
+                title: 'Notifications (Webhook)',
+                href: '/autopay/contracts/webhook',
+              },
             ],
           },
         ],
@@ -2464,9 +2765,7 @@ export const TAB_NAVIGATION = {
         links: [
           {
             title: 'Autodeclaraciones',
-            links: [
-              { title: 'Introducción', href: '/selfdeclarations' },
-            ],
+            links: [{ title: 'Introducción', href: '/selfdeclarations' }],
           },
           {
             title: 'Manual de usuario',
@@ -2475,39 +2774,51 @@ export const TAB_NAVIGATION = {
               {
                 title: 'General',
                 links: [
-                  { title: 'Filtros', href: '/selfdeclarations/general/filters' },
+                  {
+                    title: 'Filtros',
+                    href: '/selfdeclarations/general/filters',
+                  },
                   {
                     title: 'Solución a posibles problemas',
-                    href: '/selfdeclarations/general/problem-solutions'
+                    href: '/selfdeclarations/general/problem-solutions',
                   },
-                  { title: 'Idioma', href: '/selfdeclarations/general/language' },
+                  {
+                    title: 'Idioma',
+                    href: '/selfdeclarations/general/language',
+                  },
                   {
                     title: 'Medidas de seguridad y contingencia',
-                    href: '/selfdeclarations/general/security-and-contingency'
+                    href: '/selfdeclarations/general/security-and-contingency',
                   },
                   {
                     title: 'Gestión del servicio y mesa de ayuda',
-                    href: '/selfdeclarations/general/service-management-and-help-desk'
+                    href: '/selfdeclarations/general/service-management-and-help-desk',
                   },
                 ],
               },
               {
                 title: 'Usuario administrador',
                 links: [
-                  { title: 'Acciones', href: '/selfdeclarations/admin-user/actions' },
+                  {
+                    title: 'Acciones',
+                    href: '/selfdeclarations/admin-user/actions',
+                  },
                   {
                     title: 'Entrada y salida del software',
-                    href: '/selfdeclarations/admin-user/entry-and-exit'
+                    href: '/selfdeclarations/admin-user/entry-and-exit',
                   },
                 ],
               },
               {
                 title: 'Usuario declarante',
                 links: [
-                  { title: 'Acciones', href: '/selfdeclarations/declarant-user/actions' },
+                  {
+                    title: 'Acciones',
+                    href: '/selfdeclarations/declarant-user/actions',
+                  },
                   {
                     title: 'Entrada y salida del software',
-                    href: '/selfdeclarations/declarant-user/entry-and-exit'
+                    href: '/selfdeclarations/declarant-user/entry-and-exit',
                   },
                 ],
               },
@@ -2528,11 +2839,23 @@ export const TAB_NAVIGATION = {
           {
             title: 'API',
             links: [
-              { title: 'Botón de pago - AIO', href: '/selfdeclarations/api/payment-button-AIO' },
-              { title: 'Information request', href: '/selfdeclarations/api/information-request' },
+              {
+                title: 'Botón de pago - AIO',
+                href: '/selfdeclarations/api/payment-button-AIO',
+              },
+              {
+                title: 'Information request',
+                href: '/selfdeclarations/api/information-request',
+              },
               { title: 'Income PDF', href: '/selfdeclarations/api/income-pdf' },
-              { title: 'Empresas - Creación/Actualización', href: '/selfdeclarations/api/companies' },
-              { title: 'Usuarios - Creación/Actualizacion', href: '/selfdeclarations/api/company-bidders' },
+              {
+                title: 'Empresas - Creación/Actualización',
+                href: '/selfdeclarations/api/companies',
+              },
+              {
+                title: 'Usuarios - Creación/Actualizacion',
+                href: '/selfdeclarations/api/company-bidders',
+              },
             ],
           },
         ],
@@ -2547,9 +2870,7 @@ export const TAB_NAVIGATION = {
         links: [
           {
             title: 'Selfdeclarations',
-            links: [
-              { title: 'Introduction', href: '/selfdeclarations' },
-            ],
+            links: [{ title: 'Introduction', href: '/selfdeclarations' }],
           },
           {
             title: 'Manual de usuario',
@@ -2558,39 +2879,51 @@ export const TAB_NAVIGATION = {
               {
                 title: 'General',
                 links: [
-                  { title: 'Filters', href: '/selfdeclarations/general/filters' },
+                  {
+                    title: 'Filters',
+                    href: '/selfdeclarations/general/filters',
+                  },
                   {
                     title: 'Solutions to possible problems',
-                    href: '/selfdeclarations/general/problem-solutions'
+                    href: '/selfdeclarations/general/problem-solutions',
                   },
-                  { title: 'Language', href: '/selfdeclarations/general/language' },
+                  {
+                    title: 'Language',
+                    href: '/selfdeclarations/general/language',
+                  },
                   {
                     title: 'Security and contingency measures',
-                    href: '/selfdeclarations/general/security-and-contingency'
+                    href: '/selfdeclarations/general/security-and-contingency',
                   },
                   {
                     title: 'Service management and help desk',
-                    href: '/selfdeclarations/general/service-management-and-help-desk'
+                    href: '/selfdeclarations/general/service-management-and-help-desk',
                   },
                 ],
               },
               {
                 title: 'Admin user',
                 links: [
-                  { title: 'Actions', href: '/selfdeclarations/admin-user/actions' },
+                  {
+                    title: 'Actions',
+                    href: '/selfdeclarations/admin-user/actions',
+                  },
                   {
                     title: 'Logging in and out of the software',
-                    href: '/selfdeclarations/admin-user/entry-and-exit'
+                    href: '/selfdeclarations/admin-user/entry-and-exit',
                   },
                 ],
               },
               {
                 title: 'Declaring user',
                 links: [
-                  { title: 'Actions', href: '/selfdeclarations/declarant-user/actions' },
+                  {
+                    title: 'Actions',
+                    href: '/selfdeclarations/declarant-user/actions',
+                  },
                   {
                     title: 'Logging in and out of the software',
-                    href: '/selfdeclarations/declarant-user/entry-and-exit'
+                    href: '/selfdeclarations/declarant-user/entry-and-exit',
                   },
                 ],
               },
@@ -2611,11 +2944,23 @@ export const TAB_NAVIGATION = {
           {
             title: 'API',
             links: [
-              { title: 'Botón de Pago - AIO', href: '/selfdeclarations/api/payment-button-AIO' },
-              { title: 'Information Request', href: '/selfdeclarations/api/information-request' },
+              {
+                title: 'Botón de Pago - AIO',
+                href: '/selfdeclarations/api/payment-button-AIO',
+              },
+              {
+                title: 'Information Request',
+                href: '/selfdeclarations/api/information-request',
+              },
               { title: 'Income PDF', href: '/selfdeclarations/api/income-pdf' },
-              { title: 'Empresas - Creación/Actualización', href: '/selfdeclarations/api/companies' },
-              { title: 'Usuarios - Creación/Actualizacion', href: '/selfdeclarations/api/company-bidders' },
+              {
+                title: 'Empresas - Creación/Actualización',
+                href: '/selfdeclarations/api/companies',
+              },
+              {
+                title: 'Usuarios - Creación/Actualizacion',
+                href: '/selfdeclarations/api/company-bidders',
+              },
             ],
           },
         ],
@@ -2635,7 +2980,7 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Introducción',
-                href: '/invoices'
+                href: '/invoices',
               },
             ],
           },
@@ -2669,8 +3014,8 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Inicio',
-                href: '/invoices/api'
-              }
+                href: '/invoices/api',
+              },
             ],
           },
           {
@@ -2682,11 +3027,11 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Eliminación',
-                href: '/invoices/api/remove'
+                href: '/invoices/api/remove',
               },
               {
                 title: 'Eliminación masiva',
-                href: '/invoices/api/flush'
+                href: '/invoices/api/flush',
               },
               {
                 title: 'Bloqueo o liberación',
@@ -2694,7 +3039,7 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Búsqueda',
-                href: '/invoices/api/search'
+                href: '/invoices/api/search',
               },
             ],
           },
@@ -2713,7 +3058,7 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Introduction',
-                href: '/invoices'
+                href: '/invoices',
               },
             ],
           },
@@ -2747,8 +3092,8 @@ export const TAB_NAVIGATION = {
             links: [
               {
                 title: 'Home',
-                href: '/invoices/api'
-              }
+                href: '/invoices/api',
+              },
             ],
           },
           {
@@ -2760,11 +3105,11 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Deletion',
-                href: '/invoices/api/remove'
+                href: '/invoices/api/remove',
               },
               {
                 title: 'Bulk deletion',
-                href: '/invoices/api/flush'
+                href: '/invoices/api/flush',
               },
               {
                 title: 'Hold or release',
@@ -2772,7 +3117,61 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Search',
-                href: '/invoices/api/search'
+                href: '/invoices/api/search',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  msvService: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'API',
+        identifier: 'msv-service/api',
+        href: '/msv-service/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: "General",
+            links: [{title: 'Introducción', href: '/msv-service/api'}]
+          },
+          {
+            title: 'API',
+            links: [
+              {title: 'Login', href: '/msv-service/api/login'},
+              {title: 'Validación', href: '/msv-service/api/validation'},
+              {title: 'Consulta validación', href: '/msv-service/api/validation-query'},
+              {title: 'Notificación', href: '/msv-service/api/notification'},
+            ],
+          }
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'API',
+        identifier: 'msv-service/api',
+        href: '/msv-service/api',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'General',
+            links: [{ title: 'Introduction', href: '/msv-service/api' }],
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Login', href: '/msv-service/api/login' },
+              { title: 'Validation', href: '/msv-service/api/validation' },
+              {
+                title: 'Validation Query',
+                href: '/msv-service/api/validation-query',
+              },
+              {
+                title: 'Notification',
+                href: '/msv-service/api/notification',
               },
             ],
           },
