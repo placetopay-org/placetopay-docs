@@ -109,7 +109,7 @@ export const NAMESPACES_SELECTOR = {
     {
       title: 'MSV Service',
       description: 'Servicio de notificaciones',
-      href: '/msv-service',
+      href: '/msv-service/api',
       icon: SmsTracking,
     },
   ],
@@ -201,8 +201,8 @@ export const NAMESPACES_SELECTOR = {
     {
       title: 'MSV Service',
       description: 'Notification service',
-      href: '/en/msv-service',
-      icon: Courthouse,
+      href: '/en/msv-service/api',
+      icon: SmsTracking,
     },
   ],
 }
@@ -3128,24 +3128,6 @@ export const TAB_NAVIGATION = {
   msvService: {
     [LANGUAGES_CODES.ES]: [
       {
-        title: 'Documentación',
-        identifier: 'msv-service',
-        href: '/msv-service',
-        icon: Book,
-        links: [
-          {
-            title: 'MSV Service',
-            links: [
-              { title: 'Introducción', href: '/msv-service' },
-              {
-                title: 'Cómo funciona',
-                href: '/msv-service/how-msv-service-works',
-              },
-            ],
-          },
-        ],
-      },
-      {
         title: 'API',
         identifier: 'msv-service/api',
         href: '/msv-service/api',
@@ -3159,33 +3141,15 @@ export const TAB_NAVIGATION = {
             title: 'API',
             links: [
               {title: 'Login', href: '/msv-service/api/login'},
-              {title: 'Validation', href: '/msv-service/api/validation'},
-              {title: 'Validation Query', href: '/msv-service/api/validation-query'},
-              {title: 'Notification', href: '/msv-service/api/notification'},
+              {title: 'Validación', href: '/msv-service/api/validation'},
+              {title: 'Consulta validación', href: '/msv-service/api/validation-query'},
+              {title: 'Notificación', href: '/msv-service/api/notification'},
             ],
           }
         ],
       },
     ],
     [LANGUAGES_CODES.EN]: [
-      {
-        title: 'Documentation',
-        identifier: 'msv-service',
-        href: '/msv-service',
-        icon: Book,
-        links: [
-          {
-            title: 'MSV Service',
-            links: [
-              { title: 'Introduction', href: '/en/msv-service' },
-              {
-                title: 'How it works',
-                href: '/en/msv-service/how-msv-service-works',
-              },
-            ],
-          },
-        ],
-      },
       {
         title: 'API',
         identifier: 'msv-service/api',
