@@ -1,0 +1,338 @@
+import { CountryFlags } from '@/components/Flags'
+
+export const description = 'Guía de testing para simulación de retornos ACH en ambiente de pruebas con cuentas mock y webhooks de ejemplo.';
+
+# Simulación de retornos ACH en ambiente de pruebas
+
+<Note>
+**⚠️ Exclusivo para ambiente de pruebas**
+
+Esta documentación describe el simulador de retornos ACH disponible únicamente en el **ambiente de pruebas** (test/sandbox). Los comportamientos descritos aquí NO aplican en producción.
+</Note>
+
+Para facilitar el desarrollo y testing de integraciones que manejan devoluciones ACH, Placetopay proporciona un conjunto de cuentas bancarias mock que simulan diferentes escenarios de retorno. {{ className: 'lead' }}
+
+## Cuentas mock para testing
+
+Utiliza las siguientes cuentas bancarias en tus transacciones de prueba para simular diferentes escenarios de retornos ACH:
+
+| Número de Cuenta | Comportamiento inicial | Código de Retorno | Timing | Descripción |
+|------------------|------------------------|-------------------|--------|-------------|
+| **1111222233334444** | ✅ Aprueba | - | - | Transacción exitosa sin retorno |
+| **1111222233335555** | ✅ Aprueba → ❌ Retorna | **R01** | Síncrono (inmediato) | Fondos insuficientes |
+| **1111222233336666** | ✅ Aprueba → ❌ Retorna | **R09** | Asíncrono (~5 min) | Fondos no cobrados |
+
+### Detalles de comportamiento
+
+#### Cuenta A: Sin retorno (1111222233334444)
+- **Estado inicial:** APPROVED
+- **Resultado final:** Transacción exitosa
+- **Webhook:** No se envía webhook de retorno
+- **Uso:** Probar flujo exitoso completo
+
+#### Cuenta B: Retorno síncrono R01 (1111222233335555)
+- **Estado inicial:** APPROVED
+- **Resultado final:** CHARGEBACK con código R01
+- **Webhook:** Se envía inmediatamente después de la aprobación
+- **Razón:** Fondos insuficientes (Insufficient funds)
+- **Uso:** Probar manejo de retornos inmediatos
+
+#### Cuenta C: Retorno asíncrono R09 (1111222233336666)
+- **Estado inicial:** APPROVED
+- **Resultado final:** CHARGEBACK con código R09 (después de ~5 minutos)
+- **Webhook:** Se envía aproximadamente 5 minutos después de la transacción
+- **Razón:** Fondos no cobrados (Uncollected funds)
+- **Uso:** Probar manejo de retornos asíncronos y webhooks diferidos
+
+<Note>
+**Sobre el timing de retornos**
+
+Los retornos asíncronos en el ambiente de pruebas se generan después de aproximadamente 5 minutos para permitir el testing sin esperar 1-2 días como en producción. En el ambiente productivo, los retornos ACH pueden ocurrir hasta 2 días hábiles después de la transacción inicial.
+</Note>
+
+## Códigos de retorno NACHA
+
+Los códigos de retorno simulados corresponden a códigos NACHA estándar:
+
+| Código | Descripción | Categoría |
+|--------|-------------|-----------|
+| **R01** | Fondos insuficientes | Retorno por fondos |
+| **R02** | Cuenta cerrada | Retorno administrativo |
+| **R03** | Cuenta no encontrada | Retorno administrativo |
+| **R09** | Fondos no cobrados | Retorno por fondos |
+
+Para más información sobre códigos de retorno, consulta [ACH Débito Bancario - Códigos de retorno](/payments/external-redirects/ach-bank-debit#codigos-de-devolucion-ach).
+
+## Formato del webhook de retorno
+
+Cuando ocurre un retorno ACH en el simulador, se envía un webhook con el evento `chargeback.created` a la URL configurada en tu sitio de pruebas.
+
+### Headers
+
+```plaintext {{ title: 'Headers del Webhook' }}
+X-Signature: [HMAC-SHA256 hash del body con tu tranKey de pruebas]
+Content-Type: application/json
+Accept: application/json
+```
+
+### Body del webhook
+
+```json {{ title: 'Ejemplo de Webhook - Retorno R01' }}
+{
+  "time": "2026-06-02T10:00:00-05:00",
+  "type": "chargeback.created",
+  "data": {
+    "status": {
+      "status": "APPROVED",
+      "reason": "R01",
+      "message": "Fondos insuficientes",
+      "date": "2026-06-02T10:00:00-05:00"
+    },
+    "date": "2026-06-02T10:00:00-05:00",
+    "transactionDate": "2026-06-02T09:55:00-05:00",
+    "internalReference": 12345,
+    "reference": "TEST_ACH_RETURN_001",
+    "paymentMethod": "EBACH",
+    "franchise": "ach",
+    "franchiseName": "Ebus ACH",
+    "issuerName": null,
+    "amount": {
+      "taxes": [
+        {
+          "kind": "valueAddedTax",
+          "amount": 0,
+          "base": 0
+        }
+      ],
+      "currency": "USD",
+      "total": 10000
+    },
+    "conversion": {
+      "from": {
+        "currency": "USD",
+        "total": 10000
+      },
+      "to": {
+        "currency": "USD",
+        "total": 10000
+      },
+      "factor": 1
+    },
+    "authorization": "TEST_AUTH_001",
+    "receipt": null,
+    "type": "CHARGEBACK",
+    "refunded": false,
+    "lastDigits": null,
+    "provider": null,
+    "discount": null,
+    "processorFields": {
+      "id": "test_processor_id_12345",
+      "b24": "R01"
+    },
+    "additional": {
+      "merchantCode": "TEST_MERCHANT_123",
+      "terminalNumber": "TEST_TERMINAL_001",
+      "bankName": "Test Bank",
+      "accountNumber": "4444"
+    }
+  }
+}
+```
+
+```json {{ title: 'Ejemplo de Webhook - Retorno R09' }}
+{
+  "time": "2026-06-02T10:05:00-05:00",
+  "type": "chargeback.created",
+  "data": {
+    "status": {
+      "status": "APPROVED",
+      "reason": "R09",
+      "message": "Fondos no cobrados",
+      "date": "2026-06-02T10:05:00-05:00"
+    },
+    "date": "2026-06-02T10:05:00-05:00",
+    "transactionDate": "2026-06-02T10:00:00-05:00",
+    "internalReference": 12346,
+    "reference": "TEST_ACH_RETURN_002",
+    "paymentMethod": "EBACH",
+    "franchise": "ach",
+    "franchiseName": "Ebus ACH",
+    "issuerName": null,
+    "amount": {
+      "taxes": [
+        {
+          "kind": "valueAddedTax",
+          "amount": 0,
+          "base": 0
+        }
+      ],
+      "currency": "USD",
+      "total": 15000
+    },
+    "conversion": {
+      "from": {
+        "currency": "USD",
+        "total": 15000
+      },
+      "to": {
+        "currency": "USD",
+        "total": 15000
+      },
+      "factor": 1
+    },
+    "authorization": "TEST_AUTH_002",
+    "receipt": null,
+    "type": "CHARGEBACK",
+    "refunded": false,
+    "lastDigits": null,
+    "provider": null,
+    "discount": null,
+    "processorFields": {
+      "id": "test_processor_id_67890",
+      "b24": "R09"
+    },
+    "additional": {
+      "merchantCode": "TEST_MERCHANT_123",
+      "terminalNumber": "TEST_TERMINAL_001",
+      "bankName": "Test Bank",
+      "accountNumber": "6666"
+    }
+  }
+}
+```
+
+## Configuración del webhook en ambiente de pruebas
+
+### 1. Registro de URL de webhook
+
+Para recibir webhooks en ambiente de pruebas, contacta al equipo de operaciones de Placetopay y proporciona:
+- URL donde recibirás los webhooks (debe ser HTTPS)
+- Sitio de pruebas asociado
+
+### 2. Herramientas recomendadas para testing
+
+Si no tienes un servidor expuesto públicamente, puedes usar servicios como:
+- **webhook.site** - Genera URLs temporales para inspeccionar webhooks
+- **ngrok** - Túnel a tu ambiente local de desarrollo
+- **RequestBin** - Colector de requests HTTP
+
+### 3. Validación de la firma
+
+Es importante validar la firma `X-Signature` del webhook incluso en ambiente de pruebas para asegurar que tu implementación funcione correctamente en producción.
+
+```javascript {{ title: 'Validación en Node.js' }}
+const crypto = require('crypto');
+
+function validateWebhookSignature(body, signature, tranKey) {
+  // Generar la firma localmente
+  const generatedSignature = crypto
+    .createHmac('sha256', tranKey)
+    .update(JSON.stringify(body))
+    .digest('hex');
+
+  // Comparar con la firma recibida
+  return generatedSignature === signature;
+}
+
+// Uso en tu endpoint
+app.post('/webhook/ach-returns', (req, res) => {
+  const receivedSignature = req.headers['x-signature'];
+  const body = req.body;
+  const tranKey = process.env.PLACETOPAY_TRANKEY_TEST; // Tu tranKey de pruebas
+
+  if (validateWebhookSignature(body, receivedSignature, tranKey)) {
+    console.log('Webhook auténtico recibido');
+
+    // Procesar el retorno ACH
+    const returnData = body.data;
+    const returnCode = returnData.status.reason; // R01, R09, etc.
+    const reference = returnData.reference;
+
+    // Tu lógica de negocio aquí
+
+    res.status(200).json({ received: true });
+  } else {
+    console.log('Firma inválida - webhook rechazado');
+    res.status(401).json({ error: 'Invalid signature' });
+  }
+});
+```
+
+## Consulta de retornos vía API
+
+Además de los webhooks, puedes consultar los retornos ACH generados en tus pruebas usando la API de reportes:
+
+```bash {{ title: 'Solicitar reporte de retornos' }}
+curl -X POST https://test.placetopay.com/redirection/api/report \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TEST_TOKEN" \
+  -d '{
+    "type": ["CHARGEBACK"],
+    "from": "2026-06-01T00:00:00-05:00",
+    "to": "2026-06-02T23:59:59-05:00"
+  }'
+```
+
+Para más información sobre la API de reportes, consulta [Reporte de operaciones realizadas](/gateway/api/reference/report).
+
+## Flujo de testing recomendado
+
+1. **Configurar webhook** - Registra tu URL de webhook de pruebas con el equipo de operaciones
+
+2. **Probar cuenta sin retorno (Cuenta A)**
+   - Crear transacción con cuenta `1111222233334444`
+   - Verificar que la transacción aprueba
+   - Confirmar que NO se recibe webhook de retorno
+
+3. **Probar retorno síncrono (Cuenta B)**
+   - Crear transacción con cuenta `1111222233335555`
+   - Verificar que la transacción aprueba inicialmente
+   - Recibir y validar webhook de retorno R01 (inmediato)
+   - Validar la firma del webhook
+   - Implementar lógica de manejo del retorno
+
+4. **Probar retorno asíncrono (Cuenta C)**
+   - Crear transacción con cuenta `1111222233336666`
+   - Verificar que la transacción aprueba
+   - Esperar ~5 minutos
+   - Recibir y validar webhook de retorno R09
+   - Confirmar que tu sistema maneja retornos diferidos
+
+5. **Consultar retornos vía API**
+   - Generar reporte de retornos
+   - Verificar que los retornos aparecen correctamente
+
+## Recursos relacionados
+
+- [Webhooks - Devoluciones ACH](/gateway/webhooks) - Documentación completa de webhooks
+- [ACH Débito Bancario](/payments/external-redirects/ach-bank-debit) - Información general sobre ACH
+- [API de Transacciones](/gateway/api/reference/transaction) - Procesar transacciones ACH
+- [API de Reportes](/gateway/api/reference/report) - Consultar retornos generados
+
+## FAQs
+
+<details>
+<summary>¿Puedo usar estas cuentas en producción?</summary>
+<p>No. Estas cuentas son exclusivas del ambiente de pruebas y no funcionarán en producción. En producción, los retornos ACH ocurren naturalmente según las condiciones reales de las cuentas bancarias de tus clientes.</p>
+</details>
+
+<details>
+<summary>¿Por qué el retorno asíncrono toma solo 5 minutos en lugar de 1-2 días?</summary>
+<p>Para facilitar el testing y desarrollo, el simulador genera retornos asíncronos después de aproximadamente 5 minutos. En producción, los retornos ACH pueden tardar hasta 2 días hábiles según las regulaciones bancarias.</p>
+</details>
+
+<details>
+<summary>¿Cómo sé si un webhook es de pruebas o de producción?</summary>
+<p>Verifica la URL del sitio en tu configuración. Los webhooks de pruebas provienen de sitios configurados en <code>test.placetopay.com</code>, mientras que los de producción vienen de <code>checkout.placetopay.com</code> u otros dominios productivos. También puedes verificar los datos del webhook (referencias, códigos de comercio, etc.).</p>
+</details>
+
+<details>
+<summary>¿Puedo simular otros códigos de retorno además de R01 y R09?</summary>
+<p>Actualmente, el simulador soporta R01 (fondos insuficientes) y R09 (fondos no cobrados). Si necesitas probar otros escenarios, contacta al equipo de soporte técnico de Placetopay.</p>
+</details>
+
+<details>
+<summary>¿Qué pasa si no recibo el webhook de retorno?</summary>
+<p>Verifica que: 1) Tu URL de webhook esté correctamente configurada, 2) Tu servidor sea accesible públicamente vía HTTPS, 3) Tu endpoint responda con código 200. Puedes consultar los retornos generados usando la API de reportes como alternativa.</p>
+</details>
+
