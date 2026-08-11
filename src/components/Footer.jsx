@@ -132,7 +132,14 @@ function SocialLink({ href, icon: Icon, children }) {
   )
 }
 
+const PRIVACY_POLICY_TEXT = {
+  es: 'Política de Privacidad',
+  en: 'Privacy Policy',
+}
+
 function SmallPrint() {
+  const { locale } = useLocale()
+
   return (
     <div className="flex flex-col items-center justify-between gap-5 border-t border-gray-900/5 pt-8 dark:border-white/5 sm:flex-row">
       <Link href="/" aria-label="Home">
@@ -167,7 +174,7 @@ function SmallPrint() {
           target="_blank"
           aria-label="Política de Privacidad Placetopay"
         >
-          Política de Privacidad
+          {PRIVACY_POLICY_TEXT[locale] ?? PRIVACY_POLICY_TEXT.es}
         </Link>
       </div>
     </div>
