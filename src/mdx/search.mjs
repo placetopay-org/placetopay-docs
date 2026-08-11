@@ -109,6 +109,7 @@ export default function (nextConfig = {}) {
                 document: {
                   id: 'url',
                   index: 'content',
+                  tag: 'locale',
                   store: ['title', 'pageTitle', 'locale'],
                 },
                 context: {
@@ -132,9 +133,10 @@ export default function (nextConfig = {}) {
                 }
               }
 
-              export function search(query, options = {}) {
+              export function search(query, { locale, ...options } = {}) {
                 let result = sectionIndex.search(query, {
                   ...options,
+                  tag: locale,
                   enrich: true,
                 })
                 if (result.length === 0) {
