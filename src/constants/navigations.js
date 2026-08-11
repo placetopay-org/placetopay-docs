@@ -1787,7 +1787,7 @@ export const TAB_NAVIGATION = {
       {
         title: 'Documentation',
         identifier: 'sdks',
-        href: '/sdks/pinpad',
+        href: '/en/sdks/pinpad',
         icon: Book,
         links: [
           {
@@ -2215,7 +2215,7 @@ export const TAB_NAVIGATION = {
       {
         title: 'Documentation',
         identifier: 'tpm',
-        href: '/tpm',
+        href: '/en/tpm',
         icon: Book,
         links: [
           {
@@ -2368,7 +2368,7 @@ export const TAB_NAVIGATION = {
       {
         title: 'API',
         identifier: 'core',
-        href: '/core',
+        href: '/en/core',
         icon: DocumentCode,
         links: [
           {
@@ -2934,7 +2934,7 @@ export const TAB_NAVIGATION = {
       {
         title: 'API',
         identifier: 'selfdeclarations/api',
-        href: '/selfdeclarations/api',
+        href: '/en/selfdeclarations/api',
         icon: DocumentCode,
         links: [
           {
@@ -3153,7 +3153,7 @@ export const TAB_NAVIGATION = {
       {
         title: 'API',
         identifier: 'msv-service/api',
-        href: '/msv-service/api',
+        href: '/en/msv-service/api',
         icon: DocumentCode,
         links: [
           {
