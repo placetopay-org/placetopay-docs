@@ -1456,7 +1456,7 @@ export const TAB_NAVIGATION = {
     ],
     [LANGUAGES_CODES.EN]: [
       {
-        title: 'Documentación',
+        title: 'Documentation',
         identifier: 'token-requestor',
         href: '/en/token-requestor',
         icon: Book,
@@ -1847,7 +1847,7 @@ export const TAB_NAVIGATION = {
             title: 'API',
             links: [
               {
-                title: 'Links de pago',
+                title: 'Payment links',
                 href: '/en/payment-links/api/reference/payment-links',
               },
             ],
@@ -2133,7 +2133,7 @@ export const TAB_NAVIGATION = {
             title: 'API',
             links: [
               {
-                title: 'URL de ambientes',
+                title: 'Environment URLs',
                 href: '/en/core',
               },
               {
@@ -2469,7 +2469,7 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Manual de usuario',
+            title: 'User manual',
             links: [
               { title: 'Contenido', href: '/selfdeclarations/content' },
               {
@@ -2552,7 +2552,7 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'Manual de usuario',
+            title: 'User manual',
             links: [
               { title: 'Content', href: '/en/selfdeclarations/content' },
               {
@@ -2611,11 +2611,11 @@ export const TAB_NAVIGATION = {
           {
             title: 'API',
             links: [
-              { title: 'Botón de Pago - AIO', href: '/en/selfdeclarations/api/payment-button-AIO' },
+              { title: 'Payment Button - AIO', href: '/en/selfdeclarations/api/payment-button-AIO' },
               { title: 'Information Request', href: '/en/selfdeclarations/api/information-request' },
               { title: 'Income PDF', href: '/en/selfdeclarations/api/income-pdf' },
-              { title: 'Empresas - Creación/Actualización', href: '/en/selfdeclarations/api/companies' },
-              { title: 'Usuarios - Creación/Actualizacion', href: '/en/selfdeclarations/api/company-bidders' },
+              { title: 'Companies - Create/Update', href: '/en/selfdeclarations/api/companies' },
+              { title: 'Users - Create/Update', href: '/en/selfdeclarations/api/company-bidders' },
             ],
           },
         ],
