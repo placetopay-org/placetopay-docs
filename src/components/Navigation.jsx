@@ -310,6 +310,7 @@ function SubSectionNavigation() {
 
 export function Navigation({ withSections, ...props }) {
   let navigation = useNavigation()
+  let { locale } = useLocale()
 
   return (
     <nav {...props}>
@@ -317,7 +318,9 @@ export function Navigation({ withSections, ...props }) {
       <ul role="list" className="mt-6 md:mt-0">
         <SubSectionNavigation />
         {navigation.map((group, groupIndex) => (
-          <NavigationGroupProvider group={group} key={group.title}>
+          // Include the locale in the key so each group remounts (and its
+          // internal state resets) when the language changes.
+          <NavigationGroupProvider group={group} key={`${locale}-${group.title}`}>
             <NavigationGroup
               group={group}
               className={groupIndex === 0 && 'md:mt-0'}
