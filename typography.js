@@ -45,12 +45,10 @@ module.exports = ({ theme }) => ({
       // Layout
       '> *': {
         maxWidth: theme('maxWidth.2xl'),
-        marginLeft: 'auto',
-        marginRight: 'auto',
+        marginInline: 'auto',
         '@screen lg': {
           maxWidth: theme('maxWidth.3xl'),
-          marginLeft: `calc(50% - min(50%, ${theme('maxWidth.lg')}))`,
-          marginRight: `calc(50% - min(50%, ${theme('maxWidth.lg')}))`,
+          marginInline: `calc(50% - min(50%, ${theme('maxWidth.lg')}))`,
         },
       },
 
@@ -159,15 +157,12 @@ module.exports = ({ theme }) => ({
         marginTop: theme('spacing.16'),
         marginBottom: theme('spacing.16'),
         maxWidth: 'none',
-        marginLeft: `calc(-1 * ${theme('spacing.4')})`,
-        marginRight: `calc(-1 * ${theme('spacing.4')})`,
+        marginInline: `calc(-1 * ${theme('spacing.4')})`,
         '@screen sm': {
-          marginLeft: `calc(-1 * ${theme('spacing.6')})`,
-          marginRight: `calc(-1 * ${theme('spacing.6')})`,
+          marginInline: `calc(-1 * ${theme('spacing.6')})`,
         },
         '@screen lg': {
-          marginLeft: `calc(-1 * ${theme('spacing.8')})`,
-          marginRight: `calc(-1 * ${theme('spacing.8')})`,
+          marginInline: `calc(-1 * ${theme('spacing.8')})`,
         },
       },
 
