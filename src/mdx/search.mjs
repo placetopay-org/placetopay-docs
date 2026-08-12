@@ -121,8 +121,11 @@ export default function (nextConfig = {}) {
 
               let data = ${JSON.stringify(data)}
 
+              let totalSections = 0
+
               for (let { url, sections, locale } of data) {
                 for (let [title, hash, content] of sections) {
+                  totalSections++
                   sectionIndex.add({
                     url: url + (hash ? ('#' + hash) : ''),
                     title,
@@ -133,16 +136,35 @@ export default function (nextConfig = {}) {
                 }
               }
 
-              export function search(query, { locale, ...options } = {}) {
+              function runSearch(query, locale, options) {
                 let result = sectionIndex.search(query, {
                   ...options,
                   tag: locale,
                   enrich: true,
                 })
-                if (result.length === 0) {
-                  return []
+                return result.length === 0 ? [] : result[0].result
+              }
+
+              export function search(query, { locale, ...options } = {}) {
+                // FlexSearch applies "limit" (default 100 when not set) to the
+                // raw full-text match set BEFORE filtering by "tag", not after.
+                // With the small limit the UI asks for (5), if the top matches
+                // for a query happen to be mostly/entirely in the other
+                // locale, the tag filter has nothing left to return for the
+                // requested locale. Keep the original fast path (cheap, and
+                // correct for the overwhelmingly common case where the
+                // requested locale already has matches within the small
+                // limit), and only fall back to an unbounded, more expensive
+                // re-query -- filtered by tag -- when that fast path comes up
+                // empty, so normal typing performance is unaffected.
+                let items = runSearch(query, locale, options)
+                if (items.length === 0) {
+                  items = runSearch(query, locale, { ...options, limit: totalSections })
+                  if (typeof options.limit === 'number') {
+                    items = items.slice(0, options.limit)
+                  }
                 }
-                return result[0].result.map((item) => ({
+                return items.map((item) => ({
                   url: item.id,
                   title: item.doc.title,
                   pageTitle: item.doc.pageTitle,
