@@ -6,6 +6,7 @@ import clsx from 'clsx'
 import Highlighter from 'react-highlight-words'
 import { getWindowLocale } from '@/lib/getWindowLocale'
 import { useAllNavigation } from '@/hooks/useNavigation'
+import { useLocale } from '@/components/LocaleProvider'
 
 const SEARCH_TEXTS = {
   es: {
@@ -21,13 +22,8 @@ const SEARCH_TEXTS = {
 }
 
 function useSearchTexts() {
-  let [texts, setTexts] = useState(SEARCH_TEXTS.es)
-
-  useEffect(() => {
-    setTexts(SEARCH_TEXTS[getWindowLocale()] ?? SEARCH_TEXTS.es)
-  }, [])
-
-  return texts
+  let { locale } = useLocale()
+  return SEARCH_TEXTS[locale] ?? SEARCH_TEXTS.es
 }
 
 function useAutocomplete() {
