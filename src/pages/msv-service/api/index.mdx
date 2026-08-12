@@ -9,7 +9,7 @@ export const description = 'Referencia técnica de MSV Service: autenticación, 
 Bienvenido a la referencia técnica de MSV Service. Nuestra API está construida bajo principios RESTful, utiliza **JSON** para el intercambio de datos y códigos de respuesta HTTP estándar.
 
 ## ¿Qué es MSV Service?
-Es un servicio que permite enviar mensajes de notificación o validación empleando canales como whatsapp, sms o email.
+Es un servicio que permite enviar mensajes de notificación o validación empleando canales como WhatsApp, SMS o email.
 
 ## Entornos y base URL
 
@@ -19,36 +19,93 @@ Todas las solicitudes deben enviarse a las siguientes URL base, dependiendo del 
 | :--- | :--- | :--- |
 | **Producción** | `https://msv-service.placetopay.com/` | Entorno transaccional real. |
 
-## Webhook
+---
 
-Para el uso del **Webhook** debes configurar en tu servidor una URL que reciba la notificación mediante `POST` con la siguiente estructura:
+## Webhook {{ id: 'validation-webhook' }}
 
+Al momento de crear una validación, **msv-service** envía de forma asíncrona un `POST` a la url que configuraste en el campo `webhook_url`. Este payload **NO** es la respuesta síncrona del endpoint `/api/validations` — es una notificación que tu servidor debe recibir y procesar.
 
-```json
-    {
-        "status": {
-            "status": "APPROVED",
-            "reason": null,
-            "message": "El usuario ha respondido",
-            "date": "2022-08-08T17:23:49+00:00"
-        },
-        "token": "d5d67dcb",
-        "reference": "0122333444455555",
-        "kind": "horus",
-        "signature": "c1c0a085837b4042ab6cce604d5a51e665aa038c2eab58a6212037b459612ca1"
-    }
+### Estructura del payload
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="status" type="object" isRequired={false}>
+        Objeto que contiene el estado de la validación.
+        <Properties nested>
+          <Property name="status" type="string" isRequired={false}>
+            Estado actual: `PENDING`, `APPROVED`, `REJECTED` o `EXPIRED`.
+          </Property>
+          <Property name="reason" type="string | null" isRequired={false}>
+            Código de razón adicional (puede ser nulo).
+          </Property>
+          <Property name="message" type="string" isRequired={false}>
+            Descripción del cambio de estado (ej: "El usuario ha respondido").
+          </Property>
+          <Property name="date" type="date (ISO 8601)" isRequired={false}>
+            Fecha y hora del cambio. Formato: `YYYY-MM-DDTHH:MM:SS+00:00`.
+          </Property>
+        </Properties>
+      </Property>
+      <Property name="token" type="string" isRequired={false}>
+        Identificador único de la solicitud (8 caracteres hexadecimales). Generado al crear la validación.
+      </Property>
+      <Property name="reference" type="string" isRequired={false}>
+        Referencia del ítem validado (el `reference` que enviaste en la solicitud original).
+      </Property>
+      <Property name="kind" type="string" isRequired={false}>
+        Clasificación de la solicitud (el `kind` que enviaste originalmente).
+      </Property>
+      <Property name="signature" type="string" isRequired={false}>
+        Firma SHA-256 para autenticar el mensaje. Calculada como: `hash('sha256', token + status.status + status.date + secret_token)`. Debes validarla siempre.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Ejemplos de payload">
+
+```json {{ title: 'APPROVED' }}
+{
+  "status": {
+    "status": "APPROVED",
+    "reason": null,
+    "message": "El usuario ha respondido",
+    "date": "2022-08-08T17:23:49+00:00"
+  },
+  "token": "d5d67dcb",
+  "reference": "0122333444455555",
+  "kind": "horus",
+  "signature": "c1c0a085837b4042ab6cce604d5a51e665aa038c2eab58a6212037b459612ca1"
+}
 ```
+    </CodeGroup>
+  </Col>
+</Row>
 
-Puedes validar que se trate de una respuesta de PlacetoPay haciendo un SHA-256 con los datos `token` + `status.status` + `status.date` + `secret_token`. Para el caso del ejemplo y si el secret_token del user fuera ABCD1234 sería:
+### Validación de la firma
+
+Antes de procesar el webhook, recalcula el hash SHA-256 y compáralo con el campo `signature` para validar la autenticidad:
 
 ```php
-hash('sha256', "d5d67dcbAPPROVED2022-08-08T17:23:49+00:00ABCD1234")
+$calculated = hash('sha256', $token . $status . $date . $secret_token);
+// Ejemplo: hash('sha256', 'd5d67dcbAPPROVED2022-08-08T17:23:49+00:00ABCD1234')
+
+if ($calculated !== $signature) {
+    // Reject — not authentic
+    http_response_code(400);
+    exit;
+}
+
+// Process the webhook
+http_response_code(200);
 ```
 
 Si este valor coincide con el valor proporcionado por el signature, puedes autenticar la respuesta y proceder a persistir el registro en la base de datos.
 
-Bajo ninguna circunstancia reveles exponiendo tu `secret_token` en ninguna parte accesible a los clientes o usuarios de tu aplicación.
 
+<Note>
+  Bajo ninguna circunstancia expongas tu `secret_token` en ninguna parte accesible a los clientes o usuarios de tu aplicación.
+</Note>
 ---
 
 ## Servicios disponibles
@@ -56,6 +113,6 @@ Bajo ninguna circunstancia reveles exponiendo tu `secret_token` en ninguna parte
 Explora los endpoints disponibles:
 
 * [**Login**](/msv-service/api/login): Permite obtener un token para realizar peticiones a la API.
-* [**Validación**](/msv-service/api/validation): Crea una solicitud de validación.
-* [**Consulta validación**](/msv-service/api/validation-query): Consulta la solicitud de validación previamente creada.
+* [**Validación**](/msv-service/api/validation): Crea una solicitud de validación (respuesta síncrona: `HTTP 201`).
+* [**Consulta validación**](/msv-service/api/validation-query): Consulta el estado actual de una validación previamente creada.
 * [**Notificación**](/msv-service/api/notification): Crea una solicitud de notificación.
