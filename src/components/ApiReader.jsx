@@ -57,6 +57,10 @@ const TITLES = {
   deprecated: {
     es: "Versión Obsoleta",
     en: "Deprecated Version"
+  },
+  attributes: {
+    es: { show: 'Ver atributos', hide: 'Ocultar atributos' },
+    en: { show: 'Show attributes', hide: 'Hide attributes' },
   }
 }
 
@@ -103,6 +107,7 @@ const ParentProperty = ({
   isChild = false,
 }) => {
   const { positionRef, preventLayoutShift } = usePreventLayoutShift()
+  const { locale } = useLocale()
   const [selected, setSelected] = useState(0)
 
   const multiProperties = property.oneOf ?? property.anyOf ?? [];
@@ -233,7 +238,9 @@ const ParentProperty = ({
                       'rotate-45 transform': open,
                     })}
                   />
-                  {open ? 'Ocultar' : 'Ver'} atributos
+                  {open
+                    ? TITLES.attributes[locale].hide
+                    : TITLES.attributes[locale].show}
                 </Disclosure.Button>
 
                 <Disclosure.Panel
