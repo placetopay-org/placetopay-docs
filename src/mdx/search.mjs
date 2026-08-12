@@ -104,23 +104,6 @@ export default function (nextConfig = {}) {
             return `
               import FlexSearch from 'flexsearch'
 
-              // Two fully independent indexes -- one per locale -- instead of a
-              // single shared index filtered by a "locale" tag at query time.
-              // FlexSearch.Document's "tag" option only behaves as a genuine
-              // pre-filter for small result sets: with the small "limit" the
-              // search UI asks for (5), tag-filtering is applied AFTER the raw
-              // full-text match set is already capped, so a query whose top
-              // matches happen to be mostly in the other locale returns
-              // nothing for the requested locale. Raising the limit to work
-              // around that instead breaks relevance ordering, because
-              // FlexSearch only ranks results within its "resolution" window
-              // and falls back to insertion order once you ask for more than
-              // that -- so a large limit "fixes" the empty-result case by
-              // replacing it with irrelevant results in document order.
-              // Two independent per-locale indexes need no tag/limit
-              // workaround at all: each index only ever ranks its own
-              // locale's documents, so a normal small "limit" is both cheap
-              // and correctly relevance-sorted for every query.
               function createIndex() {
                 return new FlexSearch.Document({
                   tokenize: 'full',
