@@ -104,29 +104,47 @@ export default function (nextConfig = {}) {
             return `
               import FlexSearch from 'flexsearch'
 
-              let sectionIndex = new FlexSearch.Document({
-                tokenize: 'full',
-                document: {
-                  id: 'url',
-                  index: 'content',
-                  tag: 'locale',
-                  store: ['title', 'pageTitle', 'locale'],
-                },
-                context: {
-                  resolution: 9,
-                  depth: 2,
-                  bidirectional: true
-                }
-              })
+              // Two fully independent indexes -- one per locale -- instead of a
+              // single shared index filtered by a "locale" tag at query time.
+              // FlexSearch.Document's "tag" option only behaves as a genuine
+              // pre-filter for small result sets: with the small "limit" the
+              // search UI asks for (5), tag-filtering is applied AFTER the raw
+              // full-text match set is already capped, so a query whose top
+              // matches happen to be mostly in the other locale returns
+              // nothing for the requested locale. Raising the limit to work
+              // around that instead breaks relevance ordering, because
+              // FlexSearch only ranks results within its "resolution" window
+              // and falls back to insertion order once you ask for more than
+              // that -- so a large limit "fixes" the empty-result case by
+              // replacing it with irrelevant results in document order.
+              // Two independent per-locale indexes need no tag/limit
+              // workaround at all: each index only ever ranks its own
+              // locale's documents, so a normal small "limit" is both cheap
+              // and correctly relevance-sorted for every query.
+              function createIndex() {
+                return new FlexSearch.Document({
+                  tokenize: 'full',
+                  document: {
+                    id: 'url',
+                    index: 'content',
+                    store: ['title', 'pageTitle', 'locale'],
+                  },
+                  context: {
+                    resolution: 9,
+                    depth: 2,
+                    bidirectional: true
+                  }
+                })
+              }
+
+              let indexes = { es: createIndex(), en: createIndex() }
 
               let data = ${JSON.stringify(data)}
 
-              let totalSections = 0
-
               for (let { url, sections, locale } of data) {
+                let index = indexes[locale] ?? indexes.es
                 for (let [title, hash, content] of sections) {
-                  totalSections++
-                  sectionIndex.add({
+                  index.add({
                     url: url + (hash ? ('#' + hash) : ''),
                     title,
                     locale,
@@ -136,35 +154,16 @@ export default function (nextConfig = {}) {
                 }
               }
 
-              function runSearch(query, locale, options) {
-                let result = sectionIndex.search(query, {
+              export function search(query, { locale, ...options } = {}) {
+                let index = indexes[locale] ?? indexes.es
+                let result = index.search(query, {
                   ...options,
-                  tag: locale,
                   enrich: true,
                 })
-                return result.length === 0 ? [] : result[0].result
-              }
-
-              export function search(query, { locale, ...options } = {}) {
-                // FlexSearch applies "limit" (default 100 when not set) to the
-                // raw full-text match set BEFORE filtering by "tag", not after.
-                // With the small limit the UI asks for (5), if the top matches
-                // for a query happen to be mostly/entirely in the other
-                // locale, the tag filter has nothing left to return for the
-                // requested locale. Keep the original fast path (cheap, and
-                // correct for the overwhelmingly common case where the
-                // requested locale already has matches within the small
-                // limit), and only fall back to an unbounded, more expensive
-                // re-query -- filtered by tag -- when that fast path comes up
-                // empty, so normal typing performance is unaffected.
-                let items = runSearch(query, locale, options)
-                if (items.length === 0) {
-                  items = runSearch(query, locale, { ...options, limit: totalSections })
-                  if (typeof options.limit === 'number') {
-                    items = items.slice(0, options.limit)
-                  }
+                if (result.length === 0) {
+                  return []
                 }
-                return items.map((item) => ({
+                return result[0].result.map((item) => ({
                   url: item.id,
                   title: item.doc.title,
                   pageTitle: item.doc.pageTitle,
