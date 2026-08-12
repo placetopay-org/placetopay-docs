@@ -234,6 +234,7 @@ const SearchInput = forwardRef(function SearchInput(
   inputRef
 ) {
   let inputProps = autocomplete.getInputProps({})
+  let texts = useSearchTexts()
 
   return (
     <div className="group relative flex h-12">
@@ -245,6 +246,7 @@ const SearchInput = forwardRef(function SearchInput(
           autocompleteState.status === 'stalled' ? 'pr-11' : 'pr-4'
         )}
         {...inputProps}
+        placeholder={texts.placeholder}
         onKeyDown={(event) => {
           if (
             event.key === 'Escape' &&
