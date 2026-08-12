@@ -2529,10 +2529,10 @@ export const TAB_NAVIGATION = {
             title: 'API',
             links: [
               { title: 'Botón de pago - AIO', href: '/selfdeclarations/api/payment-button-AIO' },
-              { title: 'Information request', href: '/selfdeclarations/api/information-request' },
-              { title: 'Income PDF', href: '/selfdeclarations/api/income-pdf' },
+              { title: 'Solicitud de información', href: '/selfdeclarations/api/information-request' },
+              { title: 'PDF de ingresos', href: '/selfdeclarations/api/income-pdf' },
               { title: 'Empresas - Creación/Actualización', href: '/selfdeclarations/api/companies' },
-              { title: 'Usuarios - Creación/Actualizacion', href: '/selfdeclarations/api/company-bidders' },
+              { title: 'Usuarios - Creación/Actualización', href: '/selfdeclarations/api/company-bidders' },
             ],
           },
         ],
