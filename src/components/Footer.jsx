@@ -150,19 +150,19 @@ function SmallPrint() {
           Join our Discord server
         </SocialLink> */}
         <p className="text-xs">
-          <span className="text-gray-300">© {new Date().getFullYear()} </span>
+          <span className="text-gray-600 dark:text-gray-300">© {new Date().getFullYear()} </span>
           <Link
             href="https://placetopay.dev/"
             target="_blank"
             aria-label="Home"
-            className="font-semibold text-gray-200 hover:text-primary-500"
+            className="font-semibold text-gray-500 dark:text-gray-200 hover:text-primary-500"
           >
             Evertec Placetopay
           </Link>
         </p>
 
         <Link
-          className="text-xs text-gray-300 hover:text-primary-500"
+          className="text-xs text-gray-500 dark:text-gray-300 hover:text-primary-500"
           href="https://www.placetopay.com/web/politicas-de-privacidad/"
           target="_blank"
           aria-label="Política de Privacidad Placetopay"

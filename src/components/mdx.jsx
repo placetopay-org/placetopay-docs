@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 import { Heading } from '@/components/Heading'
+import { useLocale } from '@/components/LocaleProvider'
 
 export const a = Link
 export { Button } from '@/components/Button'
@@ -81,12 +82,18 @@ export function Property({
   className = '',
 }) {
   const isMulti = multiProperties.length > 0
+  const { locale } = useLocale()
+
+  const selectTypeLabel = locale === 'es'
+    ? `Seleccionar variante del campo ${name}`
+    : `Select variant for field ${name}`
 
   const getType = () => {
     if (isMulti) {
       return (
         <select
           className="bg-inherit"
+          aria-label={selectTypeLabel}
           value={selected}
           onChange={(e) => onSelected(e.target.value)}
         >
@@ -114,7 +121,7 @@ export function Property({
             <code>{name}</code>
           </dd>
           <dt className="sr-only">Type</dt>
-          <dd className="font-mono text-xs text-gray-400 dark:text-gray-500">
+          <dd className="font-mono text-xs text-gray-500 dark:text-gray-400">
             {getType()}
           </dd>
         </div>
