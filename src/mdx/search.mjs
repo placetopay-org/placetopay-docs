@@ -133,29 +133,16 @@ export default function (nextConfig = {}) {
                 }
               }
 
-              export function search(query, { locale, limit, ...options } = {}) {
-                // FlexSearch applies "limit" (default 100) BEFORE filtering by
-                // "tag", not after. If a query matches far more sections in one
-                // locale than the other, a small limit can cut off every match
-                // before the tag filter ever sees it, returning an empty result
-                // for the minority locale. To keep "tag" behaving as a true
-                // pre-filter, we search with a limit larger than the whole
-                // corpus and only apply the caller's requested "limit" once the
-                // locale-filtered results are in hand.
+              export function search(query, { locale, ...options } = {}) {
                 let result = sectionIndex.search(query, {
                   ...options,
                   tag: locale,
-                  limit: 5000,
                   enrich: true,
                 })
                 if (result.length === 0) {
                   return []
                 }
-                let items = result[0].result
-                if (typeof limit === 'number') {
-                  items = items.slice(0, limit)
-                }
-                return items.map((item) => ({
+                return result[0].result.map((item) => ({
                   url: item.id,
                   title: item.doc.title,
                   pageTitle: item.doc.pageTitle,
