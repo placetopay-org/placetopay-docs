@@ -82,6 +82,18 @@ export const NAMESPACES_SELECTOR = {
       icon: SecurityCard,
     },
     {
+      title: 'PinPad SDK',
+      description: 'SDK para gestionar el campo pinpad',
+      href: '/sdks/pinpad',
+      icon: MonitorMobbile,
+    },
+    {
+      title: 'Tickets',
+      description: 'Administración de tickets de aerolíneas',
+      href: '/ticket/reference',
+      icon: DocumentCode,
+    },
+    {
       title: 'Api Scudo',
       description: 'Control de fraude',
       href: '/api-scudo',
@@ -166,6 +178,18 @@ export const NAMESPACES_SELECTOR = {
       description: 'Account verification',
       href: '/en/account-validator',
       icon: SecurityCard,
+    },
+    {
+      title: 'PinPad SDK',
+      description: 'SDK to manage the pinpad field',
+      href: '/en/sdks/pinpad',
+      icon: MonitorMobbile,
+    },
+    {
+      title: 'Tickets',
+      description: 'Airline ticket management',
+      href: '/en/ticket/reference',
+      icon: DocumentCode,
     },
     {
       title: 'Api Scudo',

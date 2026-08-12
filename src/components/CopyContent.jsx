@@ -1,9 +1,16 @@
 import {ClipboardIcon} from './icons/ClipboardIcon';
 import { useState, useEffect } from 'react';
 import clsx from 'clsx'
+import { useLocale } from './LocaleProvider'
+
+const COPIED_TEXT = {
+  es: 'Copiado',
+  en: 'Copied!',
+}
 
 export const CopyContent = ({ content }) => {
   const [pressed, setPressed] = useState(false);
+  const { locale } = useLocale()
 
   useEffect(() => {
     if (!pressed) return;
@@ -30,7 +37,7 @@ export const CopyContent = ({ content }) => {
             pressed ? "opacity-100" : "opacity-0"
           )}
       >
-        Copied!
+        {COPIED_TEXT[locale] ?? COPIED_TEXT.es}
       </div>
     </button>
   )

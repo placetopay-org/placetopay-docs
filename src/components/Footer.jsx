@@ -4,12 +4,11 @@ import { useRouter } from 'next/router'
 import { Button } from '@/components/Button'
 import { useNavigation } from '@/hooks/useNavigation'
 import { useLocale } from './LocaleProvider'
+import { useLocalizePath } from '@/hooks/useLocalizePath'
 import { Logo } from '@/components/Logo'
 import { ROUTES_WITH_INDEX } from '@/constants/routes-with-index'
 
-function PageLink({ label, page, previous = false, locale, hasPrefix }) {
-  const href = hasPrefix ? `/${locale}${page.href}` : page.href
-
+function PageLink({ label, page, previous = false, href }) {
   if (!href) {
     return null
   }
@@ -48,14 +47,14 @@ const PAGE_NAVIGATION_LABELS = {
 }
 
 function PageNavigation() {
-  let { hasPrefix, locale } = useLocale()
+  let { locale } = useLocale()
+  let localizePath = useLocalizePath()
   let navigation = useNavigation()
   let router = useRouter()
   let allPages = navigation.flatMap((group) => group.links)
-  let currentPageIndex = allPages.findIndex((page) => {
-    const pathname = hasPrefix ? router.pathname.slice(3) : router.pathname
-    return page.href === pathname
-  })
+  let currentPageIndex = allPages.findIndex(
+    (page) => page.href && localizePath(page.href) === router.pathname
+  )
 
   if (currentPageIndex === -1) {
     return null
@@ -75,9 +74,8 @@ function PageNavigation() {
           <PageLink
             label={PAGE_NAVIGATION_LABELS[locale].previous}
             page={previousPage}
+            href={previousPage.href && localizePath(previousPage.href)}
             previous
-            locale={locale}
-            hasPrefix={hasPrefix}
           />
         </div>
       )}
@@ -86,8 +84,7 @@ function PageNavigation() {
           <PageLink
             label={PAGE_NAVIGATION_LABELS[locale].next}
             page={nextPage}
-            locale={locale}
-            hasPrefix={hasPrefix}
+            href={nextPage.href && localizePath(nextPage.href)}
           />
         </div>
       )}
