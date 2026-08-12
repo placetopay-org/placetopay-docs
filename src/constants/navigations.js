@@ -2469,7 +2469,7 @@ export const TAB_NAVIGATION = {
             ],
           },
           {
-            title: 'User manual',
+            title: 'Manual de usuario',
             links: [
               { title: 'Contenido', href: '/selfdeclarations/content' },
               {
