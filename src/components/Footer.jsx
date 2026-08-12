@@ -139,10 +139,11 @@ const PRIVACY_POLICY_TEXT = {
 
 function SmallPrint() {
   const { locale } = useLocale()
+  const homeHref = locale === 'es' ? '/' : `/${locale}`
 
   return (
     <div className="flex flex-col items-center justify-between gap-5 border-t border-gray-900/5 pt-8 dark:border-white/5 sm:flex-row">
-      <Link href="/" aria-label="Home">
+      <Link href={homeHref} aria-label="Home">
         <Logo className="h-6" />
       </Link>
 
