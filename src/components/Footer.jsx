@@ -46,12 +46,18 @@ const PAGE_NAVIGATION_LABELS = {
   },
 }
 
+function flattenPages(links = []) {
+  return links.flatMap((item) =>
+    item.href ? [item] : flattenPages(item.links)
+  )
+}
+
 function PageNavigation() {
   let { locale } = useLocale()
   let localizePath = useLocalizePath()
   let navigation = useNavigation()
   let router = useRouter()
-  let allPages = navigation.flatMap((group) => group.links)
+  let allPages = navigation.flatMap((group) => flattenPages(group.links))
   let currentPageIndex = allPages.findIndex(
     (page) => page.href && localizePath(page.href) === router.pathname
   )
