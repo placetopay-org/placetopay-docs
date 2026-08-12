@@ -37,9 +37,16 @@ const modeScript = `
 
 export default function Document() {
   return (
-    <Html lang="en">
+    <Html>
       <Head>
         <script dangerouslySetInnerHTML={{ __html: modeScript }} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              document.documentElement.lang = window.location.pathname.split('/')[1] === 'en' ? 'en' : 'es'
+            `,
+          }}
+        />
       </Head>
       <body className="bg-white antialiased dark:bg-gray-900">
         <Main />
