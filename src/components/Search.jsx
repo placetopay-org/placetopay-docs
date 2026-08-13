@@ -7,6 +7,26 @@ import Highlighter from 'react-highlight-words'
 import { useAllNavigation } from '@/hooks/useNavigation'
 import { useLocalizePath } from '@/hooks/useLocalizePath'
 
+import { useLocale } from '@/components/LocaleProvider'
+
+const SEARCH_TEXTS = {
+  es: {
+    placeholder: 'Buscar...',
+    nothingFound: 'Nada encontrado para',
+    tryAgain: 'Por favor intenta de nuevo.',
+  },
+  en: {
+    placeholder: 'Search...',
+    nothingFound: 'Nothing found for',
+    tryAgain: 'Please try again.',
+  },
+}
+
+function useSearchTexts() {
+  let { locale } = useLocale()
+  return SEARCH_TEXTS[locale] ?? SEARCH_TEXTS.es
+}
+
 function useAutocomplete() {
   let id = useId()
   let router = useRouter()
@@ -32,12 +52,11 @@ function useAutocomplete() {
             {
               sourceId: 'documentation',
               getItems() {
-                const locale = getWindowLocale()
                 // Over-fetch, then filter by locale and collapse sections that
                 // belong to the same page so the results show distinct pages.
                 let seenPages = new Set()
                 return search(query, { limit: 5 })
-                  .filter((item) => item.locale === locale)
+                  .filter((item) => item.locale === localeRef.current)
                   .filter((item) => {
                     let page = item.url.split('#')[0]
                     if (seenPages.has(page)) return false
@@ -194,11 +213,11 @@ function SearchResults({ autocomplete, query, collection, onClose }) {
       <div className="p-6 text-center">
         <NoResultsIcon className="mx-auto h-5 w-5 stroke-gray-900 dark:stroke-gray-600" />
         <p className="mt-2 text-xs text-gray-700 dark:text-gray-400">
-          {texts.nothingFound}{' '}
+          Nothing found for{' '}
           <strong className="break-words font-semibold text-gray-900 dark:text-white">
             &lsquo;{query}&rsquo;
           </strong>
-          . {texts.tryAgain}
+          . Please try again.
         </p>
       </div>
     )
@@ -249,7 +268,6 @@ const SearchInput = forwardRef(function SearchInput(
           autocompleteState.status === 'stalled' ? 'pr-11' : 'pr-4'
         )}
         {...inputProps}
-        placeholder={texts.placeholder}
         onKeyDown={(event) => {
           if (
             event.key === 'Escape' &&
@@ -277,7 +295,6 @@ const SearchInput = forwardRef(function SearchInput(
 
 function SearchButton(props) {
   let [modifierKey, setModifierKey] = useState()
-  let texts = useSearchTexts()
 
   useEffect(() => {
     setModifierKey(
@@ -293,7 +310,7 @@ function SearchButton(props) {
         {...props}
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
-        {texts.placeholder}
+        Buscar...
         <kbd className="ml-auto text-2xs text-gray-400 dark:text-gray-500">
           <kbd className="font-sans">{modifierKey}</kbd>
           <kbd className="font-sans">K</kbd>
@@ -302,7 +319,7 @@ function SearchButton(props) {
       <button
         type="button"
         className="flex h-6 w-6 items-center justify-center rounded-md transition hover:bg-gray-900/5 dark:hover:bg-white/5 lg:hidden focus:[&:not(:focus-visible)]:outline-none"
-        aria-label={texts.placeholder}
+        aria-label="Buscar..."
         {...props}
       >
         <SearchIcon className="h-5 w-5 stroke-gray-900 dark:stroke-white" />
@@ -451,7 +468,6 @@ function useSearchProps() {
 export function Search() {
   let [modifierKey, setModifierKey] = useState()
   let { buttonProps, dialogProps } = useSearchProps()
-  let texts = useSearchTexts()
 
   useEffect(() => {
     setModifierKey(
@@ -467,7 +483,7 @@ export function Search() {
         {...buttonProps}
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
-        {texts.placeholder}
+        Buscar...
         <kbd className="ml-auto text-2xs text-gray-400 dark:text-gray-500">
           <kbd className="font-sans">{modifierKey}</kbd>
           <kbd className="font-sans">K</kbd>
@@ -480,14 +496,13 @@ export function Search() {
 
 export function MobileSearch() {
   let { buttonProps, dialogProps } = useSearchProps()
-  let texts = useSearchTexts()
 
   return (
     <div className="contents lg:hidden">
       <button
         type="button"
         className="flex h-6 w-6 items-center justify-center rounded-md transition hover:bg-gray-900/5 dark:hover:bg-white/5 lg:hidden focus:[&:not(:focus-visible)]:outline-none"
-        aria-label={texts.placeholder}
+        aria-label="Buscar..."
         {...buttonProps}
       >
         <SearchIcon className="h-5 w-5 stroke-gray-900 dark:stroke-white" />

@@ -3,8 +3,8 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
 
-import { getWindowLocale } from '@/lib/getWindowLocale'
 import { useLocalizePath } from '@/hooks/useLocalizePath'
+import { useLocale } from '@/components/LocaleProvider'
 
 const PAGE_SIZE = 20
 const MAX_RESULTS = 500
@@ -36,6 +36,7 @@ const COPY = {
 
 function useSearchResults(query) {
   const [results, setResults] = useState(null)
+  const { locale } = useLocale()
 
   useEffect(() => {
     if (!query) {
@@ -48,7 +49,6 @@ function useSearchResults(query) {
 
     import('@/mdx/search.mjs').then(({ search }) => {
       if (cancelled) return
-      const locale = getWindowLocale()
       const seenPages = new Set()
       const items = search(query, { limit: MAX_RESULTS })
         .filter((item) => item.locale === locale)
@@ -95,16 +95,12 @@ function ResultItem({ result }) {
 
 export function SearchResultsPage() {
   const router = useRouter()
-  const [locale, setLocale] = useState('es')
+  const { locale } = useLocale()
   const [inputValue, setInputValue] = useState('')
   const copy = COPY[locale] ?? COPY.es
 
   const query = typeof router.query.q === 'string' ? router.query.q.trim() : ''
   const page = Math.max(1, parseInt(router.query.page, 10) || 1)
-
-  useEffect(() => {
-    setLocale(getWindowLocale())
-  }, [])
 
   useEffect(() => {
     setInputValue(query)
