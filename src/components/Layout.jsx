@@ -8,6 +8,7 @@ import { Logo } from '@/components/Logo'
 import { Navigation, ContentNavigation } from '@/components/Navigation'
 import { Prose } from '@/components/Prose'
 import { SectionProvider, useSectionStore } from '@/components/SectionProvider'
+import { useLocale } from '@/components/LocaleProvider'
 import TabProvider from './TabProvider'
 
 function Content({ sectionMode, children }) {
@@ -30,6 +31,9 @@ function Content({ sectionMode, children }) {
 }
 
 export function Layout({ isHome, children, sections = [], sectionMode = 'content' }) {
+  const { locale } = useLocale()
+  const homeHref = locale === 'es' ? '/' : `/${locale}`
+
   return (
     <SectionProvider sections={sections}>
       <TabProvider>
@@ -37,7 +41,7 @@ export function Layout({ isHome, children, sections = [], sectionMode = 'content
           <motion.header layoutScroll className="contents lg:pointer-events-none lg:fixed lg:inset-0 lg:z-40 lg:flex">
             <div className="contents lg:pointer-events-auto lg:block lg:w-72 lg:overflow-y-auto lg:border-r lg:border-gray-900/10 lg:px-6 lg:pb-8 lg:pt-4 lg:dark:border-white/10 xl:w-80">
               <div className="hidden lg:flex">
-                <Link href="/" aria-label="Home">
+                <Link href={homeHref} aria-label="Home">
                   <Logo className="h-8" />
                 </Link>
               </div>
@@ -59,6 +63,8 @@ export function HomeLayout({ children, sections = [] }) {
   let { scrollY } = useScroll()
   let bgOpacityLight = useTransform(scrollY, [0, 72], [0.5, 0.9])
   let bgOpacityDark = useTransform(scrollY, [0, 72], [0.2, 0.8])
+  let { locale } = useLocale()
+  let homeHref = locale === 'es' ? '/' : `/${locale}`
 
   return (
     <SectionProvider sections={sections}>
@@ -74,7 +80,7 @@ export function HomeLayout({ children, sections = [] }) {
           }}
         >
           <div className="hidden lg:flex">
-            <Link href="/" aria-label="Home">
+            <Link href={homeHref} aria-label="Home">
               <Logo className="h-6" />
             </Link>
           </div>

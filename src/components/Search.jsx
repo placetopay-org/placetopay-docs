@@ -4,13 +4,15 @@ import { createAutocomplete } from '@algolia/autocomplete-core'
 import { Dialog, Transition } from '@headlessui/react'
 import clsx from 'clsx'
 import Highlighter from 'react-highlight-words'
-import { getWindowLocale } from '@/lib/getWindowLocale'
 import { useAllNavigation } from '@/hooks/useNavigation'
 import { useLocalizePath } from '@/hooks/useLocalizePath'
 
 function useAutocomplete() {
   let id = useId()
   let router = useRouter()
+  let { locale } = useLocale()
+  let localeRef = useRef(locale)
+  localeRef.current = locale
   let [autocompleteState, setAutocompleteState] = useState({})
 
   let [autocomplete] = useState(() =>
@@ -192,11 +194,11 @@ function SearchResults({ autocomplete, query, collection, onClose }) {
       <div className="p-6 text-center">
         <NoResultsIcon className="mx-auto h-5 w-5 stroke-gray-900 dark:stroke-gray-600" />
         <p className="mt-2 text-xs text-gray-700 dark:text-gray-400">
-          Nothing found for{' '}
+          {texts.nothingFound}{' '}
           <strong className="break-words font-semibold text-gray-900 dark:text-white">
             &lsquo;{query}&rsquo;
           </strong>
-          . Please try again.
+          . {texts.tryAgain}
         </p>
       </div>
     )
@@ -235,6 +237,7 @@ const SearchInput = forwardRef(function SearchInput(
   inputRef
 ) {
   let inputProps = autocomplete.getInputProps({})
+  let texts = useSearchTexts()
 
   return (
     <div className="group relative flex h-12">
@@ -246,6 +249,7 @@ const SearchInput = forwardRef(function SearchInput(
           autocompleteState.status === 'stalled' ? 'pr-11' : 'pr-4'
         )}
         {...inputProps}
+        placeholder={texts.placeholder}
         onKeyDown={(event) => {
           if (
             event.key === 'Escape' &&
@@ -273,6 +277,7 @@ const SearchInput = forwardRef(function SearchInput(
 
 function SearchButton(props) {
   let [modifierKey, setModifierKey] = useState()
+  let texts = useSearchTexts()
 
   useEffect(() => {
     setModifierKey(
@@ -288,7 +293,7 @@ function SearchButton(props) {
         {...props}
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
-        Buscar...
+        {texts.placeholder}
         <kbd className="ml-auto text-2xs text-gray-400 dark:text-gray-500">
           <kbd className="font-sans">{modifierKey}</kbd>
           <kbd className="font-sans">K</kbd>
@@ -297,7 +302,7 @@ function SearchButton(props) {
       <button
         type="button"
         className="flex h-6 w-6 items-center justify-center rounded-md transition hover:bg-gray-900/5 dark:hover:bg-white/5 lg:hidden focus:[&:not(:focus-visible)]:outline-none"
-        aria-label="Buscar..."
+        aria-label={texts.placeholder}
         {...props}
       >
         <SearchIcon className="h-5 w-5 stroke-gray-900 dark:stroke-white" />
@@ -446,6 +451,7 @@ function useSearchProps() {
 export function Search() {
   let [modifierKey, setModifierKey] = useState()
   let { buttonProps, dialogProps } = useSearchProps()
+  let texts = useSearchTexts()
 
   useEffect(() => {
     setModifierKey(
@@ -461,7 +467,7 @@ export function Search() {
         {...buttonProps}
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
-        Buscar...
+        {texts.placeholder}
         <kbd className="ml-auto text-2xs text-gray-400 dark:text-gray-500">
           <kbd className="font-sans">{modifierKey}</kbd>
           <kbd className="font-sans">K</kbd>
@@ -474,13 +480,14 @@ export function Search() {
 
 export function MobileSearch() {
   let { buttonProps, dialogProps } = useSearchProps()
+  let texts = useSearchTexts()
 
   return (
     <div className="contents lg:hidden">
       <button
         type="button"
         className="flex h-6 w-6 items-center justify-center rounded-md transition hover:bg-gray-900/5 dark:hover:bg-white/5 lg:hidden focus:[&:not(:focus-visible)]:outline-none"
-        aria-label="Buscar..."
+        aria-label={texts.placeholder}
         {...buttonProps}
       >
         <SearchIcon className="h-5 w-5 stroke-gray-900 dark:stroke-white" />

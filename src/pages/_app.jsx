@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import Script from 'next/script'
-import { Router } from 'next/router'
+import { useEffect } from 'react'
+import { Router, useRouter } from 'next/router'
 import { MDXProvider } from '@mdx-js/react'
 
 import { Layout } from '@/components/Layout'
@@ -21,7 +22,24 @@ Router.events.on('routeChangeStart', onRouteChange)
 Router.events.on('hashChangeStart', onRouteChange)
 
 export default function App({ Component, pageProps }) {
+  const router = useRouter()
   const LayoutComponent = Component.Layout || Layout
+
+  useEffect(() => {
+    const updateDocumentLang = () => {
+      const path = router.asPath.split('/')[1]
+      document.documentElement.lang = path === 'en' ? 'en' : 'es'
+    }
+
+    updateDocumentLang()
+    Router.events.on('routeChangeComplete', updateDocumentLang)
+    Router.events.on('hashChangeComplete', updateDocumentLang)
+
+    return () => {
+      Router.events.off('routeChangeComplete', updateDocumentLang)
+      Router.events.off('hashChangeComplete', updateDocumentLang)
+    }
+  }, [router.asPath])
 
   return (
     <>
@@ -48,15 +66,15 @@ export default function App({ Component, pageProps }) {
         <title>{`${pageProps.title ? pageProps.title + ' - ' : ''}Placetopay Docs`}</title>
         <meta name="description" content={pageProps.description} />
       </Head>
-      <ImageZoomProvider>
-        <MDXProvider components={mdxComponents}>
-          <LocaleProvider>
+      <LocaleProvider>
+        <ImageZoomProvider>
+          <MDXProvider components={mdxComponents}>
             <LayoutComponent {...pageProps}>
               <Component {...pageProps} />
             </LayoutComponent>
-          </LocaleProvider>
-        </MDXProvider>
-      </ImageZoomProvider>
+          </MDXProvider>
+        </ImageZoomProvider>
+      </LocaleProvider>
       </>
   )
 }

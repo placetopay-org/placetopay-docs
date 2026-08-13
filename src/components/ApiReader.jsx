@@ -51,6 +51,7 @@ const ParentProperty = ({
   isChild = false,
 }) => {
   const { positionRef, preventLayoutShift } = usePreventLayoutShift()
+  const { locale } = useLocale()
   const [selected, setSelected] = useState(0)
 
   const multiProperties = property.oneOf ?? property.anyOf ?? [];
@@ -181,7 +182,9 @@ const ParentProperty = ({
                       'rotate-45 transform': open,
                     })}
                   />
-                  {open ? 'Ocultar' : 'Ver'} atributos
+                  {open
+                    ? (TITLES.attributes[locale] ?? TITLES.attributes.es).hide
+                    : (TITLES.attributes[locale] ?? TITLES.attributes.es).show}
                 </Disclosure.Button>
 
                 <Disclosure.Panel
@@ -509,6 +512,7 @@ export const ApiRequest = ({ request = {}, path = '', method = '' }) => {
 }
 
 export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
+  const components = api.components
   let data = api?.[path]
   if (type !== 'params') data = data?.[method.toLowerCase()]
 
@@ -517,6 +521,8 @@ export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
       `Method ${method} not found in API definition for path ${path}`
     )
   }
+
+  data = dereferenceSchema(data, components)
 
   if (type === 'request') {
     return <ApiRequest request={data.requestBody} path={path} method={method} />

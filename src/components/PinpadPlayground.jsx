@@ -139,7 +139,7 @@ export const PinpadPlayground = () => {
   const onLoad = (configValues) => {
     if (!window.PinPadSDK) {
       console.error('PinPadSDK not found')
-      return;
+      return
     }
     const pinpad = new PinPadSDK.PinPad({
       mode: configValues.mode,
@@ -156,10 +156,19 @@ export const PinpadPlayground = () => {
       'https://unpkg.com/@placetopay/pinpad-sdk@latest/dist/pinpad-sdk.umd.js'
     const container = pinpadContainerRef.current
 
-    if (document.querySelector(`script[src="${src}"]`)) {
-      onLoad(config)
+    const renderPinpad = () => onLoad(config)
+
+    const existingScript = document.querySelector(`script[src="${src}"]`)
+
+    if (existingScript) {
+      if (window.PinPadSDK) {
+        renderPinpad()
+      } else {
+        existingScript.addEventListener('load', renderPinpad, { once: true })
+      }
       return () => {
         container.innerHTML = ''
+        existingScript.removeEventListener('load', renderPinpad)
       }
     }
 
@@ -167,12 +176,13 @@ export const PinpadPlayground = () => {
     script.src = src
     script.async = true
 
-    script.onload = () => onLoad(config)
+    script.addEventListener('load', renderPinpad, { once: true })
 
-    document.head.appendChild(script);
+    document.head.appendChild(script)
 
     return () => {
       container.innerHTML = ''
+      script.removeEventListener('load', renderPinpad)
     }
   }, [config])
 

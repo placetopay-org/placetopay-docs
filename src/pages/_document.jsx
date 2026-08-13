@@ -1,4 +1,4 @@
-import { Head, Html, Main, NextScript } from 'next/document'
+import NextDocument, { Head, Html, Main, NextScript } from 'next/document'
 
 const modeScript = `
   let darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
@@ -35,9 +35,13 @@ const modeScript = `
   }
 `
 
-export default function Document() {
+const getLangFromPath = (pathname = '') => {
+  return pathname.split('/')[1] === 'en' ? 'en' : 'es'
+}
+
+export default function Document({ lang = 'es' }) {
   return (
-    <Html lang="en">
+    <Html lang={lang}>
       <Head>
         <script dangerouslySetInnerHTML={{ __html: modeScript }} />
       </Head>
@@ -47,4 +51,9 @@ export default function Document() {
       </body>
     </Html>
   )
+}
+
+Document.getInitialProps = async (ctx) => {
+  const initialProps = await NextDocument.getInitialProps(ctx)
+  return { ...initialProps, lang: getLangFromPath(ctx.pathname) }
 }
