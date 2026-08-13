@@ -4,7 +4,6 @@ import { createAutocomplete } from '@algolia/autocomplete-core'
 import { Dialog, Transition } from '@headlessui/react'
 import clsx from 'clsx'
 import Highlighter from 'react-highlight-words'
-import { getWindowLocale } from '@/lib/getWindowLocale'
 import { useAllNavigation } from '@/hooks/useNavigation'
 import { useLocale } from '@/components/LocaleProvider'
 
@@ -29,6 +28,9 @@ function useSearchTexts() {
 function useAutocomplete() {
   let id = useId()
   let router = useRouter()
+  let { locale } = useLocale()
+  let localeRef = useRef(locale)
+  localeRef.current = locale
   let [autocompleteState, setAutocompleteState] = useState({})
 
   let [autocomplete] = useState(() =>
@@ -48,8 +50,7 @@ function useAutocomplete() {
             {
               sourceId: 'documentation',
               getItems() {
-                const locale = getWindowLocale()
-                return search(query, { limit: 5, locale })
+                return search(query, { limit: 5, locale: localeRef.current })
               },
               getItemUrl({ item }) {
                 return item.url
