@@ -1,0 +1,3837 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "3DS Server",
+    "version": "1.0",
+    "description": "This document presents the operation of the 3DS Server service or API. It exposes the routes to consume (/sessions and /transactions), the url, method, parameters and data types it receives. Additionally, it contains response examples for different types of requests in the cardholder authentication flow within the 3D-Secure protocol framework.",
+    "contact": {
+      "name": "Evertec Placetopay",
+      "email": "servicioposventa@placetopay.com",
+      "url": "https://www.placetopay.com/web/"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://3dss-test.placetopay.com/api",
+      "description": "Sandbox"
+    },
+    {
+      "url": "https://3ds-mpi.placetopay.com/api",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/threeds/v2x/sessions": {
+      "post": {
+        "summary": "Create a new session",
+        "operationId": "post-sessions",
+        "responses": {
+          "200": {
+            "description": "***Response received: 200 OK***\n\n  To continue with the authentication process, the user must be redirected to the url received in the\n    field (redirectURL). There they will be informed of the authentication result and subsequently,\n    they will be redirected to the merchant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sessionToken": {
+                      "type": "string",
+                      "description": "Authentication token.",
+                      "minLength": 64,
+                      "maxLength": 64,
+                      "example": "8e580eb1948ae1b13e614aac04c75ad31d6431ef2ea7b1a85573979b7ec4e656"
+                    },
+                    "redirectURL": {
+                      "type": "string",
+                      "description": "Redirect URL to continue the authentication process.",
+                      "example": "https://3dss-test.placetopay.com/threeds/v2x/sessions/8e580eb1948ae1b13e614aac04c75ad31d6431ef2ea7b1a85573979b7ec4e656",
+                      "minLength": 1,
+                      "maxLength": 256
+                    },
+                    "transactionID": {
+                      "type": "integer",
+                      "description": "Transaction indicator.",
+                      "example": 9099,
+                      "minimum": 0,
+                      "maximum": 4294967295
+                    }
+                  },
+                  "required": [
+                    "sessionToken",
+                    "redirectURL",
+                    "transactionID"
+                  ]
+                },
+                "examples": {
+                  "Successful response": {
+                    "value": {
+                      "sessionToken": "8e580eb1948ae1b13e614aac04c75ad31d6431ef2ea7b1a85573979b7ec4e656",
+                      "redirectURL": "https://3dss-test.placetopay.com/threeds/v2x/sessions/8e580eb1948ae1b13e614aac04c75ad31d6431ef2ea7b1a85573979b7ec4e656",
+                      "transactionID": 9071
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/unauthorized-response"
+          },
+          "422": {
+            "description": "***Response received: 422 Unprocessable Entity***",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error_number": {
+                      "type": "string",
+                      "description": "Error codes:\n* 1000 External service connection error\n* 1001 Invalid response from external service\n* 1002 Invalid arguments to initiate a request\n* 1003 No associated merchant found\n* 1004 No associated subscription found\n* 1005 The associated franchise is not enabled\n* 1006 The associated acquirer is not enabled\n* 1007 The associated subscription is not completely configured\n* 1008 Error message received from external service\n* 1009 There is no merchant associated with this token, request a new token\n* 1010 No directory server found for the selected protocol\n* 1011 The merchant is not enabled\n* 1012 The merchant does not have a merchant category code (MCC)"
+                    },
+                    "error_description": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "object",
+                      "description": "List of fields that present validation errors."
+                    }
+                  },
+                  "required": [
+                    "error_number",
+                    "error_description",
+                    "errors"
+                  ]
+                },
+                "examples": {
+                  "Response with errors": {
+                    "value": {
+                      "error_number": "1011",
+                      "error_description": "Invalid arguments to initiate request",
+                      "errors": {
+                        "acctNumber": [
+                          "The acct number field is required."
+                        ],
+                        "cardExpiryDate": [
+                          "The card expiry date field is required."
+                        ],
+                        "purchaseAmount": [
+                          "The purchase amount field is required."
+                        ],
+                        "redirectURI": [
+                          "The redirect u r i field is required."
+                        ],
+                        "purchaseCurrency": [
+                          "The purchase currency field is required."
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "acctNumber": {
+                    "type": "string",
+                    "description": "Account number that will be used in the authorization request for payment transactions.\nMust pass [Luhn Algorithm](https://es.wikipedia.org/wiki/Algoritmo_de_Luhn) validation\n**Accepted values:** See [ISO 7812](https://es.wikipedia.org/wiki/ISO/IEC_7812) format",
+                    "minLength": 13,
+                    "maxLength": 19,
+                    "example": "4005580000000040"
+                  },
+                  "cardExpiryDate": {
+                    "type": "string",
+                    "description": "Card expiration date provided by the cardholder.\n**Format:** ym\n**Example:** 2506",
+                    "minLength": 4,
+                    "maxLength": 4,
+                    "example": "2506"
+                  },
+                  "purchaseAmount": {
+                    "type": "string",
+                    "description": "Transaction amount.\n**Example:** 20.5",
+                    "example": "20.5"
+                  },
+                  "purchaseCurrency": {
+                    "type": "string",
+                    "description": "The 3-letter alphabetic code of the currency in which the purchase amount is expressed\n**Values:** See [ISO 4217](https://es.wikipedia.org/wiki/ISO_4217) format",
+                    "minLength": 3,
+                    "maxLength": 3,
+                    "example": "USD"
+                  },
+                  "redirectURI": {
+                    "type": "string",
+                    "description": "URL of the system where the cardholder will be redirected after completing an authentication transaction.",
+                    "maxLength": 256,
+                    "format": "uri",
+                    "example": "https://www.placetopay.com"
+                  },
+                  "threeDSAuthenticationInd": {
+                    "type": "string",
+                    "description": "Indicates the type of authentication request.\n**Values:**\n* `PAYMENT_TRANSACTION` (01) - Payment transaction\n* `RECURRING_TRANSACTION` (02) - Recurring transaction\n* `INSTALMENT_TRANSACTION` (03) - Installment transaction\n* `ADD_CARD` (04) - Add a card\n* `MAINTAIN_CARD` (05) - Maintain a card\n* `CARDHOLDER_VERIFICATION_AS_PART_OF_EMV_TOKEN_IDV` (06) - Cardholder verification as part of EMV token ID&V\n* `BILLING_AGREEMENT` (07) - Billing agreement\n* `MASTERCARD_THE_PAYMENT_REQUEST_IS_FOR_AN_AGENT_PAYMENT_TRANSACTION` (85) - Agent payment transaction for Mastercard\n* `MASTERCARD_FOR_UNKNOWN_OR_UNDEFINED_FINAL_AMOUNT_BEFORE_PURCHASE_TRANSACTION` (86) - Transaction for Mastercard with unknown or undefined final amount before purchase",
+                    "minLength": 2,
+                    "maxLength": 2,
+                    "example": "01"
+                  },
+                  "reference": {
+                    "type": "string",
+                    "description": "Transaction reference.",
+                    "maxLength": 32
+                  },
+                  "recurringFrequency": {
+                    "type": "string",
+                    "description": "Indicates the minimum number of days between authorizations.\nRequired if threeDSAuthenticationInd equals `RECURRING_TRANSACTION` (02) or `INSTALMENT_TRANSACTION` (03)\nMust be present whenever recurringExpiry is sent\n**Example values:** 31, 031, 0031",
+                    "minLength": 1,
+                    "maxLength": 4
+                  },
+                  "recurringExpiry": {
+                    "type": "string",
+                    "description": "Date after which no more authorizations will be made.\nRequired if threeDSAuthenticationInd equals `RECURRING_TRANSACTION` (02) or `INSTALMENT_TRANSACTION` (03)\nMust be present whenever recurringFrequency is sent\n**Format:** Ymd\n**Example:** 20250601",
+                    "minLength": 8,
+                    "maxLength": 8
+                  },
+                  "purchaseInstalData": {
+                    "type": "string",
+                    "description": "Indicates the maximum number of authorizations allowed for installment payments.\nThe value must be greater than 1. Required if the merchant and cardholder have agreed to installment payments, i.e., if threeDSAuthenticationInd = 03.\nOmitted if it is not an installment payment authentication.\n**Example values:** 2, 02, 002",
+                    "minLength": 1,
+                    "maxLength": 3
+                  },
+                  "threeDSAuthenticationInfo": {
+                    "$ref": "#/components/schemas/threeDSRequestorAuthenticationInfoProperties"
+                  },
+                  "threeDSChallengeInd": {
+                    "type": "string",
+                    "description": "Indicates if a challenge is requested for this transaction.\nIf this parameter is not sent in the request, `NO_PREFERENCE` (01) will be assumed as default value.\n**Values:**\n* `NO_PREFERENCE` (01) - No preference\n* `NO_CHALLENGE_REQUESTED` (02) - No challenge requested\n* `CHALLENGE_REQUESTED_REQUESTOR_PREFERENCE` (03) - Challenge requested (requestor preference)\n* `CHALLENGE_REQUESTED_MANDATE` (04) - Challenge requested (mandate)\n* `NO_CHALLENGE_REQUESTED_RISK_PERFORMED` (05) - No challenge requested (risk analysis performed)\n* `NO_CHALLENGE_REQUESTED_DATA_SHARED_ONLY` (06) - No challenge requested (data shared only)\n* `NO_CHALLENGE_REQUESTED_CONSUMER_AUTH_PERFORMED` (07) - No challenge requested (consumer authentication performed)\n* `NO_CHALLENGE_REQUESTED_WHITELIST_EXEMPTION` (08) - No challenge requested (whitelist exemption)\n* `NO_CHALLENGE_REQUESTED_WHITELIST_PROMPT_REQUESTED` (09) - No challenge requested (whitelist prompt requested)\n* `VISA_RESERVED` (82) - Reserved for VISA",
+                    "minLength": 2,
+                    "maxLength": 2
+                  },
+                  "threeDSRequestorID": {
+                    "type": "string",
+                    "description": "Identifier associated by the DS to the 3DS Requestor.\nEach Directory Server may impose specific format and character requirements on the content of this field.",
+                    "maxLength": 35
+                  },
+                  "acctInfo": {
+                    "$ref": "#/components/schemas/acctInfoProperties"
+                  },
+                  "acctID": {
+                    "type": "string",
+                    "description": "Additional account information provided by 3DS Requestor.",
+                    "maxLength": 64
+                  },
+                  "billAddrCity": {
+                    "type": "string",
+                    "description": "The name of the city of the billing address of the Cardholder associated with the card used for this purchase.",
+                    "maxLength": 50
+                  },
+                  "billAddrCountry": {
+                    "type": "string",
+                    "description": "The three-letter alphabetic code that relates to the country of the billing address of the Cardholder associated with the card used for this purchase.\n**Accepted values:** See [ISO 3166-1](https://es.wikipedia.org/wiki/ISO_3166-1) format",
+                    "maxLength": 3
+                  },
+                  "billAddrLine1": {
+                    "type": "string",
+                    "description": "First line of the postal address or local equivalent part of the billing address of the cardholder associated with the card used for this purchase.",
+                    "maxLength": 50
+                  },
+                  "billAddrLine2": {
+                    "type": "string",
+                    "description": "Second line of the postal address or local equivalent part of the billing address of the cardholder associated with the card used for this purchase.",
+                    "maxLength": 50
+                  },
+                  "billAddrLine3": {
+                    "type": "string",
+                    "description": "Third line of the postal address or local equivalent part of the billing address of the cardholder associated with the card used for this purchase.",
+                    "maxLength": 50
+                  },
+                  "billAddrPostCode": {
+                    "type": "string",
+                    "description": "ZIP or other postal code of the billing address of the cardholder associated with the card used for this purchase.",
+                    "maxLength": 16
+                  },
+                  "billAddrState": {
+                    "type": "string",
+                    "description": "Three-letter alphabetic code of the country subdivision that represents the state or province of the billing address of the cardholder associated with the card used for this purchase.\n**Values:** See [ISO 3166-2](https://es.wikipedia.org/wiki/ISO_3166-2) format",
+                    "maxLength": 3
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "The email address associated with the account that the Cardholder entered or that is archived with the 3DS Requestor.",
+                    "format": "email",
+                    "maxLength": 254
+                  },
+                  "homePhone": {
+                    "$ref": "#/components/schemas/PhoneProperties"
+                  },
+                  "mobilePhone": {
+                    "$ref": "#/components/schemas/PhoneProperties"
+                  },
+                  "cardholderName": {
+                    "type": "string",
+                    "description": "Name of the cardholder.",
+                    "minLength": 2,
+                    "maxLength": 45
+                  },
+                  "shipAddrCity": {
+                    "type": "string",
+                    "description": "Full or partial name of the city of the shipping address provided by the cardholder.",
+                    "maxLength": 50
+                  },
+                  "shipAddrCountry": {
+                    "type": "string",
+                    "description": "The three-letter alphabetic code that relates to the country of the shipping address provided by the Cardholder.\n**Values:** See [ISO 3166-1](https://es.wikipedia.org/wiki/ISO_3166-1) format",
+                    "minLength": 3,
+                    "maxLength": 3
+                  },
+                  "shipAddrLine1": {
+                    "type": "string",
+                    "description": "First line of the postal address or local equivalent part of the shipping address provided by the cardholder.",
+                    "maxLength": 50
+                  },
+                  "shipAddrLine2": {
+                    "type": "string",
+                    "description": "Second line of the postal address or local equivalent part of the shipping address provided by the cardholder.",
+                    "maxLength": 50
+                  },
+                  "shipAddrLine3": {
+                    "type": "string",
+                    "description": "Third line of the postal address or local equivalent part of the shipping address provided by the cardholder.",
+                    "maxLength": 50
+                  },
+                  "shipAddrPostCode": {
+                    "type": "string",
+                    "description": "ZIP or other postal code of the shipping address provided by the cardholder",
+                    "maxLength": 16
+                  },
+                  "shipAddrState": {
+                    "type": "string",
+                    "description": "Three-letter alphabetic code of the country subdivision that represents the state or province of the shipping address provided by the cardholder.\n**Values:** See [ISO 3166-2](https://es.wikipedia.org/wiki/ISO_3166-2) format",
+                    "maxLength": 3
+                  },
+                  "workPhone": {
+                    "$ref": "#/components/schemas/PhoneProperties"
+                  },
+                  "merchantRiskIndicator": {
+                    "$ref": "#/components/schemas/merchantRiskIndicatorProperties"
+                  },
+                  "addPriorInformation": {
+                    "type": "string",
+                    "description": "Indicates the type of authentication request.\n\n**Values:**\n* `Y` - Requests 3DSS to Add PRIOR information\n* `N` - Requests Not to Add PRIOR information",
+                    "minLength": 1,
+                    "maxLength": 1,
+                    "example": "Y"
+                  },
+                  "threeDSRequestorPriorAuthenticationInfo": {
+                    "$ref": "#/components/schemas/threeDSRequestorPriorAuthenticationInfo"
+                  },
+                  "threeDSReqPriorAuthMethod": {
+                    "type": "string",
+                    "description": "Method that was used by the cardholder for the prior authentication.\n**Values:**\n- `FRICTIONLESS_AUTHENTICATION` (01) frictionless\n- `CARDHOLDER_CHALLENGE_OCCURRED` (02) with friction",
+                    "example": "FRICTIONLESS_AUTHENTICATION"
+                  },
+                  "threeDSReqPriorAuthTimestamp": {
+                    "type": "string",
+                    "description": "Date and time in UTC format of the prior authentication.\nThe format is C, for example `2024-07-15T10:00:00Z`.",
+                    "example": "2024-07-15T10:00:00Z"
+                  },
+                  "threeDSReqPriorRef": {
+                    "type": "string",
+                    "description": "The ID granted by the ACS in the prior transaction (first authentication).",
+                    "example": "abc123"
+                  },
+                  "threeDSReqPriorAuthData": {
+                    "type": "string",
+                    "description": "The ID granted by the DS in the prior transaction (first authentication). If this data is not sent, 3DSS assigns it.\nCheck the session",
+                    "example": "xyz789"
+                  },
+                  "threeRIInd": {
+                    "type": "string",
+                    "description": "Indicates if the transaction is recurring.\n**Values:**\n* `RECURRING_TRANSACTION` (01) - Recurring transaction\n* `INSTALMENT_TRANSACTION` (02) - Installment transaction\n* `ADD_CARD` (03) - Add card\n* `MAINTAIN_CARD_INFORMATION` (04) - Maintain card information\n* `ACCOUNT_VERIFICATION` (05) - Account verification\n* `SPLIT_OR_DELAYED_SHIPMENT` (06) - Split or delayed shipment\n* `TOP_UP` (07) - Top up\n* `MAIL_ORDER` (08) - Mail order\n* `TELEPHONE_ORDER` (09) - Telephone order\n* `WHITELIST_STATUS_CHECK` (10) - Whitelist status check\n* `OTHER_PAYMENT` (11) - Other type of payment\n* `BILLING_AGREEMENT` (12) - Billing agreement\n* `MASTERCARD_3RI_IS_FOR_AN_AGENT_PAYMENT_TRANSACTION` (85) - Agent payment transaction for Mastercard\n* `MASTERCARD_3RI_FOR_UNKNOWN_OR_UNDEFINED_FINAL_AMOUNT_BEFORE_PURCHASE_TRANSACTION` (86) - Transaction for Mastercard with unknown or undefined final amount before purchase\n* `VISA_UNSCHEDULED_CREDENTIAL_ON_FILE` (81) - Unscheduled credential on file (Visa)"
+                  }
+                },
+                "example": "RECURRING_TRANSACTION",
+                "required": [
+                  "acctNumber",
+                  "cardExpiryDate",
+                  "purchaseAmount",
+                  "purchaseCurrency",
+                  "redirectURI"
+                ]
+              },
+              "examples": {
+                "Successful request without friction and minimum required fields": {
+                  "value": {
+                    "acctNumber": "4005580000000040",
+                    "cardExpiryDate": "2411",
+                    "purchaseAmount": "8.25",
+                    "redirectURI": "http://www.placetopay.com",
+                    "purchaseCurrency": "COP"
+                  }
+                },
+                "Successful request with cardholder billing information": {
+                  "value": {
+                    "acctNumber": "4012000000001097",
+                    "cardExpiryDate": "2411",
+                    "purchaseAmount": "15000",
+                    "redirectURI": "http://www.placetopay.com",
+                    "purchaseCurrency": "COP",
+                    "cardholderName": "John Doe",
+                    "email": "john.doe@example.com",
+                    "billAddrCity": "Medellin",
+                    "billAddrCountry": "COL",
+                    "billAddrLine1": "Cl 72 No. 15 F-07, El libertador",
+                    "billAddrPostCode": "76001"
+                  }
+                },
+                "Successful request with cardholder account information": {
+                  "value": {
+                    "acctNumber": "4012000000001097",
+                    "cardExpiryDate": "2411",
+                    "purchaseAmount": "15000",
+                    "redirectURI": "http://www.placetopay.com",
+                    "purchaseCurrency": "COP",
+                    "acctInfo": {
+                      "chAccAgeInd": "03",
+                      "chAccChange": "20200801",
+                      "chAccChangeInd": "02",
+                      "chAccDate": "20200824",
+                      "chAccPwChange": "20200801",
+                      "chAccPwChangeInd": "01",
+                      "nbPurchaseAccount": "0",
+                      "provisionAttemptsDay": "1"
+                    }
+                  }
+                },
+                "Successful request with cardholder delivery information": {
+                  "value": {
+                    "acctNumber": "4012000000001097",
+                    "cardExpiryDate": "2411",
+                    "purchaseAmount": "15000",
+                    "redirectURI": "http://www.placetopay.com",
+                    "purchaseCurrency": "COP",
+                    "shipAddrCity": "Medellin",
+                    "shipAddrCountry": "COL",
+                    "shipAddrLine1": "Cl 72 No. 15 F-07, El libertador",
+                    "shipAddrPostCode": "76001"
+                  }
+                },
+                "Failed request with validation error": {
+                  "value": {
+                    "acctNumber": "4005580000000040",
+                    "cardExpiryDate": "2411",
+                    "purchaseAmount": "8.25",
+                    "redirectURI": "http://www.placetopay.com",
+                    "email": "john.doe@example.com",
+                    "purchaseCurrency": "COP"
+                  }
+                },
+                "Request with friction flow or challenge": {
+                  "value": {
+                    "acctNumber": "4009000000502",
+                    "cardExpiryDate": "2411",
+                    "purchaseAmount": "800",
+                    "redirectURI": "http://www.placetopay.com",
+                    "purchaseCurrency": "COP"
+                  }
+                },
+                "Successful request to request 3DSS to add PRIOR information": {
+                  "value": {
+                    "acctNumber": "4009000000502",
+                    "cardExpiryDate": "2411",
+                    "purchaseAmount": "800",
+                    "redirectURI": "http://www.placetopay.com",
+                    "purchaseCurrency": "COP",
+                    "addPriorInformation": "Y"
+                  }
+                },
+                "Successful request sending PRIOR information": {
+                  "value": {
+                    "acctNumber": "4009000000502",
+                    "cardExpiryDate": "2411",
+                    "purchaseAmount": "800",
+                    "redirectURI": "http://www.placetopay.com",
+                    "purchaseCurrency": "COP",
+                    "threeDSRequestorPriorAuthenticationInfo": {
+                      "threeDSReqPriorAuthMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+                      "threeDSReqPriorAuthTimestamp": "202012121232",
+                      "threeDSReqPriorRef": "c83f3f5d-1a47-4eff-9fd0-6b63090a89c6",
+                      "threeDSReqPriorAuthData": "1234565d-1a47-4eff-9fd0-6b63090a3445"
+                    }
+                  }
+                },
+                "Request with recurrence": {
+                  "value": {
+                    "acctNumber": "4009000000502",
+                    "cardholderName": "John Doe",
+                    "cardExpiryDate": "2411",
+                    "redirectURI": "http://www.placetopay.com",
+                    "messageCategory": "NPA",
+                    "threeDSAuthenticationInd": "02",
+                    "recurringFrequency": "30",
+                    "recurringExpiry": "20210801",
+                    "purchaseAmount": "800",
+                    "purchaseCurrency": "COP"
+                  }
+                },
+                "Request for a subscription": {
+                  "value": {
+                    "acctNumber": "4009000000502",
+                    "cardholderName": "John Doe",
+                    "cardExpiryDate": "2411",
+                    "redirectURI": "http://www.placetopay.com",
+                    "messageCategory": "NPA",
+                    "threeDSAuthenticationInd": "ADD_CARD",
+                    "purchaseAmount": "800",
+                    "purchaseCurrency": "COP"
+                  }
+                }
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              },
+              "examples": {
+                "example-1": {
+                  "value": {}
+                }
+              }
+            },
+            "text/html": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          },
+          "description": "### Data to send and request examples"
+        },
+        "parameters": [],
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "tags": [
+          "Sessions"
+        ]
+      }
+    },
+    "/v2x/transactions/{transactionID}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "transactionID",
+          "in": "path",
+          "required": true,
+          "description": "Transaction identifier obtained from the response of the api/threeds/v2x/sessions endpoint"
+        }
+      ],
+      "get": {
+        "summary": "Retrieve transaction information",
+        "operationId": "get-transactions-transactionID",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/success-response-transactions"
+          },
+          "400": {
+            "description": "Response received: 400 Bad Request\nThis error message may appear when the required headers are not\nproperly passed in the request:\n- For example, invalid or missing host header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "examples": {}
+              },
+              "application/xml": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "$ref": "#/components/responses/unauthorized-response"
+          },
+          "404": {
+            "description": "Response received: 404 Not Found\n This error message may appear when the transactionID parameter\n in the endpoint is not recognized as a registered transaction in the\n database, and therefore the resource is not available."
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Content-Type",
+            "description": "application/json"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Bearer ACCESS_TOKEN"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept",
+            "description": "application/json"
+          }
+        ],
+        "tags": [
+          "Transactions "
+        ],
+        "x-internal": false
+      }
+    },
+    "/api/v1/merchants": {
+      "post": {
+        "summary": "Create a merchant",
+        "operationId": "post-user",
+        "responses": {
+          "200 (V1)": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "code"
+                      ],
+                      "properties": {
+                        "code": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "merchant",
+                        "branches"
+                      ],
+                      "properties": {
+                        "merchant": {
+                          "type": "object",
+                          "required": [
+                            "id",
+                            "name",
+                            "token",
+                            "expires_at"
+                          ],
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "token": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "expires_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
+                        },
+                        "branches": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "id",
+                              "name",
+                              "token",
+                              "expires_at"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "token": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "expires_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "Merchant created successfully": {
+                    "value": {
+                      "status": {
+                        "code": 1000
+                      },
+                      "data": {
+                        "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200 (V2)": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "OK"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "00"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-12-09T12:00:00Z"
+                        }
+                      }
+                    },
+                    "merchant": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "token": {
+                          "type": "object",
+                          "required": [
+                            "accessToken",
+                            "expiresAt"
+                          ],
+                          "properties": {
+                            "accessToken": {
+                              "type": "string"
+                            },
+                            "expiresAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "branches": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "name",
+                          "token"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "token": {
+                            "type": "object",
+                            "required": [
+                              "accessToken",
+                              "expiresAt"
+                            ],
+                            "properties": {
+                              "accessToken": {
+                                "type": "string"
+                              },
+                              "expiresAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "merchant"
+                  ]
+                },
+                "examples": {
+                  "Comercio creado con éxito": {
+                    "value": {
+                      "status": {
+                        "code": 1000
+                      },
+                      "data": {
+                        "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401 (V1)": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                },
+                "examples": {
+                  "Unauthenticated": {
+                    "value": {
+                      "message": "Unauthenticated."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401 (V2)": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "enum": [
+                            "Unauthenticated"
+                          ]
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-12-09T12:00:00Z"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "reason",
+                    "message",
+                    "date"
+                  ]
+                },
+                "examples": {
+                  "No autenticado": {
+                    "value": {
+                      "message": "Unauthenticated."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422 (V1)": {
+            "description": "Data validation messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "number"
+                        },
+                        "error": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "error"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                },
+                "examples": {
+                  "Required field validation": {
+                    "value": {
+                      "status": {
+                        "code": 1001,
+                        "error": "The name field is required."
+                      }
+                    }
+                  },
+                  "Format validation": {
+                    "value": {
+                      "status": {
+                        "code": 1002,
+                        "error": "The country must be 3 characters."
+                      }
+                    }
+                  },
+                  "Merchant already exists": {
+                    "value": {
+                      "status": {
+                        "code": 1003,
+                        "error": "The name has already been taken."
+                      }
+                    }
+                  },
+                  "Branch name already exists": {
+                    "value": {
+                      "status": {
+                        "code": 1004,
+                        "error": "The branch.name has already been taken."
+                      }
+                    }
+                  },
+                  "Franchise not enabled": {
+                    "value": {
+                      "status": {
+                        "code": 1005,
+                        "error": "The subscriptions.0.franchise is not enabled "
+                      }
+                    }
+                  },
+                  "Acquirer not enabled": {
+                    "value": {
+                      "status": {
+                        "code": 1006,
+                        "error": "The subscriptions.0.acquirerBIN is not enabled"
+                      }
+                    }
+                  },
+                  "Directory server does not exist": {
+                    "value": {
+                      "status": {
+                        "code": 1007,
+                        "error": "Franchise subscriptions.0.franchise does not have a directory server configured"
+                      }
+                    }
+                  },
+                  "Directory server not enabled": {
+                    "value": {
+                      "status": {
+                        "code": 1008,
+                        "error": "The directory server of franchise subscriptions.0.franchise is not enabled"
+                      }
+                    }
+                  },
+                  "Acquirer does not exist": {
+                    "value": {
+                      "status": {
+                        "code": 1009,
+                        "error": "The selected subscriptions.0.acquirerBIN is invalid."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422 (V2)": {
+            "description": "Data validation messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "The branches.0.name has already been taken."
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-12-09T12:00:00Z"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 90,
+                    "description": "Merchant name"
+                  },
+                  "brand": {
+                    "type": "string",
+                    "maxLength": 25,
+                    "minLength": 0
+                  },
+                  "country": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 3,
+                    "description": "3-letter alphabetic country code"
+                  },
+                  "currency": {
+                    "type": "string",
+                    "maxLength": 3,
+                    "minLength": 3,
+                    "description": "3-letter alphabetic currency code"
+                  },
+                  "document": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Document type"
+                      },
+                      "number": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Document number"
+                      }
+                    }
+                  },
+                  "url": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "description": "Merchant website URL: The URL must comply with the following restrictions:\n* No schemes other than http or https are allowed. (`ftp:`//example.com)\n* The URL must not include a port. (https://example.com`:8000`)\n* The URL must not contain a username. (https://`user@`example.com)\n* The URL must not contain a password. (https://`user:pass@`example.com)\n* The URL must not include query parameters. (query string, https://example.com`?test=true`).\n* The URL must not include fragments. (hash or anchors, https://example.com`#section`).\n* The URL must have a defined host. (https://`path`)\n* The host cannot be an IP address. (https://`192.168.1.1`)"
+                  },
+                  "mcc": {
+                    "type": "number",
+                    "description": "Merchant category code"
+                  },
+                  "isicClass": {
+                    "type": "number",
+                    "description": "ISIC class code"
+                  },
+                  "createToken": {
+                    "type": "boolean",
+                    "description": "Indicator for token creation per merchant. If this field is not sent, it will default to false and the token will not be created (this field is only available in API version V2)."
+                  },
+                  "branches": {
+                    "type": "object",
+                    "description": "Branch information",
+                    "required": [
+                      "name",
+                      "brand",
+                      "country",
+                      "currency",
+                      "url"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 90,
+                        "description": "Branch name"
+                      },
+                      "brand": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Brand",
+                        "maxLength": 25
+                      },
+                      "country": {
+                        "type": "string",
+                        "maxLength": 3,
+                        "minLength": 3,
+                        "description": "3-letter alphabetic country code for the branch"
+                      },
+                      "currency": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 3,
+                        "description": "3-letter alphabetic currency code for the branch"
+                      },
+                      "url": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "description": "Branch website URL: The URL must comply with the following restrictions:\n* No schemes other than http or https are allowed. (`ftp:`//example.com)\n* The URL must not include a port. (https://example.com`:8000`)\n* The URL must not contain a username. (https://`user@`example.com)\n* The URL must not contain a password. (https://`user:pass@`example.com)\n* The URL must not include query parameters. (query string, https://example.com`?test=true`).\n* The URL must not include fragments. (hash or anchors, https://example.com`#section`).\n* The URL must have a defined host. (https://`path`)\n* The host cannot be an IP address. (https://`192.168.1.1`)"
+                      },
+                      "createToken": {
+                        "type": "boolean",
+                        "description": "Indicator for token creation per branch. If this field is not sent, it will default to false and the token will not be created (this field is only available in API version V2)."
+                      }
+                    }
+                  },
+                  "subscriptions": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "minItems": 1,
+                    "description": "Subscription information per branch",
+                    "items": {
+                      "type": "object",
+                      "description": "Subscription information",
+                      "properties": {
+                        "franchise": {
+                          "type": "string",
+                          "description": "Franchise ID"
+                        },
+                        "acquirerBIN": {
+                          "type": "string",
+                          "description": "Acquirer BIN"
+                        },
+                        "version": {
+                          "type": "number",
+                          "minimum": 1,
+                          "maximum": 2,
+                          "description": "Protocol version"
+                        }
+                      },
+                      "required": [
+                        "franchise",
+                        "acquirerBIN",
+                        "version"
+                      ]
+                    }
+                  },
+                  "invitations": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "email": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "name",
+                  "country",
+                  "currency",
+                  "document",
+                  "url",
+                  "mcc",
+                  "branch",
+                  "subscriptions",
+                  "invitations"
+                ]
+              },
+              "examples": {
+                "Structure to create a merchant": {
+                  "value": {
+                    "name": "EGM Ingenieria sin frondteras",
+                    "brand": "placetopay",
+                    "country": "COL",
+                    "currency": "COP",
+                    "document": {
+                      "type": "RUT",
+                      "number": "123456789-0"
+                    },
+                    "url": "https://www.placetopay.com",
+                    "mcc": 742,
+                    "isicClass": 111,
+                    "branch": {
+                      "name": "Main Office",
+                      "brand": "placetopay uno",
+                      "country": "COL",
+                      "currency": "COP"
+                    },
+                    "subscriptions": [
+                      {
+                        "franchise": 1,
+                        "acquirerBIN": 12345678910,
+                        "version": 2
+                      }
+                    ],
+                    "invitations": [
+                      {
+                        "admin@admin.com": null
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          },
+          "description": "Send the required fields for the API to create a new merchant."
+        },
+        "description": "Create a merchant",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept",
+            "description": "application/json",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Bearer ACCESS_TOKEN",
+            "required": true
+          }
+        ],
+        "tags": [
+          "Merchants"
+        ]
+      }
+    },
+    "/api/v2/merchants/{merchantID}": {
+      "delete": {
+        "summary": "Delete a merchant",
+        "operationId": "post-user",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "OK"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "00"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Message description."
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "Date of the response."
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Response received: 401 Unauthorized\n    This error message may appear when in the request,\n    the provided token does not allow successful authentication:\n    - Missing, expired, or invalid token\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Response received: 412 Precondition Failed\nThis error message may appear when it is not possible to delete the merchant.\nThis can happen if the merchant or any of its associated branches have linked transactions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "enum": [
+                            "The request has been successfully processed"
+                          ]
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "merchantID": {
+                    "type": "integer",
+                    "description": "Merchant ID"
+                  }
+                },
+                "required": [
+                  "merchantID"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/merchants/{merchantID}/branches": {
+      "post": {
+        "summary": "Add branches to a merchant",
+        "operationId": "post-branches",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "branches": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "minItems": 1,
+                    "description": "Branches to add to the merchant",
+                    "items": {
+                      "type": "object",
+                      "description": "Branch information to add to the merchant",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 90,
+                          "description": "Branch name"
+                        },
+                        "brand": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 25,
+                          "description": "Brand name"
+                        },
+                        "country": {
+                          "type": "string",
+                          "minLength": 3,
+                          "maxLength": 3,
+                          "description": "Three-letter alphabetic country code for the branch"
+                        },
+                        "currency": {
+                          "type": "string",
+                          "minLength": 3,
+                          "maxLength": 3,
+                          "description": "Three-letter alphabetic currency code for the branch"
+                        },
+                        "url": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 255,
+                          "description": "Branch website URL: The URL must comply with the following restrictions:\n* No schemes other than http or https are allowed. (`ftp:`//example.com)\n* The URL must not include a port. (https://example.com`:8000`)\n* The URL must not contain a username. (https://`user@`example.com)\n* The URL must not contain a password. (https://`user:pass@`example.com)\n* The URL must not include query parameters. (query string, https://example.com`?test=true`).\n* The URL must not include fragments. (hash or anchors, https://example.com`#section`).\n* The URL must have a defined host. (https://`path`)\n* The host cannot be an IP address. (https://`192.168.1.1`)"
+                        },
+                        "createToken": {
+                          "type": "boolean",
+                          "description": "Indicator for token creation per branch. If this field is not sent, it will default to false and the token will not be created (this field is only available in API version V2)."
+                        },
+                        "subscriptions": {
+                          "type": "array",
+                          "uniqueItems": true,
+                          "minItems": 1,
+                          "description": "Subscripción information per branch",
+                          "items": {
+                            "type": "object",
+                            "description": "Subscripción information",
+                            "properties": {
+                              "franchise": {
+                                "type": "number",
+                                "description": "Franchise\nID"
+                              },
+                              "acquirerBIN": {
+                                "type": "number",
+                                "description": "Acquirer BIN"
+                              },
+                              "version": {
+                                "type": "number",
+                                "minimum": 1,
+                                "maximum": 2,
+                                "description": "Protocol version"
+                              }
+                            },
+                            "required": [
+                              "franchise",
+                              "acquirerBIN",
+                              "version"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "brand",
+                        "country",
+                        "currency",
+                        "url"
+                      ]
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "Structure for adding branches to a merchant": {
+                  "value": {
+                    "branches": [
+                      {
+                        "name": "Medellin Office",
+                        "brand": "Evertec Medellin",
+                        "country": "COL",
+                        "currency": "COP",
+                        "url": "https://example-uno.com"
+                      },
+                      {
+                        "name": "Bogota Office",
+                        "brand": "Evertec Bogota",
+                        "country": "COL",
+                        "currency": "COP",
+                        "url": "https://example-dos.com"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          },
+          "description": "Send the required fields for the API to add branches to a merchant."
+        },
+        "responses": {
+          "200 (V1)": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "code"
+                      ],
+                      "properties": {
+                        "code": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "name",
+                          "brand",
+                          "url",
+                          "token",
+                          "expires_at"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "brand": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string",
+                            "format": "uri"
+                          },
+                          "token": {
+                            "type": "string"
+                          },
+                          "expires_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "Branch created successfully": {
+                    "value": {
+                      "status": {
+                        "code": 1000
+                      },
+                      "data": [
+                        {
+                          "id": 1,
+                          "name": "City A Office",
+                          "brand": "Company City A",
+                          "url": "https://company-a.com"
+                        },
+                        {
+                          "id": 2,
+                          "name": "City B Office",
+                          "brand": "Company City B",
+                          "url": "https://company-b.com"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200 (V2)": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "OK"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "00"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-12-09T12:00:00Z"
+                        }
+                      }
+                    },
+                    "branches": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "name",
+                          "token",
+                          "url"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "brand": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string"
+                          },
+                          "token": {
+                            "type": "array",
+                            "required": [
+                              "accessToken",
+                              "expiresAt"
+                            ],
+                            "properties": {
+                              "accessToken": {
+                                "type": "string"
+                              },
+                              "expiresAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "branches"
+                  ]
+                }
+              }
+            }
+          },
+          "401 (V1)": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                },
+                "examples": {
+                  "Unauthenticated": {
+                    "value": {
+                      "message": "Unauthenticated."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401 (V2)": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "enum": [
+                            "Unauthenticated"
+                          ]
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-12-09T12:00:00Z"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "reason",
+                    "message",
+                    "date"
+                  ]
+                }
+              }
+            }
+          },
+          "404 (V1)": {
+            "description": "Merchant does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "number"
+                        },
+                        "error": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "error"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                },
+                "examples": {
+                  "Merchant existence validation": {
+                    "value": {
+                      "status": {
+                        "code": 1010,
+                        "error": "The merchant does not exist"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404 (V2)": {
+            "description": "Merchant does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "The merchant does not exist"
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-12-09T12:00:00Z"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "422 (V1)": {
+            "description": "Data validation messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "number"
+                        },
+                        "error": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "error"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                },
+                "examples": {
+                  "Required field validation": {
+                    "value": {
+                      "status": {
+                        "code": 1001,
+                        "error": "The branches field is required."
+                      }
+                    }
+                  },
+                  "Size validation": {
+                    "value": {
+                      "status": {
+                        "code": 1002,
+                        "error": "The branches.0.country must be 3 characters."
+                      }
+                    }
+                  },
+                  "Currency does not exist": {
+                    "value": {
+                      "status": {
+                        "code": 1002,
+                        "error": "The selected branches.0.currency is invalid."
+                      }
+                    }
+                  },
+                  "Branch name already exists": {
+                    "value": {
+                      "status": {
+                        "code": 1004,
+                        "error": "The branches.0.name has already been taken."
+                      }
+                    }
+                  },
+                  "Invalid URL": {
+                    "value": {
+                      "status": {
+                        "code": 1004,
+                        "error": "The branches.0.url must be a valid URL."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422 (V2)": {
+            "description": "Data validation messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "The branches.0.name has already been taken."
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-12-09T12:00:00Z"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Add branches to a merchant",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept",
+            "description": "application/json",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Bearer ACCESS_TOKEN",
+            "required": true
+          }
+        ],
+        "tags": [
+          "Merchants"
+        ]
+      }
+    },
+    "/api/v2/merchants/{merchantID}/branches/{branchID}": {
+      "delete": {
+        "summary": "Delete a merchant branch",
+        "operationId": "post-user",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "OK"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "00"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Message description."
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "Date of the response."
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Response received: 401 Unauthorized\n    This error message may appear when in the request,\n    the provided token does not allow successful authentication:\n    - Missing, expired, or invalid token\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Response received: 412 Precondition Failed\nThis error message may appear when it is not possible to delete the branch.\nThis can happen if the branch has linked transactions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "enum": [
+                            "The request has been successfully processed"
+                          ]
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "merchantId": {
+                    "type": "integer",
+                    "description": "Merchant ID"
+                  },
+                  "branchId": {
+                    "type": "integer",
+                    "description": "Branch ID"
+                  }
+                },
+                "required": [
+                  "merchantId",
+                  "branchId"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/subscriptions/{merchantCode}/{acquirerBIN}": {
+      "get": {
+        "summary": "Query a subscription",
+        "operationId": "get-subscription",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "merchantCode": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "description": "Merchant acquirer code"
+                  },
+                  "acquirerBIN": {
+                    "type": "string",
+                    "maxLength": 11,
+                    "description": "Acquirer BIN"
+                  }
+                },
+                "required": [
+                  "merchantCode",
+                  "acquirerBIN"
+                ]
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          },
+          "description": "Send the required fields for the API to query subscriptions for a merchant and branch."
+        },
+        "responses": {
+          "200": {
+            "description": "Response received: 200 OK\n    This is a successful response for the\n    merchant subscription query service.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "OK",
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "00",
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Message description."
+                        },
+                        "date": {
+                          "type": "string",
+                          "description": "Date of the response."
+                        }
+                      }
+                    },
+                    "merchant": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "name",
+                        "brand",
+                        "country",
+                        "currency",
+                        "document",
+                        "url",
+                        "mcc",
+                        "subscriptions"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "description": "ID of the merchant."
+                        },
+                        "name": {
+                          "type": "string",
+                          "maxLength": 90,
+                          "description": "Name of the merchant."
+                        },
+                        "brand": {
+                          "type": "string",
+                          "maxLength": 25,
+                          "description": "Brand name of the merchant."
+                        },
+                        "country": {
+                          "type": "string",
+                          "maxLength": 3,
+                          "description": "ISO 3166-1 alpha-3 country code."
+                        },
+                        "currency": {
+                          "type": "string",
+                          "maxLength": 3,
+                          "description": "ISO 4217 alpha-3 currency code."
+                        },
+                        "document": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "maxLength": 10,
+                              "description": "Document type."
+                            },
+                            "document": {
+                              "type": "string",
+                              "maxLength": 30,
+                              "description": "Document number."
+                            }
+                          }
+                        },
+                        "url": {
+                          "type": "string",
+                          "maxLength": 90,
+                          "description": "URL of the merchant's website."
+                        },
+                        "mcc": {
+                          "type": "string",
+                          "maxLength": 4,
+                          "description": "Merchant category code."
+                        },
+                        "subscriptions": {
+                          "type": "array",
+                          "required": [
+                            "acquirerBIN",
+                            "merchantCode",
+                            "franchise",
+                            "version"
+                          ],
+                          "properties": {
+                            "acquirerBIN": {
+                              "type": "string",
+                              "maxLength": 11,
+                              "description": "BIN of the acquirer"
+                            },
+                            "merchantCode": {
+                              "type": "string",
+                              "maxLength": 30,
+                              "description": "Acquirer merchant code."
+                            },
+                            "franchise": {
+                              "type": "string",
+                              "maxLength": 20,
+                              "description": "Franchise name."
+                            },
+                            "version": {
+                              "example": "2",
+                              "type": "integer",
+                              "description": "Protocol version number 3DS."
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "branch": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "name",
+                        "brand",
+                        "country",
+                        "currency",
+                        "url",
+                        "enabled",
+                        "subscriptions"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "description": "ID of the branch."
+                        },
+                        "name": {
+                          "type": "string",
+                          "maxLength": 90,
+                          "description": "Name of the branch."
+                        },
+                        "brand": {
+                          "type": "string",
+                          "maxLength": 25,
+                          "description": "Brand name of the branch."
+                        },
+                        "country": {
+                          "type": "string",
+                          "maxLength": 3,
+                          "description": "ISO 3166-1 alpha-3 country code."
+                        },
+                        "currency": {
+                          "type": "string",
+                          "maxLength": 3,
+                          "description": "ISO 4217 alpha-3 currency code."
+                        },
+                        "url": {
+                          "type": "string",
+                          "maxLength": 90,
+                          "description": "URL of the branch's website."
+                        },
+                        "enabled": {
+                          "type": "boolean",
+                          "enum": [
+                            true,
+                            false
+                          ],
+                          "description": "Indicates if the branch is enabled."
+                        },
+                        "subscriptions": {
+                          "type": "array",
+                          "required": [
+                            "acquirerBIN",
+                            "merchantCode",
+                            "franchise",
+                            "version"
+                          ],
+                          "properties": {
+                            "acquirerBIN": {
+                              "type": "string",
+                              "maxLength": 11,
+                              "description": "Acquirer BIN."
+                            },
+                            "merchantCode": {
+                              "type": "string",
+                              "maxLength": 30,
+                              "description": "Acquirer merchant code."
+                            },
+                            "franchise": {
+                              "type": "string",
+                              "maxLength": 20,
+                              "description": "Franchise name."
+                            },
+                            "version": {
+                              "example": "2",
+                              "type": "integer",
+                              "description": "Protocol version number 3DS."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Response received: 401 Unauthorized\n    This error message may appear when in the request,\n    the provided token does not allow successful authentication:\n    - Missing, expired, or invalid token\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Response received: 404 Not Found\n This error message may appear when the parameters {merchantCode} and {acquirerBIN}\n in the endpoint are not found in the\n database and therefore the resource is not available.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "enum": [
+                            "Subscription does not exist"
+                          ]
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Response received: 412 Precondition Failed\n This error message may appear when the parameters {merchantCode} and {acquirerBIN}\n in the endpoint are registered in more than one merchant or branch in the\n database.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "enum": [
+                            "Duplicate merchantCode and acquirerBIN"
+                          ]
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    },
+                    "merchants": {
+                      "type": "array",
+                      "description": "Lista de comercios con problemas de duplicidad.",
+                      "items": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Add branches to a merchant",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept",
+            "description": "application/json",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Bearer ACCESS_TOKEN",
+            "required": true
+          }
+        ],
+        "tags": [
+          "Merchants"
+        ]
+      }
+    },
+    "/api/v2/token/information": {
+      "post": {
+        "summary": "Query a token",
+        "operationId": "show-token",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "numeric",
+                    "description": "Merchant or branch ID."
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Token type.",
+                    "enum": [
+                      "merchant",
+                      "branch"
+                    ]
+                  },
+                  "accessToken": {
+                    "type": "string",
+                    "description": "Token to query."
+                  }
+                },
+                "required": [
+                  "id",
+                  "type",
+                  "accessToken"
+                ]
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          },
+          "description": "Send the required fields for the API to query a token."
+        },
+        "responses": {
+          "200": {
+            "description": "Response received: 200 OK\n    This is a successful response for the token\n    query service.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "OK",
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "00",
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Token name."
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Token expiration date and time."
+                    },
+                    "revoked": {
+                      "type": "boolean",
+                      "description": "Indicates if the token has been revoked."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Response received: 401 Unauthorized\n  This error message may appear when the token provided\n  in the request does not allow successful authentication:\n  - Missing, expired, or invalid token\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Response received: 404 Not Found\n  This error message may appear when a token with the API input data is not found.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/token/revoke": {
+      "post": {
+        "summary": "Revoke a token",
+        "operationId": "revoke-a-token",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "numeric",
+                    "description": "Merchant or branch ID."
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Token type.",
+                    "enum": [
+                      "merchant",
+                      "branch"
+                    ]
+                  },
+                  "token": {
+                    "type": "string",
+                    "description": "Token to revoke."
+                  }
+                },
+                "required": [
+                  "id",
+                  "type",
+                  "token"
+                ]
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          },
+          "description": "Envíe los campos necesarios para que la API consulte un token."
+        },
+        "responses": {
+          "200": {
+            "description": "Response received: 200 OK\n    This is a satisfactory response for the token\n    revocation service.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "OK"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "00"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Response received: 401 Unauthorized\n  This error message may appear when the token provided\n  in the request does not allow successful authentication:\n  - Missing, expired, or invalid token\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Response received: 412 Precondition Failed\n This error message may appear when it was not possible to revoke the token because the login data\ndoes not match any record in the database.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "enum": [
+                            "Error processing request, check the data and try again"
+                          ]
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/token": {
+      "post": {
+        "summary": "Create a token",
+        "operationId": "create-token",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "numeric",
+                    "description": "Merchant or branch ID."
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Token type.",
+                    "enum": [
+                      "merchant",
+                      "branch"
+                    ]
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Token name."
+                  },
+                  "expiresIn": {
+                    "type": "numeric",
+                    "description": "Token expiration time in seconds.",
+                    "enum": [
+                      31536000,
+                      63072000,
+                      94608000
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "type",
+                  "name"
+                ]
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          },
+          "description": "Send the required fields for the API to create a token."
+        },
+        "responses": {
+          "200": {
+            "description": "Response received: 200 OK\n    This is a successful response for the token\n    creation service.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "OK",
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "00",
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    },
+                    "accessToken": {
+                      "type": "string",
+                      "description": "Token created, use it to authenticate your requests. It will only be visible in the creation response, handle it as a credential securely."
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Token expiration date and time."
+                    },
+                    "revoked": {
+                      "type": "boolean",
+                      "description": "Indicates if the token has been revoked."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Response received: 401 Unauthorized\n  This error message may appear when the token provided\n  in the request does not allow successful authentication:\n  - Missing, expired, or invalid token\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Response received: 412 Precondition Failed\n This error message may appear when a merchant or branch could not be found using the API login details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "FAILED"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "BR"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "enum": [
+                            "Error processing request, check the data and try again"
+                          ]
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PhoneProperties": {
+        "title": "PhoneProperties",
+        "type": "object",
+        "x-examples": {
+          "Request example": {
+            "cc": "1",
+            "subscriber": "1234567899"
+          }
+        },
+        "description": "**Accepted values according to specification** See format [ITU-E.164](https://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-E.164-201011-I!!PDF-S&type=items)",
+        "x-tags": [
+          "Models"
+        ],
+        "properties": {
+          "cc": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 3,
+            "description": "Country code."
+          },
+          "subscriber": {
+            "type": "string",
+            "maxLength": 15,
+            "description": "Subscriber number."
+          }
+        },
+        "required": [
+          "cc",
+          "subscriber"
+        ]
+      },
+      "threeDSRequestorAuthenticationInfoProperties": {
+        "title": "threeDSAuthenticationInfo",
+        "type": "object",
+        "description": "Information about how the 3DS Requestor authenticated the cardholder before or during the transaction.",
+        "x-tags": [
+          "Models"
+        ],
+        "x-examples": {
+          "Request example": {
+            "threeDSReqAuthData": "28401b9d217ef8731f0dbee99c73c5902c183c5b1428d572ef63a4fe26586548",
+            "threeDSReqAuthMethod": "FRICTIONLESS_AUTHENTICATION",
+            "threeDSReqAuthTimestamp": "202103051200"
+          }
+        },
+        "properties": {
+          "threeDSReqAuthData": {
+            "type": "string",
+            "maxLength": 20000,
+            "description": "3DS Requestor authentication data."
+          },
+          "threeDSReqAuthMethod": {
+            "type": "string",
+            "description": "Mechanism used by the cardholder to authenticate with the 3DS Requestor.\n**Values:**\n* `REQUESTOR_AUTHENTICATED_OCCURRED` (01) - Requestor authentication occurred\n* `AUTHENTICATED_WITH_OWN_REQUESTOR_CREDENTIALS` (02) - Authenticated with own requestor credentials\n* `AUTHENTICATED_IN_REQUESTOR_WITH_FEDERATED_ID` (03) - Authenticated in requestor with federated ID\n* `AUTHENTICATED_IN_REQUESTOR_WITH_ISSUER_CREDENTIALS` (04) - Authenticated in requestor with issuer credentials\n* `AUTHENTICATED_IN_REQUESTOR_USING_THIRD_PARTY_AUTHENTICATION` (05) - Authenticated in requestor using third-party authentication\n* `AUTHENTICATED_IN_REQUESTOR_WITH_FIDO` (06) - Authenticated in requestor with FIDO\n* `AUTHENTICATED_IN_REQUESTOR_USING_FIDO_AUTHENTICATOR` (07) - Authenticated in requestor using FIDO authenticator\n* `SRC_ASSURANGE_DATA` (08) - SRC assurance data\n* `MASTERCARD_UNKNOWN_VALUE` (90) - Unknown value for Mastercard",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "threeDSReqAuthTimestamp": {
+            "type": "string",
+            "description": "Date and time in UTC when the cardholder was authenticated.\n**Format:** YYYYMMDDHHMM\n**Example:** 202506011200",
+            "minLength": 12,
+            "maxLength": 12
+          }
+        }
+      },
+      "acctInfoProperties": {
+        "title": "acctInfo",
+        "type": "object",
+        "description": "Additional information about the cardholder account.",
+        "x-tags": [
+          "Models"
+        ],
+        "x-examples": {
+          "Request example": {
+            "chAccAgeInd": "01",
+            "chAccChange": "20210310",
+            "chAccChangeInd": "02",
+            "chAccDate": "20210310",
+            "chAccPwChange": "20210310",
+            "chAccPwChangeInd": "03",
+            "nbPurchaseAccount": "1234",
+            "provisionAttemptsDay": "002",
+            "txnActivityDay": "02",
+            "txnActivityYear": "2",
+            "paymentAccAge": "20210307",
+            "paymentAccInd": "01",
+            "shipAddressUsage": "20210305",
+            "shipAddressUsageInd": "02",
+            "shipNameIndicator": "01",
+            "suspiciousAccActivity": "02"
+          }
+        },
+        "properties": {
+          "chAccAgeInd": {
+            "type": "string",
+            "description": "Length of time since the account was created on the merchant website.\n\n**Values:**\n* NO_ACCOUNT (01) - No account\n* CREATED_DURING_TRANSACTION (02) - Created during transaction\n* LESS_30_DAYS (03) - Less than 30 days\n* BETWEEN_30_AND_60_DAYS (04) - Between 30 and 60 days\n* MORE_60_DAYS (05) - More than 60 days",
+            "maxLength": 2,
+            "minLength": 2
+          },
+          "chAccChange": {
+            "type": "string",
+            "description": "Date of the last change made to the cardholder account on the merchant website, including shipping address and billing address.\n**Format:** YYYYMMDD\n**Example:** 20250601",
+            "minLength": 8,
+            "maxLength": 8
+          },
+          "chAccChangeInd": {
+            "type": "string",
+            "description": "Length of time since the last change was made to the account on the merchant website.\n**Values:**\n* CHANGED_DURING_TRANSACTION (01) - Changed during transaction\n* LESS_30_DAYS (02) - Less than 30 days\n* BETWEEN_30_AND_60_DAYS (03) - Between 30 and 60 days\n* MORE_60_DAYS (04) - More than 60 days",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "chAccDate": {
+            "type": "string",
+            "description": "Date when the account was created on the merchant website.\n**Format:** YYYYMMDD\n**Example:** 20250601",
+            "minLength": 8,
+            "maxLength": 8
+          },
+          "chAccPwChange": {
+            "type": "string",
+            "description": "Date when the last password change or recovery was performed.\n**Format:** YYYYMMDD\n**Example:** 20250601",
+            "minLength": 8,
+            "maxLength": 8
+          },
+          "chAccPwChangeInd": {
+            "type": "string",
+            "description": "Length of time since the last password change or recovery.\n**Values:**\n* NO_CHANGE (01) - No changes\n* CHANGED_DURING_TRANSACTION (02) - Changed during transaction\n* LESS_30_DAYS (03) - Less than 30 days\n* BETWEEN_30_AND_60_DAYS (04) - Between 30 and 60 days\n* MORE_60_DAYS (05) - More than 60 days",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "nbPurchaseAccount": {
+            "type": "string",
+            "description": "Number of purchases in the last 6 months.",
+            "maxLength": 4,
+            "minLength": 1
+          },
+          "provisionAttemptsDay": {
+            "type": "string",
+            "description": "Number of attempts to add cards in the last 24 hours.\n**Example values:** 2, 02, 002",
+            "maxLength": 3
+          },
+          "txnActivityDay": {
+            "type": "string",
+            "description": "Number of transactions (successful and abandoned) for this account in the last 24 hours.\n**Example values:** 2, 02, 002",
+            "maxLength": 3
+          },
+          "txnActivityYear": {
+            "type": "string",
+            "description": "Number of transactions (successful and abandoned) for this account in the last year.\n**Example values:** 2, 02, 002",
+            "maxLength": 3
+          },
+          "paymentAccAge": {
+            "type": "string",
+            "description": "Date when the payment method was added to the user account on the merchant website.\n**Format:** YYYYMMDD\n**Example:** 20250601",
+            "minLength": 8,
+            "maxLength": 8
+          },
+          "paymentAccInd": {
+            "type": "string",
+            "description": "Length of time since the payment method was enrolled in the account on the merchant website.\n**Values:**\n* NO_ACCOUNT (01) - No account\n* CREATED_DURING_TRANSACTION (02) - Created during transaction\n* LESS_30_DAYS (03) - Less than 30 days\n* BETWEEN_30_AND_60_DAYS (04) - Between 30 and 60 days\n* MORE_60_DAYS (05) - More than 60 days",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "shipAddressUsage": {
+            "type": "string",
+            "description": "Date when the shipping address was first used on the merchant website.\n**Format:** YYYYMMDD\n**Example:** 20250601",
+            "minLength": 8,
+            "maxLength": 8
+          },
+          "shipAddressUsageInd": {
+            "type": "string",
+            "description": "Length of time since the shipping address was first used on the merchant website.\n**Values:**\n* 01 - This transaction\n* 02 - Less than 30 days\n* 03 - Between 30 and 60 days\n* 04 - More than 60 days",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "shipNameIndicator": {
+            "type": "string",
+            "description": "Indicates whether the cardholder name matches the shipping name used in this transaction.\n**Values:**\n* 01 - Account name identical to shipping name.\n* 02 - Account name different from shipping name.",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "suspiciousAccActivity": {
+            "type": "string",
+            "description": "Indicates whether the merchant has experienced suspicious activity (including previous fraud) on the cardholder account.\n**Values:**\n* 01 - No suspicious activity has been observed.\n* 02 - Suspicious activity has been observed.",
+            "minLength": 2,
+            "maxLength": 2
+          }
+        }
+      },
+      "merchantRiskIndicatorProperties": {
+        "title": "merchantRiskIndicator",
+        "type": "object",
+        "description": "Merchant assessment of the fraud risk level for the specific authentication.",
+        "x-tags": [
+          "Models"
+        ],
+        "x-examples": {
+          "Request example": {
+            "deliveryEmailAddress": "string",
+            "deliveryTimeframe": "st",
+            "giftCardAmount": "string",
+            "giftCardCount": "st",
+            "giftCardCurr": "str",
+            "preOrderDate": "stringst",
+            "preOrderPurchaseInd": "st",
+            "reorderItemsInd": "st",
+            "shipIndicator": "st"
+          }
+        },
+        "properties": {
+          "deliveryEmailAddress": {
+            "type": "string",
+            "description": "For electronic delivery, the email address where the merchandise was delivered.",
+            "maxLength": 254
+          },
+          "deliveryTimeframe": {
+            "type": "string",
+            "description": "Indicates the delivery timeframe for the merchandise.\n\n**Values:**\n* ELECTRONIC_DELIVERY (01) - Electronic delivery\n* SAME_DAY_SHIPPING (02) - Same day shipping\n* OVERNIGHT_SHIPPING (03) - Overnight shipping\n* TWO_DAYS_OR_MORE_SHIPPING (04) - Two days or more shipping",
+            "maxLength": 2,
+            "minLength": 2
+          },
+          "giftCardAmount": {
+            "type": "string",
+            "description": "For gift card or prepaid purchases, the total amount of gift card or prepaid purchases in major units (e.g., 123.45 USD is 123).\n**Example values:** 123, 0123, 00123",
+            "maxLength": 15
+          },
+          "giftCardCount": {
+            "type": "string",
+            "description": "For gift card or prepaid purchases, total count of individual gift cards, gift codes, or prepaid cards purchased.",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "giftCardCurr": {
+            "type": "string",
+            "description": "For gift card or prepaid purchases, three-digit ISO 4217 currency code of the gift card.\n**Values:** See format [ISO 4217](https://es.wikipedia.org/wiki/ISO_4217)",
+            "minLength": 3,
+            "maxLength": 3
+          },
+          "preOrderDate": {
+            "type": "string",
+            "description": "For a pre-ordered purchase, the expected date when the merchandise will be available.\n**Format:** Ymd\n**Example:** 20250601",
+            "minLength": 8,
+            "maxLength": 8
+          },
+          "preOrderPurchaseInd": {
+            "type": "string",
+            "description": "Indicates whether the cardholder is placing an order for merchandise with future availability or a release date.\n**Values:**\n* MERCHANDISE_AVAILABLE (01) - Merchandise available\n* FUTURE_AVAILABILITY (02) - Future availability",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "reorderItemsInd": {
+            "type": "string",
+            "description": "Indicates whether the cardholder is reordering previously purchased merchandise.\n**Values:**\n* FIRST_TIME_ORDERED (01) - First time ordered\n* REORDERED (02) - Reordered",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "shipIndicator": {
+            "type": "string",
+            "description": "Indicates the shipping method chosen for the transaction.\n**Values:**\n* SHIP_TO_CARDHOLDER_BILLING_ADDR (01) - Ship to cardholder billing address\n* SHIP_TO_ANOTHER_VERIFIED_ADDR_ON_FILE (02) - Ship to another verified address on file\n* SHIP_TO_ADDR_DIFF_CARDHOLDER_BILLING_ADDR (03) - Ship to address different from cardholder billing address\n* SHIP_TO_STORE (04) - Ship to store\n* DIGITAL_GOODS (05) - Digital goods\n* TRAVEL_EVENT_TICKETS_NOT_SHIPPED (06) - Travel event tickets not shipped\n* OTHER (07) - Other",
+            "minLength": 2,
+            "maxLength": 2
+          }
+        }
+      },
+      "threeDSRequestorPriorAuthenticationInfo": {
+        "title": "threeDSRequestorPriorAuthenticationInfo",
+        "type": "object",
+        "description": "Information about how the 3DS Requestor authenticated the cardholder before or during the transaction.",
+        "x-tags": [
+          "Models"
+        ],
+        "x-examples": {
+          "Request example": {
+            "threeDSReqPriorAuthMethod": "FRICTIONLESS_AUTHENTICATION",
+            "threeDSReqPriorAuthTimestamp": 202401011212,
+            "threeDSReqPriorRef": "c83f3f5d-1a47-4eff-9fd0-6b63090a89c6",
+            "threeDSReqPriorAuthData": "f234f3f5d-1a47-4eff-9fd4-1b62190a89f3"
+          }
+        },
+        "properties": {
+          "threeDSReqPriorAuthMethod": {
+            "type": "string",
+            "description": "Authentication method used in the transaction.\n**Values:**\n* `FRICTIONLESS_AUTHENTICATION` – 01 Frictionless authentication\n* `CARDHOLDER_CHALLENGE_OCCURRED` – 02 Friction authentication",
+            "maxLength": 2,
+            "minLength": 2
+          },
+          "threeDSReqPriorAuthTimestamp": {
+            "type": "string",
+            "description": "Transaction timestamp in UTC\n**Accepted formats:**\n  * c – 2020-04-21T01:44:54+00:00\n  * YmdHi – 202401011212",
+            "minLength": 12,
+            "maxLength": 12
+          },
+          "threeDSReqPriorRef": {
+            "type": "string",
+            "description": "Contains the ACS Transaction ID from the previous transaction that was authenticated.\n**Example values:** c83f3f5d-1a47-4eff-9fd0-6b63090a89c6",
+            "maxLength": 72
+          },
+          "threeDSReqPriorAuthData": {
+            "type": "string",
+            "description": "Contains the DS Transaction ID from the previous transaction that was authenticated.\n**Example values:** c83f3f5d-1a47-4eff-9fd0-6b63090a89c6",
+            "maxLength": 72
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "Authorization": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "responses": {
+      "success-response-transactions": {
+        "description": "Response received: 200 Ok\n    This is a successful response for the transaction\n    information query service.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "description": "",
+              "type": "object",
+              "nullable": true,
+              "properties": {
+                "enrolled": {
+                  "example": "Y",
+                  "enum": [
+                    "Y",
+                    "N"
+                  ],
+                  "description": "Indicates whether the card used for the transaction is enrolled (registered in the card ranges for the specific issuer).",
+                  "type": "string"
+                },
+                "transStatus": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Authentication status indicator for a transaction.",
+                  "enum": [
+                    "Y",
+                    "N",
+                    "U",
+                    "A",
+                    "C",
+                    "R"
+                  ],
+                  "maxLength": 1,
+                  "example": "Y"
+                },
+                "transStatusReason": {
+                  "type": "string",
+                  "description": "Provides information about why the Transaction Status field (transStatus) has the specified value.",
+                  "enum": [
+                    "01",
+                    "02",
+                    "03",
+                    "04",
+                    "05",
+                    "06",
+                    "07",
+                    "08",
+                    "09",
+                    "10",
+                    "11",
+                    "12",
+                    "13",
+                    "14",
+                    "15",
+                    "16",
+                    "17",
+                    "18",
+                    "19",
+                    "20"
+                  ],
+                  "minLength": 2,
+                  "maxLength": 2,
+                  "nullable": true
+                },
+                "eci": {
+                  "type": "string",
+                  "description": "Electronic Commerce Indicator showing the authentication result generated by the merchant.",
+                  "example": "07",
+                  "minLength": 2,
+                  "maxLength": 2
+                },
+                "acsTransID": {
+                  "type": "string",
+                  "description": "Unique transaction identifier generated by the ACS.",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "example": "c83f3f5d-1a47-4eff-9fd0-6b63090a89c6",
+                  "format": "uuid"
+                },
+                "dsTransID": {
+                  "type": "string",
+                  "description": "Unique transaction identifier generated by the DS.",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "example": "c83f3f5d-1a47-4eff-9fd0-6b63090a89c6",
+                  "format": "uuid"
+                },
+                "threeDSServerTransID": {
+                  "type": "string",
+                  "description": "Unique transaction identifier generated by the 3DS Server.",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "example": "c83f3f5d-1a47-4eff-9fd0-6b63090a89c6",
+                  "format": "uuid"
+                },
+                "sdkTransID": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "569c905d-b7cc-4f46-aad9-d6bedadbd2fc",
+                  "minLength": 36,
+                  "maxLength": 36,
+                  "description": "Universal unique transaction identifier assigned by 3DS SDK to identify a transaction."
+                },
+                "authenticationValue": {
+                  "type": "string",
+                  "description": "Authentication value for the franchise generated by the ACS. This\nvalue must be passed to the financial network during the authorization process.",
+                  "minLength": 28,
+                  "maxLength": 28,
+                  "example": "AJkBABIWcQAAAAM5FwIzdGiYeHM="
+                },
+                "messageVersion": {
+                  "type": "string",
+                  "minLength": 5,
+                  "maxLength": 8,
+                  "example": "2.2.0",
+                  "enum": [
+                    "2.2.0"
+                  ],
+                  "description": "The EMV® 3D-Secure protocol version number used by the system to execute the authentication flow. This version is set by the 3DS server with the AReq message and does not change throughout the entire transaction flow."
+                },
+                "messageCategory": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 2,
+                  "example": 2,
+                  "enum": [
+                    "PA - 'Payment (01-PA)'",
+                    "NPA - 'Non-Payment (02-NPA)'"
+                  ],
+                  "description": "Indicates the message category."
+                },
+                "authMethod": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 2,
+                  "example": 2,
+                  "enum": [
+                    "FRICTIONLESS_AUTHENTICATION (01)",
+                    "CARDHOLDER_CHALLENGE_OCCURRED (02)",
+                    "AVS_VERIFIED (03)",
+                    "OTHER_ISSUER_METHODS (04)"
+                  ],
+                  "description": "Indicates whether the transaction had a challenge or not."
+                },
+                "authTimestamp": {
+                  "type": "string",
+                  "maxLength": 30,
+                  "example": "2020-04-21T01:44:54+00:00",
+                  "description": "Indicates the authentication timestamp."
+                },
+                "authInd": {
+                  "type": "string",
+                  "example": "RECURRING_TRANSACTION",
+                  "description": "Defines the type of authentication applied based on the channel used."
+                },
+                "deviceChannel": {
+                  "type": "string",
+                  "example": "BRW",
+                  "description": "Channel through which the transaction is performed."
+                },
+                "challengeInd": {
+                  "type": "string",
+                  "example": "NO_PREFERENCE",
+                  "description": "3DS requester challenge indicator."
+                }
+              },
+              "required": [
+                "enrolled",
+                "transStatus",
+                "eci",
+                "acsTransID",
+                "dsTransID",
+                "threeDSServerTransID",
+                "messageVersion",
+                "messageCategory",
+                "authMethod",
+                "authTimestamp",
+                "authInd"
+              ]
+            },
+            "examples": {
+              "Successful Response": {
+                "value": {
+                  "enrolled": "Y",
+                  "transStatus": "Y",
+                  "transStatusReason": null,
+                  "eci": "07",
+                  "acsTransID": "c83f3f5d-1a47-4eff-9fd0-6b63090a89c6",
+                  "dsTransID": "c83f3f5d-1a47-4eff-9fd0-6b63090a89c6",
+                  "threeDSServerTransID": "569c905d-b7cc-4f46-aad9-d6bedadbd2fc",
+                  "sdkTransID": null,
+                  "authenticationValue": "AJkBAmBANQAAACcPhAI0dAJBQVk=",
+                  "messageVersion": "2.2.0",
+                  "messageCategory": "PA",
+                  "authMethod": "CARDHOLDER_CHALLENGE_OCCURRED",
+                  "authTimestamp": "2020-04-21T01:44:54+00:00"
+                }
+              }
+            }
+          }
+        }
+      },
+      "unauthorized-response": {
+        "description": "Response received: 401 Unauthorized\n    This error message may appear when the token provided\n    in the request does not allow successful authentication:\n    - Missing, expired, or invalid token\n",
+        "content": {
+          "application/json": {
+            "schema": {
+              "description": "",
+              "type": "object"
+            },
+            "examples": {
+              "Unauthorized Response": {
+                "value": {
+                  "message": "Unauthenticated."
+                }
+              }
+            }
+          },
+          "application/xml": {
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        }
+      }
+    },
+    "examples": {}
+  },
+  "security": [
+    {
+      "Authorization": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Sessions"
+    },
+    {
+      "name": "Transactions "
+    },
+    {
+      "name": "Merchants"
+    }
+  ]
+}

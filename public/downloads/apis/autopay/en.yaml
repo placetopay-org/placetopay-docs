@@ -1,0 +1,3048 @@
+openapi: 3.0.0
+info:
+  title: BETA - AutoPay API - Balance Request
+  version: 1.0.0
+paths:
+  /autopay/balance:
+    post:
+      summary: Get balance
+      operationId: post-balance
+      parameters:
+        - schema:
+            type: string
+            example: application/json;charset=UTF-8
+          in: header
+          name: Content-Type
+      responses:
+        '200':
+          description: Successful response with the amount to be charged to the user
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - id
+                  - amount
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  id:
+                    $ref: '#/components/schemas/AutoPayId'
+                  amount:
+                    title: Amount
+                    type: object
+                    description: Structure that contains the information about the payment of the transaction required to the web service
+                    properties:
+                      currency:
+                        type: string
+                        description: |
+                          Alphabetical code of the currency to be used (ISO 4217 alpha code)
+                        enum:
+                          - USD
+                          - COP
+                          - CRC
+                          - EUR
+                          - CAD
+                          - AUD
+                          - GBP
+                          - MXN
+                          - CLP
+                        example: COP
+                        minLength: 3
+                        maxLength: 3
+                      total:
+                        description: |
+                          Total value in the indicated base currency
+                        example: 2000
+                        type: number
+                      taxes:
+                        type: array
+                        description: |
+                          Structure to define taxes in the payment process.
+                        items:
+                          title: TaxDetail
+                          type: object
+                          description: Structure to store information about a tax.
+                          properties:
+                            kind:
+                              type: string
+                              example: valueAddedTax
+                              description: |
+                                Tax type identifier
+                              enum:
+                                - valueAddedTax
+                                - exciseDuty
+                                - ice
+                                - airportTax
+                                - stateTax
+                                - reducedStateTax
+                                - municipalTax
+                            amount:
+                              type: number
+                              description: |
+                                Full amount of tax
+                            base:
+                              description: |
+                                Base amount on which the tax is calculated
+                              type: number
+                      details:
+                        description: |
+                          Structure to define additional details of the amount in the payment process.
+                        type: array
+                        items:
+                          title: AmountDetail
+                          type: object
+                          description: Structure to store information about an additional value.
+                          properties:
+                            kind:
+                              type: string
+                              description: |
+                                Detail Type Identifier.
+                            amount:
+                              type: number
+                              description: |
+                                Total amount of detail
+                    required:
+                      - currency
+                      - total
+                  min_amount:
+                    $ref: '#/paths/~1autopay~1balance/post/responses/200/content/application~1json/schema/properties/amount'
+        4XX:
+          description: Request error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+      description: This endpoint returns the pending amount to be charged and the minimum amount required to execute the auto payment.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reference
+                - id
+              properties:
+                reference:
+                  type: string
+                  description: AutoPay reference provided by the client/merchant. This reference must be unique and active per merchant.
+                  example: ACC00012345
+                  maxLength: 32
+                id:
+                  $ref: '#/components/schemas/AutoPayId'
+  /autopay/settlement:
+    post:
+      summary: Settle an AutoPay
+      operationId: post-settlement
+      parameters:
+        - schema:
+            type: string
+            example: application/json;charset=UTF-8
+          in: header
+          name: Content-Type
+      responses:
+        '200':
+          description: AutoPay successfully registered.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - id
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  id:
+                    $ref: '#/components/schemas/AutoPayId'
+        4XX:
+          description: Request error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+      description: This endpoint registers and returns only the notification (settlement) status.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reference
+                - id
+                - transaction
+              properties:
+                reference:
+                  type: string
+                  description: AutoPay reference provided by the client/merchant. This reference must be unique and active per merchant.
+                  minLength: 32
+                  maxLength: 32
+                  example: ACC00012345
+                id:
+                  $ref: '#/components/schemas/AutoPayId'
+                transaction:
+                  description: Transaction data
+                  type: object
+                  properties:
+                    status:
+                      type: object
+                      description: Structure that defines the AutoPay status
+                      x-internal: false
+                      properties:
+                        status:
+                          type: string
+                          enum:
+                            - APPROVED
+                          example: APPROVED
+                          description: AutoPay status. Only approved payments will be settled.
+                        reason:
+                          type: string
+                          enum:
+                            - '00'
+                          description: 'Reason code of the request status. (See [Reason codes](/autopay/codes))'
+                          example: '00'
+                        message:
+                          type: string
+                          description: Message clarifying the status.
+                          example: Successful response
+                        date:
+                          type: string
+                          format: date-time
+                          description: Date and time when the response was generated.
+                          example: '2025-09-29T17:09:29-05:00'
+                      required:
+                        - status
+                        - reason
+                        - message
+                    date:
+                      type: string
+                      format: date-time
+                      description: 'Creation date (ISO 8601 with timezone). Example: `2021-09-20T21:51:59-05:00`.'
+                    transactionDate:
+                      type: string
+                      format: date-time
+                      description: Processing date at the provider (may differ from date).
+                    internalReference:
+                      type: number
+                      description: Internal reference.
+                      minimum: 1
+                    reference:
+                      type: string
+                      description: Merchant reference.
+                      minLength: 1
+                      maxLength: 64
+                    paymentMethod:
+                      type: string
+                      description: 'Conventional format: processor_brand (e.g. `ID_VS` for Interdin Visa, `DF_MS` for Datafast Mastercard). Exceptions may apply.'
+                      minLength: 5
+                      maxLength: 5
+                    franchise:
+                      type: string
+                      description: Card brand / franchise.
+                      enum:
+                        - visa
+                        - visa_electron
+                        - amex
+                        - master
+                        - codensa
+                        - diners
+                        - jbc
+                        - discover
+                        - ris
+                        - credencial
+                        - comfama
+                        - colsubsidio
+                        - falabella
+                        - elo
+                        - somos
+                        - tuya
+                        - exito
+                        - alkosto
+                        - maestro
+                        - mefia
+                        - ath_card
+                        - ath
+                        - athmv
+                        - bancolombia
+                        - cooperativa
+                        - debito
+                        - pagoefectivo
+                        - cafam
+                        - efecty
+                        - gana
+                        - masterpass
+                        - ppd
+                        - pse
+                        - safetypay
+                        - supergiros
+                        - visa_checkout
+                        - procesa
+                        - comfandi
+                        - ach
+                        - telered
+                        - aval
+                        - dilo
+                        - banco_bogota
+                        - ebt
+                        - alia
+                        - deuna
+                    franchiseName:
+                      type: string
+                      description: Displayed franchise name.
+                      minLength: 1
+                    issuerName:
+                      type: string
+                      description: Issuer name.
+                      minLength: 1
+                      nullable: true
+                    amount:
+                      $ref: '#/paths/~1autopay~1balance/post/responses/200/content/application~1json/schema/properties/amount'
+                    conversion:
+                      title: AmountConversion
+                      type: object
+                      description: Structure to define the conversion factor and values.
+                      properties:
+                        from:
+                          $ref: '#/paths/~1autopay~1settlement/post/requestBody/content/application~1json/schema/properties/transaction/properties/conversion/properties/to'
+                        to:
+                          title: AmountBase
+                          type: object
+                          description: Structure that represents an amount that defines the currency and the total.
+                          properties:
+                            currency:
+                              type: string
+                              description: |
+                                Currency according to ISO 4217 (alphabetic code).
+                            total:
+                              description: |
+                                Total value.
+                              type: number
+                        factor:
+                          type: number
+                          example: 1
+                          description: Conversion factor
+                    authorization:
+                      type: string
+                      description: Authorization code.
+                      minLength: 1
+                      nullable: true
+                    receipt:
+                      type: string
+                      description: Receipt / voucher.
+                      maxLength: 16
+                      nullable: true
+                    type:
+                      type: string
+                      description: Operation type.
+                      minLength: 1
+                      enum:
+                        - AUTH_ONLY
+                    refunded:
+                      type: boolean
+                      description: Refund indicator.
+                    lastDigits:
+                      type: string
+                      description: Last account digits.
+                      minLength: 2
+                      nullable: true
+                    provider:
+                      type: string
+                      description: Processor / provider code.
+                      enum:
+                        - CREDIBANCO
+                        - REDEBAN
+                        - INTERDIN
+                        - DATAFAST
+                        - TUYA-DIRECT
+                        - BRASPAG
+                        - TRANSERVER
+                        - SABRE
+                        - EVERTEC
+                        - ACH
+                        - ATH-AVALNET
+                        - SUPERGIROS
+                        - TECNICARD
+                        - MEDIANET
+                        - AUSTRO
+                        - COMFANDI
+                        - PAYSTUDIO
+                        - FLAMINGO
+                        - ATH-MOVIL
+                        - EBUS
+                        - BANCOLOMBIA
+                        - PAGOEFECTIVO
+                        - PROCESA
+                        - TELERED
+                        - AVAL
+                        - DILO
+                        - BANCO_BOGOTA
+                        - BANET
+                        - DEUNA
+                    discount:
+                      type: string
+                      description: Applied discount information (if any).
+                    processorFields:
+                      type: object
+                      description: Raw processor fields.
+                      properties:
+                        id:
+                          type: string
+                          description: Processor ID.
+                          maxLength: 64
+                        b24:
+                          type: string
+                          description: Extra field.
+                          maxLength: 64
+                    additional:
+                      type: object
+                      description: 'See more at [Additional data](/gateway/additional-data)'
+                  required:
+                    - status
+                    - provider
+                    - internalReference
+                    - reference
+                    - paymentMethod
+                    - franchise
+                    - franchiseName
+                    - amount
+                    - authorization
+                    - receipt
+                    - type
+                    - refunded
+                    - processorFields
+  /autopay/webhook:
+    post:
+      summary: AutoPay notifications reception
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEvent'
+      responses:
+        '200':
+          description: The webhook was received successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+        4XX:
+          description: An error occurred while receiving the webhook.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+  /autopay/search:
+    post:
+      summary: List autopays
+      operationId: post-search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                filters:
+                  type: object
+                  description: Filtering criteria for the search.
+                  properties:
+                    reference:
+                      type: string
+                      description: AutoPay reference provided by the client/merchant. This reference must be unique and active per merchant.
+                      example: ACC00012345
+                      maxLength: 32
+                    id:
+                      $ref: '#/components/schemas/AutoPayId'
+                      nullable: true
+                    chargeTypes:
+                      type: array
+                      description: 'Filter by one or more charge types. See more [Charge types](/autopay/charge-types)'
+                      example: '[''FIXED'', ''TOTAL_BALANCE'']'
+                      enum:
+                        - TOTAL_BALANCE
+                        - MINIMUM_BALANCE
+                        - FIXED
+                      items:
+                        $ref: '#/components/schemas/ChargeType'
+                    status:
+                      type: array
+                      description: AutoPay statuses included in the filter.
+                      enum:
+                        - FAILED
+                        - REJECTED
+                        - APPROVED
+                      items:
+                        type: string
+                      example: '[ ''APPROVED'' ]'
+                    createdAt:
+                      type: object
+                      description: 'Creation date range (ISO 8601, date only).'
+                      properties:
+                        from:
+                          type: string
+                          example: '2025-09-01'
+                          format: date Y-m-d
+                        to:
+                          type: string
+                          example: '2025-09-30'
+                          format: date Y-m-d
+                pagination:
+                  $ref: '#/components/schemas/PaginationRequest'
+                locale:
+                  $ref: '#/components/schemas/Locale'
+      responses:
+        '200':
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  data:
+                    description: List of autopays that match the search criteria.
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AutoPay'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+  /autopay/cancel:
+    post:
+      summary: Cancel an autopay
+      operationId: post-search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                id:
+                  $ref: '#/components/schemas/AutoPayId'
+                locale:
+                  $ref: '#/components/schemas/Locale'
+      responses:
+        '200':
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  id:
+                    $ref: '#/components/schemas/AutoPayId'
+        4XX:
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+  /autopay/transactions:
+    post:
+      summary: List autopay transactions
+      operationId: post-search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                id:
+                  $ref: '#/components/schemas/AutoPayId'
+                filters:
+                  type: object
+                  description: Filtering criteria for the search.
+                  properties:
+                    internalReference:
+                      type: string
+                      description: Internal transaction reference in Placetopay provided by the gateway at the time of payment.
+                      example: ACC00012345
+                      maxLength: 32
+                    status:
+                      type: array
+                      description: Transaction statuses.
+                      enum:
+                        - OK
+                        - FAILED
+                        - REJECTED
+                        - APPROVED
+                        - APPROVED_PARCIAL
+                      items:
+                        type: string
+                      example: '[ ''APPROVED'' ]'
+                    amount:
+                      type: object
+                      description: Structure containing information about the transaction payment.
+                      required:
+                        - currency
+                        - total
+                      properties:
+                        currency:
+                          type: string
+                          description: |
+                            Alphabetic currency code to be used (ISO 4217 alpha code)
+                          enum:
+                            - USD
+                            - COP
+                            - CRC
+                            - EUR
+                            - CAD
+                            - AUD
+                            - GBP
+                            - MXN
+                            - CLP
+                          example: COP
+                          minLength: 3
+                          maxLength: 3
+                        total:
+                          type: number
+                          example: 2000
+                          description: |
+                            Total amount in the specified base currency
+                    createdAt:
+                      type: object
+                      description: 'Creation date range (ISO 8601, date only).'
+                      properties:
+                        from:
+                          type: string
+                          example: '2025-09-01'
+                          format: date Y-m-d
+                        to:
+                          type: string
+                          example: '2025-09-30'
+                          format: date Y-m-d
+                pagination:
+                  $ref: '#/components/schemas/PaginationRequest'
+                locale:
+                  $ref: '#/components/schemas/Locale'
+      responses:
+        '200':
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  data:
+                    description: List of autopay transactions that match the search criteria.
+                    type: array
+                    items:
+                      description: Transaction data
+                      type: object
+                      x-examples:
+                        Ejemplo:
+                          status:
+                            status: APPROVED
+                            reason: '00'
+                            message: approved
+                            date: '2021-09-20T20:10:57-05:00'
+                          date: '2021-09-20T20:10:56-05:00'
+                          transactionDate: '2021-09-20T20:10:56-05:00'
+                          internalReference: 2
+                          reference: '1234567890'
+                          paymentMethod: DF_VS
+                          franchise: visa
+                          franchiseName: Visa
+                          issuerName: Testing Bank
+                          amount:
+                            currency: USD
+                            total: 1
+                          conversion:
+                            from:
+                              currency: USD
+                              total: 1
+                            to:
+                              currency: USD
+                              total: 1
+                            factor: 1
+                          authorization: '000000'
+                          receipt: '2'
+                          type: AUTH_ONLY
+                          refunded: 'false'
+                          lastDigits: 0008
+                          provider: DATAFAST
+                          discount: null
+                          processorFields:
+                            id: de7c331a0f5bebdd1996250296cdaf37
+                            b24: '000'
+                          additional:
+                            merchantCode: '1000000505'
+                            terminalNumber: PY100404
+                            credit:
+                              code: '0'
+                              type: '00'
+                              groupCode: C
+                              installments: 0
+                            totalAmount: 1
+                            iceAmount: 0
+                            batch: null
+                            line: null
+                            bin: '411076'
+                            expiration: '1221'
+                      title: ''
+                      properties:
+                        status:
+                          title: Status
+                          type: object
+                          description: 'Structure that contains information about a request or payment, informing its current status.'
+                          properties:
+                            status:
+                              type: string
+                              enum:
+                                - OK
+                                - FAILED
+                                - APPROVED
+                                - APPROVED_PARTIAL
+                                - PARTIAL_EXPIRED
+                                - REJECTED
+                                - PENDING
+                                - PENDING_VALIDATION
+                                - PENDING_PROCESS
+                                - PENDING_CONFIRMATION
+                                - REFUNDED
+                                - REVERSED
+                                - ERROR
+                                - UNKNOWN
+                                - MANUAL
+                                - DISPUTE
+                            reason:
+                              type: string
+                              minLength: '1'
+                              maxLength: '4'
+                            message:
+                              type: string
+                            date:
+                              type: string
+                              example: '2021-09-21T09:34:48-05:00'
+                        date:
+                          type: string
+                          format: date-time
+                          description: 'Date when the transaction was created (ISO 8601, timezone offset required). Example: `2021-09-20T21:51:59-05:00`.'
+                        transactionDate:
+                          type: string
+                          format: date-time
+                          description: Processing date at provider (may differ from date).
+                        internalReference:
+                          type: number
+                          description: Platform internal reference.
+                          minimum: 1
+                        reference:
+                          type: string
+                          description: Merchant order reference.
+                          minLength: 1
+                        paymentMethod:
+                          type: string
+                          description: 'Conventional format: processor_franchise (e.g., `ID_VS` for Interdin Visa, `DF_MS` for Datafast Mastercard), exceptions may exist.'
+                          minLength: 5
+                          maxLength: 5
+                        franchise:
+                          type: string
+                          description: Franchise code.
+                          enum:
+                            - visa
+                            - visa_electron
+                            - amex
+                            - master
+                            - codensa
+                            - diners
+                            - jbc
+                            - discover
+                            - ris
+                            - credencial
+                            - comfama
+                            - colsubsidio
+                            - falabella
+                            - elo
+                            - somos
+                            - tuya
+                            - exito
+                            - alkosto
+                            - maestro
+                            - mefia
+                            - ath_card
+                            - ath
+                            - athmv
+                            - bancolombia
+                            - cooperativa
+                            - debito
+                            - pagoefectivo
+                            - cafam
+                            - efecty
+                            - gana
+                            - masterpass
+                            - ppd
+                            - pse
+                            - safetypay
+                            - supergiros
+                            - visa_checkout
+                            - procesa
+                            - comfandi
+                            - ach
+                            - telered
+                            - aval
+                            - dilo
+                            - banco_bogota
+                            - ebt
+                            - alia
+                            - deuna
+                        franchiseName:
+                          type: string
+                          description: Franchise display name.
+                          minLength: 1
+                        issuerName:
+                          type: string
+                          description: Issuing bank name.
+                          minLength: 1
+                          nullable: true
+                        amount:
+                          $ref: '#/paths/~1autopay~1balance/post/responses/200/content/application~1json/schema/properties/amount'
+                        conversion:
+                          $ref: '#/paths/~1autopay~1settlement/post/requestBody/content/application~1json/schema/properties/transaction/properties/conversion'
+                        authorization:
+                          type: string
+                          description: Authorization code.
+                          minLength: 1
+                          maxLength: 32
+                          nullable: true
+                        receipt:
+                          type: string
+                          description: Receipt / ticket number.
+                          maxLength: 16
+                          minLength: 1
+                          nullable: true
+                        type:
+                          type: string
+                          description: Transaction operation type.
+                          minLength: 1
+                          enum:
+                            - AUTH_ONLY
+                            - AUTH_CONFIRM
+                            - AUTH_CANCEL
+                            - AUTH_CAPTURE
+                            - CAPTURE_ONLY
+                            - CREDIT
+                            - SETTLE
+                            - VOID
+                            - CHARGEBACK
+                            - DISPUTE
+                            - DISPUTE_LOSS
+                            - DISPUTE_WIN
+                            - DISPERSION
+                            - REFUND
+                            - PRE_AUTH
+                            - CHECKIN
+                            - CHECKOUT
+                            - RE_AUTH
+                            - DISPERSION_CAPTURE
+                            - DISPERSION_SETTLE
+                            - DISPERSION_CREDIT
+                        refunded:
+                          type: boolean
+                          description: Refunded flag.
+                        lastDigits:
+                          type: string
+                          description: 'Masked card, last digits.'
+                          minLength: 2
+                          nullable: true
+                        provider:
+                          type: string
+                          description: Processor/provider code.
+                          enum:
+                            - CREDIBANCO
+                            - REDEBAN
+                            - INTERDIN
+                            - DATAFAST
+                            - TUYA-DIRECT
+                            - BRASPAG
+                            - TRANSERVER
+                            - SABRE
+                            - EVERTEC
+                            - ACH
+                            - ATH-AVALNET
+                            - SUPERGIROS
+                            - TECNICARD
+                            - MEDIANET
+                            - AUSTRO
+                            - COMFANDI
+                            - PAYSTUDIO
+                            - FLAMINGO
+                            - ATH-MOVIL
+                            - EBUS
+                            - BANCOLOMBIA
+                        discount:
+                          type: object
+                          nullable: true
+                          description: Applied discount info.
+                          properties:
+                            code:
+                              type: string
+                              description: Discount code.
+                              maxLength: 32
+                            type:
+                              type: string
+                              description: Discount type.
+                              maxLength: 32
+                            amount:
+                              type: number
+                              description: Discount amount.
+                              minimum: 0
+                            base:
+                              type: number
+                              description: Base used.
+                              minimum: 0
+                            percentage:
+                              type: number
+                              description: Discount percent.
+                              minimum: 0
+                              maximum: 100
+                        processorFields:
+                          type: object
+                          description: Raw processor fields.
+                          properties:
+                            id:
+                              type: string
+                              description: Processor id.
+                              maxLength: 64
+                            b24:
+                              type: string
+                              description: Extra field.
+                        additional:
+                          type: object
+                          description: |
+                            See more in [Additional data](/en/gateway/additional-data)
+                        preAuthorization:
+                          type: object
+                          description: Pre-authorization segments.
+                          items:
+                            type: object
+                            properties:
+                              condition:
+                                type: string
+                                description: Segment condition.
+                              internalReference:
+                                type: number
+                                description: Segment reference.
+                              authorization:
+                                type: string
+                                description: Segment auth code.
+                                minLength: 1
+                                nullable: true
+                              receipt:
+                                type: string
+                                description: Segment receipt.
+                                minLength: 1
+                                nullable: true
+                              amount:
+                                $ref: '#/paths/~1autopay~1balance/post/responses/200/content/application~1json/schema/properties/amount'
+                              salt:
+                                type: string
+                                description: Segment salt.
+                        dispersion:
+                          type: array
+                          description: Dispersion splits list.
+                          items:
+                            type: object
+                            properties:
+                              status:
+                                $ref: '#/paths/~1autopay~1transactions/post/responses/200/content/application~1json/schema/properties/data/items/properties/status'
+                              agreement:
+                                type: integer
+                                description: Agreement id.
+                                nullable: true
+                              agreementType:
+                                type: string
+                                description: Agreement type.
+                                enum:
+                                  - AIRLINE
+                                  - MERCHANT
+                              authorization:
+                                type: string
+                                description: Leg auth code.
+                                minLength: 1
+                                nullable: true
+                              receipt:
+                                type: string
+                                description: Leg receipt.
+                                minLength: 1
+                                nullable: true
+                              amount:
+                                $ref: '#/paths/~1autopay~1balance/post/responses/200/content/application~1json/schema/properties/amount'
+                              refunded:
+                                type: boolean
+                                description: Leg refunded flag.
+                              paymentMethod:
+                                type: string
+                                description: Payment method code.
+                      required:
+                        - status
+                        - provider
+                        - internalReference
+                        - reference
+                        - paymentMethod
+                        - franchise
+                        - franchiseName
+                        - amount
+                        - authorization
+                        - receipt
+                        - type
+                        - refunded
+                        - processorFields
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+  /autopay/session:
+    post:
+      summary: Create session (CreateRequest)
+      operationId: post-autopay-session
+      description: Requests the creation of a session and returns the identifier and the processing URL.
+      x-internal: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedirectRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  requestId:
+                    type:
+                      - string
+                      - number
+                      - integer
+                    example: 1
+                    description: request identifier
+                  processUrl:
+                    type: string
+                    format: uri
+                    maxLength: 250
+                    description: URL to which the user must be redirected to complete the payment process.
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+  '/autopay/session/{requestId}':
+    parameters:
+      - schema:
+          type: string
+        name: requestId
+        example: 1
+        description: Identifier of the session request to be consulted.
+        in: path
+        required: true
+    post:
+      summary: Get session information (getSessionInformation)
+      operationId: post-autopay-session-requestId
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectInformation'
+      description: |
+        Retrieves the session information. If the session contains transactions, their details are included.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+components:
+  schemas:
+    AutoPay:
+      type: object
+      required:
+        - id
+        - status
+        - subscription
+        - createdAt
+      properties:
+        id:
+          $ref: '#/components/schemas/AutoPayId'
+        status:
+          $ref: '#/components/schemas/StatusAutoPay'
+        payer:
+          title: Person
+          type: object
+          description: Structure that represents the information of a person involved in a transaction.
+          properties:
+            documentType:
+              type: string
+              description: '[Identification document type](/gateway/document-types)'
+              example: CC
+              maxLength: '6'
+            document:
+              type: string
+              description: 'Identification document number. It must be a valid number according to the document type. See more at [Identification document types](/gateway/document-types)'
+              maxLength: '25'
+            name:
+              type: string
+              description: First name
+              maxLength: '60'
+            surname:
+              type: string
+              description: Last name
+              maxLength: '60'
+            company:
+              type: string
+              description: Company
+              maxLength: '60'
+            email:
+              type: string
+              description: Email address.
+              maxLength: '80'
+            address:
+              description: Object that contains a person's address information.
+              title: Address
+              type: object
+              properties:
+                street:
+                  type: string
+                  maxLength: '128'
+                  description: Street
+                city:
+                  type: string
+                  maxLength: '30'
+                  description: City
+                state:
+                  type: string
+                  maxLength: '3'
+                  description: Country subdivision code representing the state or province. ISO 3166-2 format.
+                  example: CUN
+                postalCode:
+                  type: string
+                  maxLength: '10'
+                  description: Postal code
+                  example: '110111'
+                country:
+                  type: string
+                  maxLength: '2'
+                  example: CO
+                  description: Country. ISO 3166-1 alpha-2 code.
+                phone:
+                  type: string
+                  maxLength: '20'
+                  description: Phone number
+                  example: '3003003000'
+            mobile:
+              type: string
+              description: Mobile phone number
+        buyer:
+          $ref: '#/components/schemas/AutoPay/properties/payer'
+        subscription:
+          type: object
+          required:
+            - reference
+            - description
+            - recurring
+          description: Structure containing information about the subscription associated with the AutoPay.
+          properties:
+            reference:
+              type: string
+              minLength: 1
+              maxLength: 32
+              description: Reference
+            description:
+              type: string
+              maxLength: 250
+              description: Description
+            amount:
+              $ref: '#/paths/~1autopay~1balance/post/responses/200/content/application~1json/schema/properties/amount'
+              description: |
+                Only present when the charge type is `FIXED`.
+                - `FIXED`: recurring amount to be charged.
+            recurring:
+              $ref: '#/components/schemas/Recurring'
+        additional:
+          type: object
+          description: Additional information.
+          properties:
+            customerAccountNumber:
+              type: string
+              description: Unique identifier assigned by the merchant to a customer to identify their internal account.
+              example: '12345'
+            dueDay:
+              type: string
+              $ref: '#/components/schemas/RedirectRequest/properties/autopay/properties/dueDay'
+            sessionId:
+              type: string
+              description: Id of the session used to create the AutoPay.
+              example: defe7220-2203-3bf1-af97-fcf4cebb18af
+        createdAt:
+          type: string
+          format: date-time
+          description: AutoPay creation date.
+          example: '2021-09-24T10:02:17-05:00'
+        updatedAt:
+          type: string
+          format: date-time
+          description: AutoPay last update date.
+          example: '2021-09-24T10:02:17-05:00'
+    ChargeType:
+      type: string
+      enum:
+        - TOTAL_BALANCE
+        - MINIMUM_BALANCE
+        - FIXED
+      example: TOTAL_BALANCE
+      description: 'AutoPay charge type. See more at [Charge types](/autopay/charge-types).'
+    AutoPayId:
+      type: string
+      format: uuid
+      description: Unique identifier of the confirmed AutoPay registered in the notification record.
+      minLength: 36
+      maxLength: 36
+      example: 2972c13d-6315-4da3-80d7-64c24eb232ad
+    Recurring:
+      type: object
+      description: 'Recurrence parameters. If not provided in the creation request, the system may request them from the user during redirection.'
+      required:
+        - type
+      properties:
+        type:
+          $ref: '#/components/schemas/ChargeType'
+        periodicity:
+          type: string
+          description: 'Charge frequency. D=Daily, W=Weekly, M=Monthly, Y=Yearly.'
+          enum:
+            - D
+            - W
+            - M
+            - 'Y'
+          example: M
+        interval:
+          type: string
+          description: Number of periods between charges (e.g. "1" = every month if periodicity=M).
+          pattern: '^[1-9][0-9]*$'
+          example: '1'
+        dueDate:
+          type: string
+          format: date Y-m-d
+          description: Recurrence due date.
+          example: '2026-02-30'
+        startDate:
+          type: string
+          format: date Y-m-d
+          description: start date of the recurrence.
+          example: '2025-10-30'
+        nextPayment:
+          type: string
+          description: Date from which the charge starts.
+          format: date Y-m-d
+          example: '2025-11-30'
+    WebhookEvent:
+      type: object
+      required:
+        - id
+        - type
+        - date
+        - signature
+        - reference
+      x-conditional:
+        - additional
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the AutoPay.
+          minLength: 36
+          maxLength: 36
+          example: 2972c13d-6315-4da3-80d7-64c24eb232ad
+        type:
+          type: string
+          enum:
+            - AUTOPAY_CREATED
+            - AUTOPAY_UPDATED
+            - AUTOPAY_CANCELED
+            - AUTOPAY_TRANSACTION_FAILED
+          description: 'Type of notified event. See more at [Webhook events](/autopay/contracts/webhook#event-types).'
+        date:
+          type: string
+          format: date-time
+          description: 'Date and time when the event was triggered for the first time, in ISO 8601 format.'
+          example: '2025-09-29T17:09:29-05:00'
+        signature:
+          type: string
+          description: 'Digital signature of the webhook payload for validation. See more at [Webhook validation](/autopay/contracts/webhook#validating-webhooks).'
+          example: 'sha256:a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s'
+        reference:
+          type: string
+          description: AutoPay reference provided by the client/merchant. This reference must be unique and active per merchant.
+          example: ACC00012345
+          maxLength: 32
+        additional:
+          type: object
+          description: Object containing relevant information to identify the AutoPay and event-related details.
+          x-conditional: transactionID
+          properties:
+            transactionID:
+              type: string
+              minLength: 32
+              description: Executed payment identifier. It may be present when the event is AUTOPAY_TRANSACTION_FAILED.
+              example: CFed8XTioVhyG3CGHhJrpgpyM8k1phj3
+    Status:
+      title: Status
+      type: object
+      description: 'Structure used to define response [**statuses**](/en/autopay/status).'
+      x-internal: false
+      properties:
+        status:
+          type: string
+          enum:
+            - OK
+            - FAILED
+            - REJECTED
+          description: Request status.
+        reason:
+          type: string
+          enum:
+            - 100
+            - 101
+            - 102
+            - 103
+            - 104
+            - '00'
+            - BR
+            - X3
+            - XH
+            - '?-'
+            - '05'
+            - NF
+          description: 'Reason code of the request status. (See [Reason codes](/autopay/codes))'
+          example: '00'
+        message:
+          type: string
+          description: Message clarifying the status.
+          example: Successful response
+        date:
+          type: string
+          format: date-time
+          description: Date and time when the response was generated.
+          example: '2025-09-29T17:09:29-05:00'
+      required:
+        - status
+        - reason
+        - message
+    StatusAutoPay:
+      title: Status
+      type: object
+      description: Structure used to define the AutoPay status.
+      x-internal: false
+      properties:
+        status:
+          type: string
+          enum:
+            - APPROVED
+            - REJECTED
+            - FAILED
+          example: APPROVED
+          description: AutoPay status.
+        reason:
+          type: string
+          enum:
+            - 100
+            - 101
+            - 102
+            - 103
+            - 104
+            - '00'
+            - BR
+            - X3
+            - XH
+            - '?-'
+            - '05'
+            - NF
+          description: 'Reason code of the request status. (See [Reason codes](/autopay/codes))'
+          example: '00'
+        message:
+          type: string
+          description: Message clarifying the status.
+          example: Successful response
+        date:
+          type: string
+          format: date-time
+          description: Date and time when the response was generated.
+          example: '2025-09-29T17:09:29-05:00'
+      required:
+        - status
+        - reason
+    Pagination:
+      title: Pagination
+      type: object
+      description: Structure containing pagination information.
+      required:
+        - total
+        - perPage
+        - currentPage
+        - lastPage
+      properties:
+        total:
+          type: integer
+          example: 30
+          minimum: 1
+          description: Total number of records found in the query.
+        perPage:
+          type: integer
+          default: 15
+          example: 10
+          minimum: 1
+          description: Number of records per page.
+        currentPage:
+          type: integer
+          default: 1
+          minimum: 1
+          example: 1
+          description: Current page.
+        lastPage:
+          type: integer
+          minimum: 1
+          example: 1
+          description: Last available page.
+    Locale:
+      type: string
+      description: Response language.
+      example: en_EN
+    PaginationRequest:
+      title: Pagination
+      type: object
+      description: Structure containing pagination information.
+      properties:
+        perPage:
+          type: integer
+          default: 15
+          example: 10
+          minimum: 1
+          description: Number of records per page.
+        currentPage:
+          type: integer
+          default: 1
+          minimum: 1
+          example: 1
+          description: Current page.
+    Authentication:
+      required:
+        - login
+        - tranKey
+        - nonce
+        - seed
+      title: Authentication
+      type: object
+      properties:
+        login:
+          type: string
+          description: Site identifier.
+        tranKey:
+          type: string
+          description: 'Generated **tranKey** credential. See more at [Authentication](/autopay/authentication/#how-to-generate-your-authentication)'
+        nonce:
+          type: string
+          description: Random - value for each request encoded in **Base64**.
+        seed:
+          type: string
+          description: Current - date generated in **ISO 8601** format.
+      description: |
+        Structure containing the *site* authentication information generated according to the WSSE UsernameToken Profile 1.1. See more at [Authentication](/autopay/authentication).
+    RedirectRequest:
+      title: CreateSessionRequest
+      type: object
+      description: Information required to create a session.
+      required:
+        - auth
+        - type
+        - autopay
+        - ipAddress
+        - userAgent
+        - returnUrl
+      properties:
+        auth:
+          $ref: '#/components/schemas/Authentication'
+        type:
+          type: string
+          description: |
+            Parameter used for additional session types.
+            Use `autopay` to generate an AutoPay session.
+          enum:
+            - autopay
+          example: autopay
+        autopay:
+          $ref: '#/components/schemas/RedirectInformation/properties/request/properties/autopay'
+          x-conditional:
+            - id
+            - amount
+        buyer:
+          $ref: '#/components/schemas/RedirectInformation/properties/autopay/oneOf/0/items/properties/payer'
+          description: |
+            Data of the **buyer** user, refers to the user who is purchasing a product or service.
+
+            **When creating a session**: Can be sent if you know the user making the purchase, as it helps complete the session information.
+            If this data is sent, the user will have their personal data pre-filled and can change it in Checkout.
+        payer:
+          $ref: '#/components/schemas/RedirectInformation/properties/autopay/oneOf/0/items/properties/payer'
+          description: |
+            Data of the **payer** user, refers to the owner of the payment method or user who paid the requested amount.
+
+            **When creating a session**: Should only be used when you want to "force" the data of the user who will complete the process.
+            If this data is sent, the user will have their personal data pre-filled but **cannot change it**.
+        fields:
+          type: array
+          description: |
+            Structure to relate additional information in the process. See more in [Additional Fields](/en/checkout/additional-fields)
+          items:
+            type: object
+            $ref: '#/components/schemas/RedirectInformation/properties/subscription/properties/instrument/items'
+        paymentMethod:
+          type: string
+          description: |
+            Used to restrict the payment methods available in checkout.
+            Multiple codes can be sent separated by commas.
+            See more at [Payment methods](/checkout/payment-methods)
+
+            Ex: `visa,master,pse`
+          example: visa
+        cancelUrl:
+          type: string
+          description: |
+            Cancel URL, the user is redirected to this URL when they decide not to continue with the process.
+            Occurs when the user clicks on _I do not wish to continue_.
+          example: 'https://commerce.test/cancel'
+        skipResult:
+          type: boolean
+          description: |
+            If `true` is sent, when the user finishes the process the session result page will not be displayed, instead they will be redirected to the `returnUrl`. See more at [Skip result](/checkout/skip-result)
+          default: false
+        noBuyerFill:
+          type: boolean
+          description: |
+            By default, the data sent as `buyer` is pre-filled in the Checkout interface to speed up the payment process, if this parameter is sent as `true` then this pre-filling will not be done.
+          default: false
+        ipAddress:
+          type: string
+          maxLength: 46
+          description: IP address of the user who will perform the process.
+          example: 134.10.163.36
+        userAgent:
+          type: string
+          maxLength: 255
+          description: User Agent of the user's browser that will carry out the process.
+          example: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+        returnUrl:
+          type: string
+          format: uri
+          maxLength: 255
+          description: |
+            Return URL, to this url the user is redirected once the session ends.
+            Occurs when the user clicks on _Return to commerce_.
+
+            e.g.: `https://merchant.com/return`
+          example: 'https://commerce.test/return'
+        locale:
+          x-stoplight:
+            id: 0eakadh5w5h34
+          type: string
+          maxLength: 5
+          format: regex
+          pattern: '^\w{2}\_[A-Z]{2}'
+          example: 'en_US, es_CO'
+          description: 'Language in which the request and the session will be processed. See more in [Location](/en/checkout/localization)'
+    RedirectInformation:
+      title: RedirectInformation
+      type: object
+      description: |
+        Response structure for a transaction information request.
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        requestId:
+          type: string
+          example: 1
+          description: Request identifier.
+        request:
+          type: object
+          description: Contains the information used to create/update the autopay session request.
+          properties:
+            payment:
+              title: PaymentRequest
+              type: object
+              description: |
+                Requested payment information.
+              required:
+                - reference
+                - amount
+              properties:
+                reference:
+                  type: string
+                  minLength: 1
+                  maxLength: 32
+                  description: |
+                    Unique payment reference, consisting of up to 32 alphanumeric characters and permitted symbols 
+                    e.g.: `PAYMENT_0001_ABC`, `Venta_1234-ABCD#2024/03/15$500`, `Ord: 1001/2023`
+                  example: PAYMENT_0001_ABC
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                  description: |
+                    Description of the process to be performed, allowing up to 250 alphanumeric, accented characters, and common symbols 
+                    e.g.: `Cita con el Dr. Pérez a las 10:00 am. 5/12/2024, por $100.00`
+                  example: Consumo mes de Mayo
+                amount:
+                  title: Amount
+                  type: object
+                  x-internal: false
+                  description: |
+                    Information on the amount to be collected
+                  properties:
+                    currency:
+                      type: string
+                      example: COP
+                      minLength: 3
+                      maxLength: 3
+                      description: |
+                        Alphabetical code of the currency to be used [ISO 4217 alpha code](https://en.wikipedia.org/wiki/ISO_4217)   
+                        e.g.: `USD`
+                    total:
+                      type: number
+                      example: 2000
+                      description: |
+                        Total value in the indicated base currency   
+                        e.g.: `1000` equals _one thousand dollars_
+                    taxes:
+                      description: |
+                        Structure to define taxes in the payment process.
+                      type: array
+                      items:
+                        title: Taxes
+                        type: object
+                        description: |
+                          Structure to define information about a tax.
+                        examples:
+                          - kind: valueAddedTax
+                            amount: 1000
+                            base: 0
+                        properties:
+                          kind:
+                            type: enum
+                            description: |
+                              Tax type identifier
+
+                              One of: `valueAddedTax` `exciseDuty` `ice` `airportTax` `stateTax` `reducedStateTax` `municipalTax`.
+                            enum:
+                              - valueAddedTax
+                              - exciseDuty
+                              - ice
+                              - airportTax
+                              - stateTax
+                              - reducedStateTax
+                              - municipalTax
+                            example: valueAddedTax
+                          amount:
+                            type:
+                              - number
+                            description: |
+                              Full amount of tax   
+                              e.g.: `200`
+                          base:
+                            type:
+                              - number
+                            description: |
+                              Base amount on which the tax is calculated   
+                              e.g.: `1000`
+                    details:
+                      description: |
+                        Structure to define additional details of the amount in the payment process.
+                      type: array
+                      items:
+                        title: Details
+                        type: object
+                        description: |
+                          Structure to store information about a detail.
+                        x-internal: false
+                        examples:
+                          - kind: discount
+                            amount: 1000
+                        properties:
+                          kind:
+                            type: enum
+                            description: |
+                              Detail Type Identifier. 
+                              One of:  `discount` `additional` `vatDevolutionBase` `shipping` `handlingFee` `insurance` `giftWrap` `subtotal` `fee` `tip` `airline` `interests`
+                            example: discount
+                            enum:
+                              - discount
+                              - additional
+                              - vatDevolutionBase
+                              - shipping
+                              - handlingFee
+                              - insurance
+                              - giftWrap
+                              - subtotal
+                              - fee
+                              - tip
+                              - airline
+                              - interests
+                          amount:
+                            type:
+                              - number
+                            description: |
+                              Total amount of detail
+
+                              e.g.: `200`
+                allowPartial:
+                  type: boolean
+                  description: |
+                    Defines if the amount to be charged can be paid in several transactions.
+                    When set to `true` the user will be able to complete the payment in multiple transactions.
+                  default: false
+                shipping:
+                  $ref: '#/components/schemas/RedirectInformation/properties/autopay/oneOf/0/items/properties/payer'
+                  description: |
+                    Structure to relate shipping information.
+                items:
+                  type: array
+                  items:
+                    description: Possesses a collection of element structures.
+                    title: Item
+                    type: object
+                    properties:
+                      sku:
+                        type: string
+                        minLength: 1
+                        maxLength: 30
+                        description: |
+                          Item SKU.   
+                          e.g.: `SKU-12345`
+                        example: SKU-12345
+                      id:
+                        type: string
+                        minLength: 1
+                        maxLength: 30
+                        description: null
+                        example: SKU-12345
+                      description:
+                        type: enum
+                        description: Description of the article.
+                        example: Descripción del artículo
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 120
+                        description: |
+                          Article name.   
+                          e.g.: `Manta de lana`
+                        example: product_1
+                      category:
+                        type: enum
+                        description: |
+                          Article category. One of: `digital` `physical`
+                        enum:
+                          - digital
+                          - physical
+                        example: physical
+                      qty:
+                        type: number
+                        description: |
+                          Number of articles of this type.   
+                          e.g.: `23`
+                        example: '1'
+                      price:
+                        type: number
+                        description: |
+                          Total cost of the article.   
+                          e.g.: `1400`
+                        example: 1400
+                      tax:
+                        type: number
+                        description: |
+                          Item Tax Amount.   
+                          e.g.: `100`
+                      additional:
+                        type: object
+                        description: Object that allows sending additional data in JSON format.
+                        nullable: true
+                  description: |
+                    Structure to relate products or items in the process.
+                fields:
+                  $ref: '#/components/schemas/RedirectRequest/properties/fields'
+                recurring:
+                  title: Recurring
+                  type: object
+                  description: |
+                    Structure to indicate the frequency of a recurring charge.
+                  required:
+                    - periodicity
+                    - interval
+                    - maxPeriods
+                  properties:
+                    periodicity:
+                      type: enum
+                      description: |
+                        Billing frequency. `D` day, `M` month, `Y` year
+                      enum:
+                        - D
+                        - M
+                        - 'Y'
+                      example: D
+                    interval:
+                      type: integer
+                      min: 1
+                      description: |
+                        In combination with `periodicity`, indicates how often the charge will be made.
+                        E.g.: For 15 days, use `interval: 15` `periodicity: "D"`.
+                      example: 15
+                    nextPayment:
+                      type: string
+                      description: Next payment date
+                      format: date
+                      example: '2019-08-24'
+                    maxPeriods:
+                      type: number
+                      description: |
+                        Maximum number of periods. Use `-1` if there is no limit
+                      example: 12
+                      min: -1
+                    dueDate:
+                      type: string
+                      format: date
+                      description: |
+                        Recurrence due date
+                        E.g.: `2019-09-24`
+                      example: '2019-09-24'
+                    notificationUrl:
+                      type: string
+                      maxLength: 255
+                      format: uri
+                      description: URL where the service will notify each time a charge is made
+                      example: 'https://merchant.example.com/notificationUrl'
+                  examples:
+                    - periodicity: D
+                      interval: 1
+                      nextPayment: '2019-08-24'
+                      maxPeriods: 1
+                      dueDate: '2019-09-24'
+                      notificationUrl: 'https://merchant.example.com/notificationUrl'
+                subscribe:
+                  type: boolean
+                  description: |
+                    When `true` is sent, a subscription payment session is generated.
+
+                    In the payment process, the user can choose whether or not to save his payment method to be used in future charges..
+                  default: false
+                dispersion:
+                  type: array
+                  description: |
+                    When defined, a scatter payment session is generated.
+                    The generated payment can be divided into different destinations according to the given conditions.
+                  items:
+                    title: DispersionDetail
+                    type: object
+                    description: Structure that reflects the information of the details for payment with dispersion.
+                    properties:
+                      amount:
+                        $ref: '#/components/schemas/RedirectInformation/properties/request/properties/payment/properties/amount'
+                        description: |
+                          I ride to "scatter" in this destination.
+                      agreement:
+                        nullable: true
+                        type:
+                          - number
+                        description: |
+                          Id of the destination of this amount. It can be the id of a site.
+
+                          e.g.: `122`
+                      agreementType:
+                        type: enum
+                        description: |
+                          Type of destination of this amount.
+                          `MERCHANT` for sites, `AIRLINE` for airlines.
+                        enum:
+                          - MERCHANT
+                          - AIRLINE
+                        example: MERCHANT
+                    examples:
+                      - agreement: '1299'
+                        agreementType: MERCHANT
+                        amount:
+                          currency: USD
+                          total: 200
+                modifiers:
+                  type: array
+                  items:
+                    title: Modifiers
+                    type: object
+                    description: |
+                      Structure for additional modifications in the collection.
+
+                      Applies to tax laws in specific countries.
+                    properties:
+                      type:
+                        type: enum
+                        description: |
+                          Modifier type identifier. 
+                          Only `FEDERAL_GOVERNMENT` is currently supported.
+                        example: FEDERAL_GOVERNMENT
+                        enum:
+                          - FEDERAL_GOVERNMENT
+                      code:
+                        type:
+                          - number
+                        description: |
+                          Modifier code.
+
+                           For `FEDERAL_GOVERMENT` represents the law number for discount.
+                          `17934` Gastronomic Services
+                          `18083` IMESI Brazil - Argentina
+                          `19210` Financial Inclusion
+                          `18910` Family Allowances
+                          `18999` Real Estate Reimbursement
+                        enum:
+                          - 17934
+                          - 18083
+                          - 19210
+                          - 18910
+                          - 18999
+                        example: 17934
+                      additional:
+                        type: object
+                        description: |
+                          Structure for appending information to the modifier
+                        properties:
+                          invoice:
+                            type: string
+                            description: |
+                              Required when `modifiers.[].type` is `FEDERAL_GOVERMENT`. Indicates the invoice number.
+
+                              e.g.: `123456789`
+                            maxLength: 9
+                            example: '123456789'
+                    examples:
+                      - type: FEDERAL_GOVERNMENT
+                        code: 17934
+                        additional:
+                          invoice: '123345'
+                  description: |
+                    Structure to define modifiers in the collection.
+
+                    Applies to tax laws in specific countries.
+                processorFields:
+                  type: array
+                  description: 'Structure that may vary over time depending on the information available for the means of payment. See more in [Processor Fields](/en/checkout/processor-fields)'
+                  items:
+                    $ref: '#/components/schemas/RedirectInformation/properties/subscription/properties/instrument/items'
+              examples:
+                - reference: '12345'
+                  description: Payment test
+                  amount:
+                    currency: COP
+                    total: 2000
+                    taxes:
+                      - kind: valueAddedTax
+                        amount: 1000
+                        base: 0
+                    details:
+                      - kind: discount
+                        amount: 1000
+                  allowPartial: false
+                  shipping:
+                    document: '1122334455'
+                    documentType: CC
+                    name: John
+                    surname: Doe
+                    company: Evertec
+                    email: johndoe@app.com
+                    mobile: '+5731111111111'
+                    address:
+                      street: '123 Example Street, Sample City, ST 12345'
+                      city: Medellín
+                      state: Poblado
+                      postalCode: '55555'
+                      country: CO
+                      phone: '+573111111111'
+                  items:
+                    - sku: '12345'
+                      name: product_1
+                      category: physical
+                      qty: '1'
+                      price: 1000
+                      tax: 0
+                  fields:
+                    - keyword: _test_field_value_
+                      value: _test_field_
+                      displayOn: approved
+                  recurring:
+                    periodicity: D
+                    interval: '1'
+                    nextPayment: '2019-08-24'
+                    maxPeriods: 1
+                    'dueDate ': '2019-09-24'
+                    'notificationUrl ': 'https://checkout.placetopay.com'
+                  subscribe: false
+                  dispersion:
+                    - agreement: '1299'
+                      agreementType: MERCHANT
+                      amount:
+                        currency: USD
+                        total: 200
+                  modifiers:
+                    - type: FEDERAL_GOVERNMENT
+                      code: 17934
+                      additional:
+                        invoice: '123345'
+            expiration:
+              type:
+                - string
+              minLength: 1
+              maxLength: 35
+              format: date-time
+              description: |
+                Expiration date of a session. The user must finish the process before this date.
+                The expiration time must be at least 5 minutes from the time of creation. See more in [Expiration date](/en/checkout/expiration)   
+                e.g.: `2024-09-03T12:23:39-05:00`
+            ipAddress:
+              $ref: '#/components/schemas/RedirectRequest/properties/ipAddress'
+            userAgent:
+              $ref: '#/components/schemas/RedirectRequest/properties/userAgent'
+            returnUrl:
+              $ref: '#/components/schemas/RedirectRequest/properties/returnUrl'
+            locale:
+              $ref: '#/components/schemas/RedirectRequest/properties/locale'
+            buyer:
+              $ref: '#/components/schemas/RedirectInformation/properties/autopay/oneOf/0/items/properties/payer'
+              description: |
+                **Buyer** user data, refers to the user who is purchasing a product or a service.
+
+                **When creating a session:** It can be sent if you know the user who is making the subscription, as it helps to complete the session information.
+                If this data is provided, the user will have their personal information pre-filled and will be able to modify it in Checkout.
+            payer:
+              $ref: '#/components/schemas/RedirectInformation/properties/autopay/oneOf/0/items/properties/payer'
+              description: |
+                **Payer** user data, refers to the owner of the payment method or the user who has paid or will pay the requested amount.
+
+                **When creating a session:** It should only be used when you want to enforce the data of the user who will complete the process.
+                If this data is provided, the user will have their personal information pre-filled but **will not be able to modify it**.
+            subscription:
+              title: SubscriptionRequest
+              type: object
+              description: |
+                When sent, a subscription session is generated.
+
+                The user registers a payment method so that later the merchant can charge on that payment method.
+              properties:
+                reference:
+                  $ref: '#/components/schemas/RedirectRequest/properties/autopay/properties/reference'
+                description:
+                  $ref: '#/components/schemas/RedirectRequest/properties/autopay/properties/description'
+                fields:
+                  $ref: '#/components/schemas/RedirectRequest/properties/fields'
+            fields:
+              $ref: '#/components/schemas/RedirectRequest/properties/fields'
+            paymentMethod:
+              type: string
+              description: |
+                Used to restrict the payment methods available in checkout.
+                Multiple codes can be sent separated by commas.
+                See more at [Payment methods](/checkout/payment-methods)
+
+                Ex: `visa,master,pse`
+              example: visa
+            cancelUrl:
+              type:
+                - string
+              description: |
+                Cancel URL, the user is redirected to this URL when they decide not to continue with the process.
+                Occurs when the user clicks on _I do not wish to continue_.
+              example: 'https://commerce.test/cancel'
+            skipResult:
+              type: boolean
+              description: |
+                If `true` is sent, when the user finishes the process the session result page will not be displayed, instead they will be redirected to the `returnUrl`. See more at [Skip result](/checkout/skip-result)
+              default: false
+            noBuyerFill:
+              type: boolean
+              description: |
+                By default, the data sent as `buyer` is pre-filled in the Checkout interface to speed up the payment process, if this parameter is sent as `true` then this pre-filling will not be done.
+              default: false
+            type:
+              type: string
+              description: Parameter used for additional session types.
+              enum:
+                - autopay
+              example: autopay
+            metadata:
+              title: metadata
+              type: object
+              description: Key-value structure used to send additional information and determine specific behaviors during session processing.
+              properties:
+                initiatorIndicator:
+                  type: string
+                  enum:
+                    - AGENT
+                    - CARDHOLDER_COF
+                    - CARDHOLDER_RECURRING_VARIABLE_AMOUNT
+                    - CARDHOLDER_RECURRING_FIXED_AMOUNT
+                    - CARDHOLDER_WITH_INSTALLMENTS
+                    - MERCHANT_COF
+                    - MERCHANT_RECURRING_VARIABLE_AMOUNT
+                    - MERCHANT_RECURRING_FIXED_AMOUNT
+                    - MERCHANT_WITH_INSTALLMENTS
+                  description: Indicates that the session will be processed by an agent using the cardholder's data
+                EBTDeliveryIndicator:
+                  type: string
+                  enum:
+                    - DIRECT_DELIVERY
+                    - CUSTOMER_PICKUP
+                    - COMMERCIAL_SHIPPING
+                    - OTHER
+                    - NOT_AVAILABLE
+                  description: ' (Required for EBT payments): Defines the delivery type'
+                openingDate:
+                  type: string
+                  description: 'Account creation date (format: ''YYYY-MM-DD''). Required for PSE in merchants with “Financial Services” category.'
+                beneficiaryId:
+                  type: string
+                  description: Beneficiary ID linked to the receiving account in a PSE transaction. Required for merchants in the “Financial Services” category
+                kount:
+                  type: object
+                  description: Additional information about the transaction that can be used for risk analysis and fraud prevention.
+                  properties:
+                    account:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        creationDateTime:
+                          type: string
+                          format: date-time
+                        username:
+                          type: string
+                        accountIsActive:
+                          type: boolean
+                    loyalty:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        description:
+                          type: string
+                        credit:
+                          type: object
+                          properties:
+                            creditType:
+                              type: string
+                            amount:
+                              type: integer
+                            currency:
+                              type: string
+                              description: Currency code (ISO 4217)
+                    promotions:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        description:
+                          type: string
+                        status:
+                          type: string
+                        statusReason:
+                          type: string
+                        discount:
+                          type: object
+                          properties:
+                            percentage:
+                              type: number
+                            amount:
+                              type: integer
+                            currency:
+                              type: string
+                              description: Currency code (ISO 4217)
+                        credit:
+                          type: object
+                          properties:
+                            creditType:
+                              type: string
+                            percentage:
+                              type: number
+                            currency:
+                              type: string
+                              description: Currency code (ISO 4217)
+                            amount:
+                              type: integer
+                    links:
+                      type: object
+                      properties:
+                        viewOrderUrl:
+                          type: string
+                          format: uri
+                        requestRefundUrl:
+                          type: string
+                          format: uri
+                        buyAgainUrl:
+                          type: string
+                          format: uri
+                        writeReviewUrl:
+                          type: string
+                          format: uri
+                    advertising:
+                      type: object
+                      properties:
+                        channel:
+                          type: string
+                        affiliate:
+                          type: string
+                        subAffiliate:
+                          type: string
+                        writeReviewUrl:
+                          type: string
+                          format: uri
+                        events:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                              value:
+                                type: string
+                        campaign:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                    shipping:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          description: 'Type of shipping ("SHIPPED", "DIGITAL", "STORE_PICK_UP", "LOCAL_DELIVERY", "STORE_DRIVE_UP", "IN_PERSON").'
+                        provider:
+                          type: string
+                          description: Name of the shipping or delivery provider.
+                        trackingNumber:
+                          type: string
+                          description: Tracking number provided by the carrier.
+                        shippingMethod:
+                          type: string
+                          description: 'Delivery method ("STANDARD", "EXPRESS", "SAME_DAY", "NEXT_DAY", "SECOND_DAY").'
+                        store:
+                          type: object
+                          properties:
+                            address:
+                              type: object
+                              properties:
+                                street:
+                                  type: string
+                                  description: Street address of the store.
+                                city:
+                                  type: string
+                                state:
+                                  type: string
+                                postalCode:
+                                  type: string
+                                country:
+                                  type: string
+                                phone:
+                                  type: string
+                                  description: Store contact phone number.
+                        accessUrl:
+                          type: string
+                          format: uri
+                          description: URL for accessing shipping or download information.
+                        digitalDownloaded:
+                          type: boolean
+                          description: Indicates whether the digital product has been downloaded.
+                        downloadDeviceIp:
+                          type: string
+                          format: ipv4
+                          description: IP address of the device used for download.
+                    store:
+                      type: object
+                      description: Information about the physical store associated with the transaction.
+                      properties:
+                        id:
+                          type: string
+                          description: Store identifier.
+                          example: STORE001
+                        name:
+                          type: string
+                          description: Store name.
+                          example: Sucursal centro
+                        address:
+                          type: object
+                          description: Store address.
+                          properties:
+                            line1:
+                              type: string
+                              description: First line of the address.
+                              example: calle 80
+                            line2:
+                              type: string
+                              description: Second line of the address.
+                              example: casa 3
+                            city:
+                              type: string
+                              description: Store city.
+                              example: Medellin
+                            region:
+                              type: string
+                              description: Region or state of the store.
+                              example: ANTIOQUIA
+                            countryCode:
+                              type: string
+                              description: Country code (ISO 3166-1 alpha-2).
+                              example: CO
+                            postalCode:
+                              type: string
+                              description: Store postal code.
+                              example: '10001'
+                requiresConfirmation:
+                  type: boolean
+                  description: |
+                    Indicates whether the transaction requires merchant confirmation before final processing.
+                    When set to `true`, the transaction will be created in PENDING_CONFIRMATION state
+                    and the merchant must call confirm or cancel via the transaction actions endpoint.
+                  example: true
+            autopay:
+              title: AutopayRequest
+              type: object
+              required:
+                - action
+                - reference
+                - description
+              description: |
+                Detail of the autopay to be generated. The user must register a payment method so that automatic charges are made on that payment method according to the agreed conditions. Required when `.type` is `autopay`.
+              properties:
+                action:
+                  type: enum
+                  description: |
+                    Indicates the action to be performed with the autopay.
+                    One of: `CREATE` to create an autopay, `EDIT` to edit an existing autopay.
+                  enum:
+                    - CREATE
+                    - EDIT
+                  example: CREATE
+                reference:
+                  title: Reference
+                  type: string
+                  minLength: 1
+                  maxLength: 32
+                  description: |
+                    Unique reference of the process. Maximum of 32 characters
+
+                    e.g.: `PAYMENT_0001_ABC`
+                  example: '12345'
+                description:
+                  title: Description
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                  description: |
+                    Description of the process to be carried out
+                  example: Consumption for the month of May
+                id:
+                  $ref: '#/components/schemas/RedirectInformation/properties/autopay/oneOf/0/items/properties/id'
+                  description: Required when `action` is `EDIT`. Identifier of the existing autopay.
+                dueDay:
+                  type: integer
+                  minimum: 1
+                  maximum: 28
+                  description: |
+                    For recurring payments with a monthly frequency, it corresponds to the payment cutoff day.
+                    It is an informative value to indicate to the user the maximum expected day to make the payment.
+                    It usually indicates that charges after this day may have surcharges or may not be available.    
+                    E.g.: `15` for the fifteenth day of each month.
+                  example: 15
+                recurring:
+                  title: AutopayRecurring
+                  type: object
+                  description: Required when `action` is `CREATE`. Indicates the recurrence conditions of the autopay.
+                  required:
+                    - type
+                    - periodicity
+                    - interval
+                    - nextPayment
+                  properties:
+                    type:
+                      type: string
+                      description: |
+                        Corresponds to the type of charge that the recurrence will have. Only used in self-pay sessions.
+                        `FIXED`: The amount is fixed and was defined from the creation of the self-payment,
+                        `MINIMUM_BALANCE`: The minimum amount to keep the recurrence active, defined by an external service,
+                        `TOTAL_BALANCE`: The total defined in the asset, defined by an external service
+                      enum:
+                        - FIXED
+                        - MINIMUM_BALANCE
+                        - TOTAL_BALANCE
+                      example: TOTAL_BALANCE
+                    periodicity:
+                      $ref: '#/components/schemas/RedirectInformation/properties/request/properties/payment/properties/recurring/properties/periodicity'
+                    interval:
+                      $ref: '#/components/schemas/RedirectInformation/properties/request/properties/payment/properties/recurring/properties/interval'
+                    nextPayment:
+                      $ref: '#/components/schemas/RedirectInformation/properties/request/properties/payment/properties/recurring/properties/nextPayment'
+                    dueDate:
+                      $ref: '#/components/schemas/RedirectInformation/properties/request/properties/payment/properties/recurring/properties/dueDate'
+                  examples:
+                    - type: TOTAL_BALANCE
+                      periodicity: M
+                      interval: 1
+                      nextPayment: '2019-08-24'
+                      dueDate: '2019-09-24'
+                amount:
+                  $ref: '#/components/schemas/RedirectInformation/properties/request/properties/payment/properties/amount'
+                  description: Required when `recurring.type` is `FIXED`. Defines the fixed amount to be charged in each recurrence.
+        autopay:
+          oneOf:
+            - type: array
+              description: Structure containing information about the attempts to create or update an autopay within the same session.
+              title: 'array[Autopay]'
+              items:
+                title: Autopay
+                type: object
+                description: |
+                  Autopay generated during the autopay session process.
+                properties:
+                  status:
+                    $ref: '#/components/schemas/RedirectInformation/properties/subscription/properties/status'
+                  id:
+                    type: string
+                    format: uuid
+                    description: Identifier of the Autopay.
+                    example: f7b347d7-c922-4c68-8750-99fb43c9e5ff
+                  siteId:
+                    type: integer
+                    description: Identifier of the site where the autopay was created.
+                    example: 1234
+                  payer:
+                    description: Structure that reflects the information of a person involved in a transaction.
+                    type: object
+                    title: Person
+                    properties:
+                      document:
+                        type: string
+                        maxLength: 25
+                        description: Identity document. Format and length validation is applied dynamically based on the country and the selected document type.
+                        example: '1122334455'
+                      documentType:
+                        type: string
+                        example: CC
+                        maxLength: 6
+                        description: |
+                          Document type identifier. View options in [Document Types](/en/checkout/document-types)
+
+                          e.g.: `CC` for "Cédula de Ciudadanía" in Colombia.
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 60
+                        description: Name of the person or company
+                        example: John
+                      surname:
+                        type: string
+                        minLength: 1
+                        maxLength: 60
+                        description: Last name of the person. Does not apply when the type of document corresponds to that of a company
+                        example: Doe
+                      company:
+                        type: string
+                        minLength: 1
+                        maxLength: 60
+                        description: |
+                          Name of the company to which the person belongs
+
+                          e.g.: `Placetopay`
+                        example: Evertec
+                      email:
+                        type: string
+                        minLength: 1
+                        maxLength: 80
+                        example: johndoe@app.com
+                        description: |
+                          Email of the user or company
+
+                          e.g.: `juan.perez@example.com`
+                      mobile:
+                        type: string
+                        minLength: 1
+                        maxLength: 30
+                        description: |
+                          User or company phone number
+
+                          e.g.: `+573214445566`
+                        example: '+573111111111'
+                      address:
+                        title: address
+                        type: object
+                        description: Structure to attach address or address information
+                        properties:
+                          country:
+                            type: string
+                            description: 'The country in which the address is located. [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) code.'
+                            minLength: 2
+                            maxLength: 2
+                            example: CO
+                          state:
+                            type: string
+                            maxLength: 3
+                            description: 'State/province/department. [ISO 3166-2](https://en.wikipedia.org/wiki/ISO_3166-2) code'
+                            example: ANT
+                          city:
+                            type: string
+                            maxLength: 30
+                            description: City of residence
+                            example: Medellín
+                          postalCode:
+                            type: string
+                            maxLength: 10
+                            description: Postal code of the address
+                            example: '55555'
+                          street:
+                            type: string
+                            minLength: 1
+                            maxLength: 128
+                            description: Home address.
+                            example: 'Calle 12 #33a-12, Apto 101'
+                          phone:
+                            type: string
+                            maxLength: 20
+                            description: Home phone number
+                            example: '+573111111111'
+                  buyer:
+                    $ref: '#/components/schemas/RedirectInformation/properties/autopay/oneOf/0/items/properties/payer'
+                  subscription:
+                    type: object
+                    description: Structure containing information about the subscription associated with the AutoPay.
+                    properties:
+                      reference:
+                        $ref: '#/components/schemas/RedirectRequest/properties/autopay/properties/reference'
+                      description:
+                        $ref: '#/components/schemas/RedirectRequest/properties/autopay/properties/description'
+                      amount:
+                        $ref: '#/components/schemas/RedirectInformation/properties/request/properties/payment/properties/amount'
+                      recurring:
+                        title: AutopayRecurringResponse
+                        type: object
+                        description: Conditions of the autopay recurrence.
+                        properties:
+                          type:
+                            $ref: '#/components/schemas/RedirectRequest/properties/autopay/properties/recurring/properties/type'
+                          periodicity:
+                            $ref: '#/components/schemas/RedirectInformation/properties/request/properties/payment/properties/recurring/properties/periodicity'
+                          interval:
+                            $ref: '#/components/schemas/RedirectInformation/properties/request/properties/payment/properties/recurring/properties/interval'
+                          nextPayment:
+                            $ref: '#/components/schemas/RedirectInformation/properties/request/properties/payment/properties/recurring/properties/nextPayment'
+                          dueDate:
+                            $ref: '#/components/schemas/RedirectInformation/properties/request/properties/payment/properties/recurring/properties/dueDate'
+                          startDate:
+                            type: string
+                            format: date
+                            description: 'Informative start date of the recurrence, format YYYY-MM-DD. Only used in self-pay sessions.'
+                            example: '2019-08-24'
+                        examples:
+                          - type: TOTAL_BALANCE
+                            periodicity: M
+                            interval: 1
+                            nextPayment: '2019-08-24'
+                            dueDate: '2019-09-24'
+                            startDate: '2019-08-24'
+                  instrument:
+                    type: object
+                    description: Structure containing information about the payment method associated with the AutoPay.
+                    properties:
+                      token:
+                        title: Token
+                        type: object
+                        description: |-
+                          Structure that contains the token information associated with the card.
+                          For entry, only the token or subtoken and the cvv are necessary if it is an operation where the user is present.
+                          For output if all data is returned when tokenizing.
+                        properties:
+                          token:
+                            type: string
+                            maxLength: '64'
+                            minLength: '64'
+                            description: Code generated to identify the card in the system
+                            example: faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891
+                          subtoken:
+                            type: string
+                            maxLength: '16'
+                            minLength: '16'
+                            description: Alternate code generated to identify the card
+                            example: '8740257204881112'
+                          franchise:
+                            type: string
+                            minLength: 1
+                            maxLength: 20
+                            description: 'Franchise code associated with the token (Only as a response, it is not necessary to send it)'
+                            example: '`visa`, `visa_electron`, `master`, `diners`'
+                          franchiseName:
+                            type: string
+                            minLength: 1
+                            maxLength: 20
+                            example: '`Visa`,`Master`, `diners`'
+                          issuerName:
+                            $ref: '#/components/schemas/RedirectInformation/properties/payment/items/properties/issuerName'
+                          lastDigits:
+                            type: string
+                            maxLength: 4
+                            example: '1111'
+                          validUntil:
+                            type: string
+                            minLength: 1
+                            maxLength: 10
+                            format: date
+                            description: Fecha de expiración de la tarjeta
+                            example: 12/37
+                          cvv:
+                            type: string
+                            minLength: 3
+                            maxLength: 4
+                            description: CVV requested from the user in case it is present in the operation
+                        x-examples:
+                          Ejemplo respuesta:
+                            value:
+                              token: faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891
+                              subtoken: fakesubtoken00005
+                              franchise: master
+                              franchiseName: Mastercard
+                              lastDigits: '0005'
+                              validUntil: '2018-12-31'
+                              installments: '3'
+                          Ejemplo en solicitud:
+                            value:
+                              token: faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891
+                              cvv: '123'
+                  additional:
+                    type: object
+                    description: Structure that includes additional autopay data.
+                    properties:
+                      dueDay:
+                        type: string
+                        $ref: '#/components/schemas/RedirectRequest/properties/autopay/properties/dueDay'
+                      customerAccountNumber:
+                        type: string
+                        description: Optional data sent when starting the Autopay process.
+                        example: '1234567890'
+                  acceptedAt:
+                    type: string
+                    format: date-time
+                    description: Date and time when the autopay was accepted.
+                    example: '2021-09-24T10:02:17-05:00'
+        payment:
+          description: 'Structure containing the information of the registered transaction. For autopays, this value is **null**.'
+          type: array
+          items:
+            title: Transaction
+            type: object
+            description: |
+              Structure containing information about the payment process of the transaction in Placetopay.
+            examples:
+              - status:
+                  status: APPROVED
+                  reason: '00'
+                  message: The petition has been successfully approved
+                  date: '2022-07-27T14:51:27-05:00'
+                internalReference: 12345
+                reference: '12345'
+                paymentMethod: visa
+                paymentMethodName: Visa
+                issuerName: 'JPMORGAN CHASE BANK, N.A.'
+                amount:
+                  from:
+                    'currency ': COP
+                    'total ': 10000
+                  to:
+                    'currency ': COP
+                    'total ': 10000
+                  factor: 1
+                receipt: 052617800175
+                franchise: PS_VS
+                refunded: false
+                authorization: '965960'
+                processorFields:
+                  - keyword: '1111'
+                    value: lastDigits
+                    displayOn: none
+                  - value:
+                      code: '1'
+                      type: '03'
+                      groupCode: X
+                      installments: 3
+                    keyword: credit
+                    displayOn: none
+                  - value: 2056
+                    keyword: totalAmount
+                    displayOn: none
+                  - value: 685.33
+                    keyword: installmentAmount
+                    displayOn: none
+            properties:
+              status:
+                $ref: '#/components/schemas/RedirectInformation/properties/subscription/properties/status'
+              internalReference:
+                type: integer
+                description: Unique internal reference of the transaction
+                example: 543423
+              reference:
+                $ref: '#/components/schemas/RedirectRequest/properties/autopay/properties/reference'
+              paymentMethod:
+                type: string
+                description: Code for the payment method used.
+                minLength: 1
+                maxLength: 255
+                example: visa
+              paymentMethodName:
+                type: string
+                description: Name of the payment method used..
+                minLength: 1
+                maxLength: 255
+                example: Visa
+              issuerName:
+                type: string
+                description: Name of the issuer or processor.
+                minLength: 1
+                maxLength: 255
+                example: 'JPMORGAN CHASE BANK, N.A.'
+              amount:
+                title: AmountConversion
+                type: object
+                description: |
+                  Structure to define the conversion factor and values.
+                properties:
+                  from:
+                    $ref: '#/components/schemas/RedirectInformation/properties/payment/items/properties/amount/properties/to'
+                  to:
+                    title: AmountBase
+                    type: object
+                    description: |
+                      Structure that represents a quantity that defines the currency and the total.
+                    properties:
+                      'currency ':
+                        type: string
+                        minLength: 3
+                        maxLength: 3
+                        description: |
+                          Currency according to [ISO 4217 alpha code](https://en.wikipedia.org/wiki/ISO_4217).
+                        example: COP
+                      'total ':
+                        type:
+                          - number
+                        description: |
+                          Total value.
+                        example: 10000
+                  factor:
+                    type:
+                      - number
+                      - string
+                    minLength: 1
+                    maxLength: 20
+                    example: 1
+                    description: Conversion factor
+              receipt:
+                type: string
+                minLength: 1
+                maxLength: 255
+                description: Transaction receipt number.
+                example: 052617800175
+              franchise:
+                type: string
+                minLength: 1
+                maxLength: 5
+                description: Franchise of the card used.
+                example: PS_VS
+              refunded:
+                type: boolean
+                description: It is used to define if the transaction has been reversed
+                default: false
+              authorization:
+                type: string
+                minLength: 1
+                maxLength: 255
+                description: Authorization code.
+                example: '965960'
+              processorFields:
+                type: array
+                description: 'Structure that may vary over time depending on the information available for the payment method. See more in [Processing data](/en/checkout/processor-fields)'
+                items:
+                  $ref: '#/components/schemas/RedirectInformation/properties/subscription/properties/instrument/items'
+              dispersion:
+                type: array - 'null'
+                description: Structure containing dispersion information
+                items:
+                  title: Transaction Dispersion
+                  x-stoplight:
+                    id: sc9t9q5yfgeuj
+                  type: object
+                  description: |
+                    Structure containing information about the sparse transaction process.
+                  examples:
+                    - status:
+                        status: APPROVED
+                        reason: '00'
+                        message: The petition has been successfully approved
+                        date: '2022-07-27T14:51:27-05:00'
+                      agreement: null
+                      agreementType: null
+                      authorization: '965960'
+                      receipt: 052617800175
+                      amount:
+                        from:
+                          'currency ': COP
+                          'total ': 10000
+                        to:
+                          'currency ': COP
+                          'total ': 10000
+                        factor: 1
+                      refunded: false
+                      paymentMethod: visa
+                  properties:
+                    status:
+                      $ref: '#/components/schemas/RedirectInformation/properties/subscription/properties/status'
+                    agreement:
+                      $ref: '#/components/schemas/RedirectInformation/properties/payment/items/properties/agreement'
+                    agreementType:
+                      $ref: '#/components/schemas/RedirectInformation/properties/payment/items/properties/agreementType'
+                    authorization:
+                      $ref: '#/components/schemas/RedirectInformation/properties/payment/items/properties/authorization'
+                    receipt:
+                      $ref: '#/components/schemas/RedirectInformation/properties/payment/items/properties/receipt'
+                    amount:
+                      $ref: '#/components/schemas/RedirectInformation/properties/payment/items/properties/amount'
+                    refunded:
+                      $ref: '#/components/schemas/RedirectInformation/properties/payment/items/properties/refunded'
+                    paymentMethod:
+                      $ref: '#/components/schemas/RedirectInformation/properties/payment/items/properties/paymentMethod'
+              agreement:
+                type:
+                  - integer
+                  - 'null'
+                  - number
+                description: Transaction recipient identifier. For the main site of the transaction.
+                example: 186
+              agreementType:
+                type:
+                  - enum
+                  - 'null'
+                description: Dispersion type
+                enum:
+                  - MERCHANT
+                  - AIRLINE
+                example: MERCHANT
+              discount:
+                type:
+                  - object
+                  - 'null'
+                properties:
+                  base:
+                    type: number
+                    example: 3000
+                  code:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                    example: '17934'
+                  type:
+                    type: string
+                    example: FRANCHISE
+                  amount:
+                    type: number
+                    example: 1000
+        subscription:
+          description: 'Structure that contains information for the subscription payment method. For autopays, this value is **null**.'
+          title: SubscriptionResponse
+          type: object
+          examples:
+            - status:
+                status: OK
+                reason: '00'
+                message: The petition has been successfully approved
+                date: '2022-07-27T14:51:27-05:00'
+              type: token
+              instrument:
+                - keyword: token
+                  value: faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891
+                  displayOn: none
+                - keyword: subtoken
+                  value: '8740257204881111'
+                  displayOn: none
+                - keyword: franchise
+                  value: visa
+                  displayOn: none
+                - keyword: franchiseName
+                  value: Visa
+                  displayOn: none
+                - keyword: issuerName
+                  value: 'JPMORGAN CHASE BANK, N.A.'
+                  displayOn: none
+                - keyword: lastDigits
+                  value: '1111'
+                  displayOn: none
+                - keyword: validUntil
+                  value: '2029-12-31'
+                  displayOn: none
+                - keyword: installments
+                  value: null
+                  displayOn: none
+          properties:
+            status:
+              title: Status
+              description: |
+                Structure that contains the response information about a request or payment, and reports the current status of the same.
+              type: object
+              properties:
+                status:
+                  type: enum
+                  description: Status of a request or payment
+                  example: APPROVED
+                  enum:
+                    - APPROVED
+                    - PENDING
+                    - PENDING_CONFIRMATION
+                    - REJECTED
+                    - APPROVED_PARTIAL
+                    - PARTIAL_EXPIRED
+                    - FAILED
+                reason:
+                  type:
+                    - string
+                    - number
+                    - 'null'
+                  maxLength: 255
+                  description: |
+                    Reason Code Provided.
+                  example: '00'
+                message:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 255
+                  description: |
+                    Description of the reason code.
+                  example: The petition has been successfully approved
+                date:
+                  type: string
+                  maxLength: 35
+                  format: date-time
+                  description: |
+                    Date and time when the payment status is generated. [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) Format.
+                  example: '2022-07-27T14:51:27-05:00'
+            type:
+              type: enum
+              description: Defines type of subscription that is returned
+              example: token
+              enum:
+                - token
+                - cuenta
+            instrument:
+              type: array
+              items:
+                title: NameValuePair
+                description: |
+                  Structure to relate additional data in the process.
+                type: object
+                properties:
+                  keyword:
+                    type: string
+                    minLength: 1
+                    maxLength: 50
+                    description: |
+                      Identifier or index of the data to be attached.   
+                      e.g.: `cmsInvoiceId`
+                    example: '1111'
+                  value:
+                    type:
+                      - string
+                      - object
+                      - array
+                      - number
+                      - boolean
+                    minLength: 1
+                    maxLength: 255
+                    description: |
+                      Value of the data to be attached.   
+                      e.g.: `ID_2233`
+                    example: lastDigits
+                  displayOn:
+                    type: enum
+                    description: |
+                      Indicates under what conditions the attached data is displayed. See more in [Additional Fields](/en/checkout/additional-fields)
+
+                      One of: `none`, `payment`, `receipt`, `both`, `approved`.
+                    example: none
+                examples:
+                  - value: '468232'
+                    keyword: merchantCode
+                    displayOn: none
+                  - value:
+                      code: '1'
+                      type: '03'
+                      groupCode: X
+                      installments: 3
+                    keyword: credit
+                    displayOn: none
+                  - value: 2056
+                    keyword: totalAmount
+                    displayOn: none
+                  - value: 685.33
+                    keyword: installmentAmount
+                    displayOn: none

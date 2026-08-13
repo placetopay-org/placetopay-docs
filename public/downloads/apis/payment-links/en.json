@@ -1,0 +1,1170 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Placetopay Payment Links",
+    "version": "1.0",
+    "description": "Placetopay Payment Links is a solution that allows you to create payment links quickly and securely. With this solution, you can create personalized payment links with the payment methods you want and the ability to send notifications to your customers.\n",
+    "contact": {
+      "url": "https://www.evertecinc.com/pasarela-de-pagos-e-commerce/",
+      "name": "Placetopay by Evertec"
+    },
+    "summary": "Use Payment Links to collect payments securely"
+  },
+  "servers": [
+    {
+      "description": "Sandbox (CO)",
+      "url": "https://sites-test.placetopay.com/"
+    }
+  ],
+  "paths": {
+    "/api/payment-link": {
+      "post": {
+        "summary": "Create a Payment Link",
+        "description": "This endpoint is used to create a new payment link\n\n**Note:** If you want to send the link by email, you must add the desired emails in the `receiverEmails` field, as this process is done at the time of creating the link",
+        "operationId": "Create a Payment Link",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "auth",
+                  "name",
+                  "expirationDate",
+                  "paymentExpiration",
+                  "payment",
+                  "reference",
+                  "description"
+                ],
+                "properties": {
+                  "auth": {
+                    "type": "object",
+                    "description": "Site authentication. See more in [Authentication](/en/payment-links/authentication)",
+                    "required": [
+                      "login",
+                      "tranKey",
+                      "nonce",
+                      "seed"
+                    ],
+                    "properties": {
+                      "login": {
+                        "type": "string",
+                        "description": "Site authentication. See more in Authentication",
+                        "examples": [
+                          "aabbccdd1234567890aabbccdd123456"
+                        ]
+                      },
+                      "tranKey": {
+                        "type": "string",
+                        "description": "Generated **tranKey** credential",
+                        "examples": [
+                          "ABC123example456trankey+789abc012def3456ABC="
+                        ]
+                      },
+                      "nonce": {
+                        "type": "string",
+                        "description": "Random **value** for each request encoded in **Base64.**",
+                        "examples": [
+                          "enQ4dXh3YWhkMWM="
+                        ]
+                      },
+                      "seed": {
+                        "type": "string",
+                        "description": "Current **date**, generated in **ISO 8601** format.",
+                        "examples": [
+                          "2023-06-21T09:56:06-05:00"
+                        ]
+                      }
+                    }
+                  },
+                  "notificationUrl": {
+                    "type": "string",
+                    "description": "URL to which notifications of payments made through the payment link will be sent, as well as link expiration notifications. For more details, visit [Notification](/payment-links/notification).\n\nEX: `https://webhook-test.com`\n"
+                  },
+                  "locale": {
+                    "type": "string",
+                    "description": "Language in which the payment link will be sent and displayed, visit [Localization](/payment-links/localization) for its allowed values\n\nEX: `es_CO`, `en_US`\n"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Name that will be associated with the payment link.\n\nEX: `my-product-name`\n"
+                  },
+                  "paymentsAllowed": {
+                    "type": "integer",
+                    "description": "Number of payments that can be made through the link. If this field is not sent, the link will allow an unlimited number of payments.\n\nEX: `7`\n"
+                  },
+                  "expirationDate": {
+                    "type": "string",
+                    "description": "Date and time when the link will no longer be active. The date must be later than the current user's date and time.\n\nEX: `2023-10-21 16:40:10`\n"
+                  },
+                  "paymentExpiration": {
+                    "type": "integer",
+                    "description": "Amount of time in **minutes** allowed to complete each Checkout session.\n\nEX: `15`\n"
+                  },
+                  "payment": {
+                    "type": "object",
+                    "description": "Information about the payment to be made through the payment link.\n",
+                    "properties": {
+                      "amount": {
+                        "type": "object",
+                        "description": "Information about the amount to be charged through the payment link.\n",
+                        "properties": {
+                          "currency": {
+                            "type": "string",
+                            "description": "Currency in which the payment will be processed through the payment link.\n\nEX: `USD`\n"
+                          },
+                          "total": {
+                            "type": "integer",
+                            "description": "Total amount for the payment to be processed through the link.\n\nEX: `100`\n"
+                          },
+                          "taxes": {
+                            "type": "array",
+                            "description": "Structure to define taxes in the payment process.\n",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "description": "Identifier for the type of tax\n\nOne of: `valueAddedTax` `exciseDuty` `ice` `airportTax` `stateTax` `reducedStateTax` `municipalTax`.\n",
+                                "enum": [
+                                  "valueAddedTax",
+                                  "exciseDuty",
+                                  "ice",
+                                  "airportTax",
+                                  "stateTax",
+                                  "reducedStateTax",
+                                  "municipalTax"
+                                ],
+                                "example": "valueAddedTax"
+                              },
+                              "amount": {
+                                "type": [
+                                  "number"
+                                ],
+                                "description": "Total tax amount\nEX: `200`\n"
+                              },
+                              "base": {
+                                "type": [
+                                  "number"
+                                ],
+                                "description": "Base amount on which the tax is calculated\nEX: `1000`\n"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "modifiers": {
+                        "type": "array",
+                        "description": "Structure to define modifiers on the charge.\nApplies to tax laws in specific countries.\n",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "description": "Identifier for the modifier type.\nOnly `FEDERAL_GOVERNMENT` is currently supported.\n",
+                            "example": "FEDERAL_GOVERNMENT",
+                            "enum": [
+                              "FEDERAL_GOVERNMENT"
+                            ]
+                          },
+                          "code": {
+                            "type": [
+                              "number"
+                            ],
+                            "description": "Code for the modifier.\n\nFor `FEDERAL_GOVERNMENT`, it represents the discount law number.\n`17934` Gastronomic Services\n`18083` IMESI Brazil - Argentina\n`19210` Financial Inclusion\n`18910` Family Allowances\n`18999` Real Estate Refunds\n",
+                            "enum": [
+                              17934,
+                              18083,
+                              19210,
+                              18910,
+                              18999
+                            ],
+                            "example": 17934
+                          },
+                          "additional": {
+                            "type": "object",
+                            "description": "Structure to attach information to the modifier\n",
+                            "properties": {
+                              "invoice": {
+                                "type": "string",
+                                "description": "Required when `modifiers.[n].type` is `FEDERAL_GOVERNMENT`. Indicates the invoice number.\nmaxLength: 9\nexample: '123456789'\n",
+                                "examples": [
+                                  {
+                                    "type": "FEDERAL_GOVERNMENT",
+                                    "code": 17934,
+                                    "additional": {
+                                      "invoice": "123345"
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "reference": {
+                    "type": "string",
+                    "description": "Unique reference associated with the payment link.\n\nEX: `Reference123`\n"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Description associated with the payment link.\n\nEX: `Description of my product`\n"
+                  },
+                  "paymentMethod": {
+                    "type": "array",
+                    "description": "Payment methods allowed to use in the created payment link. Only payment methods enabled on your site can be sent.\n\nEX: `[\"pse\", \"visa\", \"master\"]`\n"
+                  },
+                  "receiverEmails": {
+                    "type": "array",
+                    "deprecated": true,
+                    "description": "> **Deprecated:** This field is deprecated. Please use `recipients` instead.\nList of email addresses to which the link will be sent once it has been successfully created.\n\nEX: `[\"user_email@example.com\", \"user2@example.com\"]`\n"
+                  },
+                  "recipients": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "description": "List of recipients to be notified via email address, SMS and WhatsApp. Maximum 20 recipients.\n",
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "description": "Email address to which the link will be sent once it has been created successfully.\n"
+                      },
+                      "phoneNumber": {
+                        "type": "string",
+                        "description": "Mobile phone number to which notifications will be sent. Must include the country code (e.g., +573001234567). This field is required if sendSMS or sendWhatsapp is set to true.\n"
+                      },
+                      "sendSMS": {
+                        "type": "boolean",
+                        "description": "Determines whether the system should attempt to send the payment link via text message. Requires a valid receiverPhoneNumber.\n"
+                      },
+                      "sendWhatsapp": {
+                        "type": "boolean",
+                        "description": "Determines whether the system should attempt to send the payment link via WhatsApp. Requires a valid receiverPhoneNumber.\n"
+                      }
+                    }
+                  },
+                  "additional": {
+                    "type": "object",
+                    "description": "Additional fields for the payment link. Each field must be unique within the same payment link.\nFor more details, visit [NameValuePair](/en/checkout/additional-fields#name-value-pair).\n",
+                    "x-stoplight": {
+                      "id": "mk9s930pmeg1e"
+                    },
+                    "properties": {
+                      "keyword": {
+                        "type": "string",
+                        "description": "Identifier or index of the data to be attached.\nIt must be unique within the set of additional fields to prevent duplicates.\n"
+                      },
+                      "value": {
+                        "type": [
+                          "string",
+                          "object",
+                          "array",
+                          "number",
+                          "boolean"
+                        ],
+                        "description": "Value of the data to be attached.\n"
+                      },
+                      "displayOn": {
+                        "type": "string",
+                        "description": "Indicates under what conditions the attached data is displayed. See more in [Additional Fields](/en/checkout/additional-fields)\n\nOne of: `none`, `payment`, `receipt`, `both`, `approved`.\n"
+                      }
+                    }
+                  },
+                  "isGeneric": {
+                    "type": "boolean",
+                    "description": "Allows the user to pay multiple times using the same link as long as the total limit of approved payments `paymentsAllowed` is not exceeded.",
+                    "default": false
+                  },
+                  "skipResult": {
+                    "type": "boolean",
+                    "description": "Skip the payment result screen.",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payment link created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "description": "The **status** object contains the request status information",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "description": "Request status",
+                          "examples": [
+                            "OK"
+                          ]
+                        },
+                        "reason": {
+                          "type": "integer",
+                          "description": "Response code"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Response message"
+                        },
+                        "date": {
+                          "type": "string",
+                          "description": "Date and time of the response"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    },
+                    "id": {
+                      "type": "integer",
+                      "description": "Unique and incremental ID of the created payment link, this ID is used to query the payment link information.\n\nEX: `1`\n"
+                    },
+                    "url": {
+                      "type": "string",
+                      "description": "URL of the payment link. This URL must be sent to the buyer to make the payment.\n\nEX: `http://microsites.test/link/show?genid=27&code=47`\n"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed. Verify the data sent and try again. Make sure the JSON structure is correct, without unclosed fields or extra commas.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "description": "The **status** object contains the request status information",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "description": "Request status",
+                          "examples": [
+                            "OK"
+                          ]
+                        },
+                        "reason": {
+                          "type": "integer",
+                          "description": "Response code"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Response message"
+                        },
+                        "date": {
+                          "type": "string",
+                          "description": "Date and time of the response"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "Status"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error: some field does not meet the requirements.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "description": "The **status** object contains the request status information",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "description": "Request status",
+                          "examples": [
+                            "OK"
+                          ]
+                        },
+                        "reason": {
+                          "type": "integer",
+                          "description": "Response code"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Response message"
+                        },
+                        "date": {
+                          "type": "string",
+                          "description": "Date and time of the response"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "Status"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "servers": [
+          {
+            "url": "https://dev.placetopay.com/microsites"
+          }
+        ],
+        "x-stoplight": {
+          "id": "7hzkts3nksm2l"
+        }
+      }
+    },
+    "/api/payment-link/{link_id}": {
+      "post": {
+        "summary": "Query a Payment Link",
+        "description": "Use this endpoint to query payment links that have been previously created\r\n\r\n**Note:** You will only be able to query payment links associated with your site",
+        "operationId": "Query a Payment Link",
+        "parameters": [
+          {
+            "name": "link_id",
+            "in": "path",
+            "description": "ID of the link to query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "auth": {
+                    "type": "object",
+                    "description": "The **auth** object is mandatory to securely connect to our services",
+                    "properties": {
+                      "login": {
+                        "type": "string",
+                        "description": "Site identifier",
+                        "examples": [
+                          "aabbccdd1234567890aabbccdd123456"
+                        ]
+                      },
+                      "tranKey": {
+                        "type": "string",
+                        "description": "Generated **tranKey** credential",
+                        "examples": [
+                          "ABC123example456trankey+789abc012def3456ABC="
+                        ]
+                      },
+                      "nonce": {
+                        "type": "string",
+                        "description": "Random **value** for each request encoded in **Base64**.",
+                        "examples": [
+                          "enQ4dXh3YWhkMWM="
+                        ]
+                      },
+                      "seed": {
+                        "type": "string",
+                        "description": "Current **date**, generated in **ISO 8601** format.",
+                        "examples": [
+                          "2023-06-21T09:56:06-05:00"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "login",
+                      "tranKey",
+                      "nonce",
+                      "seed"
+                    ]
+                  }
+                },
+                "required": [
+                  "auth"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment link queried successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "status",
+                    "url",
+                    "expiration_date",
+                    "name",
+                    "reference",
+                    "description",
+                    "total_payments",
+                    "available_payments",
+                    "payment_expiration",
+                    "amount",
+                    "site"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "ID of the queried link.\n\nEX: `21`\n"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ACTIVE",
+                        "INACTIVE",
+                        "EXPIRED"
+                      ],
+                      "description": "Status of the queried link.\n\nEX: `ACTIVE`\n"
+                    },
+                    "url": {
+                      "type": "string",
+                      "description": "URL of the queried link.\n\nEX: `http://microsites.test/link/show?genid=26&code=47`\n"
+                    },
+                    "expirationDate": {
+                      "type": "string",
+                      "description": "Expiration date and time of the queried link in UTC format.\n\nEX: `2024-08-12T08:10:50-05:00`\n"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Name associated with the queried link.\n\nEX: `Test`\n"
+                    },
+                    "reference": {
+                      "type": "string",
+                      "description": "Reference associated with the queried link.\n\nEX: `#5321`\n"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Description associated with the payment link.\n\nEX: `Description of a payment link`\n"
+                    },
+                    "totalPayments": {
+                      "type": "integer",
+                      "description": "Number of payments allowed through the queried link.\n\nEX: `7`\n"
+                    },
+                    "availablePayments": {
+                      "type": "integer",
+                      "description": "Number of payments available in the queried link.\n\nEX: `6`\n"
+                    },
+                    "paymentExpiration": {
+                      "type": "integer",
+                      "description": "Minutes that a payment session lasts before expiring.\n\nEX: `15`\n"
+                    },
+                    "amount": {
+                      "type": "integer",
+                      "description": "Amount information to be charged through the payment link\n",
+                      "properties": {
+                        "currency": {
+                          "type": "string",
+                          "description": "Currency in which the charge will be made through the payment link.\n\nEX: `USD`\n"
+                        },
+                        "total": {
+                          "type": "integer",
+                          "description": "Total amount for the payment that will be made through the link.\n\nEX: `100`\n"
+                        },
+                        "taxes": {
+                          "type": "array",
+                          "description": "Structure to define taxes in the payment process.\n",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "description": "Identifier for the type of tax\n\nOne of: `valueAddedTax` `exciseDuty` `ice` `airportTax` `stateTax` `reducedStateTax` `municipalTax`.\n",
+                              "enum": [
+                                "valueAddedTax",
+                                "exciseDuty",
+                                "ice",
+                                "airportTax",
+                                "stateTax",
+                                "reducedStateTax",
+                                "municipalTax"
+                              ],
+                              "example": "valueAddedTax"
+                            },
+                            "amount": {
+                              "type": [
+                                "number"
+                              ],
+                              "description": "Total tax amount\nEX: `200`\n"
+                            },
+                            "base": {
+                              "type": [
+                                "number"
+                              ],
+                              "description": "Base amount on which the tax is calculated\nEX: `1000`\n"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "site": {
+                      "type": "object",
+                      "description": "Information about the site associated with the payment link.\n",
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "description": "ID of the site associated with the payment link.\n\nEX: `112`\n"
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Name of the associated site.\n\nEX: `Ebus PFKR 2`\n"
+                        }
+                      }
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "description": "Additional information associated with the payment link.\n\nEX: `{\"discount\":[{\"code\":17934,\"type\":\"FEDERAL_GOVERNMENT\",\"additional\":{\"invoice\":\"123456777\"}}]}`\n"
+                    },
+                    "payments": {
+                      "type": "array",
+                      "description": "List containing all payments made through the link. If no payment has been made, this field will be shown as an empty array.\n",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "ID of the made payment.\n\nEX: `22`\n"
+                          },
+                          "requestId": {
+                            "type": "integer",
+                            "description": "RequestId of the Checkout session in which the payment was made.\n\nEX: `84076`\n"
+                          },
+                          "status": {
+                            "type": "string",
+                            "description": "Status of the made transaction.\n\nEX: `APPROVED`\n"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Message of the transaction status.\n\nEX: `The request has been successfully approved`\n"
+                          },
+                          "proccessUrl": {
+                            "type": "string",
+                            "description": "URL of the payment session in which the transaction was made.\n\nEX: `https://checkout-co.placetopay.dev/spa/session/80108/f19f30`\n"
+                          },
+                          "amount": {
+                            "type": "object",
+                            "properties": {
+                              "currency": {
+                                "type": "string",
+                                "description": "Currency in which the transaction charge was made.\n\nEX: `USD`\n"
+                              },
+                              "total": {
+                                "type": "string",
+                                "description": "Total amount charged in the transaction.\n\nEX: `100`\n"
+                              }
+                            }
+                          },
+                          "receipt": {
+                            "type": "string",
+                            "description": "Transaction receipt number.\n\nEX: `241516`\n"
+                          },
+                          "franchise": {
+                            "type": "string",
+                            "description": "Card franchise used in the transaction.\n\nEX: `DF_VS`\n"
+                          },
+                          "paymentMethod": {
+                            "type": "string",
+                            "description": "Payment method used in the transaction.\n\nEX: `visa`\n"
+                          },
+                          "paymentDate": {
+                            "type": "string",
+                            "description": "Date and time when the transaction was made.\n\nEX: `2023-10-27T10:39:47-05:00`\n"
+                          },
+                          "internalReference": {
+                            "type": "integer",
+                            "description": "Internal transaction reference.\n\nEX: `1`\n"
+                          },
+                          "authorization": {
+                            "type": "string",
+                            "description": "Transaction authorization number.\n\nEX: `000000`\n"
+                          },
+                          "issuerName": {
+                            "type": "string",
+                            "description": "Name of the issuing bank of the card used in the transaction.\n\nEX: `JPMORGAN CHASE BANK, N.A.`\n"
+                          },
+                          "merchantCode": {
+                            "type": "string",
+                            "description": "Merchant code\n\nEX: `123456`\n"
+                          },
+                          "terminalNumber": {
+                            "type": "string",
+                            "description": "Terminal number\n\nEX: `123456`\n"
+                          },
+                          "installments": {
+                            "type": "integer",
+                            "description": "Number of installments\n\nEX: `1`\n"
+                          },
+                          "lastDigits": {
+                            "type": "string",
+                            "description": "Last digits of the card\n\nEX: `1111`\n"
+                          },
+                          "payer": {
+                            "type": "object",
+                            "description": "Information about the payer who made the transaction.\n",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Payer's name.\n\nEX: `Andres`\n"
+                              },
+                              "surname": {
+                                "type": "string",
+                                "description": "Payer's surname.\n\nEX: `Zea`\n"
+                              },
+                              "email": {
+                                "type": "string",
+                                "description": "Payer's email.\n\nEX: `payer@example.com`\n"
+                              },
+                              "phone": {
+                                "type": "string",
+                                "description": "Payer's phone number.\n\nEX: `+1 123123123`\n"
+                              },
+                              "document": {
+                                "type": "string",
+                                "description": "Payer's identity document.\n\nEX: `123456789`\n"
+                              },
+                              "documentType": {
+                                "type": "string",
+                                "description": "Payer's identity document type.\n\nEX: `CC`\n"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "isGeneric": {
+                      "type": "boolean",
+                      "description": "Indicates whether the user can pay multiple times using the same link.\n\nEJ: `false`\n"
+                    },
+                    "skipResult": {
+                      "type": "boolean",
+                      "description": "Indicates whether to skip the payment result screen and return automatically.\n\nEJ: `false`\n"
+                    },
+                    "recipients": {
+                      "type": "array",
+                      "description": "List of recipients associated with the payment link. It returns the email addresses and/or phone numbers configured to receive link notifications, along with the enabled mobile channels for each recipient (sendSMS and sendWhatsapp).\n"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (An attempt was made to query a link that does not belong to your site)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "description": "The **status** object contains the request status information",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "description": "Request status",
+                          "examples": [
+                            "OK"
+                          ]
+                        },
+                        "reason": {
+                          "type": "integer",
+                          "description": "Response code"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Response message"
+                        },
+                        "date": {
+                          "type": "string",
+                          "description": "Date and time of the response"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (An attempt was made to query a non-existent link).\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "description": "The **status** object contains the request status information",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "description": "Request status",
+                          "examples": [
+                            "OK"
+                          ]
+                        },
+                        "reason": {
+                          "type": "integer",
+                          "description": "Response code"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Response message"
+                        },
+                        "date": {
+                          "type": "string",
+                          "description": "Date and time of the response"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "servers": [
+          {
+            "url": " https://dev.placetopay.com/microsites"
+          }
+        ],
+        "x-stoplight": {
+          "id": "08ix4elnc4kxf"
+        }
+      }
+    },
+    "parameters": [
+      {
+        "schema": {
+          "type": "string"
+        },
+        "name": "link_id",
+        "in": "path",
+        "required": true
+      }
+    ],
+    "/api/payment-link/disable/{link_id}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "link_id",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Deactivate a Payment Link",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "**OK**\r\n\r\nPayment link successfully deactivated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "id"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "description": "The **status** object contains the request status information",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "description": "Request status",
+                          "examples": [
+                            "OK"
+                          ]
+                        },
+                        "reason": {
+                          "type": "integer",
+                          "description": "Response code"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Response message"
+                        },
+                        "date": {
+                          "type": "string",
+                          "description": "Date and time of the response"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    },
+                    "id": {
+                      "type": "string",
+                      "description": "ID of the link that has been deactivated.\n"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "**Bad Request**\r\n\r\nIf the service returns this response, it is possible that you have: \r\n- Malformed request\r\n- The payment link is already deactivated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "description": "The **status** object contains the request status information",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "description": "Request status",
+                          "examples": [
+                            "OK"
+                          ]
+                        },
+                        "reason": {
+                          "type": "integer",
+                          "description": "Response code"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Response message"
+                        },
+                        "date": {
+                          "type": "string",
+                          "description": "Date and time of the response"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "**Unauthorized**\r\n\r\nIf the service returns this response, it is possible that you have:\r\n- Malformed authentication\r\n- Attempt to communicate with a link that does not belong to your site",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "description": "The **status** object contains the request status information",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "description": "Request status",
+                          "examples": [
+                            "OK"
+                          ]
+                        },
+                        "reason": {
+                          "type": "integer",
+                          "description": "Response code"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Response message"
+                        },
+                        "date": {
+                          "type": "string",
+                          "description": "Date and time of the response"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "**Not Found**\r\n\r\nIf the service returns this response, it is possible that you have:\r\n\r\n- You are trying to access a resource that does not exist or has not been created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "description": "The **status** object contains the request status information",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "description": "Request status",
+                          "examples": [
+                            "OK"
+                          ]
+                        },
+                        "reason": {
+                          "type": "integer",
+                          "description": "Response code"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Response message"
+                        },
+                        "date": {
+                          "type": "string",
+                          "description": "Date and time of the response"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "reason",
+                        "message",
+                        "date"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "Deactivate a Payment Link",
+        "x-stoplight": {
+          "id": "tz6ngh6jotshk"
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "auth"
+                ],
+                "properties": {
+                  "auth": {
+                    "type": "object",
+                    "x-stoplight": {
+                      "id": "ji2rm6808vhy9"
+                    },
+                    "description": "The **auth** object is mandatory to securely connect to our services",
+                    "required": [
+                      "login",
+                      "tranKey",
+                      "nonce",
+                      "seed"
+                    ],
+                    "properties": {
+                      "login": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "rkx5vh66kqqrb"
+                        },
+                        "description": "Site identifier",
+                        "example": "aabbccdd1234567890aabbccdd123456"
+                      },
+                      "tranKey": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "wkf7mdyeesb2d"
+                        },
+                        "description": "Generated **tranKey** credential",
+                        "example": "ABC123example456trankey+789abc012def3456ABC="
+                      },
+                      "nonce": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "kdgpdkng43yab"
+                        },
+                        "description": "Random **value** for each request encoded in **Base64**.",
+                        "example": "enQ4dXh3YWhkMWM="
+                      },
+                      "seed": {
+                        "type": "string",
+                        "x-stoplight": {
+                          "id": "jtfb8isvqktei"
+                        },
+                        "description": "Current **date**, generated in **ISO 8601** format.",
+                        "example": "2023-06-21T09:56:06-05:00"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Use this endpoint to deactivate links that have not expired\r\n\r\n**Note:** You will only be able to deactivate payment links associated with your site"
+      }
+    }
+  }
+}
