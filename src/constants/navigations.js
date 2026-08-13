@@ -52,7 +52,7 @@ export const NAMESPACES_SELECTOR = {
       icon: Activity,
     },
     {
-      title: 'Token Requestor',
+      title: 'Receptor de Tokens',
       description: 'Servicio de tokenización publica',
       href: '/token-requestor',
       icon: SecurityCard,
@@ -76,7 +76,7 @@ export const NAMESPACES_SELECTOR = {
       icon: Book,
     },
     {
-      title: 'Account Validator',
+      title: 'Validador de cuentas',
       description: 'Verificación de cuentas',
       href: '/account-validator',
       icon: SecurityCard,
@@ -88,8 +88,8 @@ export const NAMESPACES_SELECTOR = {
       icon: MonitorMobbile,
     },
     {
-      title: 'Tickets',
-      description: 'Administración de tickets de aerolíneas',
+      title: 'Tiquetes',
+      description: 'Administración de tiquetes de aerolíneas',
       href: '/ticket/reference',
       icon: DocumentCode,
     },
@@ -1395,7 +1395,7 @@ export const TAB_NAVIGATION = {
         icon: Book,
         links: [
           {
-            title: 'Token requestor',
+            title: 'Receptor de Tokens',
             links: [
               {
                 title: 'Introducción',
@@ -1710,7 +1710,7 @@ export const TAB_NAVIGATION = {
         icon: Book,
         links: [
           {
-            title: 'Account Validator',
+            title: 'Validador de cuentas',
             links: [
               { title: 'Introducción', href: '/account-validator' },
               { title: '¿Cómo funciona?', href: '/account-validator/how-to-work' },
@@ -2034,15 +2034,15 @@ export const TAB_NAVIGATION = {
                 href: '/ticket/reference',
               },
               {
-                title: 'Buscar tickets',
+                title: 'Buscar tiquetes',
                 href: '/ticket/reference/search',
               },
               {
-                title: 'Crear ticket',
+                title: 'Crear tiquete',
                 href: '/ticket/reference/create',
               },
               {
-                title: 'Remover ticket',
+                title: 'Remover tiquete',
                 href: '/ticket/reference/remove',
               },
             ],
