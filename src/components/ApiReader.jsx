@@ -6,59 +6,7 @@ import { PlusIcon } from '@heroicons/react/24/outline'
 import { Note, Properties, Property } from './mdx'
 import { useLocale } from './LocaleProvider'
 import { usePreventLayoutShift } from '@/hooks/usePreventLayoutShift'
-
-const TITLES = {
-  request: {
-    es: 'Solicitud',
-    en: 'Request',
-  },
-  response: {
-    es: 'Respuesta',
-    en: 'Response',
-  },
-  params: {
-    es: {
-      params: 'Parámetros',
-      query: 'Parámetros de consulta',
-      header: 'Cabecera',
-    },
-    en: {
-      params: 'Params',
-      query: 'Query params',
-      header: 'Headers',
-    },
-  },
-  propertyInformation: {
-    es: {
-      enum: 'Valores permitidos',
-      default: 'Valor por defecto',
-      example: 'Ejemplo',
-      format: 'Formato',
-      pattern: 'Patrón',
-      maxLength: 'Longitud máxima',
-      minLength: 'Longitud mínima',
-      nullable: 'Nullable',
-      yes: 'Sí',
-      no: 'No',
-    },
-    en: {
-      enum: 'Allowed values',
-      default: 'Default value',
-      example: 'Example',
-      format: 'Format',
-      pattern: 'Pattern',
-      maxLength: 'Max length',
-      minLength: 'Min length',
-      nullable: 'Nullable',
-      yes: 'Yes',
-      no: 'No',
-    },
-  },
-  deprecated: {
-    es: "Versión Obsoleta",
-    en: "Deprecated Version"
-  }
-}
+import { API_TITLES as TITLES } from '@/constants/apiReader'
 
 const ApiPropertyInformation = ({ title, items }) => {
   const { locale } = useLocale()
@@ -137,35 +85,35 @@ const ParentProperty = ({
       })
     }
 
-    if (property.example) {
+    if (property.example !== undefined) {
       information.push({
         title: 'example',
         items: property.example,
       })
     }
 
-    if (property.format) {
+    if (property.format !== undefined) {
       information.push({
         title: 'format',
         items: property.format,
       })
     }
 
-    if (property.pattern) {
+    if (property.pattern !== undefined) {
       information.push({
         title: 'pattern',
         items: property.pattern,
       })
     }
 
-    if (property.maxLength) {
+    if (property.maxLength !== undefined) {
       information.push({
         title: 'maxLength',
         items: property.maxLength,
       })
     }
 
-    if (property.minLength) {
+    if (property.minLength !== undefined) {
       information.push({
         title: 'minLength',
         items: property.minLength,
@@ -286,20 +234,90 @@ const ApiProperties = ({
   )
 }
 
-export const ApiResponses = ({ responses = {} }) => {
+const BINARY_FORMATS = ['application/pdf', 'application/zip', 'image/png', 'image/jpeg', 'image/svg+xml', 'application/octet-stream']
+
+const PREFERRED_FORMATS = ['application/json', 'multipart/form-data']
+
+const isBinaryContent = (format, schema) =>
+  schema?.format === 'binary' || BINARY_FORMATS.includes(format)
+
+const isRenderableSchema = (schema) =>
+  !!schema && (!!schema.properties || !!schema.oneOf || !!schema.anyOf)
+
+/**
+ * Returns the list of available content formats for an operation content map,
+ * ordered with JSON-like formats first, and whether any declared format is not
+ * renderable as properties (binary, plain text, HTML or empty schema).
+ */
+const getContentFormats = (content = {}) => {
+  const formats = Object.keys(content ?? {})
+  const ordered = [...formats].sort((a, b) => {
+    const aIndex = PREFERRED_FORMATS.indexOf(a)
+    const bIndex = PREFERRED_FORMATS.indexOf(b)
+    return (aIndex === -1 ? PREFERRED_FORMATS.length : aIndex) -
+      (bIndex === -1 ? PREFERRED_FORMATS.length : bIndex)
+  })
+  return { formats: ordered }
+}
+
+const getExampleValue = (mediaContent = {}) => {
+  if (mediaContent.example !== undefined) return mediaContent.example
+  const examples = mediaContent.examples ?? {}
+  const first = Object.values(examples)[0]
+  return first?.value ?? first
+}
+
+const warnUnrenderableFormats = (content, context) => {
+  if (typeof window !== 'undefined') return
+  for (const [contentType, mediaContent] of Object.entries(content ?? {})) {
+    const schema = mediaContent?.schema
+    if (isBinaryContent(contentType, schema)) continue
+    if (isRenderableSchema(schema)) continue
+    if (getExampleValue(mediaContent) !== undefined) continue
+    console.warn(
+      `[ApiReader] ${context}: el formato "${contentType}" no tiene contenido representable (esquema sin propiedades ni ejemplos).`
+    )
+  }
+}
+
+export const ApiResponses = ({ responses = {}, path = '', method = '' }) => {
   const { locale } = useLocale()
 
-  const [selected, setSelected] = useState(Object.entries(responses)?.[0]?.[0])
+  const [selected, setSelected] = useState(Object.keys(responses ?? {})[0])
   const [bodySelected, setBodySelected] = useState(0)
+  const [formatSelected, setFormatSelected] = useState(null)
 
-  const response = responses[selected]
-  let body = response?.content?.['application/json']?.schema
+  if (Object.keys(responses ?? {}).length === 0) {
+    throw new Error(
+      `Missing "responses" in API definition for ${method.toUpperCase()} ${path} (type: response)`
+    )
+  }
+
+  const response = responses?.[selected]
+  if (!response) {
+    throw new Error(
+      `Response "${selected}" not found in API definition for ${method.toUpperCase()} ${path} (type: response)`
+    )
+  }
+
+  const content = response.content ?? {}
+  warnUnrenderableFormats(content, `${method.toUpperCase()} ${path} [response ${selected}]`)
+  const { formats } = getContentFormats(content)
+  const format = formatSelected && formats.includes(formatSelected)
+    ? formatSelected
+    : formats[0]
+  const mediaContent = format ? content[format] : undefined
+  let body = mediaContent?.schema
 
   const multiBodies = body?.oneOf ?? body?.anyOf ?? []
   const isMulti = multiBodies.length > 0
   if (isMulti) {
     body = multiBodies[bodySelected]
   }
+
+  const showProperties = isRenderableSchema(body)
+  const showRawExample = !showProperties && !isBinaryContent(format, body)
+  const exampleValue = showRawExample ? getExampleValue(mediaContent) : undefined
 
   return (
     <>
@@ -317,6 +335,23 @@ export const ApiResponses = ({ responses = {} }) => {
               </option>
             ))}
           </select>
+
+          {formats.length > 1 && (
+            <select
+              className="bg-inherit font-mono text-xs"
+              value={format}
+              onChange={(evt) => {
+                setFormatSelected(evt.target.value)
+                setBodySelected(0)
+              }}
+            >
+              {formats.map((contentType) => (
+                <option key={`format-${contentType}`} value={contentType}>
+                  {contentType}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 
@@ -341,6 +376,18 @@ export const ApiResponses = ({ responses = {} }) => {
 
       {response.deprecated && (
         <Note type='warning'>{TITLES.deprecated[locale]}</Note>
+      )}
+
+      {isBinaryContent(format, body) && (
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {TITLES.binaryResponse[locale]} <code>{format}</code>
+        </p>
+      )}
+
+      {showRawExample && exampleValue !== undefined && (
+        <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-gray-100 dark:ring-1 dark:ring-white/10">
+          <code>{typeof exampleValue === 'string' ? exampleValue : JSON.stringify(exampleValue, null, 2)}</code>
+        </pre>
       )}
 
       <ApiProperties
@@ -370,10 +417,9 @@ export const ApiParams = ({ params = [], type = 'params' }) => {
             key={param.name}
             name={param.name}
             property={{
-              type: param.schema.type,
-              description: param.description,
+              ...(param.schema ?? {}),
+              description: param.description ?? param.schema?.description,
               title: param.name,
-              example: param.schema?.example,
             }}
             isRequired={param.required}
             isConditional={param.conditional}
@@ -384,16 +430,21 @@ export const ApiParams = ({ params = [], type = 'params' }) => {
   )
 }
 
-export const ApiRequest = ({ request = {} }) => {
+export const ApiRequest = ({ request = {}, path = '', method = '' }) => {
   const { locale } = useLocale()
   const [selected, setSelected] = useState(0);
+  const [formatSelected, setFormatSelected] = useState(null)
 
-  const requestBody =
-    request?.content?.['application/json'] ??
-    request?.content?.['multipart/form-data']
+  const content = request?.content ?? {}
+  warnUnrenderableFormats(content, `${method.toUpperCase()} ${path} [request]`)
+  const { formats } = getContentFormats(content)
+  const format = formatSelected && formats.includes(formatSelected)
+    ? formatSelected
+    : formats[0]
+  const requestBody = format ? content[format] : undefined
   let body = requestBody?.schema
 
-  const multiBodies = requestBody?.schema.oneOf ?? requestBody?.schema.anyOf ?? [];
+  const multiBodies = body?.oneOf ?? body?.anyOf ?? [];
   const isMulti = multiBodies.length > 0;
 
   if (isMulti) {
@@ -409,16 +460,35 @@ export const ApiRequest = ({ request = {} }) => {
       <div className="flex items-baseline justify-between">
         <h3>{TITLES.request[locale]}</h3>
 
-        {isMulti && (
-          <select
-            className="bg-inherit"
-            onChange={(evt) => setSelected(evt.target.value)}
-          >
-            {multiBodies.map((element, key) => (
-                <option key={`request-${key}`} value={key}>{element.title}</option>
-            ))}
-          </select>
-        )}
+        <div className="flex flex-col gap-3">
+          {isMulti && (
+            <select
+              className="bg-inherit"
+              onChange={(evt) => setSelected(evt.target.value)}
+            >
+              {multiBodies.map((element, key) => (
+                  <option key={`request-${key}`} value={key}>{element.title}</option>
+              ))}
+            </select>
+          )}
+
+          {formats.length > 1 && (
+            <select
+              className="bg-inherit font-mono text-xs"
+              value={format}
+              onChange={(evt) => {
+                setFormatSelected(evt.target.value)
+                setSelected(0)
+              }}
+            >
+              {formats.map((contentType) => (
+                <option key={`format-${contentType}`} value={contentType}>
+                  {contentType}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       </div>
 
       {body.deprecated && (
@@ -449,23 +519,23 @@ export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
   }
 
   if (type === 'request') {
-    return <ApiRequest request={data.requestBody} />
+    return <ApiRequest request={data.requestBody} path={path} method={method} />
   }
 
   if (type === 'response') {
-    return <ApiResponses responses={data.responses} />
+    return <ApiResponses responses={data.responses} path={path} method={method} />
   }
 
   if (type === 'params') {
-    return <ApiParams params={data.parameters.filter((param) => param.in === 'path')} />
+    return <ApiParams params={(data.parameters ?? []).filter((param) => param.in === 'path')} />
   }
 
   if (type === 'query') {
-    return <ApiParams type="query" params={data.parameters.filter((param) => param.in === 'query')} />
+    return <ApiParams type="query" params={(data.parameters ?? []).filter((param) => param.in === 'query')} />
   }
 
   if (type === 'header') {
-    return <ApiParams type="header" params={data.parameters.filter((param) => param.in === 'header')} />
+    return <ApiParams type="header" params={(data.parameters ?? []).filter((param) => param.in === 'header')} />
   }
 
   throw new Error(`Type ${type} not supported`)
