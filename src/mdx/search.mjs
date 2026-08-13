@@ -14,6 +14,9 @@ const __filename = url.fileURLToPath(import.meta.url)
 const processor = remark().use(remarkMdx).use(extractSections)
 const slugify = slugifyWithCounter()
 
+const SUPPORTED_LOCALES = ['es', 'en']
+const API_SECTIONS_FILE = path.resolve('./.cache/search/api-sections.json')
+
 function isObjectExpression(node) {
   return (
     node.type === 'mdxTextExpression' &&
@@ -50,15 +53,39 @@ function extractSections() {
     visit(tree, (node) => {
       if (node.type === 'heading' || node.type === 'paragraph') {
         let content = toString(excludeObjectExpressions(node))
-        if (node.type === 'heading' && node.depth <= 2) {
+        if (node.type === 'heading' && node.depth <= 3) {
           let hash = node.depth === 1 ? null : getSlugify(node, content)
-          sections.push([content, hash, []])
+          let label
+          if (node.depth === 2) {
+            try {
+              label = node.children
+                ?.find((child) => isObjectExpression(child))
+                ?.data?.estree?.body?.[0]?.expression?.properties?.find(
+                  (prop) => prop.key.name === 'label'
+                )?.value?.value
+            } catch {
+              label = undefined
+            }
+          }
+          sections.push([content, hash, [], label])
         } else {
           sections.at(-1)?.[2].push(content)
         }
         return SKIP
       }
     })
+  }
+}
+
+function loadApiSections() {
+  try {
+    return JSON.parse(fs.readFileSync(API_SECTIONS_FILE, 'utf8'))
+  } catch {
+    console.warn(
+      `[search] API sections artifact not found at ${API_SECTIONS_FILE}. ` +
+        'Run `node scripts/makeSearchIndex.js` to include API reference content in the search index.'
+    )
+    return {}
   }
 }
 
@@ -75,16 +102,20 @@ export default function (nextConfig = {}) {
             let pagesDir = path.resolve('./src/pages')
             this.addContextDependency(pagesDir)
 
+            let apiSections = loadApiSections()
+
             let files = glob.sync('**/*.mdx', { cwd: pagesDir })
             let data = files.map((file) => {
               let url =
                 file === 'index.mdx' ? '/' : `/${file.replace(/\.mdx$/, '')}`
               let mdx = fs.readFileSync(path.join(pagesDir, file), 'utf8')
-              let locale = path
+              let firstSegment = path
                 .dirname(file)
                 .split(path.sep)[0]
                 .replace('/', '')
-              locale = locale.length === 2 ? locale : 'es'
+              let locale = SUPPORTED_LOCALES.includes(firstSegment)
+                ? firstSegment
+                : 'es'
 
               let sections = []
 
@@ -94,6 +125,29 @@ export default function (nextConfig = {}) {
                 let vfile = { value: mdx, sections }
                 processor.runSync(processor.parse(vfile), vfile)
                 cache.set(file, [mdx, sections])
+              }
+
+              // Attach the API reference sections (generated at prebuild) to
+              // the level-2 section that documents the operation (matched by
+              // the heading `label` annotation), so searching a field,
+              // operation path or response code leads to the operation anchor.
+              let pageApiSections = apiSections[url]
+              if (pageApiSections) {
+                let fallback = sections.find(([, hash]) => hash !== null)
+                for (let apiSection of Object.values(pageApiSections)) {
+                  let target =
+                    sections.find(
+                      ([, hash, , label]) =>
+                        hash !== null &&
+                        label &&
+                        apiSection.path.startsWith(label)
+                    ) ?? fallback
+                  if (target) {
+                    target[2].push(apiSection.content)
+                  } else {
+                    sections.push([apiSection.title, null, [apiSection.content]])
+                  }
+                }
               }
 
               return { url, sections, locale }

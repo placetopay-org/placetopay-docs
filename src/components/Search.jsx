@@ -6,6 +6,7 @@ import clsx from 'clsx'
 import Highlighter from 'react-highlight-words'
 import { getWindowLocale } from '@/lib/getWindowLocale'
 import { useAllNavigation } from '@/hooks/useNavigation'
+import { useLocalizePath } from '@/hooks/useLocalizePath'
 
 function useAutocomplete() {
   let id = useId()
@@ -30,7 +31,17 @@ function useAutocomplete() {
               sourceId: 'documentation',
               getItems() {
                 const locale = getWindowLocale()
-                return search(query, { limit: 5 }).filter((item) => item.locale === locale)
+                // Over-fetch, then filter by locale and collapse sections that
+                // belong to the same page so the results show distinct pages.
+                let seenPages = new Set()
+                return search(query, { limit: 5 })
+                  .filter((item) => item.locale === locale)
+                  .filter((item) => {
+                    let page = item.url.split('#')[0]
+                    if (seenPages.has(page)) return false
+                    seenPages.add(page)
+                    return true
+                  })
               },
               getItemUrl({ item }) {
                 return item.url
@@ -172,7 +183,10 @@ function SearchResult({
   )
 }
 
-function SearchResults({ autocomplete, query, collection }) {
+function SearchResults({ autocomplete, query, collection, onClose }) {
+  let router = useRouter()
+  let localizePath = useLocalizePath()
+
   if (collection.items.length === 0) {
     return (
       <div className="p-6 text-center">
@@ -189,18 +203,30 @@ function SearchResults({ autocomplete, query, collection }) {
   }
 
   return (
-    <ul role="list" {...autocomplete.getListProps()}>
-      {collection.items.map((result, resultIndex) => (
-        <SearchResult
-          key={result.url}
-          result={result}
-          resultIndex={resultIndex}
-          autocomplete={autocomplete}
-          collection={collection}
-          query={query}
-        />
-      ))}
-    </ul>
+    <>
+      <ul role="list" {...autocomplete.getListProps()}>
+        {collection.items.map((result, resultIndex) => (
+          <SearchResult
+            key={result.url}
+            result={result}
+            resultIndex={resultIndex}
+            autocomplete={autocomplete}
+            collection={collection}
+            query={query}
+          />
+        ))}
+      </ul>
+      <button
+        type="button"
+        className="block w-full border-t border-gray-100 px-4 py-3 text-left text-2xs font-medium text-primary-500 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50"
+        onClick={() => {
+          onClose()
+          router.push(localizePath(`/search?q=${encodeURIComponent(query)}`))
+        }}
+      >
+        Ver todos los resultados &rarr;
+      </button>
+    </>
   )
 }
 
@@ -380,6 +406,7 @@ function SearchDialog({ open, setOpen, className }) {
                         autocomplete={autocomplete}
                         query={autocompleteState.query}
                         collection={autocompleteState.collections[0]}
+                        onClose={() => setOpen(false)}
                       />
                     )}
                   </div>
