@@ -154,15 +154,15 @@ function SmallPrint() {
           <Link
             href="https://placetopay.dev/"
             target="_blank"
-            aria-label="Home"
-            className="font-semibold text-gray-500 dark:text-gray-200 hover:text-primary-500"
+            aria-label="Evertec Placetopay"
+            className="font-semibold text-gray-500 hover:text-primary-500 dark:text-gray-200 dark:hover:text-primary-500"
           >
             Evertec Placetopay
           </Link>
         </p>
 
         <Link
-          className="text-xs text-gray-500 dark:text-gray-300 hover:text-primary-500"
+          className="text-xs text-gray-500 hover:text-primary-500 dark:text-gray-300 dark:hover:text-primary-500"
           href="https://www.placetopay.com/web/politicas-de-privacidad/"
           target="_blank"
           aria-label="Política de Privacidad Placetopay"

@@ -1,18 +1,23 @@
 /* eslint-disable @next/next/no-img-element */
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useRef, useState } from "react"
 import { Dialog } from '@headlessui/react'
+import { XMarkIcon } from '@heroicons/react/24/outline'
+
+import { useLocale } from '@/components/LocaleProvider'
 
 const ImageZoomContext = createContext()
 
 export function ImageZoomProvider(props) {
+  const { locale } = useLocale()
   // Estado para manejar el zoom y la imagen activa
   const [activeImage, setActiveImage] = useState(null)
+  const closeRef = useRef(null)
 
   const isZoomed = Boolean(activeImage)
 
   // Función para alternar el zoom y establecer la imagen activa
-  const toggleZoom = (imageSrc) => {
-    setActiveImage(imageSrc || null) // Si no hay imagen, limpiamos el estado
+  const toggleZoom = (image) => {
+    setActiveImage(image ?? null) // Si no hay imagen, limpiamos el estado
   }
 
   return (
@@ -20,6 +25,8 @@ export function ImageZoomProvider(props) {
       <Dialog
         open={isZoomed}
         onClose={() => toggleZoom(null)}
+        initialFocus={closeRef}
+        aria-label={locale === 'es' ? 'Imagen ampliada' : 'Zoomed image'}
         className="relative z-50"
       >
         <div
@@ -30,10 +37,22 @@ export function ImageZoomProvider(props) {
           className="fixed inset-0 flex items-center justify-center p-4"
           onClick={() => toggleZoom(null)}
         >
-          <Dialog.Panel className="flex items-center justify-center">
+          <Dialog.Panel
+            className="relative flex items-center justify-center"
+            onClick={() => toggleZoom(null)}
+          >
+            <button
+              ref={closeRef}
+              type="button"
+              onClick={() => toggleZoom(null)}
+              aria-label={locale === 'es' ? 'Cerrar imagen ampliada' : 'Close zoomed image'}
+              className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-2 text-white transition hover:bg-black/80"
+            >
+              <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+            </button>
             <img
-              src={activeImage || undefined}
-              alt="Zoomed view"
+              src={activeImage?.src}
+              alt={activeImage?.alt ?? ''}
               className="max-h-[90vh] max-w-full rounded-md shadow-lg sm:max-h-[80vh] sm:max-w-[90%] md:max-h-[75vh] md:max-w-[85%] lg:max-h-[70vh] lg:max-w-[80%]"
             />
           </Dialog.Panel>
@@ -47,10 +66,12 @@ export function ImageZoomProvider(props) {
 export function ImageZoom(props) {
   const { toggleZoom } = useContext(ImageZoomContext)
 
+  const zoomImage = () => toggleZoom({ src: props.src, alt: props.alt })
+
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
-      toggleZoom(props.src)
+      zoomImage()
     }
   }
 
@@ -60,7 +81,7 @@ export function ImageZoom(props) {
       role="button"
       tabIndex={0}
       {...props}
-      onClick={() => toggleZoom(props.src)}
+      onClick={zoomImage}
       onKeyDown={handleKeyDown}
     />
   )

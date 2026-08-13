@@ -172,7 +172,7 @@ function CodeGroupHeader({ title, children, selectedIndex, onChange }) {
       <div className="mt-2">
         <select
           className="bg-inherit text-white/80 dark:text-white/60"
-          aria-label={locale === 'es' ? 'Seleccionar lenguaje del ejemplo de código' : 'Select code example language'}
+          aria-label={locale === 'es' ? 'Seleccionar ejemplo de código' : 'Select code example'}
           onChange={(evt) => onChange(evt.target.value)}
         >
           {Children.map(children, (child, childIndex) => (

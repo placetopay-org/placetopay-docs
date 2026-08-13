@@ -48,15 +48,15 @@ export default function App({ Component, pageProps }) {
         <title>{`${pageProps.title ? pageProps.title + ' - ' : ''}Placetopay Docs`}</title>
         <meta name="description" content={pageProps.description} />
       </Head>
-      <ImageZoomProvider>
-        <MDXProvider components={mdxComponents}>
-          <LocaleProvider>
+      <LocaleProvider>
+        <ImageZoomProvider>
+          <MDXProvider components={mdxComponents}>
             <LayoutComponent {...pageProps}>
               <Component {...pageProps} />
             </LayoutComponent>
-          </LocaleProvider>
-        </MDXProvider>
-      </ImageZoomProvider>
+          </MDXProvider>
+        </ImageZoomProvider>
+      </LocaleProvider>
       </>
   )
 }
