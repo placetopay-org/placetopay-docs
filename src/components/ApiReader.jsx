@@ -239,8 +239,8 @@ const ParentProperty = ({
                     })}
                   />
                   {open
-                    ? TITLES.attributes[locale].hide
-                    : TITLES.attributes[locale].show}
+                    ? (TITLES.attributes[locale] ?? TITLES.attributes.es).hide
+                    : (TITLES.attributes[locale] ?? TITLES.attributes.es).show}
                 </Disclosure.Button>
 
                 <Disclosure.Panel

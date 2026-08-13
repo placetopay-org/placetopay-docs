@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import { useLocale } from './LocaleProvider'
 
 const COPIED_TEXT = {
-  es: 'Copiado',
+  es: '¡Copiado!',
   en: 'Copied!',
 }
 
