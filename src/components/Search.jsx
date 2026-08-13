@@ -52,11 +52,10 @@ function useAutocomplete() {
             {
               sourceId: 'documentation',
               getItems() {
-                // Over-fetch, then filter by locale and collapse sections that
+                // Search in the per-locale index and collapse sections that
                 // belong to the same page so the results show distinct pages.
                 let seenPages = new Set()
-                return search(query, { limit: 5 })
-                  .filter((item) => item.locale === localeRef.current)
+                return search(query, { limit: 5, locale: localeRef.current })
                   .filter((item) => {
                     let page = item.url.split('#')[0]
                     if (seenPages.has(page)) return false

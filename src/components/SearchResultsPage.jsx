@@ -50,21 +50,21 @@ function useSearchResults(query) {
     import('@/mdx/search.mjs').then(({ search }) => {
       if (cancelled) return
       const seenPages = new Set()
-      const items = search(query, { limit: MAX_RESULTS })
-        .filter((item) => item.locale === locale)
-        .filter((item) => {
+      const items = search(query, { limit: MAX_RESULTS, locale }).filter(
+        (item) => {
           const page = item.url.split('#')[0]
           if (seenPages.has(page)) return false
           seenPages.add(page)
           return true
-        })
+        }
+      )
       setResults(items)
     })
 
     return () => {
       cancelled = true
     }
-  }, [query])
+  }, [query, locale])
 
   return results
 }
