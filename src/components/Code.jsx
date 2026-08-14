@@ -12,7 +12,6 @@ import { create } from 'zustand'
 import { Tag } from '@/components/Tag'
 import { useLocale } from '@/components/LocaleProvider'
 import { usePreventLayoutShift } from '@/hooks/usePreventLayoutShift'
-import { useLocale } from '@/components/LocaleProvider'
 
 const COPY_TEXTS = {
   es: { copy: 'Copiar', copied: '¡Copiado!' },
