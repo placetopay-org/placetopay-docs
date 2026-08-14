@@ -7,8 +7,14 @@ import { useLocale } from '@/components/LocaleProvider'
 
 const ImageZoomContext = createContext()
 
+const IMAGE_TEXTS = {
+  es: { zoomed: 'Vista ampliada', withZoom: 'Imagen con zoom' },
+  en: { zoomed: 'Zoomed view', withZoom: 'Image with zoom' },
+}
+
 export function ImageZoomProvider(props) {
   const { locale } = useLocale()
+  const texts = IMAGE_TEXTS[locale] ?? IMAGE_TEXTS.es
   // Estado para manejar el zoom y la imagen activa
   const [activeImage, setActiveImage] = useState(null)
   const closeRef = useRef(null)
@@ -51,8 +57,8 @@ export function ImageZoomProvider(props) {
               <XMarkIcon className="h-5 w-5" aria-hidden="true" />
             </button>
             <img
-              src={activeImage?.src}
-              alt={activeImage?.alt ?? ''}
+              src={activeImage}
+              alt={texts.zoomed}
               className="max-h-[90vh] max-w-full rounded-md shadow-lg sm:max-h-[80vh] sm:max-w-[90%] md:max-h-[75vh] md:max-w-[85%] lg:max-h-[70vh] lg:max-w-[80%]"
             />
           </Dialog.Panel>
@@ -65,24 +71,8 @@ export function ImageZoomProvider(props) {
 
 export function ImageZoom(props) {
   const { toggleZoom } = useContext(ImageZoomContext)
+  const { locale } = useLocale()
+  const texts = IMAGE_TEXTS[locale] ?? IMAGE_TEXTS.es
 
-  const zoomImage = () => toggleZoom({ src: props.src, alt: props.alt })
-
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      zoomImage()
-    }
-  }
-
-  return (
-    <img
-      alt="image with zoom"
-      role="button"
-      tabIndex={0}
-      {...props}
-      onClick={zoomImage}
-      onKeyDown={handleKeyDown}
-    />
-  )
+  return <img alt={texts.withZoom} {...props} tabIndex={0} onClick={() => toggleZoom(props.src)} />
 }

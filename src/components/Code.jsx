@@ -12,6 +12,12 @@ import { create } from 'zustand'
 import { Tag } from '@/components/Tag'
 import { useLocale } from '@/components/LocaleProvider'
 import { usePreventLayoutShift } from '@/hooks/usePreventLayoutShift'
+import { useLocale } from '@/components/LocaleProvider'
+
+const COPY_TEXTS = {
+  es: { copy: 'Copiar', copied: '¡Copiado!' },
+  en: { copy: 'Copy', copied: 'Copied!' },
+}
 
 const languageNames = {
   js: 'JavaScript',
@@ -55,6 +61,8 @@ function ClipboardIcon(props) {
 function CopyButton({ code }) {
   let [copyCount, setCopyCount] = useState(0)
   let copied = copyCount > 0
+  let { locale } = useLocale()
+  let texts = COPY_TEXTS[locale] ?? COPY_TEXTS.es
 
   useEffect(() => {
     if (copyCount > 0) {
@@ -88,7 +96,7 @@ function CopyButton({ code }) {
         )}
       >
         <ClipboardIcon className="h-5 w-5 fill-gray-500/20 stroke-gray-500 transition-colors group-hover/button:stroke-gray-400" />
-        Copy
+        {texts.copy}
       </span>
       <span
         aria-hidden={!copied}
@@ -97,7 +105,7 @@ function CopyButton({ code }) {
           !copied && 'translate-y-1.5 opacity-0'
         )}
       >
-        Copied!
+        {texts.copied}
       </span>
     </button>
   )

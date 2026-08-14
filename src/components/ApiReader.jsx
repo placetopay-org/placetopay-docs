@@ -7,6 +7,52 @@ import { Note, Properties, Property } from './mdx'
 import { useLocale } from './LocaleProvider'
 import { usePreventLayoutShift } from '@/hooks/usePreventLayoutShift'
 
+const resolveRefTarget = (ref, components) => {
+  if (!ref || typeof ref !== 'string' || !ref.startsWith('#/components/')) {
+    return null
+  }
+
+  return ref
+    .replace(/~(1|0)/g, (match) => (match === '~1' ? '/' : '~'))
+    .replace('%20', ' ')
+    .split('/')
+    .slice(2)
+    .reduce((acc, segment) => acc?.[segment], components)
+}
+
+const resolveRef = (schema, components) => {
+  if (!schema || typeof schema !== 'object' || !schema.$ref) return schema
+  return resolveRefTarget(schema.$ref, components) ?? schema
+}
+
+const dereferenceSchema = (schema, components, seen = new Set()) => {
+  if (!schema || typeof schema !== 'object') return schema
+
+  if (schema.$ref) {
+    const target = resolveRefTarget(schema.$ref, components)
+    if (target && !seen.has(schema.$ref)) {
+      return dereferenceSchema(target, components, new Set([...seen, schema.$ref]))
+    }
+    return schema
+  }
+
+  const result = Array.isArray(schema) ? [] : {}
+
+  for (const [key, value] of Object.entries(schema)) {
+    if (Array.isArray(value)) {
+      result[key] = value.map((item) =>
+        dereferenceSchema(item, components, seen)
+      )
+    } else if (value && typeof value === 'object') {
+      result[key] = dereferenceSchema(value, components, seen)
+    } else {
+      result[key] = value
+    }
+  }
+
+  return result
+}
+
 const TITLES = {
   request: {
     es: 'Solicitud',
@@ -70,6 +116,10 @@ const TITLES = {
     es: 'Seleccionar variante del cuerpo de solicitud',
     en: 'Select request body variant',
   },
+  attributes: {
+    es: { show: 'Ver atributos', hide: 'Ocultar atributos' },
+    en: { show: 'Show attributes', hide: 'Hide attributes' },
+  }
 }
 
 const ApiPropertyInformation = ({ title, items }) => {
@@ -115,6 +165,7 @@ const ParentProperty = ({
   isChild = false,
 }) => {
   const { positionRef, preventLayoutShift } = usePreventLayoutShift()
+  const { locale } = useLocale()
   const [selected, setSelected] = useState(0)
 
   const multiProperties = property.oneOf ?? property.anyOf ?? [];
@@ -245,7 +296,9 @@ const ParentProperty = ({
                       'rotate-45 transform': open,
                     })}
                   />
-                  {open ? 'Ocultar' : 'Ver'} atributos
+                  {open
+                    ? (TITLES.attributes[locale] ?? TITLES.attributes.es).hide
+                    : (TITLES.attributes[locale] ?? TITLES.attributes.es).show}
                 </Disclosure.Button>
 
                 <Disclosure.Panel
@@ -454,6 +507,7 @@ export const ApiRequest = ({ request = {} }) => {
 }
 
 export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
+  const components = api.components
   let data = api?.[path]
   if (type !== 'params') data = data?.[method.toLowerCase()]
 
@@ -462,6 +516,8 @@ export function ApiReader({ path, method = '', api = {}, type = 'request' }) {
       `Method ${method} not found in API definition for path ${path}`
     )
   }
+
+  data = dereferenceSchema(data, components)
 
   if (type === 'request') {
     return <ApiRequest request={data.requestBody} />
