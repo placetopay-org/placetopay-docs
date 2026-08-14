@@ -24,7 +24,21 @@ Todas las solicitudes deben enviarse a las siguientes URL base, dependiendo del 
 | **UAT** | `https://msv-service-uat.placetopay.net` |
 | **Develop** | `https://msv-service-dev.placetopay.ws` |
 
----
+## Ciclo de vida de una validación
+
+1. Creas la solicitud con `POST /api/validations`. El servicio responde `201` con un `token` y envía el mensaje por los canales que hayas indicado.
+2. El mensaje lleva al usuario a una página de confirmación alojada por msv-service, donde aprueba o rechaza. En SMS y correo el enlace se agrega automáticamente; en WhatsApp solo aparece si incluyes `[URL_VALIDATION]` entre los parámetros de la plantilla.
+3. En cuanto responde, la solicitud pasa a `APPROVED` o `REJECTED` y se envía el webhook.
+4. Si no responde dentro de `minutes_by_expire` (30 minutos por defecto, máximo 60), la solicitud pasa a `PARTIAL_EXPIRED` y también se envía el webhook.
+
+| Estado | Significado |
+| :--- | :--- |
+| `PENDING` | Creada, a la espera de que el usuario responda. |
+| `APPROVED` | El usuario aprobó. |
+| `REJECTED` | El usuario rechazó. |
+| `PARTIAL_EXPIRED` | Venció el plazo sin respuesta. |
+
+Puedes consultar el estado en cualquier momento con [Consulta validación](/msv-service/api/validation-query).
 
 ## Webhook {{ id: 'validation-webhook' }}
 
