@@ -9,12 +9,12 @@ import { visit, SKIP } from 'unist-util-visit'
 import { slugifyWithCounter } from '@sindresorhus/slugify'
 import { toString } from 'mdast-util-to-string'
 import { filter } from 'unist-util-filter'
+import { getPageInfo } from './pageInfo.mjs'
 
 const __filename = url.fileURLToPath(import.meta.url)
 const processor = remark().use(remarkMdx).use(extractSections)
 const slugify = slugifyWithCounter()
 
-const SUPPORTED_LOCALES = ['es', 'en']
 const API_SECTIONS_FILE = path.resolve('./.cache/search/api-sections.json')
 
 function isObjectExpression(node) {
@@ -53,7 +53,7 @@ function extractSections() {
     visit(tree, (node) => {
       if (node.type === 'heading' || node.type === 'paragraph') {
         let content = toString(excludeObjectExpressions(node))
-        if (node.type === 'heading' && node.depth <= 3) {
+        if (node.type === 'heading' && node.depth <= 2) {
           let hash = node.depth === 1 ? null : getSlugify(node, content)
           let label
           if (node.depth === 2) {
@@ -83,11 +83,19 @@ function loadApiSections() {
   } catch {
     console.warn(
       `[search] API sections artifact not found at ${API_SECTIONS_FILE}. ` +
-        'Run `node scripts/makeSearchIndex.js` to include API reference content in the search index.'
+        'Run `node scripts/makeSearchIndex.mjs` to include API reference content in the search index.'
     )
     return {}
   }
 }
+
+const cloneSections = (sections) =>
+  sections.map(([title, hash, content, label]) => [
+    title,
+    hash,
+    [...content],
+    label,
+  ])
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default function (nextConfig = {}) {
@@ -106,26 +114,22 @@ export default function (nextConfig = {}) {
 
             let files = glob.sync('**/*.mdx', { cwd: pagesDir })
             let data = files.map((file) => {
-              let url = file.replace(/\.mdx$/, '')
-              url =
-                url === 'index' ? '/' : `/${url.replace(/\/index$/, '')}`
+              let { url, locale } = getPageInfo(file)
               let mdx = fs.readFileSync(path.join(pagesDir, file), 'utf8')
-              let firstSegment = path
-                .dirname(file)
-                .split(path.sep)[0]
-                .replace('/', '')
-              let locale = SUPPORTED_LOCALES.includes(firstSegment)
-                ? firstSegment
-                : 'es'
 
               let sections = []
 
               if (cache.get(file)?.[0] === mdx) {
-                sections = cache.get(file)[1]
+                // Clone the cached sections before merging the API sections
+                // below: `target[2].push(...)` mutates the arrays in place and
+                // on cache hits (next dev reloads) the content would keep
+                // accumulating otherwise.
+                sections = cloneSections(cache.get(file)[1])
               } else {
                 let vfile = { value: mdx, sections }
                 processor.runSync(processor.parse(vfile), vfile)
                 cache.set(file, [mdx, sections])
+                sections = cloneSections(sections)
               }
 
               // Attach the API reference sections (generated at prebuild) to
@@ -141,12 +145,10 @@ export default function (nextConfig = {}) {
                       ([, hash, , label]) =>
                         hash !== null &&
                         label &&
-                        apiSection.path.startsWith(label)
+                        apiSection.path === label
                     ) ?? fallback
                   if (target) {
                     target[2].push(apiSection.content)
-                  } else {
-                    sections.push([apiSection.title, null, [apiSection.content]])
                   }
                 }
               }

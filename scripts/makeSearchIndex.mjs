@@ -3,19 +3,11 @@ import * as acorn from 'acorn'
 import path from 'path'
 import fs from 'fs'
 import { extractApiSections } from '../src/mdx/apiSearchSections.mjs'
+import { getPageInfo } from '../src/mdx/pageInfo.mjs'
 
 const pagesDir = path.resolve('./src/pages')
 const outputDir = path.resolve('./.cache/search')
 const outputFile = path.join(outputDir, 'api-sections.json')
-
-const SUPPORTED_LOCALES = ['es', 'en']
-
-function getPageInfo(file) {
-  const firstSegment = path.dirname(file).split(path.sep)[0].replace('/', '')
-  const locale = SUPPORTED_LOCALES.includes(firstSegment) ? firstSegment : 'es'
-  const url = file === 'index.mdx' ? '/' : `/${file.replace(/\.mdx$/, '')}`
-  return { url, locale }
-}
 
 function evaluateLiteral(node) {
   if (!node) return undefined
@@ -78,7 +70,6 @@ async function main() {
         apiRefs,
         apiAssetPath,
         locale,
-        SUPPORTED_LOCALES,
       })
 
       if (Object.keys(sections).length > 0) {

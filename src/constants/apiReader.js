@@ -56,6 +56,10 @@ export const API_TITLES = {
     es: 'Versión Obsoleta',
     en: 'Deprecated Version',
   },
+  attributes: {
+    es: { show: 'Ver atributos', hide: 'Ocultar atributos' },
+    en: { show: 'Show attributes', hide: 'Hide attributes' },
+  },
   binaryResponse: {
     es: 'Esta operación devuelve un archivo en formato',
     en: 'This operation returns a file in',

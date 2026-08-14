@@ -8,6 +8,47 @@ import { useLocale } from './LocaleProvider'
 import { usePreventLayoutShift } from '@/hooks/usePreventLayoutShift'
 import { API_TITLES as TITLES } from '@/constants/apiReader'
 
+const resolveRefTarget = (ref, components) => {
+  if (!ref || typeof ref !== 'string' || !ref.startsWith('#/components/')) {
+    return null
+  }
+
+  return ref
+    .replace(/~(1|0)/g, (match) => (match === '~1' ? '/' : '~'))
+    .replace('%20', ' ')
+    .split('/')
+    .slice(2)
+    .reduce((acc, segment) => acc?.[segment], components)
+}
+
+const dereferenceSchema = (schema, components, seen = new Set()) => {
+  if (!schema || typeof schema !== 'object') return schema
+
+  if (schema.$ref) {
+    const target = resolveRefTarget(schema.$ref, components)
+    if (target && !seen.has(schema.$ref)) {
+      return dereferenceSchema(target, components, new Set([...seen, schema.$ref]))
+    }
+    return schema
+  }
+
+  const result = Array.isArray(schema) ? [] : {}
+
+  for (const [key, value] of Object.entries(schema)) {
+    if (Array.isArray(value)) {
+      result[key] = value.map((item) =>
+        dereferenceSchema(item, components, seen)
+      )
+    } else if (value && typeof value === 'object') {
+      result[key] = dereferenceSchema(value, components, seen)
+    } else {
+      result[key] = value
+    }
+  }
+
+  return result
+}
+
 const ApiPropertyInformation = ({ title, items }) => {
   const { locale } = useLocale()
   const makeCode = (item) => {
@@ -249,8 +290,7 @@ const isRenderableSchema = (schema) =>
 
 /**
  * Returns the list of available content formats for an operation content map,
- * ordered with JSON-like formats first, and whether any declared format is not
- * renderable as properties (binary, plain text, HTML or empty schema).
+ * ordered with JSON-like formats first.
  */
 const getContentFormats = (content = {}) => {
   const formats = Object.keys(content ?? {})
@@ -278,7 +318,7 @@ const warnUnrenderableFormats = (content, context) => {
     if (isRenderableSchema(schema)) continue
     if (getExampleValue(mediaContent) !== undefined) continue
     console.warn(
-      `[ApiReader] ${context}: el formato "${contentType}" no tiene contenido representable (esquema sin propiedades ni ejemplos).`
+      `[ApiReader] ${context}: format "${contentType}" has no renderable content (schema without properties or examples).`
     )
   }
 }

@@ -1,6 +1,15 @@
 import SwaggerParser from '@apidevtools/swagger-parser'
 import path from 'path'
 import fs from 'fs'
+import { createRequire } from 'module'
+import { SUPPORTED_LOCALES } from './pageInfo.mjs'
+
+// `API_TITLES` lives in a CommonJS file consumed by the web bundle; import it
+// here through `createRequire` so the section labels stay in sync with what
+// `ApiReader` renders on the site.
+const { API_TITLES } = createRequire(import.meta.url)(
+  '../constants/apiReader.js'
+)
 
 const APIS_DIR = path.join(process.cwd(), 'src', 'assets', 'apis')
 
@@ -16,15 +25,6 @@ const SCHEMA_KEYS = [
 ]
 
 const METHODS = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']
-
-const TITLE_KEYS = {
-  request: { es: 'Solicitud', en: 'Request' },
-  response: { es: 'Respuesta', en: 'Response' },
-  params: {
-    es: { path: 'Parámetros', query: 'Parámetros de consulta', header: 'Cabecera' },
-    en: { path: 'Params', query: 'Query params', header: 'Headers' },
-  },
-}
 
 const unique = (items) => [...new Set(items.filter(Boolean))]
 
@@ -137,7 +137,7 @@ const collectParametersText = (parameters = [], where, lines = []) => {
  * - Otherwise the folder is derived from the page's top-level directory
  *   (e.g. `checkout/api/reference/session.mdx` -> `checkout/es.yaml`).
  */
-const resolveSpecPath = ({ file, apiAssetPath, locale, SUPPORTED_LOCALES }) => {
+const resolveSpecPath = ({ file, apiAssetPath, locale }) => {
   let folder = apiAssetPath
   if (!folder) {
     const firstSegment = path.dirname(file).split(path.sep)[0].replace('/', '')
@@ -151,9 +151,8 @@ export async function extractApiSections({
   apiRefs = [],
   apiAssetPath = null,
   locale,
-  SUPPORTED_LOCALES = ['es', 'en'],
 }) {
-  const specPath = resolveSpecPath({ file, apiAssetPath, locale, SUPPORTED_LOCALES })
+  const specPath = resolveSpecPath({ file, apiAssetPath, locale })
   if (!fs.existsSync(specPath)) {
     return {}
   }
@@ -162,8 +161,8 @@ export async function extractApiSections({
 
   const titleFor = (kind, qualifier) =>
     kind === 'params'
-      ? TITLE_KEYS.params[locale][qualifier]
-      : TITLE_KEYS[kind][locale]
+      ? API_TITLES.params[locale][qualifier]
+      : API_TITLES[kind][locale]
 
   const sections = {}
 
@@ -198,10 +197,10 @@ export async function extractApiSections({
 
       buildSection(titleFor('request'), collectRequestText(data.requestBody))
       buildSection(titleFor('response'), collectResponsesText(data.responses))
-      for (const where of ['path', 'query', 'header']) {
+      for (const where of ['params', 'query', 'header']) {
         buildSection(
           titleFor('params', where),
-          collectParametersText(parameters, where)
+          collectParametersText(parameters, where === 'params' ? 'path' : where)
         )
       }
     }

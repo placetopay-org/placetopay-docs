@@ -58,15 +58,25 @@ const getTestServerUrl = (api) => {
 const normalizeUrl = (url) => url.replace(/\/+$/, '')
 
 const firstExampleOf = (mediaType) => {
-  if (!mediaType || !mediaType.examples) return undefined
-  const examples = Object.values(mediaType.examples)
+  if (!mediaType) return undefined
+  const examples = Object.values(mediaType.examples ?? {})
   const withValue = examples.find((example) => example && example.value !== undefined)
   return withValue?.value ?? mediaType.example
 }
 
-const operationToPostmanItem = (api, pathName, method, operation, baseUrl) => {
+// SwaggerParser.bundle() internalizes external $refs but keeps internal ones,
+// so `requestBody: { $ref: '#/components/requestBodies/...' }` must be
+// resolved against the bundled components before reading its content.
+const resolveRequestBody = (requestBody, api) => {
+  const ref = requestBody?.$ref
+  if (typeof ref !== 'string') return requestBody
+  const name = ref.replace(/^#\/components\/requestBodies\//, '')
+  return api.components?.requestBodies?.[name] ?? requestBody
+}
+
+const operationToPostmanItem = (pathName, method, operation, api) => {
   const rawBody = firstExampleOf(
-    operation.requestBody?.content?.['application/json']
+    resolveRequestBody(operation.requestBody, api)?.content?.['application/json']
   )
 
   const item = {
@@ -103,13 +113,20 @@ const buildPostmanCollection = (apisByScope, locale) => {
       for (const method of ['get', 'post', 'put', 'patch', 'delete']) {
         if (pathItem && pathItem[method]) {
           operations.push(
-            operationToPostmanItem(api, pathName, method, pathItem[method])
+            operationToPostmanItem(pathName, method, pathItem[method], api)
           )
         }
       }
     }
 
     if (operations.length === 0) continue
+
+    if (!testServerUrl) {
+      logger.warn(
+        `[api-downloads] "${scope}" (${api.info?.title ?? scope}) does not declare servers; ` +
+          'its base_url variable will be empty in the Postman collection.'
+      )
+    }
 
     items.push({
       name: api.info?.title ?? scope,
@@ -124,7 +141,13 @@ const buildPostmanCollection = (apisByScope, locale) => {
 
   return {
     info: {
-      _postman_id: crypto.randomUUID(),
+      // Deterministic ID derived from the collection name so two builds of
+      // the same commit produce identical artifacts.
+      _postman_id: crypto
+        .createHash('sha256')
+        .update(`placetopay-apis.${locale}.postman_collection`)
+        .digest('hex')
+        .slice(0, 32),
       name: `Placetopay APIs (${locale === 'es' ? 'Español' : 'English'})`,
       description:
         locale === 'es'
