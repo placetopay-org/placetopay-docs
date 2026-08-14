@@ -45,12 +45,3 @@ export const EmailIcon = ({ className }) => {
     </svg>
   )
 }
-
-
-
-
-
-
-
-
-
