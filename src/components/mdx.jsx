@@ -92,6 +92,10 @@ export function Property({
   const { locale } = useLocale()
   const texts = REQUIRED_TEXTS[locale] ?? REQUIRED_TEXTS.es
 
+  const selectTypeLabel = locale === 'es'
+    ? `Seleccionar variante del campo ${name}`
+    : `Select variant for field ${name}`
+
   const getType = () => {
     if (isMulti) {
       return (
