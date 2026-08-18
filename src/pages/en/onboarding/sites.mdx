@@ -1,0 +1,297 @@
+export const description =
+  'Registra los sitios de venta de un comercio, sus credenciales y su configuración de integración, control y seguridad.'
+
+<MissingTranslationBanner />
+
+# Sitios
+
+Un **sitio** es un punto de venta del comercio: una tienda en línea, un canal telefónico, un punto físico. Cada sitio tiene sus propias credenciales, su moneda, su idioma y su configuración de operación.
+
+La colección `sites` viaja en la raíz del cuerpo, junto a los campos del propio comercio, y la aceptan tanto la creación como la actualización. Una petición puede traer varios sitios a la vez.
+
+## Crear o modificar un sitio {{ id: 'create-or-patch' }}
+
+Lo que determina si un elemento crea un sitio nuevo o modifica uno existente es la presencia del campo `id`:
+
+| El elemento | Efecto |
+|---|---|
+| **Sin `id`** | Crea un sitio nuevo. Todos los campos que describen un sitio pasan a ser obligatorios |
+| **Con `id`** | Modifica ese sitio. Solo cambia lo que nombras; el resto se conserva |
+
+<Note>
+  `sites[].id` es la **única excepción** a la regla de que los identificadores no viajan en el cuerpo. Es necesaria porque un sitio no tiene otro campo estable con el que referenciarlo: su nombre de acceso puede cambiarlo la misma petición.
+</Note>
+
+En una creación (`POST`), enviar `sites[].id` responde `422`, porque no hay sitios previos que modificar. En una actualización, el `id` debe pertenecer al comercio de la URL. El campo `customerId` responde `422` siempre: el comercio viaja en la URL.
+
+## Credenciales del sitio {{ id: 'site-credentials' }}
+
+Cada sitio tiene sus propias credenciales, con las que se identifica ante la plataforma de pagos:
+
+<Properties>
+  <Property name="login" type="string" isRequired={false}>
+    Identificador público del sitio. Es **único en todo el registro** y no distingue mayúsculas de minúsculas.
+  </Property>
+  <Property name="tranKey" type="string" isRequired={false}>
+    Clave secreta del sitio.
+  </Property>
+</Properties>
+
+**Si no las envías, Onboarding las genera.** Esa es la razón por la que son opcionales incluso al crear un sitio.
+
+<Note type="warning">
+  Una credencial generada se publica **una sola vez**, en `result.sites[]` del proceso. No hay forma de recuperarla después. Guarda el resultado del proceso en cuanto lo recibas.
+</Note>
+
+Como el `login` no distingue mayúsculas, `ACME` y `acme` son el mismo identificador y no pueden coexistir. Sigue estando disponible en dos casos, además de cuando está libre: cuando lo tiene el propio sitio que estás modificando, y cuando pertenece a un sitio que **esta misma clave de idempotencia ya creó** —sin lo cual un reintento colisionaría con su propio primer intento—.
+
+## Campos del sitio {{ id: 'site-fields' }}
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="name" type="string" isRequired={true}>
+        Nombre interno del sitio.
+      </Property>
+      <Property name="displayName" type="string" isRequired={true}>
+        Nombre que ve el comprador durante el pago.
+      </Property>
+      <Property name="type" type="string" isRequired={true}>
+        Canal del sitio: `INT` (internet), `POS` (punto de venta), `IVR` (telefónico), `REC` (recurrente) u `ONE` (pago único).
+      </Property>
+      <Property name="category" type="string" isRequired={true}>
+        Categoría de operación del sitio.
+      </Property>
+      <Property name="email" type="string" isRequired={true}>
+        Correo de contacto operativo del sitio.
+      </Property>
+      <Property name="currency" type="string" isRequired={true}>
+        Moneda con la que opera, del catálogo de monedas.
+      </Property>
+      <Property name="language" type="string" isRequired={true}>
+        Idioma del sitio, del catálogo de idiomas.
+      </Property>
+      <Property name="onTest" type="boolean" isRequired={false}>
+        Si el sitio opera en modo de pruebas.
+      </Property>
+      <Property name="active" type="boolean" isRequired={false}>
+        Si el sitio está habilitado.
+      </Property>
+    </Properties>
+
+    A estos se suman siete bloques de configuración, descritos abajo.
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'sites' }}
+    {
+      "sites": [
+        {
+          "name": "Tienda principal",
+          "displayName": "Acme",
+          "type": "INT",
+          "category": "ECOMMERCE",
+          "email": "ops@acme.example.com",
+          "currency": "COP",
+          "language": "ES",
+          "onTest": true,
+          "integration": {
+            "allowPartial": false,
+            "checkoutVersion": "v4",
+            "connectionMethod": "REDIRECT",
+            "notificationUrl": "https://acme.example.com/pay/notify",
+            "allowWallet": true,
+            "checkoutAttemptsLimit": 5
+          },
+          "control": {
+            "minAmount": 1000,
+            "maxAmount": 5000000,
+            "allowedDays": 127,
+            "allowedHours": "ffffffffffffffffffffffffffffffffffffffffff",
+            "filterPse": false,
+            "filterByBin": false,
+            "allowedBankCountries": ["CO"]
+          },
+          "threeDS": { "setting": "LOW", "minAmount": 0 },
+          "securityFilters": { "onlyWhitelisted": false, "dayMax": 5 },
+          "operation": { "taxPercentage": 19, "mailCustomer": true },
+          "branding": { "buttonColor": "#1a73e8" }
+        }
+      ]
+    }
+    ```
+  </Col>
+</Row>
+
+<Note>
+  La moneda y el idioma se validan contra el catálogo **respetando la grafía exacta**, igual que el código de un medio de pago.
+</Note>
+
+## Bloque `integration` {{ id: 'block-integration' }}
+
+Define cómo se conecta el sitio con la plataforma de pagos.
+
+<Properties>
+  <Property name="integration.checkoutVersion" type="string" isRequired={false}>
+    Versión de la página de pago. Actualmente solo se admite `v4`.
+  </Property>
+  <Property name="integration.connectionMethod" type="string" isRequired={false}>
+    Modo de conexión, por ejemplo `REDIRECT`.
+  </Property>
+  <Property name="integration.notificationUrl" type="string" isRequired={false}>
+    URL donde el sitio recibe las notificaciones de sus transacciones.
+  </Property>
+  <Property name="integration.checkoutAttemptsLimit" type="integer" isRequired={false}>
+    Número de intentos de pago permitidos por sesión. Solo admite los valores que ofrece la configuración estándar.
+  </Property>
+  <Property name="integration.allowPartial" type="boolean" isRequired={false}>
+    Si se admiten pagos parciales.
+  </Property>
+  <Property name="integration.allowWallet" type="boolean" isRequired={false}>
+    Si se admite el uso de billetera.
+  </Property>
+</Properties>
+
+<Note type="warning">
+  `integration.notificationUrl` puede ser sobrescrito por una integración de sitio de tipo `notifier`. Ver [Integraciones del sitio](/en/onboarding/site-integrations).
+</Note>
+
+## Bloque `control` {{ id: 'block-control' }}
+
+Restringe cuándo y con qué montos puede operar el sitio.
+
+<Properties>
+  <Property name="control.minAmount" type="number" isRequired={false}>
+    Monto mínimo admitido por transacción.
+  </Property>
+  <Property name="control.maxAmount" type="number" isRequired={false}>
+    Monto máximo admitido por transacción.
+  </Property>
+  <Property name="control.allowedDays" type="integer" isRequired={false}>
+    Días de la semana habilitados, como máscara de bits. El valor `127` los habilita todos; el valor `0` responde `422`, porque dejaría el sitio sin ningún día operativo.
+  </Property>
+  <Property name="control.allowedHours" type="string" isRequired={false}>
+    Horas habilitadas, codificadas como una cadena hexadecimal.
+  </Property>
+  <Property name="control.allowedBankCountries" type="array" isRequired={false}>
+    Países cuyos bancos se admiten.
+  </Property>
+  <Property name="control.filterPse" type="boolean" isRequired={false}>
+    Si se aplica filtrado sobre pagos bancarios.
+  </Property>
+  <Property name="control.filterByBin" type="boolean" isRequired={false}>
+    Si se filtra por BIN de tarjeta.
+  </Property>
+  <Property name="control.exceptionBinsList" type="array" isRequired={false}>
+    BINes exceptuados del filtro.
+  </Property>
+</Properties>
+
+## Los demás bloques {{ id: 'other-blocks' }}
+
+| Bloque | Para qué |
+|---|---|
+| `threeDS` | Configuración de autenticación 3-D Secure: nivel de exigencia y monto a partir del cual se aplica |
+| `securityFilters` | Límites antifraude por número de intentos y de tarjetas, por día, semana y mes |
+| `operation` | Parámetros operativos: porcentaje de impuesto, correos al comprador, comprobantes |
+| `subscriptionValidation` | Configuración de la validación al registrar un medio de pago |
+| `branding` | Colores e imagen de la página de pago. Los colores se envían como `#rgb` o `#rrggbb` |
+
+Varios límites son **más estrechos que lo que el registro admitiría**, porque replican los que impone la configuración estándar de la plataforma. Enviar un valor fuera de esos límites responde `422` señalando el campo.
+
+## Comportamiento en una actualización {{ id: 'update-behaviour' }}
+
+La colección es **upsert-only**: un sitio que el cuerpo no nombra sobrevive intacto, y dentro de un sitio que sí nombras solo cambia lo que envías.
+
+<Note type="warning">
+  **No se puede eliminar un sitio.** Ni omitiéndolo ni enviando `"sites": []`, que responde `422`. Para dejar un sitio fuera de operación, envíalo con `active: false`.
+</Note>
+
+Los bloques `branding` y los ajustes internos del sitio se **fusionan** en lugar de reemplazarse, porque contienen claves que solo la plataforma escribe y que una actualización no podría restaurar.
+
+## Efectos de una edición posterior desde el back office {{ id: 'site-caveats' }}
+
+Hay tres valores que la plataforma normaliza la primera vez que una persona guarda el sitio desde el back office. No son fallos y no se pueden devolver como error, pero conviene conocerlos:
+
+- Un `allowedHours` que no habilite ninguna hora se convierte en «todas las horas».
+- Una fecha de expiración pierde su componente de hora.
+- Una comisión heredada de un medio de pago del sitio pasa a `0.00`. Ver [Medios de pago del sitio](/en/onboarding/site-payment-methods).
+
+## El resultado {{ id: 'result-sites' }}
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="id" type="integer">
+        Identificador del sitio. Es el que usarás para modificarlo después.
+      </Property>
+      <Property name="login" type="string">
+        Identificador público del sitio.
+      </Property>
+      <Property name="tranKey" type="string">
+        Clave secreta. La clave siempre viaja; su valor es `null` si esta petición no la escribió.
+      </Property>
+      <Property name="active" type="boolean">
+        Estado del sitio tras la operación.
+      </Property>
+      <Property name="action" type="string">
+        `created`, `updated` o `unchanged`. Un sitio se reporta como `unchanged` cuando ninguno de sus campos difiere de lo almacenado, de modo que reenviar el mismo cuerpo no lo marca como editado.
+      </Property>
+    </Properties>
+
+    La clave `tranKey` **está siempre presente**; lo que cambia es su valor, que solo llega si esta misma petición la escribió: porque la enviaste, o porque se generó al crear el sitio.
+
+    En un alta nunca es `null`, porque si no envías las credenciales se generan. El `null` aparece cuando un elemento solo modificó un sitio existente: ahí no hay nada irrecuperable que rescatar, solo un secreto que nunca enviaste.
+
+Más concretamente, en una actualización el valor vuelve **solo si cambió**. Reenviar el mismo `tranKey` que ya está guardado devuelve `null`, porque no hay ningún cambio que reportar — algo que sorprende si tu sistema envía el cuerpo completo en cada actualización y espera recuperar ahí la credencial.
+
+### Si pierdes las credenciales {{ id: 'lost-credentials' }}
+
+No hay forma de volver a leerlas: ningún endpoint las devuelve. Lo que sí puedes hacer es **fijar unas nuevas**. Envía un `tranKey` distinto en una actualización del sitio: al cambiar de valor se escribe, y viaja en el `result` de ese proceso.
+
+<Note>
+  El valor anterior **deja de estar almacenado**, y Onboarding no lo conserva en ningún otro registro: en el historial de cambios las credenciales quedan enmascaradas, tanto la nueva como la que se reemplazó. Tampoco se emite ninguna notificación por el cambio.
+
+  Lo que esta documentación **no** describe es qué le ocurre a una integración que estuviera usando la credencial anterior. Eso lo determina el sistema que la valida al procesar un pago, no Onboarding, que se limita a escribir el nuevo valor.
+</Note>
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'result' }}
+    {
+      "result": {
+        "merchantId": 18,
+        "sites": [
+          {
+            "id": 214,
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "active": true,
+            "action": "created"
+          },
+          {
+            "id": 209,
+            "login": "123example456token789abc012def345",
+            "tranKey": null,
+            "active": true,
+            "action": "updated"
+          }
+        ]
+      }
+    }
+    ```
+  </Col>
+</Row>
+
+Las claves se mantienen siempre presentes para que la forma del resultado no dependa de qué cambió.
+
+## Colecciones dentro de un sitio {{ id: 'site-collections' }}
+
+Un sitio puede llevar sus propias colecciones, con reglas propias:
+
+- [Integraciones del sitio](/en/onboarding/site-integrations) — `sites[].integrations`
+- [Medios de pago del sitio](/en/onboarding/site-payment-methods) — `sites[].paymentMethods`
+
+## ¿Qué sigue? {{ id: 'sites-next' }}
+
+- [Integraciones del sitio](/en/onboarding/site-integrations)
+- [Medios de pago del sitio](/en/onboarding/site-payment-methods)
+- [Actualizar un comercio](/en/onboarding/update-merchant)

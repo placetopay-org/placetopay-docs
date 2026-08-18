@@ -1,0 +1,287 @@
+export const description =
+  'Registra un comercio en Placetopay con POST /api/merchants: estructura del cuerpo, headers obligatorios y la respuesta 202.'
+
+<MissingTranslationBanner />
+
+# Crear un comercio
+
+`POST /api/merchants` registra un comercio nuevo. La petición **no espera** a que el comercio quede escrito: valida el contenido, lo acepta y devuelve un identificador de proceso con el que seguir el resultado.
+
+## La petición {{ id: 'the-request' }}
+
+<CodeGroup title="Solicitud" tag="POST" label="/api/merchants">
+
+```bash {{ title: 'cURL' }}
+curl --request POST \
+  --url '{URL_BASE}/api/merchants' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --header 'Idempotency-Key: 8f1c2d3e4a5b6c7d8e9f0a1b' \
+  --data @merchant.json
+```
+
+</CodeGroup>
+
+| Header | Obligatorio | Detalle |
+|---|---|---|
+| `Authorization` | Sí | `Bearer` con un token que incluya el permiso `onboarding:create`. Ver [Autenticación](/en/onboarding/authentication) |
+| `Idempotency-Key` | Sí | Ver [Idempotencia](/en/onboarding/idempotency) |
+| `Content-Type` | Sí | `application/json` |
+| `Accept` | Recomendado | `application/json` |
+
+## Estructura del cuerpo {{ id: 'body-structure' }}
+
+El cuerpo describe el **estado completo** del comercio que quieres registrar. Los campos del comercio viajan en la raíz, al lado de las colecciones.
+
+<Properties>
+  <Property name="Campos del comercio" type="varios" isRequired={true}>
+    Identidad, documento, dirección, representante legal, facturación y control comercial. Van directamente en la raíz: `name`, `brand`, `document`, `address`… Ver [Datos del comercio](/en/onboarding/merchant-data).
+  </Property>
+  <Property name="integrations" type="array" isRequired={false}>
+    Integraciones del comercio con proveedores externos. Ver [Integraciones](/en/onboarding/integrations).
+  </Property>
+  <Property name="paymentMethods" type="array" isRequired={false}>
+    Medios de pago que el comercio acepta. Ver [Medios de pago](/en/onboarding/payment-methods).
+  </Property>
+  <Property name="sites" type="array" isRequired={false}>
+    Sitios de venta del comercio, con sus propias integraciones y medios de pago. Ver [Sitios](/en/onboarding/sites).
+  </Property>
+  <Property name="notification" type="object" isRequired={false}>
+    URL donde quieres recibir el resultado del proceso.
+  </Property>
+</Properties>
+
+## Cuerpo mínimo {{ id: 'minimum-body' }}
+
+Estos son todos los campos que Onboarding exige para registrar un comercio. Todo lo demás es opcional.
+
+<CodeGroup title="Cuerpo mínimo">
+
+```json {{ title: 'merchant.json' }}
+{
+  "name": "Comercializadora Acme S.A.S.",
+  "brand": "Acme",
+  "languages": ["es"],
+  "currencies": ["COP"],
+  "document": {
+    "type": "NIT",
+    "number": "9001234567"
+  },
+  "address": {
+    "city": "Bogota",
+    "country": "CO",
+    "state": 11
+  },
+  "legalRepresentative": {
+    "name": "Ada",
+    "surname": "Lovelace"
+  },
+  "control": {
+    "reseller": 1
+  }
+}
+```
+
+</CodeGroup>
+
+## Cuerpo completo {{ id: 'full-body' }}
+
+Un registro real suele incluir también las colecciones. Este ejemplo muestra la forma general; el detalle de cada colección está en su propia página.
+
+<Row>
+  <Col>
+    Los campos del comercio y las colecciones conviven en el mismo nivel del cuerpo.
+
+    Las colecciones son independientes entre sí: puedes enviar solo `sites`, solo `paymentMethods`, ambas o ninguna. Cada elemento que envías se registra dentro de la misma operación, de modo que un comercio con sus sitios y sus medios de pago se crea con **una sola petición**.
+
+    El bloque `notification` es opcional y se explica más abajo.
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Cuerpo completo">
+
+    ```json {{ title: 'merchant.json' }}
+    {
+      "name": "Comercializadora Acme S.A.S.",
+      "brand": "Acme",
+      "active": true,
+      "url": "https://acme.example.com",
+      "mcc": "5411",
+      "size": "M",
+      "timezone": "America/Bogota",
+      "languages": ["es", "en"],
+      "currencies": ["COP", "USD"],
+      "document": {
+        "type": "NIT",
+        "number": "9001234567"
+      },
+      "address": {
+        "street": "Carrera 43A # 1-50, Torre 2",
+        "city": "Bogota",
+        "country": "CO",
+        "state": 11,
+        "phone": "6013905000",
+        "postalCode": "110111"
+      },
+      "legalRepresentative": {
+        "name": "Ada",
+        "surname": "Lovelace",
+        "documentType": "CC",
+        "document": "1020304050"
+      },
+      "billing": {
+        "contact": "Contabilidad Acme",
+        "mail": "facturacion@acme.example.com",
+        "ciiu": "4791",
+        "taxType": 1,
+        "taxRegime": 1,
+        "organizationType": 1
+      },
+      "control": {
+        "reseller": 1,
+        "seller": 1
+      },
+      "integrations": [
+        {
+          "type": "kount",
+          "settings": {
+            "sandbox": false,
+            "website": "ACME",
+            "merchant": "201000"
+          }
+        }
+      ],
+      "paymentMethods": [
+        {
+          "code": "CR_VS",
+          "financialEntity": 7,
+          "accountNumber": "1234567890",
+          "accountType": 2,
+          "commissionModel": "P",
+          "commissionValue": 2.5
+        }
+      ],
+      "notification": {
+        "url": "https://acme.example.com/hooks/onboarding"
+      }
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## La URL de notificación {{ id: 'notification-url' }}
+
+Si envías `notification.url`, Onboarding te avisará en esa dirección cuando el proceso termine, tanto si termina bien como si falla.
+
+<Properties>
+  <Property name="notification.url" type="string" isRequired={false}>
+    URL pública sobre `https` donde recibirás el webhook, sin credenciales embebidas.
+  </Property>
+</Properties>
+
+Onboarding valida solo la **forma** de la URL en el momento de aceptar la petición. La accesibilidad real del destino se comprueba justo antes de cada envío, de modo que una URL que apunte a una red no pública se acepta pero nunca se entrega. El detalle está en [Notificación](/en/onboarding/notification).
+
+## La respuesta {{ id: 'accepted-response' }}
+
+<Row>
+  <Col>
+    Si el contenido es válido, la respuesta es `202`.
+
+    <Properties>
+      <Property name="status" type="object">
+        Estado de la petición. En el `202` siempre es `OK`, y significa que la petición fue aceptada.
+      </Property>
+      <Property name="processId" type="string">
+        Identificador del proceso. Consérvalo: es con lo que consultarás el resultado.
+      </Property>
+      <Property name="action" type="string">
+        La operación pedida. En una creación, `merchant.create`.
+      </Property>
+    </Properties>
+
+    Además, dos headers:
+
+    | Header | Para qué |
+    |---|---|
+    | `Location` | URL del proceso recién creado |
+    | `Retry-After` | Segundos a esperar antes de consultar |
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+
+    ```json {{ title: '202 Accepted' }}
+    {
+      "status": {
+        "status": "OK",
+        "reason": null,
+        "message": "The request was accepted and will be processed shortly.",
+        "date": "2026-08-17T10:14:03-05:00"
+      },
+      "processId": "01kz0609xy2hd666mnx6b0jxpc",
+      "action": "merchant.create",
+      "result": null,
+      "notification": {
+        "url": "https://acme.example.com/hooks/onboarding",
+        "state": "PENDING",
+        "attempts": 0
+      }
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Note type="warning">
+  Un `202` con `status.status` en `OK` responde a «¿aceptaste mi petición?», no a «¿ya existe el comercio?». En ese instante el comercio todavía no está registrado y `result` es `null`.
+</Note>
+
+## Qué hacer después {{ id: 'after-the-202' }}
+
+1. **Guarda el `processId`** asociado a la operación en tu sistema.
+2. **Consulta el proceso** con [`GET /api/processes/{processId}`](/en/onboarding/process-status) hasta que la respuesta deje de traer `Retry-After`.
+3. **Guarda `result.merchantId`** cuando el proceso termine bien.
+
+Si registraste una URL de notificación, puedes esperar el webhook en lugar de consultar — pero mantén la consulta como respaldo, porque la entrega no está garantizada.
+
+## Errores de la llamada {{ id: 'create-errors' }}
+
+Estos errores impiden que la petición se acepte. Ninguno crea un proceso, y por eso ninguno trae `processId`.
+
+| Código | Causa |
+|---|---|
+| `401` | Token ausente, inválido o de otro ambiente |
+| `403` | El token no incluye el permiso `onboarding:create` |
+| `409` | La clave de idempotencia ya se usó con un contenido distinto |
+| `422` | El contenido no pasó la validación, o falta el header `Idempotency-Key` |
+
+Un `422` incluye un objeto `errors` **hermano de `status`**, con una entrada por cada campo rechazado. Las claves son las rutas del propio cuerpo que enviaste, de modo que puedes localizar el problema sin traducir nada.
+
+<CodeGroup title="Respuesta de error">
+
+```json {{ title: '422 Unprocessable Content' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": 422,
+    "message": "The given data was invalid.",
+    "date": "2026-08-17T10:14:03-05:00"
+  },
+  "errors": {
+    "name": ["The name field is required."],
+    "currencies.0": ["The selected currencies.0 is invalid."]
+  }
+}
+```
+
+</CodeGroup>
+
+La validación **no se detiene en el primer error**: la respuesta enumera todos los problemas encontrados, para que puedas corregirlos de una vez. El catálogo completo de errores está en [Errores](/en/onboarding/errors).
+
+## ¿Qué sigue? {{ id: 'create-merchant-next' }}
+
+- [Consultar el proceso](/en/onboarding/process-status)
+- [Datos del comercio](/en/onboarding/merchant-data)
+- [Referencia de la API](/en/onboarding/api/reference/merchants) — el contrato completo, campo a campo

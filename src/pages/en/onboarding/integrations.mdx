@@ -1,0 +1,143 @@
+export const description =
+  'Registra las integraciones del comercio con proveedores externos y conoce cómo se validan y actualizan sus configuraciones.'
+
+<MissingTranslationBanner />
+
+# Integraciones
+
+La colección `integrations` registra las integraciones del comercio con proveedores externos: antifraude, notificaciones, mensajería y otros servicios que el comercio use.
+
+Viaja en la raíz del cuerpo, junto a los campos del propio comercio, y la aceptan tanto la creación como la actualización.
+
+## Forma de un elemento {{ id: 'element-shape' }}
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="type" type="string" isRequired={true}>
+        Tipo de integración. Debe ser uno de los que reconoce el catálogo de Placetopay.
+      </Property>
+      <Property name="settings" type="object" isRequired={true}>
+        Configuración del proveedor. Las claves admitidas dependen del `type`.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'integrations' }}
+    {
+      "integrations": [
+        {
+          "type": "kount",
+          "settings": {
+            "sandbox": false,
+            "website": "ACME",
+            "merchant": "201000"
+          }
+        }
+      ]
+    }
+    ```
+  </Col>
+</Row>
+
+## Cómo se identifica una integración {{ id: 'addressing' }}
+
+Una integración se direcciona **por su `type`**. No hay identificadores numéricos en este contrato: enviar `id` o `siteId` dentro de un elemento responde `422`.
+
+Esto significa que un comercio tiene como mucho una integración de cada tipo, y que para modificarla basta con volver a enviar ese mismo `type` con la configuración nueva.
+
+## Tipos disponibles {{ id: 'available-types' }}
+
+Los tipos y las claves que admite cada uno vienen del catálogo de integraciones de Placetopay. Estos son algunos de los más habituales:
+
+| `type` | Para qué sirve |
+|---|---|
+| `paygate` | Conexión con la pasarela de pagos |
+| `kount` | Servicio antifraude |
+| `notifier` | Envío de notificaciones de transacción |
+| `sms` | Envío de mensajes de texto |
+
+<Note>
+  La lista completa es más amplia y puede crecer. Si necesitas un tipo que no aparece aquí, consúltalo con tu contacto en Placetopay antes de enviarlo: un tipo que el catálogo no reconoce responde `422`.
+</Note>
+
+## El bloque `settings` {{ id: 'settings-block' }}
+
+Cada tipo declara qué claves acepta y de qué forma. La validación es **estricta en ambas direcciones**:
+
+- Una clave que el catálogo no declara para ese tipo responde `422` **nombrándola**. No se descarta en silencio.
+- Una clave obligatoria que falte responde `422`.
+- Algunas claves son condicionales: se vuelven obligatorias según el valor de otra clave del mismo bloque.
+
+<Note>
+  Que una clave desconocida se rechace en lugar de ignorarse es deliberado, porque **Onboarding nunca devuelve el contenido de `settings`**. Si se descartara en silencio, un error de escritura en el nombre de una clave sería indetectable para siempre.
+</Note>
+
+El contenido se guarda **exactamente como lo envías**: no se recortan espacios ni se convierten las cadenas vacías en `null`. Esto importa cuando una credencial tiene espacios significativos o cuando el propio catálogo usa la cadena vacía como valor por defecto.
+
+Los sub-objetos que el catálogo deja abiertos —por ejemplo, cabeceras HTTP personalizadas— siguen aceptando cualquier clave.
+
+## Comportamiento en una actualización {{ id: 'update-behaviour' }}
+
+La colección es **upsert-only**: una integración que el cuerpo no nombra **sobrevive intacta**.
+
+Si borrara por omisión, cada actualización del comercio obligaría a retransmitir todas las credenciales de todos los proveedores, y olvidar una causaría una incidencia con un servicio externo.
+
+<Note type="warning">
+  Dentro de una integración que sí nombras, el bloque `settings` se **reemplaza entero**. Una clave que estaba guardada y no reenvías desaparece. Si solo quieres cambiar un valor, envía el bloque completo con ese valor modificado.
+</Note>
+
+Enviar `"integrations": []` responde `422` en lugar de borrar todas las integraciones. No existe forma de eliminar una integración desde este contrato.
+
+## El orden no importa {{ id: 'order-is-irrelevant' }}
+
+Los elementos se ordenan por `type` antes de compararse con una petición anterior. Reconstruir el cuerpo desde un diccionario —donde el orden puede variar entre ejecuciones— sigue produciendo un reintento válido y no un conflicto de idempotencia.
+
+Cambiar el valor de una clave de `settings` sí produce un contenido distinto, y por tanto un `409` si reutilizas la clave. Ver [Idempotencia](/en/onboarding/idempotency).
+
+## El resultado {{ id: 'result-integrations' }}
+
+<Row>
+  <Col>
+    Cuando el proceso termina bien, `result.integrations` trae una entrada por cada integración procesada.
+
+    <Properties>
+      <Property name="type" type="string">
+        El tipo de la integración.
+      </Property>
+      <Property name="id" type="integer">
+        Identificador con el que quedó registrada.
+      </Property>
+      <Property name="action" type="string">
+        Qué ocurrió: `created`, `updated` o `unchanged`.
+      </Property>
+    </Properties>
+
+    El resultado **nunca incluye `settings`**: viajaría al webhook, y ahí podría contener credenciales de proveedores.
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'result' }}
+    {
+      "result": {
+        "merchantId": 18,
+        "integrations": [
+          {
+            "type": "kount",
+            "id": 42,
+            "action": "created"
+          }
+        ]
+      }
+    }
+    ```
+  </Col>
+</Row>
+
+Si el cuerpo no trae la colección, `result` no incluye la clave `integrations`.
+
+## ¿Qué sigue? {{ id: 'integrations-next' }}
+
+- [Medios de pago](/en/onboarding/payment-methods)
+- [Integraciones del sitio](/en/onboarding/site-integrations) — la colección equivalente dentro de un sitio
+- [Referencia de la API](/en/onboarding/api/reference/merchants) — las claves que admite cada tipo de integración
+- [Actualizar un comercio](/en/onboarding/update-merchant)
