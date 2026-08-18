@@ -5,6 +5,8 @@ import { Dialog, Transition } from '@headlessui/react'
 import clsx from 'clsx'
 import Highlighter from 'react-highlight-words'
 import { useAllNavigation } from '@/hooks/useNavigation'
+import { useLocalizePath } from '@/hooks/useLocalizePath'
+
 import { useLocale } from '@/components/LocaleProvider'
 
 const SEARCH_TEXTS = {
@@ -12,11 +14,13 @@ const SEARCH_TEXTS = {
     placeholder: 'Buscar...',
     nothingFound: 'Nada encontrado para',
     tryAgain: 'Por favor intenta de nuevo.',
+    viewAllResults: 'Ver todos los resultados',
   },
   en: {
     placeholder: 'Search...',
     nothingFound: 'Nothing found for',
     tryAgain: 'Please try again.',
+    viewAllResults: 'View all results',
   },
 }
 
@@ -36,7 +40,7 @@ function useAutocomplete() {
   let [autocomplete] = useState(() =>
     createAutocomplete({
       id,
-      placeholder: 'Buscar...',
+      placeholder: SEARCH_TEXTS[localeRef.current]?.placeholder,
       defaultActiveItemId: 0,
       onStateChange({ state }) {
         setAutocompleteState(state)
@@ -50,7 +54,19 @@ function useAutocomplete() {
             {
               sourceId: 'documentation',
               getItems() {
-                return search(query, { limit: 5, locale: localeRef.current })
+                // Search in the per-locale index and collapse sections that
+                // belong to the same page so the results show distinct pages.
+                // Fetch more than needed and trim afterwards: dedupe by page
+                // would otherwise leave the panel with fewer than 5 items.
+                let seenPages = new Set()
+                return search(query, { limit: 30, locale: localeRef.current })
+                  .filter((item) => {
+                    let page = item.url.split('#')[0]
+                    if (seenPages.has(page)) return false
+                    seenPages.add(page)
+                    return true
+                  })
+                  .slice(0, 5)
               },
               getItemUrl({ item }) {
                 return item.url
@@ -192,7 +208,9 @@ function SearchResult({
   )
 }
 
-function SearchResults({ autocomplete, query, collection }) {
+function SearchResults({ autocomplete, query, collection, onClose }) {
+  let router = useRouter()
+  let localizePath = useLocalizePath()
   let texts = useSearchTexts()
 
   if (collection.items.length === 0) {
@@ -211,18 +229,30 @@ function SearchResults({ autocomplete, query, collection }) {
   }
 
   return (
-    <ul role="list" {...autocomplete.getListProps()}>
-      {collection.items.map((result, resultIndex) => (
-        <SearchResult
-          key={result.url}
-          result={result}
-          resultIndex={resultIndex}
-          autocomplete={autocomplete}
-          collection={collection}
-          query={query}
-        />
-      ))}
-    </ul>
+    <>
+      <ul role="list" {...autocomplete.getListProps()}>
+        {collection.items.map((result, resultIndex) => (
+          <SearchResult
+            key={result.url}
+            result={result}
+            resultIndex={resultIndex}
+            autocomplete={autocomplete}
+            collection={collection}
+            query={query}
+          />
+        ))}
+      </ul>
+      <button
+        type="button"
+        className="block w-full border-t border-gray-100 px-4 py-3 text-left text-2xs font-medium text-primary-500 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50"
+        onClick={() => {
+          onClose()
+          router.push(localizePath(`/search?q=${encodeURIComponent(query)}`))
+        }}
+      >
+        {texts.viewAllResults} &rarr;
+      </button>
+    </>
   )
 }
 
@@ -405,6 +435,7 @@ function SearchDialog({ open, setOpen, className }) {
                         autocomplete={autocomplete}
                         query={autocompleteState.query}
                         collection={autocompleteState.collections[0]}
+                        onClose={() => setOpen(false)}
                       />
                     )}
                   </div>
