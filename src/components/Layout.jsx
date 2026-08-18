@@ -9,6 +9,7 @@ import { Navigation, ContentNavigation } from '@/components/Navigation'
 import { Prose } from '@/components/Prose'
 import { SectionProvider, useSectionStore } from '@/components/SectionProvider'
 import { useLocale } from '@/components/LocaleProvider'
+import { UnderConstructionBanner } from '@/components/UnderConstructionBanner'
 import TabProvider from './TabProvider'
 
 function Content({ sectionMode, children }) {
@@ -20,6 +21,7 @@ function Content({ sectionMode, children }) {
         <div className="w-full py-16 box-border">
           <div className={clsx('w-full', showSections && 'lg:flex box-border')}>
             <main className={clsx('min-w-[200px]', showSections && 'flex-1')}>
+              <UnderConstructionBanner />
               <Prose as="article" className={clsx(!showSections && 'max-w-none')}>{children}</Prose>
             </main>
             {showSections && <ContentNavigation />}

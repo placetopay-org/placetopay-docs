@@ -1,0 +1,281 @@
+import NotificationRetries from "@/components/react-flow/NotificationRetries"
+
+export const description =
+  'Recibe el resultado de un proceso de Onboarding por webhook: verificación de la firma, respuestas esperadas, reintentos y deduplicación.'
+
+export const apiRefs = ['/tu-endpoint-de-notificacion'];
+
+<MissingTranslationBanner />
+
+# Notificación
+
+Onboarding puede avisarte por webhook cuando un proceso termina, en lugar de que tengas que consultarlo. La notificación llega **firmada**, para que puedas comprobar que salió realmente de Onboarding y que nadie la alteró.
+
+<Note type="warning">
+  La notificación es una **conveniencia, no una garantía**. La fuente de verdad siempre es [`GET /api/processes/{processId}`](/en/onboarding/process-status). Diseña tu integración para que funcione aunque una notificación no llegue nunca.
+</Note>
+
+## Cómo se configura {{ id: 'configure-the-url' }}
+
+Envía `notification.url` en el cuerpo de la petición que crea o actualiza el comercio:
+
+```json
+{
+  "name": "Comercializadora Acme S.A.S.",
+  "brand": "Acme",
+
+  "notification": {
+    "url": "https://acme.example.com/hooks/onboarding"
+  }
+}
+```
+
+La URL debe ser pública, usar `https` y no llevar credenciales embebidas. Se registra por proceso, así que puedes usar direcciones distintas para operaciones distintas.
+
+## Qué recibes {{ id: 'what-you-receive' }}
+
+Onboarding envía un `POST` a tu URL con tres headers propios:
+
+| Header | Contenido |
+|---|---|
+| `X-Signature` | La firma, en el formato `t=…,kid=…,v1=…` |
+| `X-Event-Id` | Identificador del evento. **Estable entre reintentos**: es tu clave de deduplicación |
+| `X-Delivery-Attempt` | Número de intento, empezando en `1` |
+
+El cuerpo es **la misma representación que devuelve `GET /api/processes/{processId}`**, más un objeto `event` que describe la entrega.
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="event.id" type="string">
+        Identificador del evento. Repite el header `X-Event-Id`, para que puedas deduplicar aunque solo guardes el cuerpo.
+      </Property>
+      <Property name="event.type" type="string">
+        Tipo de evento. Ver la tabla siguiente.
+      </Property>
+      <Property name="event.time" type="string">
+        Instante del envío. Es distinto de `status.date`, que marca cuándo cambió el proceso de estado.
+      </Property>
+      <Property name="event.attempt" type="integer">
+        Número de intento. Repite el header `X-Delivery-Attempt`.
+      </Property>
+    </Properties>
+
+    La clave `notification` **no viaja** en el cuerpo del webhook: describiría el estado de entrega del propio mensaje que la transporta, que en ese instante siempre sería `PENDING`.
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Cuerpo recibido" tag="POST" label="/tu-endpoint">
+
+    ```json {{ title: 'merchant.create.succeeded' }}
+    {
+      "status": {
+        "status": "OK",
+        "reason": null,
+        "message": "The resource was created successfully.",
+        "date": "2026-08-17T10:14:09-05:00"
+      },
+      "processId": "01kz0609xy2hd666mnx6b0jxpc",
+      "action": "merchant.create",
+      "result": {
+        "merchantId": 18
+      },
+      "event": {
+        "id": "01kz0609xy2hd666mnx6b0jxpb",
+        "type": "merchant.create.succeeded",
+        "time": "2026-08-17T10:14:10-05:00",
+        "attempt": 1
+      }
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+### El esquema completo {{ id: 'body-schema' }}
+
+<ApiReader
+  path="/tu-endpoint-de-notificacion"
+  method="post"
+  type="header"
+  api={props.refs}
+/>
+
+<ApiReader
+  path="/tu-endpoint-de-notificacion"
+  method="post"
+  api={props.refs}
+/>
+
+## Tipos de evento {{ id: 'event-types' }}
+
+| `event.type` | Cuándo se emite |
+|---|---|
+| `merchant.create.succeeded` | Un comercio quedó registrado |
+| `merchant.create.failed` | El registro de un comercio no pudo completarse |
+| `merchant.update.succeeded` | Una actualización se aplicó |
+| `merchant.update.failed` | Una actualización no pudo completarse |
+
+La forma del cuerpo es idéntica en los cuatro casos. Si solo te interesa una operación, filtra por familia: `merchant.create.*` o `merchant.update.*`.
+
+<Note>
+  No confundas `action` con `event.type`. `action` describe **la operación del proceso** (`merchant.create`) y es la misma que ves al consultarlo; `event.type` describe **la entrega** e incluye el desenlace. Filtra tus suscripciones por `event.type`.
+</Note>
+
+## Verificar la firma {{ id: 'verify-the-signature' }}
+
+El header `X-Signature` trae tres campos separados por comas:
+
+```text
+X-Signature: t=1785527021,kid=k1,v1=8b0c3f9d1e...af
+```
+
+| Campo | Qué es |
+|---|---|
+| `t` | Instante del envío, en segundos desde época Unix |
+| `kid` | Identificador del secreto usado, para permitir rotaciones |
+| `v1` | El HMAC-SHA256 en hexadecimal |
+
+La firma se calcula sobre **la concatenación del timestamp, un punto y el cuerpo crudo**:
+
+```text
+hmac_sha256(secreto, "{t}" + "." + cuerpo_crudo)
+```
+
+El secreto es el **secreto de firma** que recibiste junto con tu token. Es distinto para cada integrador, de modo que la filtración del secreto de otro no permite falsificar entregas dirigidas a ti.
+
+<CodeGroup title="Verificación">
+
+```php {{ title: 'PHP' }}
+$raw    = $request->getContent();          // CRUDO, nunca el cuerpo ya parseado
+$header = $request->header('X-Signature', '');
+
+$parts = [];
+foreach (explode(',', $header) as $piece) {
+    [$k, $v] = array_pad(explode('=', $piece, 2), 2, null);
+    $parts[$k] = $v;
+}
+
+$t  = (int) ($parts['t'] ?? 0);
+$v1 = (string) ($parts['v1'] ?? '');
+
+// 1. ventana de tolerancia: es lo que impide el replay
+if (abs(time() - $t) > 300) {
+    abort(400, 'stale signature');
+}
+
+// 2. recalcular sobre los mismos bytes
+$expected = hash_hmac('sha256', $t . '.' . $raw, $secret);
+
+// 3. comparar en tiempo constante
+if (! hash_equals($expected, $v1)) {
+    abort(401, 'bad signature');
+}
+```
+
+```js {{ title: 'Node' }}
+app.post('/hook', express.raw({ type: 'application/json' }), (req, res) => {
+  const parts = Object.fromEntries(
+    (req.get('X-Signature') || '').split(',').map((p) => p.split('=', 2))
+  );
+  const t = Number(parts.t);
+
+  if (Math.abs(Date.now() / 1000 - t) > 300) return res.sendStatus(400);
+
+  const expected = crypto.createHmac('sha256', secret)
+    .update(`${t}.`).update(req.body)      // req.body es un Buffer crudo
+    .digest('hex');
+
+  const a = Buffer.from(expected), b = Buffer.from(parts.v1 || '');
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return res.sendStatus(401);
+
+  const payload = JSON.parse(req.body);    // recién aquí se parsea
+  res.sendStatus(204);
+});
+```
+
+```python {{ title: 'Python' }}
+raw = request.get_data()                   # bytes crudos
+parts = dict(p.split('=', 1) for p in request.headers['X-Signature'].split(','))
+t = int(parts['t'])
+
+if abs(time.time() - t) > 300:
+    abort(400)
+
+expected = hmac.new(secret.encode(), f"{t}.".encode() + raw, hashlib.sha256).hexdigest()
+
+if not hmac.compare_digest(expected, parts['v1']):
+    abort(401)
+```
+
+</CodeGroup>
+
+## Los tres errores que rompen la validación {{ id: 'signature-pitfalls' }}
+
+1. **Reserializar el cuerpo.** Si decodificas el JSON y lo vuelves a codificar antes de firmar, el resultado difiere por espacios, orden de claves o escapado de caracteres, y el hash deja de coincidir. Captura los bytes **antes** de que ningún middleware los toque. En la mayoría de frameworks esto exige desactivar el parseo automático de JSON para esa ruta.
+2. **Firmar solo el cuerpo.** Sin el prefijo `{t}.`, el HMAC no coincide nunca.
+3. **Comparar con `==`.** Una comparación normal termina antes en cuanto encuentra una diferencia, lo que filtra información por tiempo de ejecución. Usa `hash_equals`, `timingSafeEqual` o `compare_digest`.
+
+## La ventana anti-replay {{ id: 'replay-window' }}
+
+Verificar la firma demuestra dos cosas: que el mensaje salió de Onboarding y que no fue alterado en tránsito. **No demuestra que sea la primera vez que llega.**
+
+Sin una comprobación adicional, una entrega capturada seguiría siendo válida indefinidamente. Por eso el timestamp `t` forma parte de los bytes firmados: rechazando las firmas cuyo `t` quede fuera de una ventana razonable —**±300 segundos es una referencia habitual**— una entrega antigua deja de servir.
+
+<Note type="warning">
+  Esa comprobación vive **solo en tu lado**. Onboarding emite el `t` firmado y no impone ninguna tolerancia, porque solo tú sabes qué desfase admite tu infraestructura. Si no la implementas, no la implementa nadie.
+</Note>
+
+Que `t` entre en los bytes firmados no es un detalle: si viajara solo en el header sin formar parte del HMAC, cualquiera podría capturar una entrega, reescribir el timestamp y reenviarla con la firma intacta.
+
+## Rotación del secreto {{ id: 'key-rotation' }}
+
+El campo `kid` del header identifica qué secreto se usó para firmar. Sirve para que una rotación no obligue a un corte: durante la ventana de cambio, tu receptor puede aceptar dos secretos y elegir cuál usar según el `kid` que llegue.
+
+Si hoy solo manejas un secreto, basta con que leas el `kid` y no asumas que su valor es fijo.
+
+## Qué responder {{ id: 'how-to-respond' }}
+
+| Tu respuesta | Qué hace Onboarding |
+|---|---|
+| **`2xx`** | Da la entrega por hecha y no vuelve a intentar |
+| `5xx`, `408`, `425`, `429` | Reintenta con el siguiente intervalo de espera |
+| **Cualquier otro `4xx`** | Se detiene: interpreta que rechazaste el mensaje de forma definitiva |
+| Timeout, error de DNS o de TLS | Reintenta |
+
+<Note type="warning">
+  Responde `2xx` **en cuanto hayas verificado la firma y encolado el trabajo**, no cuando termines de procesarlo. La petición corta a los 5 segundos, con 2 segundos adicionales para establecer la conexión.
+</Note>
+
+Devolver un `4xx` ante un problema transitorio tuyo —una base de datos momentáneamente caída, por ejemplo— es la forma más rápida de perder la notificación para siempre, porque se clasifica como rechazo definitivo. Ante una duda, responde `5xx`: eso pide un reintento.
+
+## Reintentos {{ id: 'delivery-retries' }}
+
+Son **6 intentos** repartidos en unas 2 horas y 40 minutos, con esperas crecientes de 10 segundos, 1 minuto, 5 minutos, 30 minutos y 2 horas.
+
+<NotificationRetries />
+
+<Note type="warning">
+  Agotados los seis intentos, la notificación queda marcada como fallida y **no se vuelve a intentar nunca**. No se emite ninguna alerta: el estado queda registrado en `notification.state` del proceso y en ningún otro sitio.
+</Note>
+
+## Deduplicación {{ id: 'deduplication' }}
+
+La entrega es **at-least-once**: un mismo evento puede llegarte más de una vez. Ocurre, por ejemplo, si tu endpoint procesó el mensaje pero la respuesta se perdió en el camino.
+
+Deduplica por `X-Event-Id`, que es estable entre reintentos del mismo evento y viene repetido dentro del cuerpo como `event.id`. Guarda los identificadores ya procesados y descarta los repetidos.
+
+Si necesitas ordenar eventos de un mismo proceso, usa `status.date`, que marca el instante de la transición, y no `event.time`, que marca el del envío.
+
+## Si la notificación no llega {{ id: 'missing-notification' }}
+
+<Note type="warning">
+  **El comercio sigue registrado.** Que la notificación falle no revierte nada: lo único que se perdió es el aviso. `result.merchantId` sigue disponible consultando el proceso.
+</Note>
+
+Tu integración necesita una consulta de respaldo: si esperabas una notificación y no llegó en un plazo razonable, consulta [`GET /api/processes/{processId}`](/en/onboarding/process-status). Esa responsabilidad es del integrador por diseño, y es la razón por la que el webhook se describe como una conveniencia.
+
+## ¿Qué sigue? {{ id: 'notification-next' }}
+
+- [Consultar el proceso](/en/onboarding/process-status)
+- [Errores](/en/onboarding/errors)

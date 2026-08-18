@@ -1,0 +1,223 @@
+export const description =
+  'Actualiza un comercio existente con PUT /api/merchants/{merchantId} enviando solo los campos que quieres cambiar.'
+
+<MissingTranslationBanner />
+
+# Actualizar un comercio
+
+`PUT /api/merchants/{merchantId}` modifica un comercio que ya existe. Como la creación, es asíncrono: valida, acepta con `202` y devuelve un `processId`.
+
+## La petición {{ id: 'the-request' }}
+
+<CodeGroup title="Solicitud" tag="PUT" label="/api/merchants/{merchantId}">
+
+```bash {{ title: 'cURL' }}
+curl --request PUT \
+  --url '{URL_BASE}/api/merchants/18' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --header 'Idempotency-Key: 4b7e1a9c2d3f5e6a8b0c1d2e' \
+  --data '{ "name": "Comercializadora Acme S.A.S." }'
+```
+
+</CodeGroup>
+
+Requiere un token con el permiso `onboarding:update`. El identificador debe ser numérico: uno que no lo sea ni siquiera llega al endpoint y responde `404`.
+
+## De dónde sale el `merchantId` {{ id: 'where-the-merchant-id-comes-from' }}
+
+Es el `result.merchantId` que devolvió el proceso de creación. También es válido el identificador de cualquier comercio que ya exista en el registro de Placetopay, lo haya creado esta API o no.
+
+## Se escribe lo que el cuerpo nombra {{ id: 'partial-update' }}
+
+La actualización **modifica únicamente los campos que envías**. Todo lo que el cuerpo no nombra conserva el valor que ya tenía.
+
+Eso significa que para cambiar una sola cosa basta con enviar esa cosa:
+
+<Row>
+  <Col>
+    **Cambiar solo la razón social**
+
+    El resto del comercio —su marca, sus monedas, su dirección, sus sitios— se queda exactamente como estaba. No hace falta leer el estado actual ni retransmitirlo.
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'Cuerpo enviado' }}
+    {
+      "name": "Comercializadora Acme S.A.S."
+    }
+    ```
+  </Col>
+</Row>
+
+<Note>
+  Ningún campo del comercio es obligatorio en una actualización. Envía solo lo que cambia.
+</Note>
+
+Un cuerpo completo también se acepta, así que si tu sistema ya construye el comercio entero puedes seguir enviándolo: el resultado es el mismo.
+
+## Un campo no se puede vaciar {{ id: 'no-clearing' }}
+
+<Note type="warning">
+  Enviar un campo con `null` **no borra su valor**: el valor se descarta y la columna se queda como estaba. Omitir el campo hace exactamente lo mismo.
+</Note>
+
+No existe forma de vaciar un dato del comercio desde esta API. Es una limitación conocida y compartida con el resto de la plataforma: dejar un campo en blanco es una operación que hoy solo se hace desde el back office de Placetopay.
+
+## El cuerpo debe nombrar algo {{ id: 'empty-body' }}
+
+Una petición cuyo cuerpo no nombre ningún campo actualizable responde `422` bajo la clave **`body`**, que es la única de `errors` que no apunta a una ruta del payload — porque el problema es el payload entero.
+
+<CodeGroup title="Respuesta de error">
+
+```json {{ title: '422 Unprocessable Content' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": 422,
+    "message": "The request body must name at least one field to update.",
+    "date": "2026-08-17T10:20:41-05:00"
+  },
+  "errors": {
+    "body": ["The request body must name at least one field to update."]
+  }
+}
+```
+
+</CodeGroup>
+
+Ocurre, por ejemplo, con un cuerpo vacío o con uno que solo traiga `notification`. No se crea proceso ni se envía notificación: aceptar una petición que no pide nada consumiría una clave de idempotencia y reportaría éxito sin haber hecho nada.
+
+## Campos que viajan en pareja {{ id: 'paired-fields' }}
+
+Hay tres casos en los que enviar la mitad de algo no es suficiente. No son campos obligatorios, sino exigencias de coherencia del propio cuerpo:
+
+| Si envías | Debes enviar también | Por qué |
+|---|---|---|
+| `document.type` | `document.number` | El documento se almacena como un solo dato que combina ambos |
+| `legalRepresentative.name` | `legalRepresentative.surname` | El representante legal se almacena como un solo nombre completo |
+| `address.country` | `address.state` | Una provincia pertenece a un país: la que está guardada sería de un país que acabas de dejar |
+
+La relación entre nombre y apellido funciona en las dos direcciones: enviar cualquiera de los dos exige el otro.
+
+## Idiomas y monedas {{ id: 'languages-and-currencies' }}
+
+Son conjuntos, y admiten tres lecturas distintas:
+
+| Envías | Efecto |
+|---|---|
+| Nada | Se quedan como están |
+| La lista completa | Reemplaza el conjunto entero |
+| Una lista vacía | Responde `422` |
+
+Si quieres añadir un idioma, envía la lista con los que ya tenía más el nuevo.
+
+## No hace falta reenviar el país {{ id: 'country-scoped-rules' }}
+
+Varias validaciones dependen del país del comercio: la provincia, el código postal y la entidad financiera de un medio de pago.
+
+Todas se comprueban contra **el país que envías o, si no lo envías, contra el que el comercio ya tiene**. Puedes cambiar el código postal sin reenviar el país, y la validación seguirá midiéndose contra el país correcto.
+
+## Las colecciones {{ id: 'collections-behaviour' }}
+
+Las colecciones también escriben solo lo que nombras: una integración, un medio de pago o un sitio que el cuerpo no menciona sobrevive intacto.
+
+Donde sí hay una diferencia que conviene tener presente es **dentro de un elemento que sí nombras**, con el bloque `settings`:
+
+| Clave | Dentro de un elemento que nombras |
+|---|---|
+| `integrations` | El bloque `settings` se **reemplaza entero** |
+| `paymentMethods` | Los `settings` se **fusionan**; `null` borra una clave |
+| `sites` | Solo cambia lo que nombras |
+| `sites[].metadata` | El documento se **fusiona**; `null` o `""` borran una clave |
+| `sites[].integrations` | El bloque `settings` se **reemplaza entero** |
+| `sites[].paymentMethods` | Los `settings` se **fusionan**; `null` borra una clave |
+
+<Note type="warning">
+  Dos colecciones hermanas dentro del mismo sitio tratan `settings` de forma **opuesta**: en las integraciones se reemplaza entero y en los medios de pago se fusiona. Es la causa más frecuente de configuraciones que desaparecen sin explicación.
+</Note>
+
+Cada página de colección lo explica en detalle: [Integraciones](/en/onboarding/integrations), [Medios de pago](/en/onboarding/payment-methods), [Sitios](/en/onboarding/sites), [Integraciones del sitio](/en/onboarding/site-integrations) y [Medios de pago del sitio](/en/onboarding/site-payment-methods).
+
+<Note>
+  Enviar solo `sites` actualiza los sitios y **no toca los datos del comercio**. Lo mismo con las demás colecciones.
+</Note>
+
+## Ninguna colección borra {{ id: 'no-deletion' }}
+
+No existe forma de eliminar un elemento de una colección. Enviar una colección vacía (`"integrations": []`) responde `422` en lugar de interpretar una instrucción ambigua.
+
+Para dejar un sitio fuera de operación, márcalo con `active: false` en lugar de intentar quitarlo de la lista.
+
+## La identidad viaja en la URL {{ id: 'identity-in-the-url' }}
+
+El comercio que estás actualizando se identifica **solo** por la URL. Enviarlo también en el cuerpo responde `422`, en cualquiera de sus dos formas: `id` o `merchantId`.
+
+<Note>
+  La única excepción es `sites[].id`, que **sí** viaja en el cuerpo: es lo que distingue el sitio que quieres modificar de uno nuevo. Ver [Sitios](/en/onboarding/sites).
+</Note>
+
+## Intermediarios deshabilitados {{ id: 'disabled-intermediaries' }}
+
+La creación rechaza un comercio cuyo intermediario comercial esté deshabilitado: nada debe **nacer** bajo un intermediario apagado.
+
+La actualización acepta, además de los intermediarios habilitados, **el que el comercio ya tiene asignado**. Sin esa excepción, deshabilitar un intermediario dejaría congelados todos sus comercios, porque el único valor honesto que podrían enviar sería justamente el que dejó de estar disponible. Cualquier otro intermediario deshabilitado sigue respondiendo `422`.
+
+## Qué más cambia al actualizar {{ id: 'side-effects' }}
+
+Si la actualización **mueve la provincia** del comercio, el municipio asociado se limpia, porque un municipio pertenece a una provincia concreta y conservarlo apuntaría a un lugar equivocado. Un cuerpo que no nombra la provincia no la está moviendo, así que en ese caso el municipio se conserva.
+
+La información que se administra desde el back office de Placetopay y que no tiene un campo equivalente en este contrato conserva siempre su valor.
+
+## La respuesta {{ id: 'accepted-response' }}
+
+Idéntica en forma a la de la creación, con `action` en `merchant.update`.
+
+<CodeGroup title="Respuesta">
+
+```json {{ title: '202 Accepted' }}
+{
+  "status": {
+    "status": "OK",
+    "reason": null,
+    "message": "The request was accepted and will be processed shortly.",
+    "date": "2026-08-17T10:20:41-05:00"
+  },
+  "processId": "01kz0a13bc4de777pqy8c1kxqd",
+  "action": "merchant.update",
+  "result": null,
+  "notification": null
+}
+```
+
+</CodeGroup>
+
+Al consultar el proceso, una actualización aplicada responde con el mensaje `The resource was updated successfully.`, que la distingue de una creación.
+
+## Errores de la llamada {{ id: 'update-errors' }}
+
+| Código | Causa |
+|---|---|
+| `401` | Token ausente o inválido |
+| `403` | El token no incluye el permiso `onboarding:update` |
+| `404` | El comercio no existe, o el identificador no es numérico |
+| `409` | La clave de idempotencia ya se usó con otro contenido, **o apuntando a otro comercio** |
+| `422` | El contenido no pasó la validación, el cuerpo no nombra nada actualizable, o falta el header `Idempotency-Key` |
+
+La comprobación de que el comercio existe es **síncrona**: si no existe, recibes `404` de inmediato y no se crea ningún proceso ni se envía ninguna notificación.
+
+<Note>
+  Un comercio puede desaparecer entre la aceptación y la ejecución. En ese caso el proceso termina en `FAILED` con `status.reason` en `RESOURCE_NOT_FOUND`. Ver [Errores](/en/onboarding/errors).
+</Note>
+
+## Actualizaciones simultáneas {{ id: 'concurrent-updates' }}
+
+Si dos actualizaciones del mismo comercio se ejecutan a la vez, **prevalece la última** sobre los campos que ambas tocan, y no hay mecanismo de bloqueo optimista (`If-Match` o `ETag`) en esta versión.
+
+Lo mismo aplica frente a una edición manual desde el back office: una actualización por API que llegue después sobrescribe los campos que nombre. Coordina ambos caminos si tu operación los usa sobre los mismos comercios.
+
+## ¿Qué sigue? {{ id: 'update-merchant-next' }}
+
+- [Consultar el proceso](/en/onboarding/process-status)
+- [Datos del comercio](/en/onboarding/merchant-data)
+- [Referencia de la API](/en/onboarding/api/reference/merchants#update-a-merchant) — el contrato completo, campo a campo
