@@ -56,6 +56,18 @@ export const API_TITLES = {
     es: 'Versión Obsoleta',
     en: 'Deprecated Version',
   },
+  selectResponseCode: {
+    es: 'Seleccionar código de respuesta',
+    en: 'Select response code',
+  },
+  selectResponseVariant: {
+    es: 'Seleccionar variante del cuerpo de respuesta',
+    en: 'Select response body variant',
+  },
+  selectRequestVariant: {
+    es: 'Seleccionar variante del cuerpo de solicitud',
+    en: 'Select request body variant',
+  },
   attributes: {
     es: { show: 'Ver atributos', hide: 'Ocultar atributos' },
     en: { show: 'Show attributes', hide: 'Hide attributes' },

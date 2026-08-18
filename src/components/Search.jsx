@@ -265,9 +265,6 @@ const SearchInput = forwardRef(function SearchInput(
 
   return (
     <div className="group relative flex h-12">
-      <label {...labelProps} className="sr-only">
-        Buscar en la documentación
-      </label>
       <SearchIcon className="pointer-events-none absolute left-3 top-0 h-full w-5 stroke-gray-500" />
       <input
         ref={inputRef}
