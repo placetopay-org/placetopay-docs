@@ -3099,20 +3099,20 @@ export const TAB_NAVIGATION = {
         links: [
           {
             title: 'General',
-            links: [{ title: 'Introduction', href: '/msv-service/api' }],
+            links: [{ title: 'Introduction', href: '/en/msv-service/api' }],
           },
           {
             title: 'API',
             links: [
-              { title: 'Login', href: '/msv-service/api/login' },
-              { title: 'Validation', href: '/msv-service/api/validation' },
+              { title: 'Login', href: '/en/msv-service/api/login' },
+              { title: 'Validation', href: '/en/msv-service/api/validation' },
               {
                 title: 'Validation Query',
-                href: '/msv-service/api/validation-query',
+                href: '/en/msv-service/api/validation-query',
               },
               {
                 title: 'Notification',
-                href: '/msv-service/api/notification',
+                href: '/en/msv-service/api/notification',
               },
             ],
           },
