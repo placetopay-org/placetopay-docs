@@ -1,0 +1,104 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+export const apiAssetPath = '/msv-service'
+export const apiRefs = ['/api/login']
+export const description = 'Obtén un token de acceso para autenticar tus peticiones a la API de MSV Service.'
+
+<HeroPattern />
+
+## Login {{ id: 'create-a-session', tag: 'POST', label: '/api/login' }}
+
+Este endpoint permite obtener un token con el que se autentican las demás peticiones a MSV Service.
+
+<Note>
+Los campos `username` y `password` necesarios para este endpoint son proporcionados por el administrador del sistema.
+</Note>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/login"
+      method="post"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/api/login">
+
+```bash {{ title: 'Login MSV Service' }}
+curl -X "POST" {{baseURl}}/api/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "RestService",
+    "password": "password"
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/login"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Respuesta">
+```json {{ title: '200' }}
+{
+  "status": {
+    "status": "OK",
+    "reason": null,
+    "message": null,
+    "date": "2022-08-16T13:12:18+00:00"
+  },
+  "access_token": "5d791fa9-91c2-401a-a20e-8e9569e5edec|gYs7WRqfd2NEgiJHOWbaXmyESa1JH4Gs98FDfXBE",
+  "secret_token": "DYJKxUKzgzFaXK2UYkqOy6xd7X1suCnn"
+}
+```
+```json {{ title: '401' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": null,
+    "message": "These credentials do not match our records.",
+    "date": "2022-08-16T13:27:04+00:00"
+  }
+}
+```
+```json {{ title: '422' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": null,
+    "message": "The username field is required.",
+    "date": "2022-08-16T13:22:18+00:00"
+  },
+  "errors": {
+    "username": [
+      "The username field is required."
+    ]
+  }
+}
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Note>
+La respuesta trae dos valores con propósitos distintos: `access_token` va en el encabezado `Authorization: Bearer <token>` de los demás endpoints, y `secret_token` no se envía nunca — es la clave con la que verificas la [firma de los webhooks](/msv-service/api#validation-webhook).
+</Note>
+
+<Note>
+La credencial de acceso (access_token) tiene una vigencia de 24 horas desde el momento en que se genera. Pasado ese tiempo deja de ser válida y debe solicitarse una nueva a través del endpoint de autenticación.
+</Note>
+
+<Note>
+Importante: al solicitar una nueva credencial, todas las credenciales previamente emitidas para el mismo usuario quedan invalidadas de inmediato, sin importar si aún estaban vigentes. Por esta razón, si su integración ejecuta múltiples instancias o procesos que solicitan credenciales de forma independiente, se recomienda centralizar la obtención y renovación de la credencial en un único punto, evitando que distintos procesos soliciten credenciales por separado y se invaliden entre sí.
+</Note>
