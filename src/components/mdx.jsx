@@ -97,6 +97,7 @@ export function Property({
       return (
         <select
           className="bg-inherit"
+          aria-label={selectTypeLabel}
           value={selected}
           onChange={(e) => onSelected(e.target.value)}
         >
@@ -124,7 +125,7 @@ export function Property({
             <code>{name}</code>
           </dd>
           <dt className="sr-only">Type</dt>
-          <dd className="font-mono text-xs text-gray-400 dark:text-gray-500">
+          <dd className="font-mono text-xs text-gray-500 dark:text-gray-400">
             {getType()}
           </dd>
         </div>

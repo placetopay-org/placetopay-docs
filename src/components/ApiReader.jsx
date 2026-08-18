@@ -69,7 +69,7 @@ const ApiPropertyInformation = ({ title, items }) => {
       {items.map((value, index) => (
         <code
           key={value + '-' + title + '-' + index}
-          className="my-0 py-0 font-mono text-2xs text-gray-400 dark:text-gray-500 break-all"
+          className="my-0 py-0 font-mono text-2xs text-gray-500 dark:text-gray-400 break-all"
         >
           {makeCode(value)}
         </code>
@@ -370,6 +370,7 @@ export const ApiResponses = ({ responses = {}, path = '', method = '' }) => {
         <div className="flex flex-col gap-3">
           <select
             className="bg-inherit"
+            aria-label={TITLES.selectResponseCode[locale]}
             onChange={(evt) => setSelected(evt.target.value)}
           >
             {Object.entries(responses).map(([code]) => (
@@ -406,6 +407,7 @@ export const ApiResponses = ({ responses = {}, path = '', method = '' }) => {
         <div className="flex justify-end">
           <select
             className="bg-inherit"
+            aria-label={TITLES.selectResponseVariant[locale]}
             onChange={(evt) => setBodySelected(evt.target.value)}
           >
             {multiBodies.map((element, key) => (

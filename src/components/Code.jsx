@@ -10,8 +10,8 @@ import clsx from 'clsx'
 import { create } from 'zustand'
 
 import { Tag } from '@/components/Tag'
-import { usePreventLayoutShift } from '@/hooks/usePreventLayoutShift'
 import { useLocale } from '@/components/LocaleProvider'
+import { usePreventLayoutShift } from '@/hooks/usePreventLayoutShift'
 
 const COPY_TEXTS = {
   es: { copy: 'Copiar', copied: '¡Copiado!' },
@@ -153,6 +153,7 @@ function CodePanel({ tag, label, code, children }) {
 
 function CodeGroupHeader({ title, children, selectedIndex, onChange }) {
   let hasTabs = Children.count(children) > 1
+  const { locale } = useLocale()
 
   const renderChilds = () => {
     if (shouldBeTabs(children)) {
@@ -178,6 +179,7 @@ function CodeGroupHeader({ title, children, selectedIndex, onChange }) {
       <div className="mt-2">
         <select
           className="bg-inherit text-white/80 dark:text-white/60"
+          aria-label={locale === 'es' ? 'Seleccionar ejemplo de código' : 'Select code example'}
           onChange={(evt) => onChange(evt.target.value)}
         >
           {Children.map(children, (child, childIndex) => (
