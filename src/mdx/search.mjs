@@ -77,8 +77,9 @@ export default function (nextConfig = {}) {
 
             let files = glob.sync('**/*.mdx', { cwd: pagesDir })
             let data = files.map((file) => {
-              let url =
-                file === 'index.mdx' ? '/' : `/${file.replace(/\.mdx$/, '')}`
+              let url = file.replace(/\.mdx$/, '')
+              url =
+                url === 'index' ? '/' : `/${url.replace(/\/index$/, '')}`
               let mdx = fs.readFileSync(path.join(pagesDir, file), 'utf8')
               let locale = path
                 .dirname(file)
@@ -104,25 +105,30 @@ export default function (nextConfig = {}) {
             return `
               import FlexSearch from 'flexsearch'
 
-              let sectionIndex = new FlexSearch.Document({
-                tokenize: 'full',
-                document: {
-                  id: 'url',
-                  index: 'content',
-                  store: ['title', 'pageTitle', 'locale'],
-                },
-                context: {
-                  resolution: 9,
-                  depth: 2,
-                  bidirectional: true
-                }
-              })
+              function createIndex() {
+                return new FlexSearch.Document({
+                  tokenize: 'full',
+                  document: {
+                    id: 'url',
+                    index: 'content',
+                    store: ['title', 'pageTitle', 'locale'],
+                  },
+                  context: {
+                    resolution: 9,
+                    depth: 2,
+                    bidirectional: true
+                  }
+                })
+              }
+
+              let indexes = { es: createIndex(), en: createIndex() }
 
               let data = ${JSON.stringify(data)}
 
               for (let { url, sections, locale } of data) {
+                let index = indexes[locale] ?? indexes.es
                 for (let [title, hash, content] of sections) {
-                  sectionIndex.add({
+                  index.add({
                     url: url + (hash ? ('#' + hash) : ''),
                     title,
                     locale,
@@ -132,8 +138,9 @@ export default function (nextConfig = {}) {
                 }
               }
 
-              export function search(query, options = {}) {
-                let result = sectionIndex.search(query, {
+              export function search(query, { locale, ...options } = {}) {
+                let index = indexes[locale] ?? indexes.es
+                let result = index.search(query, {
                   ...options,
                   enrich: true,
                 })

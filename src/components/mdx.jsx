@@ -3,6 +3,12 @@ import clsx from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 import { Heading } from '@/components/Heading'
+import { useLocale } from '@/components/LocaleProvider'
+
+const REQUIRED_TEXTS = {
+  es: { required: 'REQUERIDO', conditional: 'CONDICIONAL' },
+  en: { required: 'REQUIRED', conditional: 'CONDITIONAL' },
+}
 
 export const a = Link
 export { Button } from '@/components/Button'
@@ -10,6 +16,7 @@ export { CodeGroup, Code as code, Pre as pre } from '@/components/Code'
 export { ApiReader } from '@/components/ApiReader'
 export { CopyContent } from '@/components/CopyContent'
 export { MissingTranslationBanner } from '@/components/MissingTranslationBanner'
+export { UnderConstructionBanner } from '@/components/UnderConstructionBanner'
 export { GithubRepo } from '@/components/GithubRepo'
 import { ImageZoom } from '@/components/ImageZoom'
 import { Note } from '@/components/Note'
@@ -81,6 +88,8 @@ export function Property({
   className = '',
 }) {
   const isMulti = multiProperties.length > 0
+  const { locale } = useLocale()
+  const texts = REQUIRED_TEXTS[locale] ?? REQUIRED_TEXTS.es
 
   const getType = () => {
     if (isMulti) {
@@ -129,7 +138,7 @@ export function Property({
               : ''
           )}
         >
-          {isRequired ? 'REQUIRED' : isConditional ? 'CONDITIONAL' : ''}
+          {isRequired ? texts.required : isConditional ? texts.conditional : ''}
         </dd>
         <dt className="sr-only">Description</dt>
         <dd className="w-full flex-none [&>:first-child]:mt-0 [&>:last-child]:mb-0">

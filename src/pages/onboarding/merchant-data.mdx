@@ -1,0 +1,317 @@
+export const description =
+  'Referencia completa de los campos del comercio: identidad, documento, dirección, representante legal, facturación y control comercial.'
+
+# Datos del comercio
+
+Estos son los campos que describen al comercio como entidad. Viajan en la raíz del cuerpo, junto a las colecciones, y son los mismos en la creación y en la actualización.
+
+## Identidad {{ id: 'identity' }}
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="name" type="string" isRequired={true}>
+        Razón social del comercio.
+      </Property>
+      <Property name="brand" type="string" isRequired={true}>
+        Nombre comercial, el que ve el comprador.
+      </Property>
+      <Property name="active" type="boolean" isRequired={false}>
+        Si el comercio queda habilitado. Por defecto, `true`.
+      </Property>
+      <Property name="url" type="string" isRequired={false}>
+        Sitio web del comercio.
+      </Property>
+      <Property name="mcc" type="string" isRequired={false}>
+        Código de categoría de comercio. Debe existir en el catálogo.
+      </Property>
+      <Property name="size" type="string" isRequired={false}>
+        Tamaño del comercio, según el catálogo de tamaños.
+      </Property>
+      <Property name="timezone" type="string" isRequired={false}>
+        Zona horaria en formato IANA, por ejemplo `America/Bogota`.
+      </Property>
+      <Property name="incrementType" type="string" isRequired={false}>
+        Referencia usada para incrementos: `SMLMV` o `IPC`.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'Identidad' }}
+    {
+      "name": "Comercializadora Acme S.A.S.",
+      "brand": "Acme",
+      "active": true,
+      "url": "https://acme.example.com",
+      "mcc": "5411",
+      "size": "M",
+      "timezone": "America/Bogota",
+      "incrementType": "SMLMV"
+    }
+    ```
+  </Col>
+</Row>
+
+<Note type="warning">
+  Los campos marcados como requeridos lo son **al crear un comercio**. En una actualización ninguno lo es: se escribe lo que el cuerpo nombra y el resto conserva su valor. Ver [Actualizar un comercio](/onboarding/update-merchant).
+</Note>
+
+## Idiomas y monedas {{ id: 'languages-and-currencies' }}
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="languages" type="array" isRequired={true}>
+        Idiomas con los que opera el comercio, como códigos del catálogo.
+      </Property>
+      <Property name="currencies" type="array" isRequired={true}>
+        Monedas que el comercio maneja, como códigos ISO del catálogo.
+      </Property>
+    </Properties>
+
+    Ambas son **obligatorias** y deben traer al menos un elemento.
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'Idiomas y monedas' }}
+    {
+      "languages": ["es", "en"],
+      "currencies": ["COP", "USD"]
+    }
+    ```
+  </Col>
+</Row>
+
+<Note type="warning">
+  Las dos son **conjuntos**: repetir un valor responde `422`. Y la comparación **ignora mayúsculas**, así que `["COP", "cop"]` cuenta como repetido.
+</Note>
+
+## Documento {{ id: 'document' }}
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="document" type="object" isRequired={true}>
+        Documento de identificación fiscal del comercio.
+      </Property>
+      <Property name="document.type" type="string" isRequired={false}>
+        Tipo de documento. Obligatorio si envías `document.number`.
+      </Property>
+      <Property name="document.number" type="string" isRequired={false}>
+        Número del documento. Se valida según el tipo declarado, de modo que un número con formato incorrecto para ese tipo responde `422`.
+      </Property>
+    </Properties>
+
+    Los tipos admitidos dependen del país. Envía siempre el par completo.
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'Documento' }}
+    {
+      "document": {
+        "type": "NIT",
+        "number": "9001234567"
+      }
+    }
+    ```
+  </Col>
+</Row>
+
+## Dirección {{ id: 'address' }}
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="address" type="object" isRequired={true}>
+        Dirección fiscal del comercio.
+      </Property>
+      <Property name="address.street" type="string" isRequired={false}>
+        Calle, número y demás detalles de la dirección.
+      </Property>
+      <Property name="address.city" type="string" isRequired={true}>
+        Ciudad. Es texto libre.
+      </Property>
+      <Property name="address.country" type="string" isRequired={true}>
+        Código del país, del catálogo de países.
+      </Property>
+      <Property name="address.state" type="integer" isRequired={true}>
+        Identificador de la provincia o departamento. **Debe pertenecer al país que envías** en `address.country`.
+      </Property>
+      <Property name="address.phone" type="string" isRequired={false}>
+        Teléfono de contacto.
+      </Property>
+      <Property name="address.postalCode" type="string" isRequired={false}>
+        Código postal. Se valida según el formato del país.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'Dirección' }}
+    {
+      "address": {
+        "street": "Carrera 43A # 1-50, Torre 2",
+        "city": "Bogota",
+        "country": "CO",
+        "state": 11,
+        "phone": "6013905000",
+        "postalCode": "110111"
+      }
+    }
+    ```
+  </Col>
+</Row>
+
+## Representante legal {{ id: 'legal-representative' }}
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="legalRepresentative.name" type="string" isRequired={true}>
+        Nombre del representante legal.
+      </Property>
+      <Property name="legalRepresentative.surname" type="string" isRequired={true}>
+        Apellido del representante legal.
+      </Property>
+      <Property name="legalRepresentative.documentType" type="string" isRequired={false}>
+        Tipo de documento. Obligatorio si envías el documento.
+      </Property>
+      <Property name="legalRepresentative.document" type="string" isRequired={false}>
+        Número de documento, validado según el tipo declarado.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'Representante legal' }}
+    {
+      "legalRepresentative": {
+        "name": "Ada",
+        "surname": "Lovelace",
+        "documentType": "CC",
+        "document": "1020304050"
+      }
+    }
+    ```
+  </Col>
+</Row>
+
+## Facturación {{ id: 'billing' }}
+
+<Row>
+  <Col>
+    Todo el bloque es opcional.
+
+    <Properties>
+      <Property name="billing.contact" type="string" isRequired={false}>
+        Persona o área de contacto para facturación.
+      </Property>
+      <Property name="billing.mail" type="string" isRequired={false}>
+        Correo de facturación.
+      </Property>
+      <Property name="billing.registrationNumber" type="string" isRequired={false}>
+        Número de registro mercantil.
+      </Property>
+      <Property name="billing.ciiu" type="string" isRequired={false}>
+        Código de actividad económica.
+      </Property>
+      <Property name="billing.taxType" type="integer" isRequired={false}>
+        Tipo de contribuyente, del catálogo correspondiente.
+      </Property>
+      <Property name="billing.taxRegime" type="integer" isRequired={false}>
+        Régimen tributario, del catálogo correspondiente.
+      </Property>
+      <Property name="billing.organizationType" type="integer" isRequired={false}>
+        Tipo de sociedad, del catálogo correspondiente.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'Facturación' }}
+    {
+      "billing": {
+        "contact": "Contabilidad Acme",
+        "mail": "facturacion@acme.example.com",
+        "registrationNumber": "9001234567-1",
+        "ciiu": "4791",
+        "taxType": 1,
+        "taxRegime": 1,
+        "organizationType": 1
+      }
+    }
+    ```
+  </Col>
+</Row>
+
+## Agencia de viajes {{ id: 'travel-agency' }}
+
+<Row>
+  <Col>
+    Bloque opcional, aplicable solo a comercios del sector turismo.
+
+    <Properties>
+      <Property name="travelAgency.dispersion" type="boolean" isRequired={false}>
+        Si el comercio opera con dispersión de fondos.
+      </Property>
+      <Property name="travelAgency.iata" type="string" isRequired={false}>
+        Código IATA de la agencia.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'Agencia de viajes' }}
+    {
+      "travelAgency": {
+        "dispersion": false,
+        "iata": "ABCD12"
+      }
+    }
+    ```
+  </Col>
+</Row>
+
+## Control comercial {{ id: 'control' }}
+
+<Row>
+  <Col>
+    Define bajo qué estructura comercial queda registrado el comercio.
+
+    <Properties>
+      <Property name="control.reseller" type="integer" isRequired={true}>
+        Intermediario comercial al que pertenece el comercio. **Debe estar habilitado** en el momento de la creación.
+      </Property>
+      <Property name="control.seller" type="integer" isRequired={false}>
+        Vendedor asociado. Debe estar habilitado.
+      </Property>
+      <Property name="control.paymentFacilitator" type="integer" isRequired={false}>
+        Facilitador de pagos, cuando aplique. Admite `null`.
+      </Property>
+    </Properties>
+
+    En una actualización, `control.reseller` y `control.seller` aceptan además **el valor que el comercio ya tiene**, aunque haya dejado de estar habilitado. Ver [Actualizar un comercio](/onboarding/update-merchant).
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'Control' }}
+    {
+      "control": {
+        "reseller": 1,
+        "seller": 1,
+        "paymentFacilitator": null
+      }
+    }
+    ```
+  </Col>
+</Row>
+
+## Campos que se rechazan {{ id: 'rejected-fields' }}
+
+El identificador del comercio **no viaja en el cuerpo**. Estas dos grafías responden `422` en ambos endpoints:
+
+| Campo | Por qué | Dónde va |
+|---|---|---|
+| `id` | El comercio se identifica por la URL | En la ruta del `PUT` |
+| `merchantId` | Igual que el anterior | En la ruta del `PUT` |
+
+Se rechazan explícitamente en lugar de ignorarse: un campo que simplemente se descarta es peor que uno que se rechaza, porque quien llama se queda creyendo que direccionó otro recurso.
+
+## ¿Qué sigue? {{ id: 'merchant-data-next' }}
+
+- [Integraciones](/onboarding/integrations)
+- [Medios de pago](/onboarding/payment-methods)
+- [Referencia de la API](/onboarding/api/reference/merchants) — tipos, longitudes y formatos de cada campo

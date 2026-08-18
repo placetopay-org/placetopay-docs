@@ -1,9 +1,17 @@
 /* eslint-disable @next/next/no-img-element */
 import { createContext, useContext, useState } from "react"
+import { useLocale } from "@/components/LocaleProvider"
 
 const ImageZoomContext = createContext()
 
+const IMAGE_TEXTS = {
+  es: { zoomed: 'Vista ampliada', withZoom: 'Imagen con zoom' },
+  en: { zoomed: 'Zoomed view', withZoom: 'Image with zoom' },
+}
+
 export function ImageZoomProvider(props) {
+  const { locale } = useLocale()
+  const texts = IMAGE_TEXTS[locale] ?? IMAGE_TEXTS.es
   // Estado para manejar el zoom y la imagen activa
   const [isZoomed, setIsZoomed] = useState(false)
   const [activeImage, setActiveImage] = useState(null)
@@ -25,7 +33,7 @@ export function ImageZoomProvider(props) {
           <div className="flex items-center justify-center w-full h-full p-4">
             <img
               src={activeImage}
-              alt="Zoomed view"
+              alt={texts.zoomed}
               className="max-h-[90vh] max-w-full rounded-md shadow-lg sm:max-h-[80vh] sm:max-w-[90%] md:max-h-[75vh] md:max-w-[85%] lg:max-h-[70vh] lg:max-w-[80%]"
             />
           </div>
@@ -38,6 +46,8 @@ export function ImageZoomProvider(props) {
 
 export function ImageZoom(props) {
   const { toggleZoom } = useContext(ImageZoomContext)
+  const { locale } = useLocale()
+  const texts = IMAGE_TEXTS[locale] ?? IMAGE_TEXTS.es
 
-  return <img alt="image with zoom" {...props} tabIndex={0} onClick={() => toggleZoom(props.src)} />
+  return <img alt={texts.withZoom} {...props} tabIndex={0} onClick={() => toggleZoom(props.src)} />
 }
