@@ -11,7 +11,7 @@ const T = {
     start: "Inicio",
     createValidation: `<span>Crear validación<br><b>POST /api/validations</b></span>`,
     return201: `<span>Responde <b>201</b> con <b>token</b><br>y envía el mensaje por los canales</span>`,
-    sendLink: `<span>Envía el enlace de confirmación<br>(SMS/email automático; WhatsApp con <b>[URL_VALIDATION]</b>)</span>`,
+    sendLink: `<span>Envía el enlace de confirmación<br>(automático en SMS/Email, WhatsApp con <b>[URL_VALIDATION]</b>)</span>`,
     openLink: `<span>Abre la página de confirmación</span>`,
     decide: `<span>Aprueba o rechaza la validación</span>`,
     webhookResult: `<span>Envía webhook con estado<br><b>APPROVED</b> o <b>REJECTED</b></span>`,
@@ -27,8 +27,8 @@ const T = {
     user: "End user",
     start: "Start",
     createValidation: `<span>Create validation<br><b>POST /api/validations</b></span>`,
-    return201: `<span>Returns <b>201</b> with a <b>token</b><br>and sends the message through the channels</span>`,
-    sendLink: `<span>Sends the confirmation link<br>(automatic in SMS/email; WhatsApp requires <b>[URL_VALIDATION]</b>)</span>`,
+    return201: `<span>Returns <b>201</b> with a <b>token</b> and sends<br>the message through the channels</span>`,
+    sendLink: `<span>Sends the confirmation link<br>(automatic in SMS/Email; WhatsApp requires <b>[URL_VALIDATION]</b>)</span>`,
     openLink: `<span>Opens the confirmation page</span>`,
     decide: `<span>Approves or rejects the validation</span>`,
     webhookResult: `<span>Sends webhook with status<br><b>APPROVED</b> or <b>REJECTED</b></span>`,
@@ -46,18 +46,18 @@ export default function ValidationLifecycle() {
   const t = T[locale] ?? T.es
 
   return (
-    <SequenceDiagram customView={{ height: 1150, x: 110, y: 27.2727 }}>
+    <SequenceDiagram customView={{ height: 1150, x: 80, y: 27.2727 }}>
       <SequenceActor id="app" color="bg-blueFlow" label={t.app} positionX="0" positionY="0" height="1150px" />
-      <SequenceActor id="service" color="bg-orangeFlow" label="MSV Service" positionX="260" positionY="0" height="1150px" />
-      <SequenceActor id="user" color="bg-greenFlow" label={t.user} positionX="570" positionY="0" height="1150px" />
+      <SequenceActor id="service" color="bg-orangeFlow" label="MSV Service" positionX="320" positionY="0" height="1150px" />
+      <SequenceActor id="user" color="bg-greenFlow" label={t.user} positionX="850" positionY="0" height="1150px" />
 
-      <Line id="lineStart" label={t.start} positionX="-100" positionY="35" width="920px" />
+      <Line id="lineStart" label={t.start} positionX="-100" positionY="35" width="1100px" />
       <SequenceAction
         id="createValidation"
         from="app"
         to="service"
         message={t.createValidation}
-        positionX="55"
+        positionX="75"
         positionY="80"
       />
       <SequenceAction
@@ -65,7 +65,7 @@ export default function ValidationLifecycle() {
         from="service"
         to="app"
         message={t.return201}
-        positionX="45"
+        positionX="40"
         positionY="170"
       />
       <SequenceAction
@@ -73,7 +73,7 @@ export default function ValidationLifecycle() {
         from="service"
         to="user"
         message={t.sendLink}
-        positionX="325"
+        positionX="370"
         positionY="260"
       />
       <SequenceAction
@@ -81,7 +81,7 @@ export default function ValidationLifecycle() {
         from="user"
         to="service"
         message={t.openLink}
-        positionX="360"
+        positionX="460"
         positionY="350"
       />
       <SequenceAction
@@ -89,7 +89,7 @@ export default function ValidationLifecycle() {
         from="user"
         to="service"
         message={t.decide}
-        positionX="355"
+        positionX="460"
         positionY="430"
       />
       <SequenceAction
@@ -97,17 +97,17 @@ export default function ValidationLifecycle() {
         from="service"
         to="app"
         message={t.webhookResult}
-        positionX="35"
+        positionX="60"
         positionY="520"
       />
 
-      <Line id="lineExpire" label={t.expire} positionX="-100" positionY="600" width="920px" />
+      <Line id="lineExpire" label={t.expire} positionX="-100" positionY="600" width="1100px" />
       <SequenceAction
         id="expire"
         from="service"
         to="service"
         message={t.expireAction}
-        positionX="290"
+        positionX="350"
         positionY="660"
         sourcePositionY="600"
         targetPositionY="720"
@@ -117,17 +117,17 @@ export default function ValidationLifecycle() {
         from="service"
         to="app"
         message={t.webhookExpired}
-        positionX="35"
+        positionX="60"
         positionY="790"
       />
 
-      <Line id="lineQuery" label={t.query} positionX="-100" positionY="870" width="920px" />
+      <Line id="lineQuery" label={t.query} positionX="-100" positionY="870" width="1100px" />
       <SequenceAction
         id="query"
         from="app"
         to="service"
         message={t.queryStatus}
-        positionX="55"
+        positionX="80"
         positionY="930"
       />
       <SequenceAction
@@ -135,7 +135,7 @@ export default function ValidationLifecycle() {
         from="service"
         to="app"
         message={t.queryResult}
-        positionX="35"
+        positionX="70"
         positionY="1010"
       />
     </SequenceDiagram>
