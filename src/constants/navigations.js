@@ -8,6 +8,7 @@ import {
   Link,
   MonitorMobbile,
   SecurityCard,
+  Shop,
   ShieldTick
 } from 'iconsax-react'
 
@@ -117,6 +118,12 @@ export const NAMESPACES_SELECTOR = {
       href: '/autopay',
       icon: Courthouse,
     },
+    {
+      title: 'Onboarding',
+      description: 'Registro y actualización de comercios',
+      href: '/onboarding',
+      icon: Shop,
+    },
   ],
   [LANGUAGES_CODES.EN]: [
     {
@@ -215,6 +222,12 @@ export const NAMESPACES_SELECTOR = {
       href: '/en/autopay',
       icon: Courthouse,
     },
+    {
+      title: 'Onboarding',
+      description: 'Merchant registration and updates',
+      href: '/en/onboarding',
+      icon: Shop,
+    },
   ],
 }
 
@@ -243,6 +256,7 @@ export const NAMESPACE_ROUTES = {
   'selfdeclarations': 'selfdeclarations',
   invoices: 'invoices',
   'autopay': 'autopay',
+  'onboarding': 'onboarding',
 }
 
 /**
@@ -2798,6 +2812,144 @@ export const TAB_NAVIGATION = {
                 title: 'Search',
                 href: '/en/invoices/api/search'
               },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  onboarding: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'onboarding',
+        href: '/onboarding',
+        icon: Book,
+        links: [
+          {
+            title: 'Onboarding',
+            links: [
+              { title: 'Introducción', href: '/onboarding' },
+              { title: 'Cómo funciona', href: '/onboarding/how-onboarding-works' },
+              { title: 'Primeros pasos', href: '/onboarding/quickstart' },
+            ],
+          },
+          {
+            title: 'Integración',
+            links: [
+              { title: 'Autenticación', href: '/onboarding/authentication' },
+              { title: 'Idempotencia', href: '/onboarding/idempotency' },
+              { title: 'Crear un comercio', href: '/onboarding/create-merchant' },
+              { title: 'Consultar el proceso', href: '/onboarding/process-status' },
+              { title: 'Notificación', href: '/onboarding/notification' },
+              { title: 'Actualizar un comercio', href: '/onboarding/update-merchant' },
+              { title: 'Errores', href: '/onboarding/errors' },
+            ],
+          },
+          {
+            title: 'Datos del comercio',
+            links: [
+              { title: 'Datos del comercio', href: '/onboarding/merchant-data' },
+              { title: 'Integraciones', href: '/onboarding/integrations' },
+              { title: 'Medios de pago', href: '/onboarding/payment-methods' },
+            ],
+          },
+          {
+            title: 'Sitios',
+            links: [
+              { title: 'Sitios', href: '/onboarding/sites' },
+              { title: 'Integraciones del sitio', href: '/onboarding/site-integrations' },
+              { title: 'Medios de pago del sitio', href: '/onboarding/site-payment-methods' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'onboarding/api',
+        href: '/onboarding/api/reference/merchants',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introducción',
+            links: [
+              { title: 'Historial de cambios', href: '/onboarding/api/changelog' },
+            ],
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Comercios', href: '/onboarding/api/reference/merchants' },
+              { title: 'Procesos', href: '/onboarding/api/reference/processes' },
+              { title: 'Consumidor', href: '/onboarding/api/reference/user' },
+            ],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentation',
+        identifier: 'onboarding',
+        href: '/en/onboarding',
+        icon: Book,
+        links: [
+          {
+            title: 'Onboarding',
+            links: [
+              { title: 'Introduction', href: '/en/onboarding' },
+              { title: 'How it works', href: '/en/onboarding/how-onboarding-works' },
+              { title: 'Quickstart', href: '/en/onboarding/quickstart' },
+            ],
+          },
+          {
+            title: 'Integration',
+            links: [
+              { title: 'Authentication', href: '/en/onboarding/authentication' },
+              { title: 'Idempotency', href: '/en/onboarding/idempotency' },
+              { title: 'Create a merchant', href: '/en/onboarding/create-merchant' },
+              { title: 'Check the process', href: '/en/onboarding/process-status' },
+              { title: 'Notification', href: '/en/onboarding/notification' },
+              { title: 'Update a merchant', href: '/en/onboarding/update-merchant' },
+              { title: 'Errors', href: '/en/onboarding/errors' },
+            ],
+          },
+          {
+            title: 'Merchant data',
+            links: [
+              { title: 'Merchant data', href: '/en/onboarding/merchant-data' },
+              { title: 'Integrations', href: '/en/onboarding/integrations' },
+              { title: 'Payment methods', href: '/en/onboarding/payment-methods' },
+            ],
+          },
+          {
+            title: 'Sites',
+            links: [
+              { title: 'Sites', href: '/en/onboarding/sites' },
+              { title: 'Site integrations', href: '/en/onboarding/site-integrations' },
+              { title: 'Site payment methods', href: '/en/onboarding/site-payment-methods' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'onboarding/api',
+        href: '/en/onboarding/api/reference/merchants',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introduction',
+            links: [
+              { title: 'Changelog', href: '/en/onboarding/api/changelog' },
+            ],
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Merchants', href: '/en/onboarding/api/reference/merchants' },
+              { title: 'Processes', href: '/en/onboarding/api/reference/processes' },
+              { title: 'Consumer', href: '/en/onboarding/api/reference/user' },
             ],
           },
         ],

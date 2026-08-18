@@ -1,0 +1,145 @@
+export const description =
+  'Configura las integraciones propias de un sitio y conoce el efecto del tipo notifier sobre su URL de notificación.'
+
+# Integraciones del sitio
+
+Además de las [integraciones del comercio](/onboarding/integrations), cada sitio puede tener las suyas. Viajan dentro del elemento del sitio, en `sites[].integrations`.
+
+Usan el **mismo vocabulario y el mismo catálogo** que las del comercio —un `type` y un bloque `settings`—, pero son independientes: el mismo tipo puede existir a la vez en el comercio y en uno de sus sitios, y son dos configuraciones distintas.
+
+## Forma de un elemento {{ id: 'element-shape' }}
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="type" type="string" isRequired={true}>
+        Tipo de integración, del catálogo de Placetopay.
+      </Property>
+      <Property name="settings" type="object" isRequired={true}>
+        Configuración del proveedor para este sitio.
+      </Property>
+    </Properties>
+
+    La colección es **opcional en todos los casos**, incluida la creación: un sitio sin integraciones es perfectamente válido.
+
+    Enviar `id` o `siteId` dentro de un elemento responde `422`. La identidad es «el sitio que la contiene, más el tipo», y el sitio es el elemento del que cuelga la colección, nunca un campo suyo.
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'sites[].integrations' }}
+    {
+      "sites": [
+        {
+          "id": 214,
+          "integrations": [
+            {
+              "type": "kount",
+              "settings": {
+                "sandbox": false,
+                "website": "ACME_STORE",
+                "merchant": "201001"
+              }
+            }
+          ]
+        }
+      ]
+    }
+    ```
+  </Col>
+</Row>
+
+## Unicidad por sitio {{ id: 'uniqueness-per-site' }}
+
+Un tipo no puede repetirse **dentro del mismo sitio**: dos elementos con el mismo `type` en un sitio responden `422`.
+
+En cambio, el mismo tipo en **dos sitios distintos** es perfectamente legal, y son dos configuraciones independientes. Cada sitio tiene su propio espacio de integraciones.
+
+## El bloque `settings` {{ id: 'settings-block' }}
+
+Se valida igual que el del comercio: una clave que el catálogo no declara para ese tipo responde `422` nombrándola, y las claves condicionales se evalúan contra las demás claves del mismo bloque.
+
+<Note type="warning">
+  A diferencia de los [medios de pago del sitio](/onboarding/site-payment-methods), aquí el bloque `settings` se **reemplaza entero**. Una clave que estaba guardada y no reenvías **desaparece**. Para cambiar un solo valor, envía el bloque completo.
+</Note>
+
+Es la misma semántica que las integraciones del comercio. La diferencia con los medios de pago —que fusionan— es intencional y merece una comprobación consciente cada vez que envías una actualización.
+
+El límite de tamaño del bloque es **propio del sitio** y no cuenta contra el del comercio.
+
+## El efecto del tipo `notifier` {{ id: 'notifier-side-effect' }}
+
+<Note type="warning">
+  Una integración de tipo `notifier` **reescribe la URL de notificación del sitio** con una dirección derivada del servicio de notificaciones de Placetopay. Es el efecto lateral más importante de esta colección.
+</Note>
+
+Tres consecuencias que conviene conocer, porque ninguna se puede devolver como error:
+
+1. **Depende solo del tipo.** Un `notifier` con `enabled: false` reescribe la URL igual que uno habilitado. Basta con que el elemento exista.
+2. **Gana sobre lo que envíes en el mismo cuerpo.** Si en ese mismo `PUT` envías `sites[].integration.notificationUrl`, ese valor **se descarta** y prevalece la URL derivada.
+3. **Una edición manual posterior la cambia.** Si alguien guarda ese sitio desde el back office, la URL pasará a derivarse de otra forma y apuntará a otro destino.
+
+Si tu integración depende de recibir notificaciones de transacción en una URL propia, **no envíes un `notifier` a ese sitio**.
+
+## Comportamiento en una actualización {{ id: 'update-behaviour' }}
+
+La colección es **upsert-only**, como todas: una integración que el cuerpo no nombra sobrevive intacta, y no hay forma de eliminar una desde este contrato.
+
+## Escribir una integración no marca el sitio {{ id: 'independent-actions' }}
+
+Un sitio puede aparecer como `unchanged` en el resultado mientras sus integraciones aparecen como `created` o `updated`. Son elementos independientes y cada uno informa de lo que realmente le pasó.
+
+<Note>
+  Los [medios de pago del sitio](/onboarding/site-payment-methods) son la excepción: escribir uno **sí** marca el sitio como modificado.
+</Note>
+
+## El resultado {{ id: 'result-site-integrations' }}
+
+<Row>
+  <Col>
+    Cuando un sitio escribe integraciones, su entrada en `result.sites[]` incluye una clave `integrations` con la misma forma que publica el comercio.
+
+    <Properties>
+      <Property name="type" type="string">
+        El tipo de la integración.
+      </Property>
+      <Property name="id" type="integer">
+        Identificador con el que quedó registrada.
+      </Property>
+      <Property name="action" type="string">
+        `created`, `updated` o `unchanged`.
+      </Property>
+    </Properties>
+
+    Nunca incluye `settings`. La clave aparece solo en los sitios que escribieron alguna integración.
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'result' }}
+    {
+      "result": {
+        "merchantId": 18,
+        "sites": [
+          {
+            "id": 214,
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": null,
+            "active": true,
+            "action": "unchanged",
+            "integrations": [
+              {
+                "type": "kount",
+                "id": 77,
+                "action": "created"
+              }
+            ]
+          }
+        ]
+      }
+    }
+    ```
+  </Col>
+</Row>
+
+## ¿Qué sigue? {{ id: 'site-integrations-next' }}
+
+- [Medios de pago del sitio](/onboarding/site-payment-methods)
+- [Sitios](/onboarding/sites)
+- [Integraciones del comercio](/onboarding/integrations)
