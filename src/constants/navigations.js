@@ -256,6 +256,7 @@ export const NAMESPACE_ROUTES = {
   'selfdeclarations': 'selfdeclarations',
   invoices: 'invoices',
   'autopay': 'autopay',
+  'search': 'search',
   'onboarding': 'onboarding',
 }
 
@@ -281,6 +282,10 @@ export const NAMESPACE_ROUTES = {
  * href: Route to redirect to
  */
 export const TAB_NAVIGATION = {
+  search: {
+    [LANGUAGES_CODES.ES]: [],
+    [LANGUAGES_CODES.EN]: [],
+  },
   payments: {
     [LANGUAGES_CODES.ES]: [
       {
