@@ -10,6 +10,7 @@ import LocaleProvider from '@/components/LocaleProvider'
 import * as mdxComponents from '@/components/mdx'
 import { useMobileNavigationStore } from '@/components/MobileNavigation'
 import { ApiRefsContext } from '@/components/ApiRefsContext'
+import { setScopeEndpoint } from '@/components/endpointScope'
 
 import '@/styles/tailwind.css'
 import 'reactflow/dist/style.css';
@@ -23,6 +24,7 @@ Router.events.on('routeChangeStart', onRouteChange)
 Router.events.on('hashChangeStart', onRouteChange)
 
 export default function App({ Component, pageProps }) {
+  setScopeEndpoint(null, null, null)
   const router = useRouter()
   const LayoutComponent = Component.Layout || Layout
 

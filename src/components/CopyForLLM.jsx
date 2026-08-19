@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import clsx from 'clsx'
+import { twMerge } from 'tailwind-merge'
 
 import { useLocale } from '@/components/LocaleProvider'
 import { ClipboardIcon } from '@/components/icons/ClipboardIcon'
@@ -50,7 +51,7 @@ export const CopyForLLM = ({ content, className }) => {
     >
       {copied ? (
         <CheckIcon
-          className={clsx(
+          className={twMerge(
             ICON_CLASSES,
             'fill-primary-500/20 stroke-primary-500 dark:stroke-primary-400'
           )}
