@@ -212,14 +212,15 @@ function CodeCopyActions({ code, language, pairedResponse, endpoint, role, reque
   const headerMethod = displayTag ? String(displayTag).toUpperCase() : endpoint?.method
   const headerPath = displayLabel || endpoint?.path
 
+  const headerDetails = [endpoint?.summary, endpoint?.description].filter(Boolean)
   const header =
     headerMethod && headerPath
       ? [
           `# ${headerMethod} ${headerPath}`,
-          endpoint?.summary,
-          endpoint?.description,
+          ...headerDetails.filter(
+            (detail, index) => headerDetails.indexOf(detail) === index
+          ),
         ]
-          .filter(Boolean)
           .join('\n')
       : null
 
