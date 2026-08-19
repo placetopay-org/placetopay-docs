@@ -176,6 +176,27 @@ const getEndpointInfo = (refs, tag, label) => {
   }
 }
 
+const resolveSpecRef = (refs, label) => {
+  if (!refs || !label || refs[label]) return label
+  const VERSION_SENTINEL = '__VERSION__'
+  const pattern = new RegExp(
+    `^${label
+      .replace(/\{version\}/g, VERSION_SENTINEL)
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .split(VERSION_SENTINEL)
+      .join('[^/]+')}$`
+  )
+  return Object.keys(refs).find((key) => pattern.test(key)) ?? label
+}
+
+function resolveOperation(refs, tag, label) {
+  const resolvedLabel = resolveSpecRef(refs, label)
+  return {
+    operation: refs?.[resolvedLabel]?.[String(tag).toLowerCase()] ?? null,
+    endpoint: getEndpointInfo(refs, tag, resolvedLabel),
+  }
+}
+
 function CodeCopyActions({ code, language, pairedResponse, endpoint, role, requestFields, responseFields, variantTitle, displayTag, displayLabel }) {
   let { locale } = useLocale()
 
@@ -395,12 +416,9 @@ export function CodeGroup({ children, title, ...props }) {
   const codeRole = getCodeRole(title)
   const { locale } = useLocale()
   const refs = useContext(ApiRefsContext)
-  const operation = hasEndpoint
-    ? refs?.[props.label]?.[String(props.tag).toLowerCase()]
-    : null
-  const endpoint = hasEndpoint
-    ? getEndpointInfo(refs, props.tag, props.label)
-    : null
+  const { operation, endpoint } = hasEndpoint
+    ? resolveOperation(refs, props.tag, props.label)
+    : { operation: null, endpoint: null }
 
   const fieldLabels = FIELD_TEXTS[locale] ?? FIELD_TEXTS.es
   const propertyLabels =
