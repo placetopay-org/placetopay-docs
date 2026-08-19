@@ -9,6 +9,7 @@ import { ImageZoomProvider } from '@/components/ImageZoom'
 import LocaleProvider from '@/components/LocaleProvider'
 import * as mdxComponents from '@/components/mdx'
 import { useMobileNavigationStore } from '@/components/MobileNavigation'
+import { ApiRefsContext } from '@/components/ApiRefsContext'
 
 import '@/styles/tailwind.css'
 import 'reactflow/dist/style.css';
@@ -69,9 +70,11 @@ export default function App({ Component, pageProps }) {
       <LocaleProvider>
         <ImageZoomProvider>
           <MDXProvider components={mdxComponents}>
-            <LayoutComponent {...pageProps}>
-              <Component {...pageProps} />
-            </LayoutComponent>
+            <ApiRefsContext.Provider value={pageProps.refs}>
+              <LayoutComponent {...pageProps}>
+                <Component {...pageProps} />
+              </LayoutComponent>
+            </ApiRefsContext.Provider>
           </MDXProvider>
         </ImageZoomProvider>
       </LocaleProvider>

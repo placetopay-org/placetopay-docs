@@ -2,6 +2,9 @@ import {
   Children,
   createContext,
   useContext,
+  useEffect,
+  useMemo,
+  useRef,
   useState,
 } from 'react'
 import { Tab } from '@headlessui/react'
@@ -13,6 +16,17 @@ import { usePreventLayoutShift } from '@/hooks/usePreventLayoutShift'
 import { useLocale } from '@/components/LocaleProvider'
 import { CopyJSON } from '@/components/CopyJSON'
 import { CopyForLLM } from '@/components/CopyForLLM'
+import {
+  getCodeRole,
+  getPairMap,
+  useCodePairingStore,
+} from '@/components/codePairing'
+import { ApiRefsContext } from '@/components/ApiRefsContext'
+import {
+  buildFieldDocs,
+  pickResponseSchema,
+} from '@/components/schemaFields'
+import { API_TITLES } from '@/constants/apiReader'
 
 const languageNames = {
   js: 'JavaScript',
@@ -64,20 +78,77 @@ const LLM_LOOSE_TEXTS = {
   en: 'Example from the Placetopay documentation:',
 }
 
-function CodeCopyActions({ code, language }) {
+const REQUEST_RESPONSE_TITLES = {
+  es: { request: 'Solicitud', response: 'Respuesta' },
+  en: { request: 'Request', response: 'Response' },
+}
+
+const FIELD_TEXTS = {
+  es: { fields: 'Campos', required: 'requerido', optional: 'opcional' },
+  en: { fields: 'Fields', required: 'required', optional: 'optional' },
+}
+
+const getEndpointInfo = (refs, tag, label) => {
+  if (!refs || !tag || !label) return null
+  const operation = refs[label]?.[String(tag).toLowerCase()]
+  if (!operation) return null
+  const { summary, description } = operation
+  if (!summary && !description) return null
+  return {
+    method: String(tag).toUpperCase(),
+    path: label,
+    summary,
+    description,
+  }
+}
+
+function CodeCopyActions({ code, language, pairedResponse, endpoint, role, requestFields, responseFields, variantTitle }) {
   let { locale } = useLocale()
 
   const lead = LLM_LOOSE_TEXTS[locale] ?? LLM_LOOSE_TEXTS.es
-  const llmContent = `${lead}
+  const titles = REQUEST_RESPONSE_TITLES[locale] ?? REQUEST_RESPONSE_TITLES.es
+  const fieldLabels = FIELD_TEXTS[locale] ?? FIELD_TEXTS.es
 
-\`\`\`${language || ''}
-${code}
-\`\`\`
-`
+  const wrap = (blockLanguage, blockCode) =>
+    `\`\`\`${blockLanguage || ''}\n${blockCode}\n\`\`\``
+
+  const blockLabel = role === 'response' ? titles.response : titles.request
+
+  const jsonContent = pairedResponse ? `${code}\n\n${pairedResponse.code}` : code
+
+  const header = endpoint
+    ? [
+        `# ${endpoint.method} ${endpoint.path}`,
+        endpoint.summary,
+        endpoint.description,
+      ]
+        .filter(Boolean)
+        .join('\n')
+    : null
+
+  const body = role
+    ? `## ${blockLabel}\n${wrap(language, code)}`
+    : wrap(language, code)
+
+  const responseBlock = pairedResponse
+    ? `\n\n## ${titles.response}\n${wrap(pairedResponse.language, pairedResponse.code)}`
+    : ''
+
+  const requestTitle = `${titles.request} - ${fieldLabels.fields}${
+    variantTitle ? ` (${variantTitle})` : ''
+  }`
+  const fieldsBlock = [
+    requestFields ? `\n\n## ${requestTitle}\n${requestFields}` : '',
+    responseFields
+      ? `\n\n## ${titles.response} - ${fieldLabels.fields}\n${responseFields}`
+      : '',
+  ].join('')
+
+  const llmContent = `${lead}\n\n${header ? `${header}\n\n` : ''}${body}${responseBlock}${fieldsBlock}\n`
 
   return (
     <>
-      <CopyJSON variant="dark" content={code} />
+      <CopyJSON variant="dark" content={jsonContent} />
       <CopyForLLM variant="dark" content={llmContent} />
     </>
   )
@@ -233,14 +304,109 @@ export function CodeGroup({ children, title, ...props }) {
   let activeCode = active?.props?.code ?? props.code
   let activeLanguage = active?.props?.language ?? props.language
 
+  let hasEndpoint = Boolean(props.tag && props.label)
+  let showActions = Boolean(
+    activeCode && (hasEndpoint || activeCode.trim().split('\n').length >= 2)
+  )
+
+  const codeRole = getCodeRole(title)
+  const { locale } = useLocale()
+  const refs = useContext(ApiRefsContext)
+  const operation = hasEndpoint
+    ? refs?.[props.label]?.[String(props.tag).toLowerCase()]
+    : null
+  const endpoint = hasEndpoint
+    ? getEndpointInfo(refs, props.tag, props.label)
+    : null
+
+  const fieldLabels = FIELD_TEXTS[locale] ?? FIELD_TEXTS.es
+  const propertyLabels =
+    API_TITLES.propertyInformation[locale] ?? API_TITLES.propertyInformation.es
+  const requestSchema =
+    operation?.requestBody?.content?.['application/json']?.schema ??
+    Object.values(operation?.requestBody?.content ?? {})[0]?.schema ??
+    null
+  const responseSchema = pickResponseSchema(operation?.responses)
+  const variantTitle = active?.props?.title
+
+  const { requestFields, responseFields } = useMemo(() => {
+    if (!codeRole) return { requestFields: '', responseFields: '' }
+
+    const build = (schema, withVariant) =>
+      buildFieldDocs({
+        schema,
+        components: refs?.components,
+        requiredLabel: fieldLabels.required,
+        optionalLabel: fieldLabels.optional,
+        propertyLabels,
+        variantTitle: withVariant ? variantTitle : null,
+      })
+
+    return {
+      requestFields:
+        codeRole === 'request' && requestSchema
+          ? build(requestSchema, true)
+          : '',
+      responseFields:
+        responseSchema != null ? build(responseSchema, true) : '',
+    }
+  }, [
+    codeRole,
+    requestSchema,
+    responseSchema,
+    refs,
+    variantTitle,
+    fieldLabels,
+    propertyLabels,
+  ])
+
+  const idRef = useRef(null)
+  const { register, unregister, updateEntry, entries } = useCodePairingStore()
+
+  useEffect(() => {
+    if (!codeRole) return
+    const id = register({ role: codeRole, code: activeCode, language: activeLanguage })
+    idRef.current = id
+    return () => unregister(id)
+  }, [codeRole, register, unregister])
+
+  useEffect(() => {
+    if (!codeRole || idRef.current == null) return
+    updateEntry(idRef.current, { code: activeCode, language: activeLanguage })
+  }, [codeRole, activeCode, activeLanguage, updateEntry])
+
+  const pairMap = getPairMap(entries)
+  let pairedResponse = null
+  if (codeRole === 'request' && idRef.current != null) {
+    const responseId = pairMap.get(idRef.current)
+    pairedResponse = entries.find((entry) => entry.id === responseId) ?? null
+  }
+
+  const isPairedResponse =
+    codeRole === 'response' &&
+    idRef.current != null &&
+    Array.from(pairMap.values()).includes(idRef.current)
+
+  if (isPairedResponse) {
+    showActions = false
+  }
+
   return (
     <div className="not-prose my-6">
-      <div className="mb-2 flex items-center justify-end gap-2">
-        <CodeCopyActions
-          code={activeCode}
-          language={activeLanguage}
-        />
-      </div>
+      {showActions && (
+        <div className="mb-2 flex items-center justify-end gap-2">
+          <CodeCopyActions
+            code={activeCode}
+            language={activeLanguage}
+            pairedResponse={pairedResponse}
+            endpoint={endpoint}
+            role={codeRole}
+            requestFields={requestFields}
+            responseFields={responseFields}
+            variantTitle={active?.props?.title}
+          />
+        </div>
+      )}
       <CodeGroupContext.Provider value={true}>
         <Container
           {...containerProps}
