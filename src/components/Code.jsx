@@ -176,7 +176,7 @@ const getEndpointInfo = (refs, tag, label) => {
   }
 }
 
-const resolveSpecRef = (refs, label) => {
+const resolveSpecRef = (refs, label, variantTitle = null) => {
   if (!refs || !label || refs[label]) return label
   const VERSION_SENTINEL = '__VERSION__'
   const pattern = new RegExp(
@@ -184,13 +184,27 @@ const resolveSpecRef = (refs, label) => {
       .replace(/\{version\}/g, VERSION_SENTINEL)
       .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       .split(VERSION_SENTINEL)
-      .join('[^/]+')}$`
+      .join('([^/]+)')}$`
   )
-  return Object.keys(refs).find((key) => pattern.test(key)) ?? label
+  const matches = Object.keys(refs).filter((key) => pattern.test(key))
+  if (matches.length <= 1) return matches[0] ?? label
+
+  const want = String(variantTitle ?? '').replace(/\D/g, '')
+  if (want) {
+    const versionMatch = matches.find((key) => {
+      const captured = key.match(pattern)?.[1]
+      return (
+        captured != null &&
+        String(captured).replace(/\D/g, '') === want
+      )
+    })
+    if (versionMatch) return versionMatch
+  }
+  return matches[0]
 }
 
-function resolveOperation(refs, tag, label) {
-  const resolvedLabel = resolveSpecRef(refs, label)
+function resolveOperation(refs, tag, label, variantTitle = null) {
+  const resolvedLabel = resolveSpecRef(refs, label, variantTitle)
   return {
     operation: refs?.[resolvedLabel]?.[String(tag).toLowerCase()] ?? null,
     endpoint: getEndpointInfo(refs, tag, resolvedLabel),
@@ -408,8 +422,9 @@ export function CodeGroup({ children, title, ...props }) {
   let active = panels[tabGroupProps.selectedIndex] ?? panels[0]
   let activeCode = active?.props?.code ?? props.code
   let activeLanguage = active?.props?.language ?? props.language
+  const activeTabLabel = active?.props?.label || props.label
 
-  let hasEndpoint = Boolean(props.tag && props.label)
+  let hasEndpoint = Boolean(props.tag && activeTabLabel)
   let showActions = Boolean(
     activeCode && (hasEndpoint || activeCode.trim().split('\n').length >= 2)
   )
@@ -417,8 +432,9 @@ export function CodeGroup({ children, title, ...props }) {
   const codeRole = getCodeRole(title)
   const { locale } = useLocale()
   const refs = useContext(ApiRefsContext)
+  const variantTitle = active?.props?.title
   const { operation, endpoint } = hasEndpoint
-    ? resolveOperation(refs, props.tag, props.label)
+    ? resolveOperation(refs, props.tag, activeTabLabel, variantTitle)
     : { operation: null, endpoint: null }
 
   const fieldLabels = FIELD_TEXTS[locale] ?? FIELD_TEXTS.es
@@ -429,7 +445,6 @@ export function CodeGroup({ children, title, ...props }) {
     Object.values(operation?.requestBody?.content ?? {})[0]?.schema ??
     null
   const responseSchema = pickResponseSchema(operation?.responses)
-  const variantTitle = active?.props?.title
 
   const { requestFields, responseFields } = useMemo(() => {
     if (!codeRole) return { requestFields: '', responseFields: '' }
@@ -464,13 +479,19 @@ export function CodeGroup({ children, title, ...props }) {
 
   const idRef = useRef(null)
   const { register, unregister, updateEntry, entries } = useCodePairingStore()
+  const sectionId = sectionEndpoint?.id ?? null
 
   useEffect(() => {
     if (!codeRole) return
-    const id = register({ role: codeRole, code: activeCode, language: activeLanguage })
+    const id = register({
+      role: codeRole,
+      code: activeCode,
+      language: activeLanguage,
+      sectionId,
+    })
     idRef.current = id
     return () => unregister(id)
-  }, [codeRole, register, unregister])
+  }, [codeRole, register, unregister, sectionId])
 
   useEffect(() => {
     if (!codeRole || idRef.current == null) return

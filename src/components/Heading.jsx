@@ -71,7 +71,7 @@ export function Heading({
   let registerHeading = useSectionStore((s) => s.registerHeading)
 
   if (level === 2) {
-    setScopeEndpoint(tag, label)
+    setScopeEndpoint(tag, label, id)
   }
 
   let inView = useInView(ref, {

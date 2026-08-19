@@ -31,10 +31,14 @@ export const CopyForLLM = ({ content, className }) => {
       type="button"
       title={texts.label}
       onClick={() => {
-        navigator.clipboard
-          .writeText(content)
-          .then(() => setCopied(true))
-          .catch(() => {})
+        try {
+          navigator.clipboard
+            ?.writeText(content)
+            .then(() => setCopied(true))
+            .catch((error) => console.error('[CopyForLLM]', error))
+        } catch (error) {
+          console.error('[CopyForLLM]', error)
+        }
       }}
       className={clsx(
         'group flex shrink-0 items-center gap-x-1.5 rounded-md px-2 py-1 text-[0.8125rem] font-medium leading-5 transition',

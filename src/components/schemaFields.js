@@ -14,10 +14,14 @@ const resolveSchema = (schema, components, seen = new Set()) => {
   if (typeof schema.$ref === 'string' && schema.$ref.startsWith('#/components/')) {
     if (seen.has(schema.$ref)) return schema
     const target = schema.$ref
-      .replace(/~1/g, '/')
-      .replace(/~0/g, '~')
       .split('/')
       .slice(2)
+      .map((segment) =>
+        segment
+          .split('%20')
+          .join(' ')
+          .replace(/~(1|0)/g, (match) => (match === '~1' ? '/' : '~'))
+      )
       .reduce((acc, segment) => acc?.[segment], components)
     if (target) return resolveSchema(target, components, new Set([...seen, schema.$ref]))
     return schema
@@ -35,7 +39,14 @@ const describeType = (schema) => {
 }
 
 export const pickResponseSchema = (responses) => {
-  for (const code of ['200', ...Object.keys(responses ?? {})]) {
+  const successCodes = Object.keys(responses ?? {}).filter((code) =>
+    /^2\d\d$/.test(code)
+  )
+  const codes =
+    successCodes.length > 0
+      ? successCodes.sort((a, b) => Number(a) - Number(b))
+      : []
+  for (const code of codes) {
     const contents = responses?.[code]?.content ?? {}
     const schema =
       contents['application/json']?.schema ??
