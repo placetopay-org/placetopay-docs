@@ -22,6 +22,7 @@ import {
   useCodePairingStore,
 } from '@/components/codePairing'
 import { ApiRefsContext } from '@/components/ApiRefsContext'
+import { getScopeEndpoint } from '@/components/endpointScope'
 import {
   buildFieldDocs,
   pickResponseSchema,
@@ -102,7 +103,7 @@ const getEndpointInfo = (refs, tag, label) => {
   }
 }
 
-function CodeCopyActions({ code, language, pairedResponse, endpoint, role, requestFields, responseFields, variantTitle }) {
+function CodeCopyActions({ code, language, pairedResponse, endpoint, role, requestFields, responseFields, variantTitle, displayTag, displayLabel }) {
   let { locale } = useLocale()
 
   const lead = LLM_LOOSE_TEXTS[locale] ?? LLM_LOOSE_TEXTS.es
@@ -116,15 +117,19 @@ function CodeCopyActions({ code, language, pairedResponse, endpoint, role, reque
 
   const jsonContent = pairedResponse ? `${code}\n\n${pairedResponse.code}` : code
 
-  const header = endpoint
-    ? [
-        `# ${endpoint.method} ${endpoint.path}`,
-        endpoint.summary,
-        endpoint.description,
-      ]
-        .filter(Boolean)
-        .join('\n')
-    : null
+  const headerMethod = displayTag ? String(displayTag).toUpperCase() : endpoint?.method
+  const headerPath = displayLabel || endpoint?.path
+
+  const header =
+    headerMethod && headerPath
+      ? [
+          `# ${headerMethod} ${headerPath}`,
+          endpoint?.summary,
+          endpoint?.description,
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : null
 
   const body = role
     ? `## ${blockLabel}\n${wrap(language, code)}`
@@ -154,15 +159,15 @@ function CodeCopyActions({ code, language, pairedResponse, endpoint, role, reque
   )
 }
 
-function CodePanel({ tag, label, language, code, children }) {
+function CodePanel({ tag, label, displayTag, displayLabel, language, code, children }) {
   let child = Children.only(children)
   let rawCode = child.props.code ?? code
 
   return (
     <div className="group dark:bg-white/2.5">
       <CodePanelHeader
-        tag={child.props.tag ?? tag}
-        label={child.props.label ?? label}
+        tag={displayTag ?? child.props.tag ?? tag}
+        label={displayLabel ?? child.props.label ?? label}
       />
       <pre className="max-h-[600px] overflow-x-auto p-4 text-xs text-white">
         {children}
@@ -299,6 +304,11 @@ export function CodeGroup({ children, title, ...props }) {
   let headerProps = hasGroup ? { selectedIndex: tabGroupProps.selectedIndex, onChange: tabGroupProps.onChange } : {}
   let contentProps = hasTabs ? props : { selectedIndex: tabGroupProps.selectedIndex, ...props }
 
+  const sectionEndpoint = getScopeEndpoint()
+  const displayTag = sectionEndpoint?.tag != null ? sectionEndpoint.tag : props.tag
+  const displayLabel = sectionEndpoint?.label != null ? sectionEndpoint.label : props.label
+  contentProps = { ...contentProps, displayTag, displayLabel }
+
   let panels = Children.toArray(children)
   let active = panels[tabGroupProps.selectedIndex] ?? panels[0]
   let activeCode = active?.props?.code ?? props.code
@@ -404,6 +414,8 @@ export function CodeGroup({ children, title, ...props }) {
             requestFields={requestFields}
             responseFields={responseFields}
             variantTitle={active?.props?.title}
+            displayTag={displayTag}
+            displayLabel={displayLabel}
           />
         </div>
       )}
