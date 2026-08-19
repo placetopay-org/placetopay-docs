@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Requirements
+
+- **Node.js >= 26** — enforced via `engines` in `package.json` (plus `.npmrc` `engine-strict=true` and `.nvmrc`), matching the version used by the CI workflows in `.github/workflows/`. The generation scripts load ES modules from `src/constants/` through `require()` (module syntax detection), which fails on older versions with `SyntaxError: Unexpected token 'export'`. Since `engines` is only validated on `npm install`, `npm run dev`/`build` run `scripts/checkNodeVersion.js` first (`predev`/`prebuild` hooks) to fail fast with a clear message.
+
 ## Commands
 
 ```bash
