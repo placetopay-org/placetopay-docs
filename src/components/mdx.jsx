@@ -14,6 +14,7 @@ export const a = Link
 export { Button } from '@/components/Button'
 export { CodeGroup, Code as code, Pre as pre } from '@/components/Code'
 export { ApiReader } from '@/components/ApiReader'
+export { ApiDownloads } from '@/components/ApiDownloads'
 export { CopyContent } from '@/components/CopyContent'
 export { CopyForLLM } from '@/components/CopyForLLM'
 export { CopyJSON } from '@/components/CopyJSON'
@@ -93,11 +94,16 @@ export function Property({
   const { locale } = useLocale()
   const texts = REQUIRED_TEXTS[locale] ?? REQUIRED_TEXTS.es
 
+  const selectTypeLabel = locale === 'es'
+    ? `Seleccionar variante del campo ${name}`
+    : `Select variant for field ${name}`
+
   const getType = () => {
     if (isMulti) {
       return (
         <select
           className="bg-inherit"
+          aria-label={selectTypeLabel}
           value={selected}
           onChange={(e) => onSelected(e.target.value)}
         >
@@ -125,7 +131,7 @@ export function Property({
             <code>{name}</code>
           </dd>
           <dt className="sr-only">Type</dt>
-          <dd className="font-mono text-xs text-gray-400 dark:text-gray-500">
+          <dd className="font-mono text-xs text-gray-500 dark:text-gray-400">
             {getType()}
           </dd>
         </div>

@@ -102,6 +102,7 @@ function CodePanel({ tag, label, language, code, children }) {
 
 function CodeGroupHeader({ title, children, selectedIndex, onChange }) {
   let hasTabs = Children.count(children) > 1
+  const { locale } = useLocale()
 
   const renderChilds = () => {
     if (shouldBeTabs(children)) {
@@ -127,6 +128,7 @@ function CodeGroupHeader({ title, children, selectedIndex, onChange }) {
       <div className="mt-2">
         <select
           className="bg-inherit text-white/80 dark:text-white/60"
+          aria-label={locale === 'es' ? 'Seleccionar ejemplo de código' : 'Select code example'}
           onChange={(evt) => onChange(evt.target.value)}
         >
           {Children.map(children, (child, childIndex) => (

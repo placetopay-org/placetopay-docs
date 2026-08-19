@@ -1,6 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
-import { createContext, useContext, useState } from "react"
-import { useLocale } from "@/components/LocaleProvider"
+import { createContext, useContext, useRef, useState } from "react"
+import { Dialog } from '@headlessui/react'
+import { XMarkIcon } from '@heroicons/react/24/outline'
+
+import { useLocale } from '@/components/LocaleProvider'
 
 const ImageZoomContext = createContext()
 
@@ -13,32 +16,54 @@ export function ImageZoomProvider(props) {
   const { locale } = useLocale()
   const texts = IMAGE_TEXTS[locale] ?? IMAGE_TEXTS.es
   // Estado para manejar el zoom y la imagen activa
-  const [isZoomed, setIsZoomed] = useState(false)
   const [activeImage, setActiveImage] = useState(null)
+  const closeRef = useRef(null)
+
+  const isZoomed = Boolean(activeImage)
 
   // Función para alternar el zoom y establecer la imagen activa
-  const toggleZoom = (imageSrc) => {
-    setIsZoomed(!isZoomed)
-    setActiveImage(imageSrc || null) // Si no hay imagen, limpiamos el estado
+  const toggleZoom = (image) => {
+    setActiveImage(image ?? null) // Si no hay imagen, limpiamos el estado
   }
 
   return (
     <ImageZoomContext.Provider value={{ isZoomed, activeImage, toggleZoom }}>
-      {isZoomed && activeImage && (
+      <Dialog
+        open={isZoomed}
+        onClose={() => toggleZoom(null)}
+        initialFocus={closeRef}
+        aria-label={locale === 'es' ? 'Imagen ampliada' : 'Zoomed image'}
+        className="relative z-50"
+      >
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-55 backdrop-blur-md"
-
+          className="fixed inset-0 bg-black bg-opacity-55 backdrop-blur-md"
+          aria-hidden="true"
+        />
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
           onClick={() => toggleZoom(null)}
         >
-          <div className="flex items-center justify-center w-full h-full p-4">
+          <Dialog.Panel
+            className="relative flex items-center justify-center"
+            onClick={() => toggleZoom(null)}
+          >
+            <button
+              ref={closeRef}
+              type="button"
+              onClick={() => toggleZoom(null)}
+              aria-label={locale === 'es' ? 'Cerrar imagen ampliada' : 'Close zoomed image'}
+              className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-2 text-white transition hover:bg-black/80"
+            >
+              <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+            </button>
             <img
               src={activeImage}
               alt={texts.zoomed}
               className="max-h-[90vh] max-w-full rounded-md shadow-lg sm:max-h-[80vh] sm:max-w-[90%] md:max-h-[75vh] md:max-w-[85%] lg:max-h-[70vh] lg:max-w-[80%]"
             />
-          </div>
+          </Dialog.Panel>
         </div>
-      )}
+      </Dialog>
       {props.children}
     </ImageZoomContext.Provider>
   )
