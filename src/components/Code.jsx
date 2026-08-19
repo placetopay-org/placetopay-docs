@@ -153,8 +153,8 @@ function CodeCopyActions({ code, language, pairedResponse, endpoint, role, reque
 
   return (
     <>
-      <CopyJSON variant="dark" content={jsonContent} />
-      <CopyForLLM variant="dark" content={llmContent} />
+      <CopyJSON content={jsonContent} />
+      <CopyForLLM content={llmContent} />
     </>
   )
 }
