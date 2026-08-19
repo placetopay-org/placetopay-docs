@@ -12,7 +12,7 @@ const COPY = {
     },
     postman: {
       text: 'Colección de Postman',
-      title: 'Descarga la colección de Postman con todos los productos',
+      title: 'Descarga la colección de Postman de esta API',
     },
   },
   en: {
@@ -23,7 +23,7 @@ const COPY = {
     },
     postman: {
       text: 'Postman collection',
-      title: 'Download the Postman collection with all products',
+      title: 'Download the Postman collection of this API',
     },
   },
 }
@@ -57,8 +57,8 @@ function Separator() {
 
 /**
  * Page action bar with the downloads available for an API reference page: the
- * bundled OpenAPI definition of the product and the importable Postman
- * collection with all products. The files are generated at build time by
+ * bundled OpenAPI definition of the product and its importable Postman
+ * collection. The files are generated at build time by
  * `scripts/makeApiDownloads.js` into `public/downloads`.
  *
  * It renders its own `<hr>` so the bar always sits right on top of the rule
@@ -100,7 +100,7 @@ export function ApiDownloads({ scope }) {
           </DownloadAction>
           <Separator />
           <DownloadAction
-            href={`/downloads/collections/placetopay-apis.${locale}.postman_collection.json`}
+            href={`${basePath}.postman_collection.json`}
             title={copy.postman.title}
             icon={FolderIcon}
           >
