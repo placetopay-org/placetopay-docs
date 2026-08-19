@@ -5,14 +5,14 @@
  *    imported in API testing tools or code generators. External $refs
  *    (e.g. ../base/es.yaml#/...) are resolved with SwaggerParser.bundle(),
  *    which keeps internal $refs local and avoids circular structures.
- *  - Importable Postman collections (v2.1), one per locale, with the
- *    operations grouped by product (scope), the testing server URL
+ *  - Importable Postman collections (v2.1), one per scope and locale
+ *    (mirroring the YAML/JSON layout), with the testing server URL
  *    preconfigured and the request body examples taken from the YAML specs.
  *
  * Output:
  *  public/downloads/apis/<scope>/<locale>.yaml
  *  public/downloads/apis/<scope>/<locale>.json
- *  public/downloads/collections/placetopay-apis.<locale>.postman_collection.json
+ *  public/downloads/apis/<scope>/<locale>.postman_collection.json
  *
  * The `base` scope is excluded on purpose: it has no `paths`, it is a shared
  * components library, not a publishable API.
@@ -104,39 +104,23 @@ const operationToPostmanItem = (pathName, method, operation, api) => {
   return item
 }
 
-const buildPostmanCollection = (apisByScope, locale) => {
+const buildPostmanCollection = ({ scope, api, testServerUrl }, locale) => {
   const items = []
-
-  for (const { scope, api, testServerUrl } of apisByScope) {
-    const operations = []
-    for (const [pathName, pathItem] of Object.entries(api.paths ?? {})) {
-      for (const method of ['get', 'post', 'put', 'patch', 'delete']) {
-        if (pathItem && pathItem[method]) {
-          operations.push(
-            operationToPostmanItem(pathName, method, pathItem[method], api)
-          )
-        }
+  for (const [pathName, pathItem] of Object.entries(api.paths ?? {})) {
+    for (const method of ['get', 'post', 'put', 'patch', 'delete']) {
+      if (pathItem && pathItem[method]) {
+        items.push(
+          operationToPostmanItem(pathName, method, pathItem[method], api)
+        )
       }
     }
+  }
 
-    if (operations.length === 0) continue
-
-    if (!testServerUrl) {
-      logger.warn(
-        `[api-downloads] "${scope}" (${api.info?.title ?? scope}) does not declare servers; ` +
-          'its base_url variable will be empty in the Postman collection.'
-      )
-    }
-
-    items.push({
-      name: api.info?.title ?? scope,
-      item: operations,
-      // Each product has its own testing environment, so the base_url
-      // variable is defined per folder and inherited by its operations.
-      variable: [
-        { key: 'base_url', value: normalizeUrl(testServerUrl ?? '') },
-      ],
-    })
+  if (!testServerUrl) {
+    logger.warn(
+      `[api-downloads] "${scope}" (${api.info?.title ?? scope}) does not declare servers; ` +
+        'its base_url variable will be empty in the Postman collection.'
+    )
   }
 
   return {
@@ -145,17 +129,22 @@ const buildPostmanCollection = (apisByScope, locale) => {
       // the same commit produce identical artifacts.
       _postman_id: crypto
         .createHash('sha256')
-        .update(`placetopay-apis.${locale}.postman_collection`)
+        .update(`${scope}.${locale}.postman_collection`)
         .digest('hex')
         .slice(0, 32),
-      name: `Placetopay APIs (${locale === 'es' ? 'Español' : 'English'})`,
+      name: `${api.info?.title ?? scope} (${locale === 'es' ? 'Español' : 'English'})`,
       description:
         locale === 'es'
-          ? 'Colección generada automáticamente desde las definiciones OpenAPI publicadas en Placetopay Docs. La variable base_url ya está configurada con la dirección del entorno de pruebas de cada producto.'
-          : 'Collection automatically generated from the OpenAPI definitions published in Placetopay Docs. The base_url variable is already set with the testing environment address of each product.',
+          ? 'Colección generada automáticamente desde la definición OpenAPI publicada en Placetopay Docs. La variable base_url ya está configurada con la dirección del entorno de pruebas.'
+          : 'Collection automatically generated from the OpenAPI definition published in Placetopay Docs. The base_url variable is already set with the testing environment address.',
       schema:
         'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
     },
+    // Each product has its own testing environment, so the base_url
+    // variable is defined at the collection level.
+    variable: [
+      { key: 'base_url', value: normalizeUrl(testServerUrl ?? '') },
+    ],
     item: items,
   }
 }
@@ -165,9 +154,9 @@ const main = async () => {
   logger.log(`Generating downloadable API definitions for: ${scopes.join(', ')}`)
 
   fs.rmSync(path.join(OUTPUT_DIR, 'apis'), { recursive: true, force: true })
+  // Legacy single-file collections with all APIs, replaced by one
+  // collection per scope under `apis/<scope>/`.
   fs.rmSync(path.join(OUTPUT_DIR, 'collections'), { recursive: true, force: true })
-
-  const apisByLocale = { es: [], en: [] }
 
   for (const scope of scopes) {
     for (const locale of LOCALES) {
@@ -186,26 +175,23 @@ const main = async () => {
         JSON.stringify(bundled, null, 2)
       )
 
-      apisByLocale[locale].push({
-        scope,
-        api: bundled,
-        testServerUrl: getTestServerUrl(bundled),
-      })
+      const collection = buildPostmanCollection(
+        {
+          scope,
+          api: bundled,
+          testServerUrl: getTestServerUrl(bundled),
+        },
+        locale
+      )
+      fs.writeFileSync(
+        path.join(outDir, `${locale}.postman_collection.json`),
+        JSON.stringify(collection, null, 2)
+      )
     }
   }
 
-  for (const locale of LOCALES) {
-    const collection = buildPostmanCollection(apisByLocale[locale], locale)
-    const collectionsDir = path.join(OUTPUT_DIR, 'collections')
-    fs.mkdirSync(collectionsDir, { recursive: true })
-    fs.writeFileSync(
-      path.join(collectionsDir, `placetopay-apis.${locale}.postman_collection.json`),
-      JSON.stringify(collection, null, 2)
-    )
-  }
-
   logger.log(
-    `Done. ${scopes.length * LOCALES.length} definitions and ${LOCALES.length} collections written to ${path.relative(process.cwd(), OUTPUT_DIR)}`
+    `Done. ${scopes.length * LOCALES.length} definitions and ${scopes.length * LOCALES.length} collections written to ${path.relative(process.cwd(), OUTPUT_DIR)}`
   )
 }
 
