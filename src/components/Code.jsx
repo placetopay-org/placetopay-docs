@@ -304,7 +304,11 @@ export function CodeGroup({ children, title, ...props }) {
   let headerProps = hasGroup ? { selectedIndex: tabGroupProps.selectedIndex, onChange: tabGroupProps.onChange } : {}
   let contentProps = hasTabs ? props : { selectedIndex: tabGroupProps.selectedIndex, ...props }
 
-  const sectionEndpoint = getScopeEndpoint()
+  const sectionEndpointRef = useRef(null)
+  if (sectionEndpointRef.current == null) {
+    sectionEndpointRef.current = getScopeEndpoint() ?? null
+  }
+  const sectionEndpoint = sectionEndpointRef.current
   const displayTag = sectionEndpoint?.tag != null ? sectionEndpoint.tag : props.tag
   const displayLabel = sectionEndpoint?.label != null ? sectionEndpoint.label : props.label
   contentProps = { ...contentProps, displayTag, displayLabel }
