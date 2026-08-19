@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 
 import { useLocale } from '@/components/LocaleProvider'
-import { BoltIcon } from '@/components/icons/BoltIcon'
+import { CopyCodeIcon } from '@/components/icons/CopyCodeIcon'
 import { CheckIcon } from '@/components/icons/CheckIcon'
 
 const TEXTS = {
@@ -46,7 +46,7 @@ export const CopyForLLM = ({ content, variant, className }) => {
       {copied ? (
         <CheckIcon className="h-3.5 w-3.5 stroke-current" />
       ) : (
-        <BoltIcon className="h-3.5 w-3.5 stroke-current" />
+        <CopyCodeIcon className="h-3.5 w-3.5" />
       )}
       <span>{copied ? texts.copied : texts.label}</span>
     </button>

@@ -14,7 +14,6 @@ import { create } from 'zustand'
 import { Tag } from '@/components/Tag'
 import { usePreventLayoutShift } from '@/hooks/usePreventLayoutShift'
 import { useLocale } from '@/components/LocaleProvider'
-import { CopyJSON } from '@/components/CopyJSON'
 import { CopyForLLM } from '@/components/CopyForLLM'
 import {
   getCodeRole,
@@ -50,6 +49,80 @@ function isGroup(children) {
 
 function getPanelTitle({ title, language }) {
   return title ?? languageNames[language] ?? 'Code'
+}
+
+const COPY_TEXTS = {
+  es: { copy: 'Copiar', copied: '¡Copiado!' },
+  en: { copy: 'Copy', copied: 'Copied!' },
+}
+
+function ClipboardIcon(props) {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" {...props}>
+      <path
+        strokeWidth="0"
+        d="M5.5 13.5v-5a2 2 0 0 1 2-2l.447-.894A2 2 0 0 1 9.737 4.5h.527a2 2 0 0 1 1.789 1.106l.447.894a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2Z"
+      />
+      <path
+        fill="none"
+        strokeLinejoin="round"
+        d="M12.5 6.5a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2m5 0-.447-.894a2 2 0 0 0-1.79-1.106h-.527a2 2 0 0 0-1.789 1.106L7.5 6.5m5 0-1 1h-3l-1-1"
+      />
+    </svg>
+  )
+}
+
+function CopyButton({ code }) {
+  let [copyCount, setCopyCount] = useState(0)
+  let copied = copyCount > 0
+  let { locale } = useLocale()
+  let texts = COPY_TEXTS[locale] ?? COPY_TEXTS.es
+
+  useEffect(() => {
+    if (copyCount > 0) {
+      let timeout = setTimeout(() => setCopyCount(0), 1000)
+      return () => {
+        clearTimeout(timeout)
+      }
+    }
+  }, [copyCount])
+
+  return (
+    <button
+      type="button"
+      className={clsx(
+        'group/button absolute right-4 top-3.5 overflow-hidden rounded-full py-1 pl-2 pr-3 text-2xs font-medium opacity-0 backdrop-blur transition focus:opacity-100 group-hover:opacity-100',
+        copied
+          ? 'bg-primary-400/10 ring-1 ring-inset ring-primary-400/20'
+          : 'bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5'
+      )}
+      onClick={() => {
+        window.navigator.clipboard.writeText(code).then(() => {
+          setCopyCount((count) => count + 1)
+        })
+      }}
+    >
+      <span
+        aria-hidden={copied}
+        className={clsx(
+          'pointer-events-none flex items-center gap-0.5 text-gray-400 transition duration-300',
+          copied && '-translate-y-1.5 opacity-0'
+        )}
+      >
+        <ClipboardIcon className="h-5 w-5 fill-gray-500/20 stroke-gray-500 transition-colors group-hover/button:stroke-gray-400" />
+        {texts.copy}
+      </span>
+      <span
+        aria-hidden={!copied}
+        className={clsx(
+          'pointer-events-none absolute inset-0 flex items-center justify-center text-primary-400 transition duration-300',
+          !copied && 'translate-y-1.5 opacity-0'
+        )}
+      >
+        {texts.copied}
+      </span>
+    </button>
+  )
 }
 
 function CodePanelHeader({ tag, label }) {
@@ -115,8 +188,6 @@ function CodeCopyActions({ code, language, pairedResponse, endpoint, role, reque
 
   const blockLabel = role === 'response' ? titles.response : titles.request
 
-  const jsonContent = pairedResponse ? `${code}\n\n${pairedResponse.code}` : code
-
   const headerMethod = displayTag ? String(displayTag).toUpperCase() : endpoint?.method
   const headerPath = displayLabel || endpoint?.path
 
@@ -151,12 +222,7 @@ function CodeCopyActions({ code, language, pairedResponse, endpoint, role, reque
 
   const llmContent = `${lead}\n\n${header ? `${header}\n\n` : ''}${body}${responseBlock}${fieldsBlock}\n`
 
-  return (
-    <>
-      <CopyJSON content={jsonContent} />
-      <CopyForLLM content={llmContent} />
-    </>
-  )
+  return <CopyForLLM content={llmContent} />
 }
 
 function CodePanel({ tag, label, displayTag, displayLabel, language, code, children }) {
@@ -169,9 +235,12 @@ function CodePanel({ tag, label, displayTag, displayLabel, language, code, child
         tag={displayTag ?? child.props.tag ?? tag}
         label={displayLabel ?? child.props.label ?? label}
       />
-      <pre className="max-h-[600px] overflow-x-auto p-4 text-xs text-white">
-        {children}
-      </pre>
+      <div className="relative">
+        <pre className="max-h-[600px] overflow-x-auto p-4 text-xs text-white">
+          {children}
+        </pre>
+        <CopyButton code={rawCode} />
+      </div>
     </div>
   )
 }
