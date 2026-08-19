@@ -1,0 +1,181 @@
+export const description =
+  'Autentica tus peticiones a Onboarding con un token de acceso y conoce los permisos que habilitan cada operación.'
+
+<MissingTranslationBanner />
+
+# Autenticación
+
+Todas las peticiones a Onboarding se autentican con un **token de acceso** que Placetopay emite para tu aplicación y que viaja en el header `Authorization`.
+
+## Credenciales {{ id: 'api-credentials' }}
+
+Al habilitar el servicio recibes dos credenciales distintas:
+
+<Properties>
+  <Property name="Token de acceso" type="string" isRequired={true}>
+    Autentica tus peticiones. Viaja en cada llamada dentro del header `Authorization`.
+  </Property>
+  <Property name="Secreto de firma" type="string" isRequired={false}>
+    Solo lo necesitas si vas a recibir notificaciones. Sirve para verificar que un webhook salió realmente de Onboarding. Ver [Notificación](/en/onboarding/notification).
+  </Property>
+</Properties>
+
+<Note type="warning">
+  Ambas credenciales se entregan **una sola vez** y no se pueden recuperar después. Guárdalas en un gestor de secretos antes de continuar. Si las pierdes, hay que emitir unas nuevas.
+</Note>
+
+Trátalas como cualquier otro secreto de producción: nunca las incluyas en el código fuente, en un repositorio ni en código que se ejecute en el navegador.
+
+## Ambientes y URL base {{ id: 'environments' }}
+
+Onboarding opera en ambientes separados. La **URL base** de cada uno se entrega junto con las credenciales, porque cada ambiente emite las suyas propias y no son intercambiables.
+
+En esta documentación, `{URL_BASE}` representa la URL del ambiente en el que estés trabajando. Una petición completa se construye así:
+
+```text
+{URL_BASE}/api/merchants
+```
+
+<Note>
+  Un token emitido para un ambiente no funciona en otro. Si recibes un `401` con credenciales que sabes correctas, verifica que estés llamando a la URL base que corresponde a ese token.
+</Note>
+
+## Autorizar una petición {{ id: 'authorization-header' }}
+
+El token viaja como _bearer token_. Añade también los headers de contenido, para que las respuestas de error lleguen en formato JSON.
+
+<CodeGroup title="Headers">
+
+```bash {{ title: 'cURL' }}
+curl --request GET \
+  --url '{URL_BASE}/api/user' \
+  --header 'Accept: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}'
+```
+
+```php {{ title: 'PHP' }}
+$response = Http::withToken($token)
+    ->acceptJson()
+    ->get("{$urlBase}/api/user");
+```
+
+```js {{ title: 'Node' }}
+const response = await fetch(`${urlBase}/api/user`, {
+  headers: {
+    'Accept': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  },
+});
+```
+
+</CodeGroup>
+
+<Note type="warning">
+  El header `Accept: application/json` importa. Sin él, algunos errores podrían responderse en un formato distinto al que espera tu integración.
+</Note>
+
+## Permisos {{ id: 'token-abilities' }}
+
+Un token lleva asociados uno o varios permisos, y cada operación exige el suyo. Esto permite emitir tokens limitados: por ejemplo, uno que solo pueda consultar procesos.
+
+| Permiso | Habilita | Operación |
+|---|---|---|
+| `onboarding:create` | `POST /api/merchants` | [Crear un comercio](/en/onboarding/create-merchant) |
+| `onboarding:update` | `PUT /api/merchants/{merchantId}` | [Actualizar un comercio](/en/onboarding/update-merchant) |
+| `onboarding:read` | `GET /api/processes/{processId}` | [Consultar el proceso](/en/onboarding/process-status) |
+
+Si tu token no incluye el permiso que la operación exige, la respuesta es `403`.
+
+<Note>
+  Ten en cuenta que crear un comercio requiere **dos** permisos en la práctica: `onboarding:create` para enviarlo y `onboarding:read` para consultar el resultado del proceso.
+</Note>
+
+## Verificar tu token {{ id: 'verify-your-token' }}
+
+Antes de escribir el resto de la integración, comprueba que tus credenciales funcionan. `GET /api/user` es el endpoint más simple y solo requiere que el token sea válido.
+
+<Row>
+  <Col>
+    La respuesta describe el consumidor al que pertenece el token.
+
+    <Properties>
+      <Property name="id" type="integer">
+        Identificador de tu aplicación como consumidora de la API.
+      </Property>
+      <Property name="username" type="string">
+        Nombre con el que está registrada tu aplicación.
+      </Property>
+      <Property name="environment" type="string">
+        Ambiente al que pertenece el token.
+      </Property>
+      <Property name="active" type="boolean">
+        Indica si el consumidor está habilitado.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta" tag="GET" label="/api/user">
+
+    ```json {{ title: '200 OK' }}
+    {
+      "status": {
+        "status": "OK",
+        "reason": null,
+        "message": null,
+        "date": "2026-08-17T10:14:03-05:00"
+      },
+      "id": 1,
+      "username": "acme",
+      "environment": "SANDBOX",
+      "active": true
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Errores de autenticación {{ id: 'authentication-errors' }}
+
+<Row>
+  <Col>
+    **`401` Token ausente o inválido.** No enviaste el header `Authorization`, o el token no existe, fue revocado o pertenece a otro ambiente.
+
+    **`403` El token no tiene el permiso necesario.** El token es válido, pero no incluye el permiso que la operación exige. El mensaje **no indica qué permiso falta**, para no revelar la estructura interna de autorización: consulta la tabla de permisos de esta página.
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuestas de error">
+
+    ```json {{ title: '401 Unauthorized' }}
+    {
+      "status": {
+        "status": "FAILED",
+        "reason": 401,
+        "message": "The access token is missing or invalid.",
+        "date": "2026-08-17T10:14:03-05:00"
+      }
+    }
+    ```
+
+    ```json {{ title: '403 Forbidden' }}
+    {
+      "status": {
+        "status": "FAILED",
+        "reason": 403,
+        "message": "The access token does not grant the required scope.",
+        "date": "2026-08-17T10:14:03-05:00"
+      }
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+Ninguna de las dos respuestas trae `processId`: son fallos de la llamada, no de un proceso. Esa distinción se explica en [Errores](/en/onboarding/errors).
+
+## ¿Qué sigue? {{ id: 'authentication-next' }}
+
+- [Idempotencia](/en/onboarding/idempotency) — el otro requisito de toda petición de escritura
+- [Crear un comercio](/en/onboarding/create-merchant)
+- [Referencia de la API](/en/onboarding/api/reference/user) — verificar el token

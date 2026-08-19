@@ -83,6 +83,27 @@ paths:
                           type: "integer"
                           description: Index of the Payment method to select from a list of available payment methods. This field is only required when using the Payment Orchestrator flow.
                           example: 2
+                - title: "Paystudio TS"
+                  type: "object"
+                  properties:
+                    locale:
+                      type: "string"
+                      description: "Determines the response language"
+                      example: "en-US"
+                    auth:
+                      $ref: "../base/en.yaml#/components/schemas/Authentication"
+                    instrument:
+                      $ref: "#/components/schemas/Instrument"
+                    payment:
+                      $ref: "../base/en.yaml#/components/schemas/Payment"
+                    ipAddress:
+                      type: "string"
+                    userAgent:
+                      type: "string"
+                  required:
+                    - "auth"
+                    - "payment"
+                    - "instrument"
                 - title: "PSE"
                   type: "object"
                   properties:
@@ -404,6 +425,62 @@ paths:
                       requireCardExpiration:
                         type: "boolean"
                         description: "Indicates whether the card's expiration date is required to process the transaction."
+                      allowedDocumentTypes:
+                        type: "array"
+                        description: "Indicates the document types allowed for the transaction."
+                        items:
+                          type: "string"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "serviceCode"
+                  - title: "Paystudio TS"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "../base/en.yaml#/components/schemas/Status"
+                      provider:
+                        type: "string"
+                        example: "PAYSTUDIO"
+                        description: "Indicates which provider will be used in the transaction"
+                      serviceCode:
+                        type: "string"
+                        description: "Indicates the service code that will process the transaction"
+                        example: "PS_VS"
+                      cardTypes:
+                        type: "array"
+                        description: "Indicates the card types supported by the provider"
+                        items:
+                          $ref: "#/components/schemas/CardType"
+                      cardType:
+                        $ref: "#/components/schemas/CardType"
+                      displayInterest:
+                        type: "boolean"
+                        description: "Indicates whether transaction interest must be displayed"
+                      requiereOtp:
+                        type: "boolean"
+                        description: "Indicates whether the OTP flow must be performed"
+                      requiereCvv2:
+                        type: "boolean"
+                        description: "Indicates whether CVV is required for transaction processing"
+                      threeDS:
+                        type: "string"
+                        enum:
+                          - "optional"
+                          - "required"
+                          - "unsupported"
+                        description: "Indicates whether 3DS is necessary"
+                      credits:
+                        type: "array"
+                        description: "Indicates the credits available by provider. Structure under the **per-installment structure** model. See more at [Credit](/en/gateway/additional-data#additional-data-credit)"
+                        items:
+                          $ref: "#/components/schemas/CreditPerInstallment"
+                      hasForwarding:
+                        type: "boolean"
+                        description: "Indicates whether the payment method has transaction forwarding configured"
+                      requireCardExpiration:
+                        type: "boolean"
+                        description: "Indicates whether the card expiration date is required to process the transaction."
                       allowedDocumentTypes:
                         type: "array"
                         description: "Indicates the document types allowed for the transaction."
@@ -741,6 +818,13 @@ paths:
                       example: 2
                     kount:
                       $ref: '../base/en.yaml#/components/schemas/KountMetadata'
+                    requiresConfirmation:
+                      type: "boolean"
+                      description: "Indicates whether the transaction requires confirmation prior to processing."
+                      example: true
+                    interestQueryCode:
+                      type: "string"
+                      description: "Indicates whether the installment has information available to be applied during transaction processing. This field is valid for the **PAYSTUDIO** service, **TS** flavour, and the information must be available through the [interest inquiry service](/gateway/interests). If this value is submitted but the provided code is invalid or is not returned by that service, the transaction will be rejected."
                 idempotenceKey:
                   type: "string"
                   description: "Unique key to identify the transaction. See more at [Idempotency control](/en/gateway/idempotency)"
@@ -1000,7 +1084,7 @@ paths:
                 userAgent:
                   type: "string"
             examples:
-              Tarjeta de crédito:
+              Credit card:
                 value:
                   auth:
                     login: "aabbccdd1234567890aabbccdd123456"
@@ -1215,7 +1299,38 @@ paths:
                       bin: "411076"
                       expiration: "1228"
                       installments: 1
-      description: "Allows you to perform a reversal, re-authorization, refund or checkout on an existing transaction"
+        200 Confirm:
+          description: "Response of the a confirmation transaction."
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "../base/es.yaml#/components/schemas/Status"
+                  date:
+                    type: "string"
+                    description: "Date of the operation request"
+                    example: "2021-09-20T21:56:29-05:00"
+                  transactionDate:
+                    type: "string"
+                    description: "Date of execution of the operation"
+                    example: "2021-09-20T21:56:29-05:00"
+                  internalReference:
+                    type: "integer"
+                    description: "Internal reference of the operation"
+                    nullable: true
+                  type:
+                    type: "string"
+                    description: "Transaction type"
+                    enum:
+                      - "AUTH_CONFIRM"
+                      - "AUTH_CANCEL"
+                  transactionProcessed:
+                    type: object
+                    description: "Object containing the information of the original processed transaction."
+                    $ref: "../base/es.yaml#/components/schemas/Transaction"
+      description: "Allows you to perform a reversal, re-authorization, refund, checkout, confirmation or cancellation on an existing transaction"
       tags:
         - "Actions on transactions"
       requestBody:
@@ -1226,6 +1341,7 @@ paths:
               properties:
                 locale:
                   type: "string"
+                  description: "Localization code"
                   example: "es-CO"
                 auth:
                   $ref: "../base/en.yaml#/components/schemas/Authentication"
@@ -1235,11 +1351,20 @@ paths:
                     Type of operation to be performed on the transaction
                     
                     `reverse` to reverse a transaction.
+                    
                     `reauthorization` to modify a checkin transaction.
+                    
                     `checkout` to close and collect a checkin transaction.
+                    
                     `refund` to refund a transaction.
+                    
                     `process`, to manually approve a transaction.
+                    
                     `void` to cancel processing of a transaction pending manual approval.
+                    
+                    `confirm` to confirm a transaction pending confirmation.
+                    
+                    `cancel` to cancel a transaction pending confirmation.
                   enum:
                     - "reverse"
                     - "refund"
@@ -1248,6 +1373,8 @@ paths:
                     - "dispersion"
                     - "checkout"
                     - "reauthorization"
+                    - "confirm"
+                    - "cancel"
                   example: "reverse"
                 internalReference:
                   type: "number"
@@ -1283,10 +1410,36 @@ paths:
                               Total value in indicated base currency
 
                               EJ: `1000` Total value in indicated base currency
+                instrument:
+                  type: "object"
+                  description: "Structure that contains information about the means of payment to be used in a transaction. This structure is variable according to the request that is generated. Each service requires that one or another data be used."
+                  items:
+                    type: "object"
+                    properties:
+                      credit:
+                        description: "Selected credit to process. Available for action `confirm`"
+                        $ref: "#/components/schemas/CreditPerInstallment"
+                metadata:
+                  type: "object"
+                  description: |
+                    Dynamic key-value object of additional information required by external services to be executed.
+                  properties:
+                    interestQueryCode:
+                      type: "string"
+                      description: "Indicates whether the installment has information available to be applied during transaction processing. This field is valid for the **PAYSTUDIO** service, **TS** flavour, and the information must be available through the [interest inquiry service](/gateway/interests). If this value is submitted but the provided code is invalid or is not returned by that service, the transaction will be rejected."
+                ipAddress:
+                  type: "string"
+                  description: "Client IP address"
+                  example: "127.0.0.1"
+                userAgent:
+                  type: "string"
+                  description: "Customer User Agent"
+                  example: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
               required:
                 - "auth"
                 - "action"
                 - "internalReference"
+              x-conditional: credit
             examples:
               Reembolso:
                 value:
@@ -1576,6 +1729,37 @@ paths:
                       bin: "365454"
                       expiration: "1122"
                     notificationURL: "https://test.placetopay.ec/redirection/api/notify"
+        200 Confirm:
+          description: "Response of the a confirmation transaction."
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "../base/es.yaml#/components/schemas/Status"
+                  date:
+                    type: "string"
+                    description: "Date of the operation request"
+                    example: "2021-09-20T21:56:29-05:00"
+                  transactionDate:
+                    type: "string"
+                    description: "Date of execution of the operation"
+                    example: "2021-09-20T21:56:29-05:00"
+                  internalReference:
+                    type: "integer"
+                    description: "Internal reference of the operation"
+                    nullable: true
+                  type:
+                    type: "string"
+                    description: "Transaction type"
+                    enum:
+                      - "AUTH_CONFIRM"
+                      - "AUTH_CANCEL"
+                  transactionProcessed:
+                    type: object
+                    description: "Object containing the information of the original processed transaction."
+                    $ref: "../base/es.yaml#/components/schemas/Transaction"
   /gateway/search:
     post:
       summary: "Transaction search"
@@ -1714,7 +1898,7 @@ paths:
                           expiration: "1228"
       tags:
         - "Query a transaction"
-      description: "This service allows the search for transactions by reference and amount, it is usually used in case of loss of communication when creating a transaction to obtain the internal reference again."
+      description: "This service must be consumed if the card requires interest to be displayed (`displayInterest` set to `true`) or its credit conditions allow it (see condition in [Credits by provider](/en/gateway/additional-data/#additional-data-credit-providers)). It is available for flows that expose interest calculation, including Ecuador and Chile with PAYSTUDIO `TS` flavour."
       requestBody:
         content:
           application/json:
@@ -1747,9 +1931,9 @@ paths:
                     total: 1000
   /gateway/interests:
     post:
-      summary: "Interest Calculation (Ecuador only)"
+      summary: "Interest Calculation"
       operationId: "post-rest-gateway-interests"
-      description: "This service must be consumed if the card requires interest to be displayed (displayInterest to true) and as an example this way the values are displayed in the redirection service."
+      description: "This service must be consumed if the card requires interest to be displayed (`displayInterest` set to `true`). It is available for flows that expose interest calculation, including Ecuador and Chile with PAYSTUDIO `TS` flavour. In PAYSTUDIO `TS` flavour, send the selected installment in `instrument.credit.installment` together with the `kind` returned by the information service."
       tags:
         - "Get information"
       requestBody:
@@ -1766,34 +1950,6 @@ paths:
                   $ref: "#/components/schemas/Instrument"
                 payment:
                   $ref: "#/components/schemas/Payment"
-            examples:
-              Consumo:
-                value:
-                  auth:
-                    login: "aabbccdd1234567890aabbccdd123456"
-                    tranKey: "E0gHh8C6fceHnbsLlgBq2n7nRNjr8MVPcz0um1ZYCfs="
-                    nonce: "NjE0YjUwZGNlYjJiNA=="
-                    seed: "2021-09-22T10:50:52-05:00"
-                  payer:
-                    name: "John"
-                    email: "user_email@example.com"
-                  payment:
-                    reference: "1234567890"
-                    amount:
-                      currency: "USD"
-                      total: "1"
-                  instrument:
-                    card:
-                      number: "4111111111111111"
-                      expiration: "12/20"
-                      cvv: "123"
-                    credit:
-                      code: "1"
-                      type: "02"
-                      groupCode: "P"
-                      installment: "24"
-                  ipAddress: "127.0.0.1"
-                  userAgent: "Testing"
       responses:
         200:
           description: "OK"
@@ -1810,32 +1966,18 @@ paths:
                     $ref: "#/components/schemas/InterestValues"
                   conversion:
                     $ref: "../base/en.yaml#/components/schemas/AmountConversion"
-              examples:
-                Ejemplo:
-                  value:
-                    status:
-                      status: "OK"
-                      reason: "00"
-                      message: "The request has been processed successfully"
-                      date: "2021-09-22T16:08:19-05:00"
-                    provider: "INTERDIN"
-                    values:
-                      original: "1"
-                      installment: "0.04"
-                      interest: "0.03"
-                      total: "1.03"
-                    conversion:
-                      from:
-                        currency: "COP"
-                        total: "3000"
-                      to:
-                        currency: "USD"
-                        total: "1"
-                      factor: "0.0003333333333333333"
+                  additional:
+                    type: object
+                    description: Interest additional information.
+                    properties:
+                      interestQueryCode:
+                        type: string
+                        description: "Indicates whether the installment contains additional information that must be considered during transaction processing. This field applies only to **Paystudio TS**. When this field is returned, the `metadata.interestQueryCode` value must also be explicitly included in the processing request so that the information obtained from the installment inquiry can be applied."
+                        nullable: true
     parameters:
   /gateway/otp/generate:
     post:
-      summary: "Generación de OTP (solo Ecuador)"
+      summary: "OTP generation (Ecuador only)"
       operationId: "post-rest-otp-generate"
       description: "This service is consumed if the OTP is required for the card provided by the client (requireOtp is true) and the user must be allowed to enter the OTP to send it later in the processing service, as an example this is captured in the interface redirection"
       tags:
@@ -1893,7 +2035,7 @@ paths:
                     status:
                       status: "OK"
                       reason: "00"
-                      message: "La petición se ha procesado correctamente"
+                      message: "The request has been processed successfully"
                       date: "2021-09-21T14:52:28-05:00"
                     provider: "INTERDIN"
                 No Requerido:
@@ -2107,7 +2249,7 @@ paths:
                 - "auth"
                 - "filters"
             examples:
-              Básico:
+              Basic:
                 value:
                   auth:
                     login: "aabbccdd1234567890aabbccdd123456"
@@ -2690,7 +2832,7 @@ paths:
                       reason: "05"
                       message: "The required service is not available on the site"
                       date: "2021-09-27T09:35:03-05:00"
-                Servicio no disponible:
+                Service unavailable:
                   value:
                     status:
                       status: "REJECTED"
@@ -2715,7 +2857,7 @@ paths:
                 instrument:
                   $ref: "#/components/schemas/Instrument"
             examples:
-              Solicitud de PinBlock por tarjeta:
+              PinBlock request by card:
                 value:
                   auth:
                     login: "aabbccdd1234567890aabbccdd123456"
@@ -2728,7 +2870,7 @@ paths:
                     pinPad:
                       transactionId: "b0c62f97-3b06-4c33-b68f-e281e95eb4bb"
                       positions: "0123"
-              Solicitud de Pinblock por token:
+              PinBlock request by token:
                 value:
                   auth:
                     login: "aabbccdd1234567890aabbccdd123456"
@@ -2757,7 +2899,7 @@ paths:
                       pinPad:
                         $ref: "#/components/schemas/PinPad"
               examples:
-                Generación exitosa:
+                Successful generation:
                   value:
                     status:
                       status: "APPROVED"
@@ -2782,14 +2924,14 @@ paths:
                     status:
                       status: "REJECTED"
                       reason: "05"
-                      message: "El servicio requerido no se encuentra disponible en el sitio"
+                      message: "The required service is not available on the site"
                       date: "2021-09-27T09:35:03-05:00"
-                Servicio no disponible:
+                Service unavailable:
                   value:
                     status:
                       status: "REJECTED"
                       reason: "SU"
-                      message: "El servicio requerido no se encuentra disponible en el sitio"
+                      message: "The required service is not available on the site"
                       date: "2021-09-27T09:35:03-05:00"
             application/xml:
               schema:
@@ -2802,7 +2944,7 @@ paths:
       operationId: post-gateway-search-cashorder
       description: "This service allows consulting payment orders by reference, total and currency."
       tags:
-        - "Operaciones con ordenes de pago"
+        - "Payment order operations"
       requestBody:
         content:
           application/json:
@@ -2877,7 +3019,7 @@ paths:
       operationId: post-gateway-delete-cashorder
       description: "This service allows deleting pending cash orders."
       tags:
-        - "Operaciones con ordenes de pago"
+        - "Payment order operations"
       requestBody:
         content:
           application/json:
@@ -3217,13 +3359,13 @@ paths:
                   $ref: "../base/en.yaml#/components/schemas/Authentication"
                 instrument:
                   type: object
-                  description: Token a la que se le realizará la validación.
+                  description: Token on which the validation will be performed.
                   required:
                     - token
                   properties:
                     token:
                       type: object
-                      description: Se requiere el token o subtoken de la cuenta a validar.
+                      description: The token or subtoken of the account to be validated is required.
                       properties:
                         token:
                           type: string
@@ -3550,7 +3692,7 @@ components:
           maxLength: 4
           description: "CVV requested from the user in case it is present in the operation"
       x-examples:
-        Ejemplo respuesta:
+        Response example:
           value:
             token: faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891
             subtoken: 'fakesubtoken00005'
@@ -3559,14 +3701,14 @@ components:
             lastDigits: "0005"
             validUntil: "2018-12-31"
             installments: 3
-        Ejemplo en solicitud:
+        Request example:
           value:
             token: faketoken12f233bd8f5d42138d681bf07ea8295429df07a4af287703e30c891
             cvv: "123"
     Credit:
       title: "Credit"
       type: "object"
-      description: "Structure that contains information on the type of credit"
+      description: "Structure that contains information about the credit type. See more at [Credit](/en/gateway/additional-data#additional-data-credit)"
       properties:
         code:
           type: "string"
@@ -3577,6 +3719,32 @@ components:
           type: "string"
         installment:
           type: "integer"
+        installments:
+          type: "array"
+          items:
+            type: "integer"
+        kind:
+          type: "string"
+          description: "Classification of the credit modality. (Paystudio TS)"
+        description:
+          type: "string"
+    CreditPerInstallment:
+      title: "Credit"
+      type: "object"
+      description: "Structure that contains information about the credit type. See more at [Credit](/en/gateway/additional-data#additional-data-credit-providers-paystudio-ts)"
+      properties:
+        installment:
+          type: "integer"
+          description: "Number of installments"
+        kind:
+          type: "string"
+          description: "Classification of the credit modality."
+        description:
+          type: "string"
+          description: "Credit description."
+      required:
+        - installment
+        - kind
     Pocket:
       title: "Pocket"
       type: "object"
@@ -3850,6 +4018,7 @@ components:
             - "BTNBC"
             - "PGEFT"
             - "BTNAV"
+            - "ATHMV"
             - "BB_CP"
             - "BDILO"
             - "TR_TC"
@@ -3979,7 +4148,7 @@ components:
           example: "johnDoe@email.com"
         mobile:
           type: "string"
-          description: "El numero celular puede contener el indicativo del país"
+          description: "The mobile number can contain the country code"
           example: "+573111111111"
         address:
           $ref: "#/components/schemas/Address"

@@ -10,7 +10,13 @@ import clsx from 'clsx'
 import { create } from 'zustand'
 
 import { Tag } from '@/components/Tag'
+import { useLocale } from '@/components/LocaleProvider'
 import { usePreventLayoutShift } from '@/hooks/usePreventLayoutShift'
+
+const COPY_TEXTS = {
+  es: { copy: 'Copiar', copied: '¡Copiado!' },
+  en: { copy: 'Copy', copied: 'Copied!' },
+}
 
 const languageNames = {
   js: 'JavaScript',
@@ -54,6 +60,8 @@ function ClipboardIcon(props) {
 function CopyButton({ code }) {
   let [copyCount, setCopyCount] = useState(0)
   let copied = copyCount > 0
+  let { locale } = useLocale()
+  let texts = COPY_TEXTS[locale] ?? COPY_TEXTS.es
 
   useEffect(() => {
     if (copyCount > 0) {
@@ -87,7 +95,7 @@ function CopyButton({ code }) {
         )}
       >
         <ClipboardIcon className="h-5 w-5 fill-gray-500/20 stroke-gray-500 transition-colors group-hover/button:stroke-gray-400" />
-        Copy
+        {texts.copy}
       </span>
       <span
         aria-hidden={!copied}
@@ -96,7 +104,7 @@ function CopyButton({ code }) {
           !copied && 'translate-y-1.5 opacity-0'
         )}
       >
-        Copied!
+        {texts.copied}
       </span>
     </button>
   )
@@ -145,6 +153,7 @@ function CodePanel({ tag, label, code, children }) {
 
 function CodeGroupHeader({ title, children, selectedIndex, onChange }) {
   let hasTabs = Children.count(children) > 1
+  const { locale } = useLocale()
 
   const renderChilds = () => {
     if (shouldBeTabs(children)) {
@@ -170,6 +179,7 @@ function CodeGroupHeader({ title, children, selectedIndex, onChange }) {
       <div className="mt-2">
         <select
           className="bg-inherit text-white/80 dark:text-white/60"
+          aria-label={locale === 'es' ? 'Seleccionar ejemplo de código' : 'Select code example'}
           onChange={(evt) => onChange(evt.target.value)}
         >
           {Children.map(children, (child, childIndex) => (

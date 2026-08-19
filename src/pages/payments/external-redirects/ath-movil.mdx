@@ -1,61 +1,668 @@
 import athMovil from '@/images/cards/ath_movil.svg'
 import { PageTitle } from '@/components/PageTitle'
 import { CountryFlags } from '@/components/Flags'
+import { CodeGroup } from '@/components/mdx'
 
-export const description = 'Descubre ATH Móvil: medio de pago para Puerto Rico donde el usuario aprueba el pago desde su telefono y la sesion se actualiza con el resultado.'
+export const description = 'Integra ATH Móvil en Puerto Rico mediante Webcheckout o directamente por Gateway, donde el usuario aprueba el pago desde su teléfono.'
 
 <PageTitle title='ATH Móvil' imageSrc={athMovil}/>
 <CountryFlags countries="PR" prefix="Disponible para: " className='mt-4'/>
 
-ATH Móvil permite que el pagador autorice la transaccion desde su telefono, mientras el comercio gestiona la confirmacion del estado segun su integracion.
+ATH Móvil permite que el pagador autorice la transacción desde su teléfono. El comercio puede ofrecer este medio de pago mediante el checkout de Placetopay o integrarlo directamente en su propia experiencia mediante Gateway.
 
-## Beneficios de ATH Móvil
+## Beneficios de ATH Móvil {{ id: 'benefits' }}
 
-- **Transferencias inmediatas**: Permite enviar y recibir dinero al instante usando el numero de celular.
-- **Amplia participacion financiera**: Opera con bancos y cooperativas participantes del ecosistema ATH Móvil.
-- **Seguridad y rapidez en el dia a dia**: Ofrece una experiencia segura para pagos y transferencias cotidianas.
+- **Cobros mediante Push Payment**: La solicitud llega a la aplicación ATH Móvil para que el pagador mantenga el control y confirme la transacción desde su teléfono.
+- **Captura mínima de datos**: En la integración por Gateway, el único dato del medio de pago que el comercio solicita al usuario es su número de teléfono.
+- **Experiencia propia del comercio**: Gateway permite iniciar el cobro desde una interfaz web, móvil, IVR o un proceso asistido, sin mostrar un checkout de Placetopay.
+- **Sin datos de tarjeta**: El comercio no solicita ni almacena información sensible de tarjetas para iniciar el pago.
 
-## Casos de uso
+## Casos de uso {{ id: 'use-cases' }}
 
-- **Comercios en Puerto Rico**: Ideal para negocios que quieren habilitar ATH Móvil como alternativa de pago local.
-- **Pagos con confirmacion en segundo dispositivo**: El comprador confirma la transaccion en su telefono mientras mantiene abierto el checkout.
+- **Comercio electrónico**: El comprador selecciona ATH Móvil en Webcheckout o en la interfaz propia del comercio y confirma el pago desde su teléfono.
+- **Call Centers con Gateway**: Un agente captura el número de teléfono e inicia el cobro mientras el cliente aprueba de forma privada en ATH Móvil.
+- **IVR (Interactive Voice Response) con Gateway**: Un flujo de audiorespuesta recopila el teléfono y genera la solicitud sin pedir datos de tarjeta.
+- **Procesos asistidos con Gateway**: Ideal para ventas o recaudos donde no existe una interfaz de pago tradicional y un operador inicia la transacción.
 
-## Comportamiento del medio de pago
+## Comportamiento del medio de pago {{ id: 'payment-method-behavior' }}
 
-ATH Móvil es un medio de pago de tipo redireccion en su modelo de integracion, donde la aprobacion se completa desde el telefono del pagador y el estado se actualiza en la sesion.
+ATH Móvil puede operar mediante Webcheckout o una integración directa por Gateway. En ambos casos, la aprobación se completa en la aplicación ATH Móvil del pagador y la transacción se actualiza con el resultado.
 
-![ATH Móvil payment flow](/payments/ath-movil/pm-ath-movil-flow.png)
+### Flujo en Webcheckout {{ id: 'webcheckout-flow' }}
 
-### Flujo en Webcheckout
+![Flujo de pago ATH Móvil en Webcheckout](/payments/ath-movil/pm-ath-movil-flow.png)
 
 1. El usuario selecciona **ATH Móvil** como medio de pago.
-2. El usuario completa su informacion y confirma el pago.
-3. El pago queda en estado pendiente mientras el usuario aprueba desde su telefono.
-4. Webcheckout consulta periodicamente el estado de la transaccion.
-5. Cuando cambia el estado, la sesion se actualiza y muestra el resultado final al usuario.
+2. El usuario completa su información y confirma el pago.
+3. El pago queda en estado pendiente mientras el usuario aprueba desde su teléfono.
+4. Webcheckout consulta periódicamente el estado de la transacción.
+5. Cuando cambia el estado, la sesión se actualiza y muestra el resultado final al usuario.
 
 - **Integraciones por**: [Webcheckout](/checkout)
-  El usuario aprueba el pago desde su telefono y la sesion de Checkout se actualiza con el estado final de la transaccion.
+  El usuario aprueba el pago desde su teléfono y la sesión de Checkout se actualiza con el estado final de la transacción.
 
-- **Integraciones por**: [Gateway](/gateway)
-  La integracion es asincrona. Despues de crear/procesar la transaccion, el integrador debe consultar su estado por API hasta obtener el resultado final.
+## Integración por Gateway {{ id: 'gateway-integration' }}
 
-  Para obtener el estado final de la transaccion, se debe realizar una peticion al endpoint [Consulta de transaccion por referencia interna](/gateway/api/reference/transaction#query-request).
+La integración por [Gateway](/gateway) es un flujo asíncrono en el que el comercio controla la interfaz y consulta el estado por API hasta obtener el resultado final.
 
-## Restricciones y consideraciones
+### Flujo directo por API {{ id: 'direct-api-flow' }}
 
-- **Flujo asincrono en Gateway**: El comercio debe implementar consulta de estado por API hasta obtener resultado final.
-- **Estado pendiente durante aprobacion**: La transaccion permanece pendiente mientras el usuario confirma el pago en su telefono.
-- **Disponibilidad por region**: ATH Móvil aplica para operaciones en Puerto Rico.
+La integración directa por Gateway permite cobrar con ATH Móvil sin redirigir al usuario ni mostrar una interfaz o checkout de Placetopay. El comercio presenta su propio componente visual y captura únicamente el número de teléfono asociado a ATH Móvil como dato del medio de pago.
 
-## FAQs
+Además del teléfono, el backend del comercio envía las credenciales de autenticación, la referencia y el monto requeridos para procesar la transacción.
+
+1. El comercio muestra su propio botón o formulario de pago con ATH Móvil.
+2. El usuario ingresa el número de teléfono asociado a su cuenta ATH Móvil.
+3. El backend del comercio envía la solicitud a `POST /gateway/process`.
+4. ATH Móvil envía una notificación push al teléfono del usuario y la transacción queda en estado `PENDING`.
+5. El usuario aprueba o rechaza la solicitud desde la aplicación ATH Móvil.
+6. El comercio consulta la transacción con el `internalReference` y actualiza su propia interfaz con el resultado final.
+
+### Componentes visuales de referencia {{ id: 'visual-resources' }}
+
+Los siguientes widgets son ejemplos de cómo el comercio puede presentar el flujo directo por API. No son componentes alojados ni obligatorios de Placetopay: cada comercio puede construir su propio botón, formulario y estados de la transacción, adaptar los textos a su idioma y mantener el comportamiento descrito en esta guía.
+
+<div className="not-prose grid grid-cols-1 gap-4 sm:grid-cols-2">
+  <figure className="flex flex-col">
+    <div className="flex h-28 items-start justify-center">
+      <img src="/payments/ath-movil/gateway/widgets/button-light.png" alt="Botón claro de ATH Móvil" className="my-0 h-auto max-h-full w-auto max-w-full drop-shadow-[0_0_1px_rgba(15,23,42,0.45)] dark:drop-shadow-[0_0_1px_rgba(255,255,255,0.25)]" />
+    </div>
+    <figcaption className="mt-3 text-sm text-gray-600 dark:text-gray-400"><strong className="text-gray-900 dark:text-white">Botón claro.</strong> Punto de entrada para iniciar el pago.</figcaption>
+  </figure>
+  <figure className="flex flex-col">
+    <div className="flex h-28 items-start justify-center">
+      <img src="/payments/ath-movil/gateway/widgets/button-dark.png" alt="Botón oscuro de ATH Móvil" className="my-0 h-auto max-h-full w-auto max-w-full drop-shadow-[0_0_1px_rgba(15,23,42,0.45)] dark:drop-shadow-[0_0_1px_rgba(255,255,255,0.25)]" />
+    </div>
+    <figcaption className="mt-3 text-sm text-gray-600 dark:text-gray-400"><strong className="text-gray-900 dark:text-white">Botón oscuro.</strong> Variante para interfaces con mayor contraste.</figcaption>
+  </figure>
+  <figure className="flex flex-col">
+    <div className="flex h-44 items-start justify-center sm:h-52">
+      <img src="/payments/ath-movil/gateway/widgets/phone-entry.png" alt="Formulario para ingresar el teléfono de ATH Móvil" className="my-0 h-auto max-h-full w-auto max-w-full drop-shadow-[0_0_1px_rgba(15,23,42,0.45)] dark:drop-shadow-[0_0_1px_rgba(255,255,255,0.25)]" />
+    </div>
+    <figcaption className="mt-3 text-sm text-gray-600 dark:text-gray-400"><strong className="text-gray-900 dark:text-white">Captura del teléfono, modo claro.</strong> El usuario ingresa el número asociado a ATH Móvil.</figcaption>
+  </figure>
+  <figure className="flex flex-col">
+    <div className="flex h-44 items-start justify-center sm:h-52">
+      <img src="/payments/ath-movil/gateway/widgets/phone-entry-dark.png" alt="Formulario oscuro para ingresar el teléfono de ATH Móvil" className="my-0 h-auto max-h-full w-auto max-w-full drop-shadow-[0_0_1px_rgba(15,23,42,0.45)] dark:drop-shadow-[0_0_1px_rgba(255,255,255,0.25)]" />
+    </div>
+    <figcaption className="mt-3 text-sm text-gray-600 dark:text-gray-400"><strong className="text-gray-900 dark:text-white">Captura del teléfono, modo oscuro.</strong> El usuario ingresa el número asociado a ATH Móvil.</figcaption>
+  </figure>
+  <figure className="flex flex-col">
+    <div className="flex h-44 items-start justify-center sm:h-52">
+      <img src="/payments/ath-movil/gateway/widgets/processing.png" alt="Widget claro de ATH Móvil procesando el pago" className="my-0 h-auto max-h-full w-auto max-w-full drop-shadow-[0_0_1px_rgba(15,23,42,0.45)] dark:drop-shadow-[0_0_1px_rgba(255,255,255,0.25)]" />
+    </div>
+    <figcaption className="mt-3 text-sm text-gray-600 dark:text-gray-400"><strong className="text-gray-900 dark:text-white">Procesando, modo claro.</strong> Confirma que la solicitud está siendo enviada.</figcaption>
+  </figure>
+  <figure className="flex flex-col">
+    <div className="flex h-44 items-start justify-center sm:h-52">
+      <img src="/payments/ath-movil/gateway/widgets/processing-dark.png" alt="Widget oscuro de ATH Móvil procesando el pago" className="my-0 h-auto max-h-full w-auto max-w-full drop-shadow-[0_0_1px_rgba(15,23,42,0.45)] dark:drop-shadow-[0_0_1px_rgba(255,255,255,0.25)]" />
+    </div>
+    <figcaption className="mt-3 text-sm text-gray-600 dark:text-gray-400"><strong className="text-gray-900 dark:text-white">Procesando, modo oscuro.</strong> Confirma que la solicitud está siendo enviada.</figcaption>
+  </figure>
+  <figure className="flex flex-col">
+    <div className="flex h-44 items-start justify-center sm:h-52">
+      <img src="/payments/ath-movil/gateway/widgets/waiting-confirmation.png" alt="Widget claro esperando la confirmación en ATH Móvil" className="my-0 h-auto max-h-full w-auto max-w-full drop-shadow-[0_0_1px_rgba(15,23,42,0.45)] dark:drop-shadow-[0_0_1px_rgba(255,255,255,0.25)]" />
+    </div>
+    <figcaption className="mt-3 text-sm text-gray-600 dark:text-gray-400"><strong className="text-gray-900 dark:text-white">Esperando confirmación, modo claro.</strong> Invita al usuario a revisar la aplicación ATH Móvil.</figcaption>
+  </figure>
+  <figure className="flex flex-col">
+    <div className="flex h-44 items-start justify-center sm:h-52">
+      <img src="/payments/ath-movil/gateway/widgets/waiting-confirmation-dark.png" alt="Widget oscuro esperando la confirmación en ATH Móvil" className="my-0 h-auto max-h-full w-auto max-w-full drop-shadow-[0_0_1px_rgba(15,23,42,0.45)] dark:drop-shadow-[0_0_1px_rgba(255,255,255,0.25)]" />
+    </div>
+    <figcaption className="mt-3 text-sm text-gray-600 dark:text-gray-400"><strong className="text-gray-900 dark:text-white">Esperando confirmación, modo oscuro.</strong> Invita al usuario a revisar la aplicación ATH Móvil.</figcaption>
+  </figure>
+  <figure className="flex flex-col">
+    <div className="flex h-44 items-start justify-center sm:h-52">
+      <img src="/payments/ath-movil/gateway/widgets/approved.png" alt="Widget claro de pago ATH Móvil aprobado" className="my-0 h-auto max-h-full w-auto max-w-full drop-shadow-[0_0_1px_rgba(15,23,42,0.45)] dark:drop-shadow-[0_0_1px_rgba(255,255,255,0.25)]" />
+    </div>
+    <figcaption className="mt-3 text-sm text-gray-600 dark:text-gray-400"><strong className="text-gray-900 dark:text-white">Pago aprobado, modo claro.</strong> Presenta el resultado final al usuario.</figcaption>
+  </figure>
+  <figure className="flex flex-col">
+    <div className="flex h-44 items-start justify-center sm:h-52">
+      <img src="/payments/ath-movil/gateway/widgets/approved-dark.png" alt="Widget oscuro de pago ATH Móvil aprobado" className="my-0 h-auto max-h-full w-auto max-w-full drop-shadow-[0_0_1px_rgba(15,23,42,0.45)] dark:drop-shadow-[0_0_1px_rgba(255,255,255,0.25)]" />
+    </div>
+    <figcaption className="mt-3 text-sm text-gray-600 dark:text-gray-400"><strong className="text-gray-900 dark:text-white">Pago aprobado, modo oscuro.</strong> Presenta el resultado final al usuario.</figcaption>
+  </figure>
+</div>
+
+<h4 id="official-logos" className="mt-10 text-xl font-semibold tracking-tight text-gray-900 dark:text-white">Logos oficiales</h4>
+
+Utiliza la variante que mantenga mejor contraste con tu interfaz. Los archivos están disponibles en SVG para implementación web y en PNG para piezas gráficas.
+
+<div className="not-prose grid grid-cols-1 gap-4 sm:grid-cols-3">
+  <div className="flex flex-col rounded-2xl border border-gray-900/10 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-900">
+    <div className="flex min-h-32 flex-1 items-center rounded-xl bg-white p-4">
+      <img src="/payments/ath-movil/gateway/brand/ath-movil-dark.svg" alt="Logotipo oscuro de ATH Móvil" className="my-0 h-auto w-full" />
+    </div>
+    <p className="mt-3 text-sm font-semibold text-gray-900 dark:text-white">Logotipo oscuro</p>
+    <div className="mt-2 flex gap-2">
+      <a href="/payments/ath-movil/gateway/brand/ath-movil-dark.svg" download aria-label="Descargar logotipo oscuro de ATH Móvil en SVG" className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-white">SVG</a>
+      <a href="/payments/ath-movil/gateway/brand/ath-movil-dark.png" download aria-label="Descargar logotipo oscuro de ATH Móvil en PNG" className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-white">PNG</a>
+    </div>
+  </div>
+  <div className="flex flex-col rounded-2xl border border-gray-900/10 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-900">
+    <div className="flex min-h-32 flex-1 items-center rounded-xl bg-gray-950 p-4">
+      <img src="/payments/ath-movil/gateway/brand/ath-movil-light.svg" alt="Logotipo claro de ATH Móvil" className="my-0 h-auto w-full" />
+    </div>
+    <p className="mt-3 text-sm font-semibold text-gray-900 dark:text-white">Logotipo claro</p>
+    <div className="mt-2 flex gap-2">
+      <a href="/payments/ath-movil/gateway/brand/ath-movil-light.svg" download aria-label="Descargar logotipo claro de ATH Móvil en SVG" className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-white">SVG</a>
+      <a href="/payments/ath-movil/gateway/brand/ath-movil-light.png" download aria-label="Descargar logotipo claro de ATH Móvil en PNG" className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-white">PNG</a>
+    </div>
+  </div>
+  <div className="flex flex-col rounded-2xl border border-gray-900/10 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-900">
+    <div className="flex min-h-32 flex-1 items-center justify-center rounded-xl bg-gray-100 p-4 dark:bg-gray-800">
+      <img src="/payments/ath-movil/gateway/brand/ath-movil-symbol.svg" alt="Isotipo oficial de ATH Móvil" className="my-0 h-24 w-24" />
+    </div>
+    <p className="mt-3 text-sm font-semibold text-gray-900 dark:text-white">Isotipo</p>
+    <div className="mt-2 flex gap-2">
+      <a href="/payments/ath-movil/gateway/brand/ath-movil-symbol.svg" download aria-label="Descargar isotipo de ATH Móvil en SVG" className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-white">SVG</a>
+      <a href="/payments/ath-movil/gateway/brand/ath-movil-symbol.png" download aria-label="Descargar isotipo de ATH Móvil en PNG" className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-white">PNG</a>
+    </div>
+  </div>
+</div>
+
+<div className="not-prose mt-4">
+  <Button href="/payments/ath-movil/gateway/brand/ath-movil-brand-assets.zip" download arrow="right">Descargar kit completo de logos</Button>
+</div>
+
+### Implementación por API {{ id: 'implementation-sequence' }}
+
+1. Opcionalmente, consulta las capacidades de ATH Móvil mediante `POST /gateway/information`.
+2. Envía el cobro mediante `POST /gateway/process`.
+3. Conserva el `internalReference` de la respuesta inicial.
+4. Consulta `POST /gateway/query` mientras el estado sea `PENDING` y detente cuando recibas un resultado final.
+
+Los ejemplos cURL de las siguientes secciones muestran cómo construir y enviar cada petición REST. Las respuestas muestran los datos que el comercio debe procesar en cada paso.
+
+### Consultar información {{ id: 'gateway-information', tag: 'POST', label: '/gateway/information' }}
+
+<Row>
+  <Col>
+    El endpoint de [información](/gateway/api/reference/information#information-request) permite consultar las capacidades del servicio antes de procesar el cobro. Para ATH Móvil, envía los datos del pago y el instrumento de redirección `ATHMV`.
+
+    <Properties classNames="my-6">
+      <Property name="auth" type="Authentication">
+        Credenciales de autenticación del sitio.
+      </Property>
+      <Property name="locale" type="string" isRequired={false}>
+        Idioma de la respuesta, por ejemplo `es_PR`.
+      </Property>
+      <Property name="payment.reference" type="string">
+        Referencia única del pago en el comercio.
+      </Property>
+      <Property name="payment.amount.currency" type="string">
+        Moneda del pago. Para ATH Móvil debe ser `USD`.
+      </Property>
+      <Property name="payment.amount.total" type="number">
+        Valor total del cobro, mayor que cero.
+      </Property>
+      <Property name="instrument.redirection.paymentMethod" type="string">
+        Código del medio de pago. Debe ser `ATHMV`.
+      </Property>
+    </Properties>
+  </Col>
+
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/gateway/information">
+```bash {{ title: 'cURL' }}
+curl -X "POST" https://api-co-dev.placetopay.ws/gateway/information \
+  -H "Content-Type: application/json" \
+  -d '{
+    "locale": "es_PR",
+    "auth": {
+      "login": "aabbccdd1234567890aabbccdd123456",
+      "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+      "nonce": "NjE0OWVkODgwYjNhNw==",
+      "seed": "2026-07-31T10:15:30-04:00"
+    },
+    "payment": {
+      "reference": "ATHMV-ORDER-1001",
+      "description": "Compra de prueba",
+      "amount": {
+        "currency": "USD",
+        "total": 10
+      }
+    },
+    "instrument": {
+      "redirection": {
+        "paymentMethod": "ATHMV"
+      }
+    }
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    `requireRedirection: true` identifica a ATH Móvil como un servicio de autorización externa. No requiere datos de tarjeta, CVV ni OTP dentro de Gateway.
+
+    <Properties classNames="my-6">
+      <Property name="status" type="Status">
+        Resultado general de la solicitud de información.
+      </Property>
+      <Property name="provider" type="string">
+        Proveedor que procesará la operación: `ATH-MOVIL`.
+      </Property>
+      <Property name="serviceCode" type="string">
+        Código del servicio habilitado: `ATHMV`.
+      </Property>
+      <Property name="requireRedirection" type="boolean">
+        Indica que la autorización ocurre en un aplicativo externo.
+      </Property>
+      <Property name="requireOtp" type="boolean">
+        Para ATH Móvil se devuelve `false`.
+      </Property>
+      <Property name="requireCvv2" type="boolean">
+        Para ATH Móvil se devuelve `false`.
+      </Property>
+      <Property name="threeDS" type="string">
+        Para ATH Móvil se devuelve `unsupported`.
+      </Property>
+      <Property name="credits" type="array">
+        Opciones de crédito disponibles; para ATH Móvil se devuelve vacío.
+      </Property>
+    </Properties>
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Respuesta">
+```json {{ title: '200' }}
+{
+  "status": {
+    "status": "OK",
+    "reason": "00",
+    "message": "La petición se ha procesado correctamente",
+    "date": "2026-07-31T10:15:31-04:00"
+  },
+  "provider": "ATH-MOVIL",
+  "serviceCode": "ATHMV",
+  "requireRedirection": true,
+  "cardType": null,
+  "cardTypes": null,
+  "displayInterest": false,
+  "requireOtp": false,
+  "requireCvv2": false,
+  "threeDS": "unsupported",
+  "credits": []
+}
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+### Procesar una transacción {{ id: 'gateway-process', tag: 'POST', label: '/gateway/process' }}
+
+<Row>
+  <Col>
+    Envía el cobro al endpoint de [procesamiento de transacción](/gateway/api/reference/transaction#process-request). `payer.mobile` y `instrument.redirection.paymentMethod` son los campos particulares del flujo ATH Móvil.
+
+    <Properties classNames="my-6">
+      <Property name="auth" type="Authentication">
+        Credenciales de autenticación del sitio.
+      </Property>
+      <Property name="locale" type="string" isRequired={false}>
+        Idioma de la respuesta, por ejemplo `es_PR`.
+      </Property>
+      <Property name="payer.mobile" type="string">
+        Número de teléfono asociado a ATH Móvil. Se recomienda enviarlo en formato internacional con el prefijo `+1`.
+      </Property>
+      <Property name="payment.reference" type="string">
+        Referencia única del pago en el comercio.
+      </Property>
+      <Property name="payment.description" type="string" isRequired={false}>
+        Descripción del pago.
+      </Property>
+      <Property name="payment.amount.currency" type="string">
+        Moneda del pago. Para ATH Móvil debe ser `USD`.
+      </Property>
+      <Property name="payment.amount.total" type="number">
+        Valor total del cobro, mayor que cero.
+      </Property>
+      <Property name="instrument.redirection.paymentMethod" type="string">
+        Código del medio de pago. Debe ser `ATHMV`.
+      </Property>
+      <Property name="ipAddress" type="string" isRequired={false}>
+        Dirección IP desde la que se origina la solicitud.
+      </Property>
+      <Property name="userAgent" type="string" isRequired={false}>
+        Agente de usuario desde el que se origina la solicitud.
+      </Property>
+    </Properties>
+  </Col>
+
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/gateway/process">
+```bash {{ title: 'cURL' }}
+curl -X "POST" https://api-co-dev.placetopay.ws/gateway/process \
+  -H "Content-Type: application/json" \
+  -d '{
+    "locale": "es_PR",
+    "auth": {
+      "login": "aabbccdd1234567890aabbccdd123456",
+      "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+      "nonce": "NjE0OWVkODgwYjNhNw==",
+      "seed": "2026-07-31T10:15:30-04:00"
+    },
+    "payer": {
+      "mobile": "+19391111114"
+    },
+    "payment": {
+      "reference": "ATHMV-ORDER-1001",
+      "description": "Compra de prueba",
+      "amount": {
+        "currency": "USD",
+        "total": 10
+      }
+    },
+    "instrument": {
+      "redirection": {
+        "paymentMethod": "ATHMV"
+      }
+    },
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Placetopay Sandbox"
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    La respuesta inicial normalmente es `PENDING`. Conserva `internalReference`, porque es el identificador requerido para consultar el resultado.
+
+    `redirection.additional.expiration` indica hasta cuándo puede confirmarse el pago. `redirection.processURL` se devuelve únicamente en sandbox para abrir el simulador; en producción se omite.
+
+    <Properties classNames="my-6">
+      <Property name="status" type="Status">
+        Estado inicial de la transacción; normalmente `PENDING`.
+      </Property>
+      <Property name="internalReference" type="number">
+        Identificador que debe conservarse para consultar la transacción.
+      </Property>
+      <Property name="reference" type="string">
+        Referencia enviada por el comercio.
+      </Property>
+      <Property name="paymentMethod" type="string">
+        Código del medio de pago: `ATHMV`.
+      </Property>
+      <Property name="amount" type="Amount">
+        Moneda y valor procesados.
+      </Property>
+      <Property name="provider" type="string">
+        Proveedor que procesa la operación: `ATH-MOVIL`.
+      </Property>
+      <Property name="processorFields" type="object">
+        Identificadores y códigos de respuesta entregados por el procesador.
+      </Property>
+      <Property name="redirection.processURL" type="string" isRequired={false}>
+        URL del simulador. Solo se devuelve en sandbox.
+      </Property>
+      <Property name="redirection.additional.expiration" type="date-time">
+        Fecha límite para confirmar el pago.
+      </Property>
+    </Properties>
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Respuesta">
+```json {{ title: 'Pendiente' }}
+{
+  "status": {
+    "status": "PENDING",
+    "reason": "?-",
+    "message": "Transacción pendiente. Por favor consulte con su entidad financiera si el débito fue realizado",
+    "date": "2026-07-31T10:15:31-04:00"
+  },
+  "date": "2026-07-31T10:15:31-04:00",
+  "transactionDate": "2026-07-31T10:15:31-04:00",
+  "internalReference": 485,
+  "reference": "ATHMV-ORDER-1001",
+  "paymentMethod": "ATHMV",
+  "franchise": "athmv",
+  "franchiseName": "ATH Móvil",
+  "issuerName": null,
+  "amount": {
+    "currency": "USD",
+    "total": 10
+  },
+  "conversion": {
+    "from": {
+      "currency": "USD",
+      "total": 10
+    },
+    "to": {
+      "currency": "USD",
+      "total": 10
+    },
+    "factor": 1
+  },
+  "authorization": "000000",
+  "receipt": null,
+  "type": "AUTH_ONLY",
+  "refunded": false,
+  "lastDigits": null,
+  "provider": "ATH-MOVIL",
+  "discount": null,
+  "processorFields": {
+    "id": "63671893972dc2326463f93642910630",
+    "b24": "?-",
+    "paymentURL": "https://rest.test/mock/redirection/63671893972dc2326463f93642910630"
+  },
+  "additional": {
+    "onTest": true
+  },
+  "redirection": {
+    "paymentMethod": "ATHMV",
+    "processURL": "https://rest.test/mock/redirection/63671893972dc2326463f93642910630",
+    "additional": {
+      "expiration": "2026-07-31T10:35:31-04:00"
+    }
+  }
+}
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+### Consultar el resultado {{ id: 'gateway-query', tag: 'POST', label: '/gateway/query' }}
+
+<Row>
+  <Col>
+    Consulta el endpoint de [transacción por referencia interna](/gateway/api/reference/transaction#query-request) con el `internalReference` recibido al procesar el pago.
+
+    <Properties classNames="my-6">
+      <Property name="auth" type="Authentication">
+        Credenciales de autenticación del sitio.
+      </Property>
+      <Property name="locale" type="string" isRequired={false}>
+        Idioma de la respuesta, por ejemplo `es_PR`.
+      </Property>
+      <Property name="internalReference" type="number">
+        Identificador recibido en la respuesta de `/gateway/process`.
+      </Property>
+    </Properties>
+  </Col>
+
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/gateway/query">
+```bash {{ title: 'cURL' }}
+curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
+  -H "Content-Type: application/json" \
+  -d '{
+    "locale": "es_PR",
+    "auth": {
+      "login": "aabbccdd1234567890aabbccdd123456",
+      "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+      "nonce": "NjE0OWVkODgwYjNhNw==",
+      "seed": "2026-07-31T10:16:00-04:00"
+    },
+    "internalReference": 485
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    Mientras el estado sea `PENDING`, repite la consulta con un intervalo controlado. Detén las consultas cuando recibas `APPROVED`, `REJECTED` o `FAILED`.
+
+    La expiración informada es el límite para confirmar el pago, pero no representa por sí sola un estado final. Después de alcanzarla, realiza una consulta final hasta que Gateway resuelva la transacción.
+
+    Ante un timeout de consulta, conserva la transacción como pendiente y vuelve a consultar; no generes otro cobro automáticamente.
+
+    <Properties classNames="my-6">
+      <Property name="status" type="Status">
+        Estado actual de la transacción: `PENDING`, `APPROVED`, `REJECTED` o `FAILED`.
+      </Property>
+      <Property name="internalReference" type="number">
+        Identificador interno de la transacción.
+      </Property>
+      <Property name="reference" type="string">
+        Referencia enviada por el comercio.
+      </Property>
+      <Property name="paymentMethod" type="string">
+        Código del medio de pago: `ATHMV`.
+      </Property>
+      <Property name="amount" type="Amount">
+        Moneda y valor procesados.
+      </Property>
+      <Property name="authorization" type="string|null">
+        Código de autorización cuando el pago fue aprobado.
+      </Property>
+      <Property name="receipt" type="string|null">
+        Comprobante entregado por el procesador, cuando aplique.
+      </Property>
+      <Property name="provider" type="string">
+        Proveedor que procesó la operación: `ATH-MOVIL`.
+      </Property>
+      <Property name="redirection.additional.expiration" type="date-time">
+        Fecha límite de confirmación de la sesión de pago.
+      </Property>
+    </Properties>
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Respuesta">
+```json {{ title: 'Aprobada' }}
+{
+  "status": {
+    "status": "APPROVED",
+    "reason": "00",
+    "message": "Aprobada",
+    "date": "2026-07-31T10:16:01-04:00"
+  },
+  "date": "2026-07-31T10:15:31-04:00",
+  "transactionDate": "2026-07-31T10:16:01-04:00",
+  "internalReference": 485,
+  "reference": "ATHMV-ORDER-1001",
+  "paymentMethod": "ATHMV",
+  "franchise": "athmv",
+  "franchiseName": "ATH Móvil",
+  "issuerName": null,
+  "amount": {
+    "currency": "USD",
+    "total": 10
+  },
+  "conversion": {
+    "from": {
+      "currency": "USD",
+      "total": 10
+    },
+    "to": {
+      "currency": "USD",
+      "total": 10
+    },
+    "factor": 1
+  },
+  "authorization": "654321",
+  "receipt": "074690002888",
+  "type": "AUTH_ONLY",
+  "refunded": false,
+  "lastDigits": null,
+  "provider": "ATH-MOVIL",
+  "discount": null,
+  "processorFields": {
+    "id": "63671893972dc2326463f93642910630",
+    "b24": "00",
+    "paymentURL": "https://rest.test/mock/redirection/63671893972dc2326463f93642910630"
+  },
+  "additional": {
+    "onTest": true
+  },
+  "redirection": {
+    "paymentMethod": "ATHMV",
+    "processURL": "https://rest.test/mock/redirection/63671893972dc2326463f93642910630",
+    "additional": {
+      "expiration": "2026-07-31T10:35:31-04:00"
+    }
+  }
+}
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+### Operaciones posteriores {{ id: 'post-transaction-operations' }}
+
+ATH Móvil permite realizar reversos y reembolsos mediante las operaciones generales de Gateway. Su disponibilidad depende del estado de la transacción y de la configuración del sitio.
+
+Para realizar estas operaciones, consulta [Operaciones sobre una transacción](/gateway/api/reference/transaction#transaction-request).
+
+Los reversos deben realizarse antes de la conciliación. Una vez conciliada la transacción, corresponde realizar un reembolso. Una transacción de reembolso no puede ser reversada.
+
+## Restricciones y consideraciones {{ id: 'validations' }}
+
+- **Flujo asíncrono en Gateway**: El comercio debe implementar la consulta de estado por API hasta obtener un resultado final.
+- **Estado pendiente durante la aprobación**: La transacción permanece pendiente mientras el usuario confirma el pago en su teléfono.
+- **Disponibilidad por región**: ATH Móvil aplica para operaciones en Puerto Rico.
+
+La petición de procesamiento admite montos decimales, los impuestos `stateTax`, `municipalTax` y `reducedStateTax` en `payment.amount.taxes`, y propinas mediante `payment.amount.details` con `kind: "tip"`. El monto base resultante después de restar estos impuestos y la propina debe ser mayor que cero.
+
+## Casos de prueba {{ id: 'sandbox-test-cases' }}
+
+En sitios de prueba, el simulador determina el comportamiento a partir de `payer.mobile`. Se recomienda usar el formato internacional con el prefijo `+1`; Gateway también puede normalizar números válidos de diez dígitos.
+
+| Teléfono | Resultado esperado |
+| --- | --- |
+| `+19391111111` | La transacción permanece en `PENDING` antes de expirar y posteriormente finaliza en `REJECTED`. |
+| `+19391111112` | La consulta finaliza en `REJECTED` por cancelación. |
+| `+19391111113` | La consulta finaliza en `FAILED`. |
+| `+19391111114` | La consulta finaliza en `APPROVED`. |
+| `+19391111115` | El simulador retorna `REFUNDED` y Gateway normaliza el resultado a `APPROVED`. |
+| `+19391111116` | El simulador retorna `REVERSED` y Gateway normaliza el resultado a `APPROVED`. |
+| `+19391111117` | La consulta finaliza en `FAILED` por token expirado. |
+| `+19391111118` | La consulta simula un error interno y la transacción permanece en `PENDING`. |
+| `+19391111119` | La autorización de la transacción falla. |
+| `+19391111120` | La consulta simula un timeout y la transacción permanece en `PENDING`. |
+| `+19391111121` | El reembolso simula un timeout. |
+| `+19391111122` | El reverso simula un timeout. |
+| `+19391111123` | La autorización simula un timeout. |
+| `+19391111169` | El procesamiento falla inmediatamente por un error de conexión. |
+| `+19391111178` | El procesamiento falla inmediatamente por token expirado. |
+| `+19391111190` | El procesamiento falla inmediatamente por timeout. |
+| Cualquier otro número | La transacción sigue el flujo aprobado por defecto. |
+
+## FAQs {{ id: 'faqs' }}
 
 <details>
-<summary>¿Como configurar ATH Móvil en tu cuenta de Placetopay?</summary>
-<p>Contacta a nuestro equipo de operaciones para habilitar esta funcionalidad en tus sitios a traves del correo servicioposventa@placetopay.com.</p>
+<summary>¿Cómo configurar ATH Móvil en tu cuenta de Placetopay?</summary>
+<p>Contacta a nuestro equipo de operaciones para habilitar esta funcionalidad en tus sitios a través del correo servicioposventa@placetopay.com.</p>
 </details>
 
 <details>
-<summary>¿Como puedo integrar ATH Móvil?</summary>
-<p>ATH Móvil esta disponible en Webcheckout e integracion con Gateway. En Gateway, debes consultar el estado de la transaccion por API hasta obtener el resultado final.</p>
+<summary>¿Cómo puedo integrar ATH Móvil?</summary>
+<p>ATH Móvil está disponible en Webcheckout y mediante integración directa por Gateway. Con Gateway, el comercio captura el teléfono, procesa la transacción y consulta su estado por API hasta obtener el resultado final.</p>
+</details>
+
+<details>
+<summary>¿Debo redirigir al usuario en una integración Gateway?</summary>
+<p>No en producción. El usuario aprueba el cobro desde la aplicación ATH Móvil y el comercio consulta el resultado con la referencia interna. La URL de redirección solo se entrega en sandbox para acceder al simulador.</p>
 </details>

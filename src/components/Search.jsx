@@ -4,18 +4,43 @@ import { createAutocomplete } from '@algolia/autocomplete-core'
 import { Dialog, Transition } from '@headlessui/react'
 import clsx from 'clsx'
 import Highlighter from 'react-highlight-words'
-import { getWindowLocale } from '@/lib/getWindowLocale'
 import { useAllNavigation } from '@/hooks/useNavigation'
+import { useLocalizePath } from '@/hooks/useLocalizePath'
+
+import { useLocale } from '@/components/LocaleProvider'
+
+const SEARCH_TEXTS = {
+  es: {
+    placeholder: 'Buscar...',
+    nothingFound: 'Nada encontrado para',
+    tryAgain: 'Por favor intenta de nuevo.',
+    viewAllResults: 'Ver todos los resultados',
+  },
+  en: {
+    placeholder: 'Search...',
+    nothingFound: 'Nothing found for',
+    tryAgain: 'Please try again.',
+    viewAllResults: 'View all results',
+  },
+}
+
+function useSearchTexts() {
+  let { locale } = useLocale()
+  return SEARCH_TEXTS[locale] ?? SEARCH_TEXTS.es
+}
 
 function useAutocomplete() {
   let id = useId()
   let router = useRouter()
+  let { locale } = useLocale()
+  let localeRef = useRef(locale)
+  localeRef.current = locale
   let [autocompleteState, setAutocompleteState] = useState({})
 
   let [autocomplete] = useState(() =>
     createAutocomplete({
       id,
-      placeholder: 'Buscar...',
+      placeholder: SEARCH_TEXTS[localeRef.current]?.placeholder,
       defaultActiveItemId: 0,
       onStateChange({ state }) {
         setAutocompleteState(state)
@@ -29,8 +54,19 @@ function useAutocomplete() {
             {
               sourceId: 'documentation',
               getItems() {
-                const locale = getWindowLocale()
-                return search(query, { limit: 5 }).filter((item) => item.locale === locale)
+                // Search in the per-locale index and collapse sections that
+                // belong to the same page so the results show distinct pages.
+                // Fetch more than needed and trim afterwards: dedupe by page
+                // would otherwise leave the panel with fewer than 5 items.
+                let seenPages = new Set()
+                return search(query, { limit: 30, locale: localeRef.current })
+                  .filter((item) => {
+                    let page = item.url.split('#')[0]
+                    if (seenPages.has(page)) return false
+                    seenPages.add(page)
+                    return true
+                  })
+                  .slice(0, 5)
               },
               getItemUrl({ item }) {
                 return item.url
@@ -172,35 +208,51 @@ function SearchResult({
   )
 }
 
-function SearchResults({ autocomplete, query, collection }) {
+function SearchResults({ autocomplete, query, collection, onClose }) {
+  let router = useRouter()
+  let localizePath = useLocalizePath()
+  let texts = useSearchTexts()
+
   if (collection.items.length === 0) {
     return (
       <div className="p-6 text-center">
         <NoResultsIcon className="mx-auto h-5 w-5 stroke-gray-900 dark:stroke-gray-600" />
         <p className="mt-2 text-xs text-gray-700 dark:text-gray-400">
-          Nothing found for{' '}
+          {texts.nothingFound}{' '}
           <strong className="break-words font-semibold text-gray-900 dark:text-white">
             &lsquo;{query}&rsquo;
           </strong>
-          . Please try again.
+          . {texts.tryAgain}
         </p>
       </div>
     )
   }
 
   return (
-    <ul role="list" {...autocomplete.getListProps()}>
-      {collection.items.map((result, resultIndex) => (
-        <SearchResult
-          key={result.url}
-          result={result}
-          resultIndex={resultIndex}
-          autocomplete={autocomplete}
-          collection={collection}
-          query={query}
-        />
-      ))}
-    </ul>
+    <>
+      <ul role="list" {...autocomplete.getListProps()}>
+        {collection.items.map((result, resultIndex) => (
+          <SearchResult
+            key={result.url}
+            result={result}
+            resultIndex={resultIndex}
+            autocomplete={autocomplete}
+            collection={collection}
+            query={query}
+          />
+        ))}
+      </ul>
+      <button
+        type="button"
+        className="block w-full border-t border-gray-100 px-4 py-3 text-left text-2xs font-medium text-primary-500 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50"
+        onClick={() => {
+          onClose()
+          router.push(localizePath(`/search?q=${encodeURIComponent(query)}`))
+        }}
+      >
+        {texts.viewAllResults} &rarr;
+      </button>
+    </>
   )
 }
 
@@ -209,6 +261,7 @@ const SearchInput = forwardRef(function SearchInput(
   inputRef
 ) {
   let inputProps = autocomplete.getInputProps({})
+  let texts = useSearchTexts()
 
   return (
     <div className="group relative flex h-12">
@@ -220,6 +273,7 @@ const SearchInput = forwardRef(function SearchInput(
           autocompleteState.status === 'stalled' ? 'pr-11' : 'pr-4'
         )}
         {...inputProps}
+        placeholder={texts.placeholder}
         onKeyDown={(event) => {
           if (
             event.key === 'Escape' &&
@@ -247,6 +301,7 @@ const SearchInput = forwardRef(function SearchInput(
 
 function SearchButton(props) {
   let [modifierKey, setModifierKey] = useState()
+  let texts = useSearchTexts()
 
   useEffect(() => {
     setModifierKey(
@@ -262,7 +317,7 @@ function SearchButton(props) {
         {...props}
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
-        Buscar...
+        {texts.placeholder}
         <kbd className="ml-auto text-2xs text-gray-400 dark:text-gray-500">
           <kbd className="font-sans">{modifierKey}</kbd>
           <kbd className="font-sans">K</kbd>
@@ -271,7 +326,7 @@ function SearchButton(props) {
       <button
         type="button"
         className="flex h-6 w-6 items-center justify-center rounded-md transition hover:bg-gray-900/5 dark:hover:bg-white/5 lg:hidden focus:[&:not(:focus-visible)]:outline-none"
-        aria-label="Buscar..."
+        aria-label={texts.placeholder}
         {...props}
       >
         <SearchIcon className="h-5 w-5 stroke-gray-900 dark:stroke-white" />
@@ -380,6 +435,7 @@ function SearchDialog({ open, setOpen, className }) {
                         autocomplete={autocomplete}
                         query={autocompleteState.query}
                         collection={autocompleteState.collections[0]}
+                        onClose={() => setOpen(false)}
                       />
                     )}
                   </div>
@@ -419,6 +475,7 @@ function useSearchProps() {
 export function Search() {
   let [modifierKey, setModifierKey] = useState()
   let { buttonProps, dialogProps } = useSearchProps()
+  let texts = useSearchTexts()
 
   useEffect(() => {
     setModifierKey(
@@ -434,7 +491,7 @@ export function Search() {
         {...buttonProps}
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
-        Buscar...
+        {texts.placeholder}
         <kbd className="ml-auto text-2xs text-gray-400 dark:text-gray-500">
           <kbd className="font-sans">{modifierKey}</kbd>
           <kbd className="font-sans">K</kbd>
@@ -447,13 +504,14 @@ export function Search() {
 
 export function MobileSearch() {
   let { buttonProps, dialogProps } = useSearchProps()
+  let texts = useSearchTexts()
 
   return (
     <div className="contents lg:hidden">
       <button
         type="button"
         className="flex h-6 w-6 items-center justify-center rounded-md transition hover:bg-gray-900/5 dark:hover:bg-white/5 lg:hidden focus:[&:not(:focus-visible)]:outline-none"
-        aria-label="Buscar..."
+        aria-label={texts.placeholder}
         {...buttonProps}
       >
         <SearchIcon className="h-5 w-5 stroke-gray-900 dark:stroke-white" />

@@ -1,0 +1,2099 @@
+openapi: 3.1.0
+info:
+  title: Placetopay Onboarding API
+  description: |
+    API para registrar y actualizar comercios en Placetopay de forma asíncrona.
+
+    Las peticiones de escritura no esperan a que el comercio quede registrado: validan el contenido,
+    responden `202` con un identificador de proceso y ejecutan el registro en segundo plano.
+  version: 1.0.0
+
+servers:
+  - url: '{urlBase}'
+    description: Ambiente de trabajo
+    variables:
+      urlBase:
+        default: https://api-onboarding.example.com
+        description: |
+          URL base del ambiente. Se entrega junto con las credenciales, y un token emitido para un
+          ambiente no funciona en otro.
+
+paths:
+  /api/merchants:
+    post:
+      summary: Crear un comercio
+      operationId: create-merchant
+      description: |
+        Valida el comercio completo y lo acepta para su registro. Responde `202` con un `processId`
+        con el que consultar el resultado.
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Token de acceso con el permiso `onboarding:create`.
+          schema:
+            type: string
+            example: Bearer 1|tu-token-de-acceso
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: |
+            Identificador único de la operación. Entre 16 y 64 caracteres, y solo puede contener
+            letras, dígitos y los signos `_`, `.`, `:` y `-`. Reenviar la misma clave con el mismo
+            contenido devuelve el proceso original en lugar de crear uno nuevo.
+          schema:
+            type: string
+            minLength: 16
+            maxLength: 64
+            pattern: '^[A-Za-z0-9_.:-]{16,64}$'
+            example: 8f1c2d3e4a5b6c7d8e9f0a1b
+        - name: Content-Type
+          in: header
+          required: true
+          schema:
+            type: string
+            example: application/json
+        - name: Accept
+          in: header
+          required: false
+          description: Recomendado, para que los errores lleguen en formato JSON.
+          schema:
+            type: string
+            example: application/json
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantWrite'
+      responses:
+        '202':
+          description: |
+            Petición aceptada. El comercio todavía no existe: consulta el proceso para conocer el
+            resultado.
+          headers:
+            Location:
+              description: URL del proceso creado.
+              schema:
+                type: string
+                example: /api/processes/01kz0609xy2hd666mnx6b0jxpc
+            Retry-After:
+              description: Segundos a esperar antes de consultar el proceso.
+              schema:
+                type: integer
+                example: 5
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedProcess'
+        '200':
+          description: |
+            La clave de idempotencia ya se había usado con este mismo contenido. Devuelve el proceso
+            original, con el mismo `processId`.
+          headers:
+            Idempotency-Replayed:
+              description: Presente solo en este caso.
+              schema:
+                type: string
+                example: 'true'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedProcess'
+        '401':
+          description: Token ausente, inválido o de otro ambiente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: El token no incluye el permiso requerido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: La clave de idempotencia ya se usó con un contenido distinto.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: |
+            El contenido no pasó la validación, o falta el header `Idempotency-Key`. La respuesta
+            enumera todos los campos rechazados, no solo el primero.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/merchants/{merchantId}:
+    parameters:
+      - name: merchantId
+        in: path
+        required: true
+        description: |
+          Identificador del comercio, tal como lo publica `result.merchantId`. Debe ser numérico: uno
+          que no lo sea responde `404` sin llegar al endpoint.
+        schema:
+          type: integer
+          minimum: 1
+          example: 18
+    put:
+      summary: Actualizar un comercio
+      operationId: update-merchant
+      description: |
+        Escribe **solo los campos que el cuerpo nombra**; el resto del comercio conserva su valor.
+        Ningún campo es obligatorio, pero el cuerpo debe nombrar al menos uno.
+
+        Un `null` no borra: se descarta, igual que omitir el campo.
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Token de acceso con el permiso `onboarding:update`.
+          schema:
+            type: string
+            example: Bearer 1|tu-token-de-acceso
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: |
+            Identificador único de la operación. El comercio de la URL forma parte de la comparación:
+            la misma clave apuntada a otro comercio responde `409`.
+          schema:
+            type: string
+            minLength: 16
+            maxLength: 64
+            pattern: '^[A-Za-z0-9_.:-]{16,64}$'
+            example: 4b7e1a9c2d3f5e6a8b0c1d2e
+        - name: Content-Type
+          in: header
+          required: true
+          schema:
+            type: string
+            example: application/json
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantWrite'
+      responses:
+        '202':
+          description: Petición aceptada.
+          headers:
+            Location:
+              schema:
+                type: string
+                example: /api/processes/01kz0a13bc4de777pqy8c1kxqd
+            Retry-After:
+              schema:
+                type: integer
+                example: 5
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedProcess'
+        '200':
+          description: Replay de una clave de idempotencia ya usada con el mismo contenido.
+          headers:
+            Idempotency-Replayed:
+              schema:
+                type: string
+                example: 'true'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedProcess'
+        '401':
+          description: Token ausente o inválido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: El token no incluye el permiso `onboarding:update`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: |
+            El comercio no existe. Se comprueba antes de crear el proceso, así que no consume la
+            clave de idempotencia.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: La clave de idempotencia ya se usó con otro contenido, o apuntando a otro comercio.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: |
+            El contenido no pasó la validación, o el cuerpo no nombra ningún campo actualizable — en
+            ese caso el error llega bajo la clave `body`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/processes/{processId}:
+    parameters:
+      - name: processId
+        in: path
+        required: true
+        description: Identificador del proceso, tal como lo devolvió la petición de escritura.
+        schema:
+          type: string
+          example: 01kz0609xy2hd666mnx6b0jxpc
+    get:
+      summary: Consultar un proceso
+      operationId: show-process
+      description: |
+        Devuelve el estado del proceso. Es la **fuente de verdad** del resultado, incluso cuando se
+        registró una URL de notificación.
+
+        La señal para dejar de consultar es la **ausencia** del header `Retry-After`.
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Token de acceso con el permiso `onboarding:read`.
+          schema:
+            type: string
+            example: Bearer 1|tu-token-de-acceso
+      responses:
+        '200':
+          description: |
+            Estado actual del proceso. Un proceso fallido también responde `200`: la consulta funcionó
+            y está informando de un fallo.
+          headers:
+            Retry-After:
+              description: Presente solo mientras el proceso no haya terminado.
+              schema:
+                type: integer
+                example: 5
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Process'
+        '401':
+          description: Token ausente o inválido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: El token no incluye el permiso `onboarding:read`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: |
+            El proceso no existe **o pertenece a otro consumidor**. Los dos casos responden igual a
+            propósito, para que nadie pueda sondear identificadores ajenos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/user:
+    get:
+      summary: Consultar el consumidor del token
+      operationId: show-user
+      description: |
+        Describe la aplicación a la que pertenece el token. Solo exige que el token sea válido, sin
+        ningún permiso concreto, así que sirve para comprobar credenciales antes de integrar.
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            example: Bearer 1|tu-token-de-acceso
+      responses:
+        '200':
+          description: Datos del consumidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiUser'
+        '401':
+          description: Token ausente o inválido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tu-endpoint-de-notificacion:
+    post:
+      summary: Notificación enviada a tu servidor
+      operationId: merchant-notification
+      description: |
+        Este endpoint **lo implementas tú**. Onboarding le envía un `POST` cuando un proceso alcanza
+        su estado final, si registraste una URL en `notification.url`.
+
+        El cuerpo es la misma representación que devuelve `GET /api/processes/{processId}`, más un
+        objeto `event`. La clave `notification` **no** viaja aquí.
+
+        La entrega es *at-least-once*: deduplica por `X-Event-Id`. Responde `2xx` en cuanto verifiques
+        la firma; un `4xx` distinto de 408, 425 o 429 se interpreta como rechazo definitivo.
+      parameters:
+        - name: X-Signature
+          in: header
+          required: true
+          description: |
+            Firma con el formato `t=<unix>,kid=<id>,v1=<hex>`, donde `v1` es
+            `hmac_sha256(t + "." + cuerpoCrudo, secreto)`.
+
+            Compárala en tiempo constante, y rechaza las firmas cuyo `t` quede fuera de una ventana
+            razonable —±300 segundos es la referencia habitual—: esa comprobación anti-replay vive
+            solo en tu lado.
+          schema:
+            type: string
+            example: t=1785527021,kid=k1,v1=8b0c3f9d1e...af
+        - name: X-Event-Id
+          in: header
+          required: true
+          description: Identificador del evento, estable entre reintentos. Es la clave de deduplicación.
+          schema:
+            type: string
+            example: 01kz0609xy2hd666mnx6b0jxpb
+        - name: X-Delivery-Attempt
+          in: header
+          required: true
+          description: Número de intento.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 6
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookNotification'
+      responses:
+        '200':
+          description: Entrega aceptada. Cualquier `2xx` sirve; no se vuelve a intentar.
+        '500':
+          description: |
+            Error temporal por tu parte. Se reintenta, hasta seis veces, con esperas de 10 s, 1 min,
+            5 min, 30 min y 2 h.
+
+components:
+  schemas:
+    Status:
+      title: Status
+      type: object
+      description: |
+        Estado de la petición o del proceso. Presente en todas las respuestas.
+
+        El código HTTP dice si la llamada funcionó; `status.status` dice qué pasó con el proceso.
+      required:
+        - status
+        - reason
+        - message
+        - date
+      properties:
+        status:
+          type: string
+          description: |
+            `OK` y `FAILED` son estados finales; `PENDING` y `PENDING_PROCESS` indican que el proceso
+            sigue en curso.
+          enum:
+            - OK
+            - FAILED
+            - PENDING
+            - PENDING_PROCESS
+          example: OK
+        reason:
+          description: |
+            En un error de la llamada, el propio código HTTP como número. En un proceso fallido, uno
+            de los códigos de la lista. `null` cuando no hay error.
+
+            Deja siempre un caso por defecto al interpretarlo: pueden aparecer códigos nuevos sin que
+            se considere un cambio incompatible.
+
+            - `REQUIRED_FIELD_MISSING` — un campo obligatorio llegó vacío
+            - `FIELD_TOO_LONG` — un valor supera la longitud admitida
+            - `FIELD_OUT_OF_RANGE` — un valor está fuera del rango admitido
+            - `DUPLICATE_MERCHANT` — el recurso ya existe
+            - `REFERENCE_NOT_FOUND` — una referencia enviada ya no existe
+            - `RESOURCE_NOT_FOUND` — el comercio a actualizar desapareció
+            - `VALIDATION_FAILED` — el contenido fue rechazado al escribirlo
+            - `INTERRUPTED` — el proceso se detuvo antes de completarse
+          oneOf:
+            - type: integer
+              title: Código HTTP
+              example: 422
+            - type: string
+              title: Código de fallo del proceso
+              example: REQUIRED_FIELD_MISSING
+            - type: 'null'
+              title: Sin error
+        message:
+          type: [string, 'null']
+          description: |
+            Texto genérico de diagnóstico. Puede cambiar sin aviso: no lo uses para tomar decisiones,
+            usa `reason`.
+          example: The request was accepted and will be processed shortly.
+        date:
+          type: string
+          format: date-time
+          description: Instante de la transición, no el de la respuesta.
+          example: '2026-08-17T10:14:03-05:00'
+
+    MerchantWrite:
+      title: MerchantWrite
+      type: object
+      description: |
+        Estado del comercio. Los campos viajan en la raíz del cuerpo, junto a las colecciones.
+
+        Una clave desconocida en la raíz se ignora en silencio; dentro de un elemento de cualquier
+        colección, en cambio, responde `422` nombrándola.
+      required:
+        - name
+        - brand
+        - languages
+        - currencies
+        - document
+        - address
+        - legalRepresentative
+        - control
+      properties:
+        name:
+          type: string
+          maxLength: 80
+          description: Razón social del comercio.
+          example: Comercializadora Acme S.A.S.
+        brand:
+          type: string
+          maxLength: 60
+          description: Nombre comercial, el que ve el comprador.
+          example: Acme
+        active:
+          type: boolean
+          default: true
+          description: Si el comercio queda habilitado.
+          example: true
+        url:
+          type: [string, 'null']
+          format: uri
+          maxLength: 255
+          description: Sitio web del comercio.
+          example: https://acme.example.com
+        incrementType:
+          type: string
+          description: Referencia usada para incrementos.
+          enum:
+            - SMLMV
+            - IPC
+          example: SMLMV
+        mcc:
+          type: string
+          description: Código de categoría de comercio. Debe existir en el catálogo.
+          example: '5411'
+        size:
+          type: string
+          description: Tamaño del comercio, del catálogo de tamaños.
+          example: M
+        timezone:
+          type: string
+          description: Zona horaria en formato IANA, del catálogo de zonas.
+          example: America/Bogota
+        languages:
+          type: array
+          minItems: 1
+          description: |
+            Idiomas con los que opera el comercio. Es un conjunto: repetir un valor responde `422`, y
+            la comparación ignora mayúsculas.
+          items:
+            type: string
+            maxLength: 5
+            example: es
+          example:
+            - es
+            - en
+        currencies:
+          type: array
+          minItems: 1
+          description: |
+            Monedas que el comercio maneja, como códigos ISO del catálogo. Es un conjunto, igual que
+            `languages`.
+          items:
+            type: string
+            maxLength: 3
+            example: COP
+          example:
+            - COP
+            - USD
+        document:
+          $ref: '#/components/schemas/Document'
+        address:
+          $ref: '#/components/schemas/Address'
+        legalRepresentative:
+          $ref: '#/components/schemas/LegalRepresentative'
+        billing:
+          $ref: '#/components/schemas/Billing'
+        travelAgency:
+          $ref: '#/components/schemas/TravelAgency'
+        control:
+          $ref: '#/components/schemas/Control'
+        integrations:
+          type: array
+          minItems: 1
+          maxItems: 16
+          description: |
+            Integraciones del comercio con proveedores externos. Es un upsert por `type`: una
+            integración que el cuerpo no nombra sobrevive intacta, y no hay forma de eliminarla.
+          items:
+            $ref: '#/components/schemas/Integration'
+        paymentMethods:
+          type: array
+          minItems: 1
+          description: |
+            Medios de pago que el comercio acepta. Un elemento **o** modifica uno existente por su
+            `id`, **o** registra uno nuevo con `code`; nunca las dos cosas.
+          items:
+            $ref: '#/components/schemas/PaymentMethod'
+        sites:
+          type: array
+          minItems: 1
+          description: Sitios de venta del comercio, con sus propias colecciones.
+          items:
+            $ref: '#/components/schemas/Site'
+        notification:
+          $ref: '#/components/schemas/Notification'
+
+    Document:
+      title: Document
+      type: object
+      description: Documento de identificación fiscal del comercio.
+      properties:
+        type:
+          type: string
+          description: |
+            Tipo de documento, del catálogo. Obligatorio si envías `number`. Los tipos admitidos
+            dependen del país.
+          example: NIT
+        number:
+          type: string
+          maxLength: 20
+          description: |
+            Número del documento, validado según el tipo declarado.
+
+            La longitud máxima es **dinámica**: el tipo y el número se almacenan juntos, así que el
+            tope disponible es `20 - longitud(type) - 1`. Con un `type` de tres caracteres como
+            `NIT`, el número admite hasta 16. Sin `type`, el tope es 20.
+          example: '9001234567'
+
+    Address:
+      title: Address
+      type: object
+      description: Dirección fiscal del comercio.
+      required:
+        - city
+        - country
+        - state
+      properties:
+        street:
+          type: string
+          maxLength: 128
+          description: Calle, número y demás detalles de la dirección.
+          example: Carrera 43A # 1-50, Torre 2
+        city:
+          type: string
+          maxLength: 30
+          description: Ciudad. Es texto libre.
+          example: Bogota
+        country:
+          type: string
+          description: Código del país, del catálogo de países.
+          example: CO
+        state:
+          type: integer
+          minimum: 1
+          description: |
+            Identificador de la provincia o departamento. Debe pertenecer al país enviado en
+            `country`.
+          example: 11
+        phone:
+          type: string
+          maxLength: 20
+          description: Teléfono de contacto.
+          example: '6013905000'
+        postalCode:
+          type: string
+          description: Código postal. Se valida según el formato del país.
+          example: '110111'
+
+    LegalRepresentative:
+      title: LegalRepresentative
+      type: object
+      required:
+        - name
+        - surname
+      properties:
+        name:
+          type: string
+          maxLength: 30
+          description: Nombre del representante legal.
+          example: Ada
+        surname:
+          type: string
+          maxLength: 30
+          description: |
+            Apellido del representante legal.
+
+            La longitud máxima es **dinámica**: el nombre y el apellido se almacenan juntos, así que
+            el tope es `min(30, 60 - longitud(name) - 1)`. Con un nombre corto el límite efectivo es
+            30; con uno de 35 caracteres baja a 24.
+          example: Lovelace
+        documentType:
+          type: string
+          description: Tipo de documento. Obligatorio si envías `document`.
+          example: CC
+        document:
+          type: string
+          maxLength: 16
+          description: Número de documento, validado según el tipo declarado.
+          example: '1020304050'
+
+    Billing:
+      title: Billing
+      type: object
+      description: Datos de facturación del comercio.
+      properties:
+        contact:
+          type: string
+          maxLength: 128
+          description: Persona o área de contacto para facturación.
+          example: Contabilidad Acme
+        mail:
+          type: string
+          format: email
+          maxLength: 128
+          description: Correo de facturación.
+          example: facturacion@acme.example.com
+        registrationNumber:
+          type: string
+          maxLength: 20
+          description: Número de registro mercantil.
+          example: 9001234567-1
+        ciiu:
+          type: string
+          maxLength: 4
+          description: Código de actividad económica.
+          example: '4791'
+        taxType:
+          type: integer
+          minimum: 1
+          description: Tipo de contribuyente, del catálogo correspondiente.
+          example: 1
+        taxRegime:
+          type: integer
+          minimum: 1
+          description: Régimen tributario, del catálogo correspondiente.
+          example: 1
+        organizationType:
+          type: integer
+          minimum: 1
+          description: Tipo de sociedad, del catálogo correspondiente.
+          example: 1
+
+    TravelAgency:
+      title: TravelAgency
+      type: object
+      description: Aplicable solo a comercios del sector turismo.
+      properties:
+        dispersion:
+          type: boolean
+          description: Si el comercio opera con dispersión de fondos.
+          example: false
+        iata:
+          type: string
+          minLength: 4
+          maxLength: 10
+          description: Código IATA de la agencia.
+          example: ABCD12
+
+    Control:
+      title: Control
+      type: object
+      description: Estructura comercial bajo la que queda registrado el comercio.
+      required:
+        - reseller
+      properties:
+        reseller:
+          type: integer
+          minimum: 1
+          description: |
+            Intermediario comercial al que pertenece el comercio. Debe estar habilitado al crear. Al
+            actualizar se acepta además el que el comercio ya tiene asignado.
+          example: 1
+        seller:
+          type: integer
+          minimum: 1
+          description: Vendedor asociado. Debe estar habilitado.
+          example: 1
+        paymentFacilitator:
+          type: [integer, 'null']
+          minimum: 1
+          description: Facilitador de pagos, cuando aplique.
+          example: null
+
+    Notification:
+      title: Notification
+      type: object
+      description: |
+        URL donde recibir el resultado del proceso. Si se omite, no se envía notificación y el
+        resultado se consulta con `GET /api/processes/{processId}`.
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: |
+            URL pública sobre `https`, sin credenciales embebidas. Se valida su forma al aceptar la
+            petición y su destino antes de cada entrega.
+          example: https://acme.example.com/hooks/onboarding
+
+    AcceptedProcess:
+      title: AcceptedProcess
+      type: object
+      description: Respuesta de una petición de escritura aceptada.
+      required:
+        - status
+        - processId
+        - action
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        processId:
+          type: string
+          description: Identificador del proceso, en minúsculas. Con él se consulta el resultado.
+          example: 01kz0609xy2hd666mnx6b0jxpc
+        action:
+          type: string
+          description: Operación pedida.
+          enum:
+            - merchant.create
+            - merchant.update
+          example: merchant.create
+        result:
+          type: [object, 'null']
+          description: Siempre `null` en la aceptación. El resultado llega al consultar el proceso.
+          example: null
+        notification:
+          type: [object, 'null']
+          description: Estado de la entrega del webhook, o `null` si no se registró una URL.
+          properties:
+            url:
+              type: string
+              example: https://acme.example.com/hooks/onboarding
+            state:
+              type: string
+              enum:
+                - PENDING
+                - DELIVERED
+                - FAILED
+              example: PENDING
+            attempts:
+              type: integer
+              example: 0
+
+    ErrorResponse:
+      title: ErrorResponse
+      type: object
+      description: Error de la llamada. No crea proceso, así que no incluye `processId`.
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+
+    ValidationErrorResponse:
+      title: ValidationErrorResponse
+      type: object
+      description: |
+        Error de validación. `errors` viaja como hermano de `status`, nunca dentro, y sus claves son
+        las rutas del cuerpo que enviaste.
+      required:
+        - status
+        - errors
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        errors:
+          type: object
+          description: Un campo por cada ruta rechazada, con la lista de motivos.
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            name:
+              - The name field is required.
+            currencies.0:
+              - The selected currencies.0 is invalid.
+
+    Integration:
+      title: Integration
+      type: object
+      description: |
+        Integración del comercio con un proveedor externo. Se identifica por su `type`, que no puede
+        repetirse dentro de la misma colección.
+      required:
+        - type
+        - settings
+      properties:
+        type:
+          type: string
+          description: Tipo de integración, del catálogo de Placetopay.
+          enum:
+            - paygate
+            - invoice_settle
+            - kount
+            - account_validator
+            - push_notification
+            - brand_tokenization
+            - notifier
+            - clicktopay
+            - clicktopay_visa
+            - open_finance
+            - payment_orchestrator
+            - autopay
+            - sms
+            - whatsapp
+            - fiduoccidente
+            - google_pay
+          example: kount
+        settings:
+          type: object
+          description: |
+            Configuración del proveedor. Las claves admitidas dependen del `type`, y una clave que el
+            catálogo no declara responde `422` nombrándola. El bloque completo no puede superar los
+            8192 bytes serializados.
+
+            Los valores booleanos deben ser booleanos JSON: la cadena `"true"` se rechaza.
+
+            Selecciona un tipo en el desplegable para ver sus claves.
+          oneOf:
+            - $ref: '#/components/schemas/SettingsPaygate'
+            - $ref: '#/components/schemas/SettingsInvoiceSettle'
+            - $ref: '#/components/schemas/SettingsKount'
+            - $ref: '#/components/schemas/SettingsAccountValidator'
+            - $ref: '#/components/schemas/SettingsPushNotification'
+            - $ref: '#/components/schemas/SettingsBrandTokenization'
+            - $ref: '#/components/schemas/SettingsNotifier'
+            - $ref: '#/components/schemas/SettingsClicktopay'
+            - $ref: '#/components/schemas/SettingsClicktopayVisa'
+            - $ref: '#/components/schemas/SettingsOpenFinance'
+            - $ref: '#/components/schemas/SettingsPaymentOrchestrator'
+            - $ref: '#/components/schemas/SettingsAutopay'
+            - $ref: '#/components/schemas/SettingsSms'
+            - $ref: '#/components/schemas/SettingsWhatsapp'
+            - $ref: '#/components/schemas/SettingsFiduoccidente'
+            - $ref: '#/components/schemas/SettingsGooglePay'
+
+    SettingsPaygate:
+      title: paygate
+      type: object
+      required: [return_url, md5_hash, soap_username, soap_password]
+      properties:
+        return_url:
+          type: string
+          format: uri
+          description: URL a la que se devuelve al comprador.
+          example: https://acme.example.com/payments/return
+        md5_hash:
+          type: string
+          maxLength: 255
+          description: Credencial emitida por el proveedor.
+        soap_username:
+          type: string
+          maxLength: 255
+        soap_password:
+          type: string
+          maxLength: 255
+
+    SettingsInvoiceSettle:
+      title: invoice_settle
+      type: object
+      required: [handler, url, username, password]
+      properties:
+        handler:
+          type: string
+          maxLength: 200
+        url:
+          type: string
+          maxLength: 255
+        username:
+          type: string
+          maxLength: 60
+        password:
+          type: string
+          maxLength: 60
+
+    SettingsKount:
+      title: kount
+      type: object
+      required: [sandbox, website, merchant]
+      properties:
+        sandbox:
+          type: boolean
+          description: Si la integración opera contra el ambiente de pruebas del proveedor.
+          example: false
+        website:
+          type: string
+          maxLength: 255
+          example: ACME
+        merchant:
+          type: string
+          maxLength: 30
+          example: '201000'
+        apiKey:
+          type: string
+          maxLength: 255
+
+    SettingsAccountValidator:
+      title: account_validator
+      type: object
+      required: [onTest, expiration]
+      properties:
+        onTest:
+          type: boolean
+        expiration:
+          type: integer
+          minimum: 1
+        retries:
+          type: integer
+          minimum: 1
+        notificationURL:
+          type: string
+          format: uri
+          maxLength: 255
+        allowUseDirectApi:
+          type: boolean
+        allowMissingVerificationCode:
+          type: [boolean, 'null']
+
+    SettingsPushNotification:
+      title: push_notification
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+
+    SettingsBrandTokenization:
+      title: brand_tokenization
+      type: object
+      description: |
+        Las claves marcadas como condicionales son obligatorias cuando `enabled` es `true`.
+      required: [enabled]
+      x-conditional:
+        - tokenRequestorInformation
+        - enrollingEnabled
+        - processingEnabled
+        - forceProcessWithToken
+        - allowOldTokensPromotion
+      properties:
+        enabled:
+          type: boolean
+        tokenRequestorInformation:
+          type: object
+          x-conditional: [siteId, availableFranchises]
+          properties:
+            siteId:
+              type: string
+              format: uuid
+              description: UUID v4.
+              example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+            availableFranchises:
+              type: array
+              description: Cada elemento debe ser una franquicia admitida.
+              items:
+                type: string
+                enum: [master, visa]
+        enrollingEnabled:
+          type: array
+          items:
+            type: string
+            enum: [master, visa]
+        processingEnabled:
+          type: array
+          items:
+            type: string
+            enum: [master, visa]
+        forceProcessWithToken:
+          type: boolean
+        allowOldTokensPromotion:
+          type: boolean
+
+    SettingsNotifier:
+      title: notifier
+      type: object
+      description: |
+        Configura el envío de notificaciones de transacción.
+
+        Cuidado: si esta integración se declara **dentro de un sitio**, la URL de notificación de ese
+        sitio se reescribe con una dirección derivada del servicio notificador, y esa reescritura
+        ocurre por el solo hecho de declarar el tipo, incluso con `enabled` en `false`.
+      required: [handler, retry_until, retry_after, enabled, additional]
+      properties:
+        handler:
+          type: string
+          enum: [raw, session, unisabana, clicktopay, oauth]
+          example: raw
+        allowed_statuses:
+          type: array
+          items:
+            type: string
+            enum: [APPROVED, REJECTED, PENDING, FAILED]
+        retry_until:
+          type: integer
+          minimum: 1
+        retry_after:
+          type: integer
+          minimum: 1
+        enabled:
+          type: boolean
+        url_forward:
+          type: string
+          format: uri
+        additional:
+          type: object
+          description: |
+            `user` y `password` son obligatorios cuando `handler` es `unisabana`. `auth` **no puede
+            enviarse** cuando `handler` es `oauth`, ni siquiera con valor nulo. `headers` y `emails`
+            admiten cualquier clave.
+          required: [uri]
+          x-conditional: [user, password]
+          properties:
+            uri:
+              type: string
+              format: uri
+              example: https://acme.example.com/hooks/notifier
+            user:
+              type: string
+            password:
+              type: string
+            auth:
+              type: object
+            headers:
+              type: object
+            emails:
+              type: array
+              items:
+                type: string
+            payment_status:
+              type: array
+              items:
+                type: string
+                enum: [APPROVED, REJECTED, PENDING, FAILED]
+
+    SettingsClicktopay:
+      title: clicktopay
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+        register_default:
+          type: [boolean, 'null']
+        instrument_type:
+          type: [string, 'null']
+          enum: [CARD, TOKEN, null]
+        authenticate:
+          type: boolean
+          description: |
+            Solo se admite cuando `instrument_type` es `TOKEN`; con `CARD` o sin valor, se rechaza.
+
+    SettingsClicktopayVisa:
+      title: clicktopay_visa
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+
+    SettingsOpenFinance:
+      title: open_finance
+      type: object
+      required: [uIdAgreement, enable]
+      properties:
+        uIdAgreement:
+          type: string
+          maxLength: 17
+        enable:
+          type: boolean
+
+    SettingsPaymentOrchestrator:
+      title: payment_orchestrator
+      type: object
+      required: [enabled, selection_behaviour]
+      x-conditional: [umbral]
+      properties:
+        enabled:
+          type: boolean
+        selection_behaviour:
+          type: string
+          enum: [predictive, default]
+        umbral:
+          type: [number, 'null']
+          minimum: 0
+          maximum: 1
+          description: |
+            Obligatorio cuando `selection_behaviour` es `predictive`. Admite hasta seis decimales.
+          example: 0.75
+
+    SettingsAutopay:
+      title: autopay
+      type: object
+      required: [enabled]
+      x-conditional: [url, username, password]
+      properties:
+        enabled:
+          type: boolean
+        url:
+          type: string
+          format: uri
+          description: Obligatorio cuando `enabled` es `true`.
+        payment_retries:
+          type: integer
+          minimum: 0
+        max_payment_overlapping:
+          type: integer
+          minimum: 0
+        username:
+          type: string
+          maxLength: 60
+        password:
+          type: string
+          maxLength: 60
+
+    SettingsSms:
+      title: sms
+      type: object
+      description: |
+        `key`, `secret` y `region` son obligatorios cuando `use_global_settings` es `false`.
+      x-conditional: [key, secret, region]
+      properties:
+        key:
+          type: string
+        secret:
+          type: string
+        region:
+          type: string
+        use_global_settings:
+          type: boolean
+
+    SettingsWhatsapp:
+      title: whatsapp
+      type: object
+      required: [token, phone_id, templates]
+      properties:
+        token:
+          type: string
+        phone_id:
+          type: string
+        templates:
+          type: object
+          required: [payment_link]
+          properties:
+            payment_link:
+              type: string
+
+    SettingsFiduoccidente:
+      title: fiduoccidente
+      type: object
+      required: [minimum_amount]
+      properties:
+        minimum_amount:
+          type: number
+          minimum: 1
+
+    SettingsGooglePay:
+      title: google_pay
+      type: object
+      required: [enabled, environment, allowed_auth_methods]
+      properties:
+        enabled:
+          type: boolean
+        environment:
+          type: string
+          enum: [TEST, PRODUCTION]
+        allowed_auth_methods:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            enum: [PAN_ONLY, CRYPTOGRAM_3DS]
+
+    PaymentMethod:
+      title: PaymentMethod
+      type: object
+      description: |
+        Medio de pago que el comercio acepta.
+
+        Un elemento nombra **exactamente una** de estas dos cosas: `id`, para modificar una
+        configuración existente, o `code`, para registrar una nueva. Con `id` no se admiten `code` ni
+        `financialEntity`, porque son las columnas que definen la identidad de la fila.
+
+        En una creación (`POST`) el `id` está prohibido y los campos de cuenta y comisión son
+        obligatorios; en una actualización todos son opcionales y solo se escribe lo que se nombra.
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          description: |
+            Identificador de una configuración existente, acotado al comercio de la URL. Lo publica
+            `result.paymentMethods[].id`. Prohibido al crear el comercio.
+          example: 64
+        code:
+          type: string
+          maxLength: 5
+          description: |
+            Código del medio de pago, con la grafía exacta del catálogo. Prohibido junto a `id`.
+          example: CR_VS
+        financialEntity:
+          type: [integer, 'null']
+          minimum: 0
+          description: |
+            Entidad financiera con la que se liquida, del catálogo acotado al país del comercio.
+            Prohibida junto a `id`.
+          example: 1
+        accountNumber:
+          type: string
+          maxLength: 20
+          description: Número de la cuenta de depósito.
+          example: '1234567890'
+        accountType:
+          type: integer
+          minimum: 1
+          description: Tipo de cuenta, del catálogo correspondiente.
+          example: 2
+        commissionModel:
+          type: string
+          enum: [P, F]
+          description: '`P` para comisión porcentual, `F` para comisión fija.'
+          example: P
+        commissionValue:
+          type: number
+          minimum: 0
+          description: |
+            Valor de la comisión, con hasta cuatro cifras enteras y dos decimales.
+          example: 2.5
+        order:
+          type: integer
+          minimum: 1
+          maximum: 32767
+          description: Posición del medio de pago en el listado.
+          example: 1
+        creditRules:
+          type: [object, 'null']
+          description: Reglas de crédito del medio de pago. Hasta 4096 bytes serializados.
+        settings:
+          type: object
+          description: |
+            Configuración específica del proveedor. Los nombres de las claves son libres —no hay
+            catálogo que los declare—, así que un error de escritura se guarda sin detectarse.
+
+            Hasta 64 claves y 8192 bytes. Cada nombre admite 30 caracteres y debe ser único
+            ignorando mayúsculas. Los valores pueden ser cadena, número o booleano; un objeto o una
+            lista se rechazan. En una actualización, una clave enviada con `null` o cadena vacía se
+            elimina.
+
+            Para los medios de pago cuyo proveedor es **CREDIBANCO**, las claves `retailCode`,
+            `terminalNumber`, `username` y `password` se rechazan: crea el certificado en el Panel y
+            envía el `pfxID` resultante. Es el único proveedor con este tratamiento.
+          additionalProperties:
+            type: [string, number, boolean, 'null']
+          example:
+            pfxID: '1'
+
+    SitePaymentMethod:
+      title: SitePaymentMethod
+      type: object
+      description: |
+        Habilita en el sitio un medio de pago que el comercio tiene, y sobrescribe los valores que
+        deban diferir. No define un medio de pago nuevo.
+
+        Un elemento nombra **exactamente una** de tres direcciones: `id` (la habilitación existente
+        en este sitio), `paymentMethodId` (el medio de pago del comercio que se habilita) o `code`
+        (un medio de pago que la colección `paymentMethods` de este mismo cuerpo le está dando al
+        comercio). En una creación, `code` es la única posible.
+
+        Lo que un elemento no nombra no se borra: se hereda del medio de pago del comercio.
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          description: |
+            Identificador de la habilitación en este sitio, acotado al sitio que la lleva. Es la
+            única dirección que alcanza a un sitio con dos habilitaciones del mismo medio de pago.
+            Prohibido al crear.
+          example: 18
+        paymentMethodId:
+          type: integer
+          minimum: 1
+          description: |
+            Identificador del medio de pago **del comercio** que este sitio habilita, acotado al
+            comercio de la URL. Prohibido al crear.
+          example: 64
+        code:
+          type: string
+          maxLength: 5
+          description: |
+            Código de un medio de pago que la colección `paymentMethods` de este mismo cuerpo declara.
+            Nunca consulta lo ya registrado.
+          example: TS_VS
+        financialEntity:
+          type: [integer, 'null']
+          minimum: 0
+          description: |
+            **Entidad financiera de la cuenta de depósito propia del sitio**, no una dirección. Si se
+            omite, se hereda la del comercio.
+          example: 2
+        accountNumber:
+          type: [string, 'null']
+          maxLength: 20
+          description: Cuenta de depósito propia del sitio. Si se omite, se hereda la del comercio.
+        accountType:
+          type: [integer, 'null']
+          minimum: 1
+          description: Tipo de cuenta propio del sitio. Si se omite, se hereda el del comercio.
+        minAmount:
+          type: [number, 'null']
+          minimum: 0
+          description: |
+            Monto mínimo admitido para este medio de pago en este sitio. Enviarlo con valor exige
+            enviar también `maxAmount`; un `null` no exige nada y sirve para heredar solo esa mitad.
+          example: 2000.00
+        maxAmount:
+          type: [number, 'null']
+          minimum: 0
+          description: |
+            Monto máximo, que debe ser mayor o igual que `minAmount`. Enviarlo con valor exige enviar
+            también `minAmount`.
+          example: 900000.00
+        commissionModel:
+          type: [string, 'null']
+          enum: [P, F, null]
+          description: |
+            Se envía junto a `commissionValue`. **La comisión por sitio se guarda pero no se cobra**:
+            la que se aplica en una transacción es la del comercio.
+        commissionValue:
+          type: [number, 'null']
+          minimum: 0
+          description: Se envía junto a `commissionModel`.
+        order:
+          type: integer
+          minimum: 1
+          maximum: 32767
+        creditRules:
+          type: [object, 'null']
+          description: Si se omite, se heredan las del comercio.
+        settings:
+          type: object
+          description: |
+            Ajustes propios del sitio. Se fusionan con los existentes: una clave enviada con `null` o
+            cadena vacía se elimina, y una que no se envía se conserva.
+
+            En una transacción, un ajuste del sitio prevalece sobre el del comercio.
+          additionalProperties:
+            type: [string, number, boolean, 'null']
+
+    Site:
+      title: Site
+      type: object
+      description: |
+        Punto de venta del comercio. Un elemento **sin `id`** crea un sitio nuevo, y entonces todos
+        los campos marcados como requeridos lo son; un elemento **con `id`** modifica uno existente y
+        solo cambia lo que nombra.
+
+        La colección no puede eliminar un sitio: para dejarlo fuera de operación se envía
+        `active: false`.
+      required:
+        - name
+        - displayName
+        - type
+        - category
+        - currency
+        - language
+        - email
+        - integration
+        - control
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          description: |
+            Identificador del sitio, acotado al comercio de la URL. Prohibido al crear el comercio, y
+            no puede repetirse entre elementos.
+          example: 214
+        login:
+          type: [string, 'null']
+          maxLength: 32
+          description: |
+            Identificador público del sitio, único en todo el registro e insensible a mayúsculas. Si
+            no se envía, se genera.
+          example: aabbccdd1234567890aabbccdd123456
+        tranKey:
+          type: string
+          maxLength: 32
+          description: Clave secreta del sitio. Si no se envía, se genera.
+        md5Hash:
+          type: string
+          maxLength: 32
+          description: Segunda credencial del sitio. Si no se envía, se genera.
+        name:
+          type: string
+          maxLength: 128
+          description: Nombre interno del sitio.
+          example: Tienda principal
+        displayName:
+          type: string
+          maxLength: 128
+          description: Nombre que ve el comprador durante el pago.
+          example: Acme
+        type:
+          type: string
+          enum: [POS, INT, IVR, REC, ONE]
+          description: |
+            Canal del sitio: punto de venta, internet, telefónico, recurrente o pago único.
+          example: INT
+        category:
+          type: string
+          enum: [COLLECT, ECOMMERCE]
+          example: ECOMMERCE
+        active:
+          type: boolean
+          description: Si el sitio está habilitado.
+        onTest:
+          type: boolean
+          description: Si el sitio opera en modo de pruebas.
+        currency:
+          type: string
+          maxLength: 3
+          description: Moneda del sitio, del catálogo y con la grafía exacta.
+          example: COP
+        language:
+          type: string
+          maxLength: 5
+          description: Idioma del sitio, del catálogo y con la grafía exacta.
+          example: ES
+        email:
+          type: string
+          format: email
+          maxLength: 80
+          description: Correo de contacto operativo del sitio.
+          example: ops@acme.example.com
+        customBatch:
+          type: [integer, 'null']
+          minimum: 0
+          maximum: 9999999999999
+        expiration:
+          type: [string, 'null']
+          description: 'Fecha y hora de expiración, con formato `Y-m-d H:i:s`.'
+          example: '2027-01-31 23:59:59'
+        productionDate:
+          type: [string, 'null']
+          description: 'Fecha de paso a producción, con formato `Y-m-d`.'
+          example: '2026-09-01'
+        integration:
+          $ref: '#/components/schemas/SiteIntegrationBlock'
+        control:
+          $ref: '#/components/schemas/SiteControlBlock'
+        threeDS:
+          $ref: '#/components/schemas/SiteThreeDSBlock'
+        securityFilters:
+          $ref: '#/components/schemas/SiteSecurityFiltersBlock'
+        operation:
+          $ref: '#/components/schemas/SiteOperationBlock'
+        subscriptionValidation:
+          $ref: '#/components/schemas/SiteSubscriptionValidationBlock'
+        branding:
+          $ref: '#/components/schemas/SiteBrandingBlock'
+        metadata:
+          type: object
+          description: |
+            Documento libre con información propia del comercio, con nombres que no pertenecen al
+            catálogo. Opcional en ambos endpoints.
+
+            Un valor por nombre: cadena, número o booleano, y conserva el tipo con el que viaja. Un
+            objeto o una lista responden `422`. El nombre admite hasta 64 caracteres, distingue
+            mayúsculas y no puede ser un número entero; el valor admite hasta 1024.
+
+            Se **fusiona**: una clave que el cuerpo no nombra sobrevive, y se retira nombrándola con
+            `null` o con la cadena vacía —en una creación ambas se rechazan—. El tope de 4096 bytes se
+            mide sobre el documento **resultante**, no sobre lo enviado, y cuenta además dentro de los
+            8192 bytes del sitio.
+
+            **No se devuelve** en `result`, ni en la notificación, ni en la consulta del proceso. No es
+            sitio para un secreto ni para un dato personal.
+
+            Ver [Metadatos del sitio](/onboarding/sites#site-metadata).
+          propertyNames:
+            maxLength: 64
+          additionalProperties:
+            type: [string, number, boolean, 'null']
+            maxLength: 1024
+          example:
+            contractRef: AC-2026-0042
+            onboardingBatch: 17
+            requiresManualReview: true
+        integrations:
+          type: array
+          minItems: 1
+          maxItems: 16
+          description: |
+            Integraciones propias del sitio. Usan el mismo catálogo que las del comercio y son
+            independientes de ellas: el mismo `type` puede existir en ambas.
+
+            A diferencia de las del comercio, aquí el bloque `settings` se **reemplaza entero**.
+          items:
+            $ref: '#/components/schemas/Integration'
+        paymentMethods:
+          type: array
+          minItems: 1
+          maxItems: 50
+          description: Medios de pago del comercio habilitados en este sitio.
+          items:
+            $ref: '#/components/schemas/SitePaymentMethod'
+
+    SiteIntegrationBlock:
+      title: integration
+      type: object
+      description: Cómo se conecta el sitio con la plataforma de pagos.
+      required: [allowPartial, checkoutVersion]
+      properties:
+        allowPartial:
+          type: boolean
+          description: Si se admiten pagos parciales.
+        checkoutVersion:
+          type: string
+          enum: [v4]
+          description: Versión de la página de pago. Hoy solo se admite `v4`.
+        connectionMethod:
+          type: [string, 'null']
+          enum: [SERVICES, REDIRECT, REDIRECT_OLD, LINK, QR, MS_OPEN, MS_CLOSED, MS_CUSTOM, IVR, INVOICE_API, PVA, RECURRENCE, null]
+          example: REDIRECT
+        notificationUrl:
+          type: [string, 'null']
+          format: uri
+          maxLength: 128
+          description: |
+            URL donde el sitio recibe las notificaciones de sus transacciones.
+
+            Cuidado: una integración de sitio de tipo `notifier` **sobrescribe este valor** con una
+            dirección derivada del servicio notificador, y lo hace por el solo hecho de declarar ese
+            tipo.
+          example: https://acme.example.com/pay/notify
+        analyticsCode:
+          type: [string, 'null']
+          maxLength: 60
+        sourceRestriction:
+          type: [string, 'null']
+          enum: [microsites, ivr, checkout, panel, api, plugins, null]
+        allowWallet:
+          type: boolean
+        checkoutAttemptsLimit:
+          type: [integer, 'null']
+          enum: [1, 3, 5, 10, 20, null]
+          description: Intentos de pago permitidos por sesión.
+          example: 5
+        returnAdditional:
+          type: boolean
+        payerFieldsType:
+          type: [integer, 'null']
+          minimum: 0
+          maximum: 2
+
+    SiteControlBlock:
+      title: control
+      type: object
+      description: Cuándo y con qué montos puede operar el sitio.
+      required: [minAmount, maxAmount, allowedDays, allowedHours, filterPse, filterByBin]
+      properties:
+        minAmount:
+          type: number
+          minimum: 0
+          description: Monto mínimo por transacción. Hasta 10 cifras enteras y 2 decimales.
+          example: 1000
+        maxAmount:
+          type: number
+          minimum: 0
+          description: |
+            Monto máximo por transacción, mayor o igual que `minAmount`. Hasta 12 cifras enteras y 2
+            decimales.
+          example: 5000000
+        allowedDays:
+          type: integer
+          minimum: 1
+          maximum: 127
+          description: |
+            Días de la semana habilitados, como máscara de bits. El valor `127` los habilita todos; el
+            `0` se rechaza, porque dejaría el sitio sin ningún día operativo.
+          example: 127
+        allowedHours:
+          type: string
+          pattern: '^[0-9a-f]{42}$'
+          description: |
+            Horas habilitadas, como una cadena hexadecimal de **exactamente 42 caracteres**.
+
+            La longitud importa: una cadena más corta no produce un error, produce un horario
+            equivocado.
+          example: ffffffffffffffffffffffffffffffffffffffffff
+        filterPse:
+          type: boolean
+        filterByBin:
+          type: boolean
+        filterTuya:
+          type: boolean
+        filterSafetypay:
+          type: boolean
+        prechargeFilter:
+          type: integer
+          enum: [0, 1, 2]
+        allowedBankCountries:
+          type: [array, 'null']
+          minItems: 1
+          maxItems: 267
+          description: Países cuyos bancos se admiten. Sin repetidos.
+          items:
+            type: string
+            minLength: 2
+            maxLength: 2
+            example: CO
+        exceptionBinsList:
+          type: [array, 'null']
+          minItems: 1
+          maxItems: 500
+          description: BINes exceptuados del filtro. Sin repetidos.
+          items:
+            type: string
+            pattern: '^\d{6}$'
+        delegatedAuthorization:
+          type: [string, 'null']
+          pattern: '^[0-9a-f]{42}$'
+
+    SiteThreeDSBlock:
+      title: threeDS
+      type: [object, 'null']
+      description: Configuración de autenticación 3-D Secure del sitio.
+      properties:
+        setting:
+          type: string
+          enum: [VERY_LOW, LOW, MEDIUM, HIGH]
+          example: LOW
+        minAmount:
+          type: [number, 'null']
+          minimum: 0
+          description: Monto a partir del cual se aplica la autenticación.
+
+    SiteSecurityFiltersBlock:
+      title: securityFilters
+      type: [object, 'null']
+      description: Límites antifraude del sitio.
+      properties:
+        filterLockedByTries:
+          type: boolean
+        forceIPMatch:
+          type: boolean
+        onlyWhitelisted:
+          type: boolean
+        allowedIssuerCountries:
+          type: [array, 'null']
+          minItems: 1
+          maxItems: 267
+          items:
+            type: string
+            minLength: 2
+            maxLength: 2
+        allowedIPCountries:
+          type: [array, 'null']
+          minItems: 1
+          maxItems: 267
+          items:
+            type: string
+            minLength: 2
+            maxLength: 2
+        excludeIPCountry:
+          type: [array, 'null']
+          minItems: 1
+          maxItems: 85
+          items:
+            type: string
+            minLength: 2
+            maxLength: 2
+        allowedCardsDay:
+          type: integer
+          minimum: 0
+          maximum: 127
+        allowedCardsMonth:
+          type: integer
+          minimum: 0
+          maximum: 127
+        allowedCardsYear:
+          type: integer
+          minimum: 0
+          maximum: 127
+        allowedCardsByIP:
+          type: integer
+          minimum: 0
+          maximum: 999
+        dayMax:
+          type: integer
+          minimum: 0
+          maximum: 999
+          example: 5
+        monthMax:
+          type: integer
+          minimum: 0
+          maximum: 999
+        dayMaxAmount:
+          type: number
+          minimum: 0
+        monthMaxAmount:
+          type: number
+          minimum: 0
+
+    SiteOperationBlock:
+      title: operation
+      type: [object, 'null']
+      description: Parámetros operativos del sitio.
+      properties:
+        disableTax:
+          type: boolean
+        calculateTax:
+          type: boolean
+        mailCustomer:
+          type: boolean
+          description: Si se envía comprobante al comprador.
+          example: true
+        mailMerchant:
+          type: boolean
+        taxPercentage:
+          type: number
+          minimum: 0
+          maximum: 50
+          description: Porcentaje de impuesto, con hasta dos decimales.
+          example: 19
+        patternReference:
+          type: [string, 'null']
+          maxLength: 30
+
+    SiteSubscriptionValidationBlock:
+      title: subscriptionValidation
+      type: [object, 'null']
+      description: Validación aplicada al registrar un medio de pago.
+      properties:
+        enable:
+          type: boolean
+        amount:
+          type: number
+          minimum: 0
+
+    SiteBrandingBlock:
+      title: branding
+      type: object
+      description: Colores de la página de pago del sitio.
+      properties:
+        buttonColor:
+          type: [string, 'null']
+          pattern: '^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$'
+          example: '#1a73e8'
+        sidebarColor:
+          type: [string, 'null']
+          pattern: '^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$'
+
+    Process:
+      title: Process
+      type: object
+      description: Estado de un proceso de registro o actualización.
+      required:
+        - status
+        - processId
+        - action
+        - result
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        processId:
+          type: string
+          description: Identificador del proceso, en minúsculas.
+          example: 01kz0609xy2hd666mnx6b0jxpc
+        action:
+          type: string
+          enum: [merchant.create, merchant.update]
+          description: Operación que el proceso ejecuta.
+          example: merchant.create
+        result:
+          oneOf:
+            - $ref: '#/components/schemas/ProcessResult'
+            - type: 'null'
+          description: Disponible solo cuando el proceso termina bien; `null` mientras tanto.
+        errors:
+          type: object
+          description: |
+            Presente solo cuando el fallo puede atribuirse a campos concretos. Sus claves son las
+            rutas del cuerpo que enviaste, igual que en un `422`.
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        notification:
+          oneOf:
+            - $ref: '#/components/schemas/NotificationState'
+            - type: 'null'
+          description: Estado de la entrega del webhook, o `null` si no registraste una URL.
+
+    ProcessResult:
+      title: ProcessResult
+      type: object
+      description: |
+        Lo que quedó registrado. Es un objeto **extensible**: pueden aparecer claves nuevas sin que se
+        considere un cambio incompatible, así que ignora las que no conozcas.
+      required:
+        - merchantId
+      properties:
+        merchantId:
+          type: integer
+          description: Identificador del comercio, tanto en una creación como en una actualización.
+          example: 18
+        integrations:
+          type: array
+          description: Una entrada por integración escrita. Nunca incluye `settings`.
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                example: kount
+              id:
+                type: integer
+                example: 42
+              action:
+                type: string
+                enum: [created, updated, unchanged]
+                example: created
+        paymentMethods:
+          type: array
+          description: |
+            Una entrada por medio de pago escrito. `code` y `financialEntity` se leen del registro, no
+            del cuerpo, así que aparecen aunque el elemento se haya direccionado por `id`.
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                example: CR_VS
+              financialEntity:
+                type: [integer, 'null']
+                example: 1
+              id:
+                type: integer
+                example: 64
+              action:
+                type: string
+                enum: [created, updated, unchanged]
+        sites:
+          type: array
+          description: Una entrada por sitio escrito.
+          items:
+            type: object
+            required:
+              - id
+              - login
+              - tranKey
+              - md5Hash
+              - active
+              - action
+            properties:
+              id:
+                type: integer
+                example: 214
+              login:
+                type: string
+                description: Identificador público del sitio.
+              tranKey:
+                type: [string, 'null']
+                description: |
+                  Clave secreta del sitio. **La clave siempre está presente**; su valor es `null`
+                  salvo que esta misma petición lo haya escrito.
+
+                  En un alta nunca es `null`: si el cuerpo no envía las credenciales, se generan. En
+                  una actualización vuelve **solo si cambió**, así que reenviar el mismo valor que ya
+                  está guardado devuelve `null`.
+
+                  Es el único lugar donde una credencial generada se publica, y no hay forma de
+                  recuperarla después.
+              md5Hash:
+                type: [string, 'null']
+                description: |
+                  Segunda credencial del sitio, sujeta a la misma condición que `tranKey`: la clave
+                  siempre está presente y su valor es `null` salvo que esta petición la haya escrito.
+
+                  Se declara por completitud del contrato, porque la respuesta la incluye. Para
+                  integrar un sitio se usan `login` y `tranKey`.
+              active:
+                type: boolean
+              action:
+                type: string
+                enum: [created, updated, unchanged]
+              integrations:
+                type: array
+                description: Presente solo si el sitio escribió integraciones.
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    id:
+                      type: integer
+                    action:
+                      type: string
+                      enum: [created, updated, unchanged]
+              paymentMethods:
+                type: array
+                description: |
+                  Presente solo si el sitio escribió medios de pago. `financialEntity` publica el
+                  valor **efectivo**: el propio del sitio, o el del comercio si el sitio no tiene uno.
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                    financialEntity:
+                      type: [integer, 'null']
+                    id:
+                      type: integer
+                    action:
+                      type: string
+                      enum: [created, updated, unchanged]
+
+    NotificationState:
+      title: NotificationState
+      type: object
+      description: Estado de la entrega del webhook de este proceso.
+      properties:
+        url:
+          type: string
+          format: uri
+          example: https://acme.example.com/hooks/onboarding
+        state:
+          type: string
+          enum: [PENDING, DELIVERED, FAILED]
+          description: |
+            `FAILED` aquí significa que se perdió el aviso, **no** que el registro fallara: el proceso
+            puede estar en `OK` con el comercio correctamente registrado.
+          example: DELIVERED
+        attempts:
+          type: integer
+          minimum: 0
+          maximum: 6
+          example: 1
+
+    ApiUser:
+      title: ApiUser
+      type: object
+      description: Consumidor de la API al que pertenece el token.
+      required:
+        - status
+        - id
+        - username
+        - environment
+        - active
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        id:
+          type: integer
+          description: Identificador de tu aplicación como consumidora.
+          example: 1
+        username:
+          type: string
+          description: Nombre con el que está registrada tu aplicación.
+          example: acme
+        environment:
+          type: string
+          description: Ambiente al que pertenece el token.
+          example: SANDBOX
+        active:
+          type: boolean
+          example: true
+
+    WebhookNotification:
+      title: WebhookNotification
+      type: object
+      description: |
+        Cuerpo que Onboarding envía a tu endpoint. Es la misma representación que devuelve
+        `GET /api/processes/{processId}`, más el objeto `event`.
+      required:
+        - status
+        - processId
+        - action
+        - result
+        - event
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        processId:
+          type: string
+          example: 01kz0609xy2hd666mnx6b0jxpc
+        action:
+          type: string
+          enum: [merchant.create, merchant.update]
+          description: La acción del proceso, idéntica a la que devuelve la consulta.
+        result:
+          oneOf:
+            - $ref: '#/components/schemas/ProcessResult'
+            - type: 'null'
+        errors:
+          type: object
+          description: Presente solo en algunos fallos. Hermano de `status`, nunca dentro.
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        event:
+          type: object
+          description: Describe la entrega, no el proceso.
+          required: [id, type, time, attempt]
+          properties:
+            id:
+              type: string
+              description: Repite el header `X-Event-Id`. Es la clave de deduplicación.
+              example: 01kz0609xy2hd666mnx6b0jxpb
+            type:
+              type: string
+              enum:
+                - merchant.create.succeeded
+                - merchant.create.failed
+                - merchant.update.succeeded
+                - merchant.update.failed
+              description: |
+                Nombre del evento. A diferencia de `action`, incluye el desenlace, y conserva el
+                vocabulario `succeeded`/`failed` para que un filtro de suscripción no se rompa.
+              example: merchant.create.succeeded
+            time:
+              type: string
+              format: date-time
+              description: Instante del **envío**, distinto de `status.date`, que marca la transición.
+              example: '2026-08-17T10:14:10-05:00'
+            attempt:
+              type: integer
+              minimum: 1
+              maximum: 6
+              description: Repite el header `X-Delivery-Attempt`.
+              example: 1

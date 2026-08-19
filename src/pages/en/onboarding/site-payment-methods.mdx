@@ -1,0 +1,244 @@
+export const description =
+  'Habilita en un sitio los medios de pago del comercio y ajusta los valores que deban diferir para ese sitio.'
+
+<MissingTranslationBanner />
+
+# Medios de pago del sitio
+
+La colección `sites[].paymentMethods` **no define un medio de pago: lo habilita**.
+
+<Note type="warning">
+  Un elemento de esta colección no crea nada nuevo. Toma un medio de pago que **el comercio ya tiene** y lo habilita en ese sitio, permitiendo además sobrescribir los valores que deban diferir.
+</Note>
+
+Esa es la diferencia esencial con [Medios de pago](/en/onboarding/payment-methods), y de ella se derivan casi todas sus reglas.
+
+## Las tres formas de direccionar un elemento {{ id: 'addressing' }}
+
+Cada elemento indica de qué fila habla de **una sola de estas tres maneras**. Enviar más de una responde `422`.
+
+| Campo | Qué señala | Cuándo se usa |
+|---|---|---|
+| `id` | La habilitación que ya existe en este sitio | Para modificarla. Solo en la actualización |
+| `paymentMethodId` | El medio de pago del comercio que quieres habilitar | Para habilitar uno nuevo. Solo en la actualización |
+| `code` | Un medio de pago que **este mismo cuerpo** le está dando al comercio | La única forma posible al crear el comercio |
+
+<Note>
+  `siteId` responde `422` siempre: el sitio es el elemento que contiene la colección, no un campo suyo.
+</Note>
+
+Los dos identificadores los publica el resultado de un proceso: `paymentMethodId` sale de `result.paymentMethods[].id` y el `id` de la habilitación, de `result.sites[].paymentMethods[].id`. Consérvalos, porque [no hay forma de consultarlos después](/en/onboarding/payment-methods#where-the-id-comes-from).
+
+### `id` — modificar una habilitación existente
+
+Es la única dirección que alcanza a un sitio que tiene **dos habilitaciones del mismo medio de pago**, una situación que el registro permite y que existe en configuraciones antiguas. Está acotado al sitio que lo lleva.
+
+```json
+{
+  "sites": [
+    {
+      "id": 16,
+      "paymentMethods": [
+        { "id": 18, "minAmount": 2000.00, "maxAmount": 900000.00 }
+      ]
+    }
+  ]
+}
+```
+
+### `paymentMethodId` — habilitar uno que el comercio ya tiene
+
+Señala el medio de pago del comercio, y está acotado al comercio de la URL. Es el identificador que publica `result.paymentMethods[].id`.
+
+```json
+{
+  "sites": [
+    {
+      "id": 16,
+      "paymentMethods": [
+        {
+          "paymentMethodId": 64,
+          "financialEntity": 2,
+          "accountNumber": "1234567890"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### `code` — habilitar uno que llega en la misma petición
+
+Señala un medio de pago que la colección `paymentMethods` de la raíz de **este mismo cuerpo** le está dando al comercio. Nunca consulta lo que ya está registrado, y por eso es la única dirección posible al crear un comercio: en ese momento todavía no existe nada.
+
+Permite registrar un medio de pago y habilitarlo en un sitio con una sola petición:
+
+```json
+{
+  "paymentMethods": [
+    { "code": "TS_VS", "financialEntity": 1, "commissionModel": "P", "commissionValue": 2.5 }
+  ],
+  "sites": [
+    {
+      "id": 16,
+      "paymentMethods": [
+        { "code": "TS_VS", "financialEntity": 1 }
+      ]
+    }
+  ]
+}
+```
+
+Un `code` que la raíz del cuerpo no declara —o que declara dos veces— responde `422`.
+
+## `financialEntity` es el banco del sitio {{ id: 'financial-entity' }}
+
+Dentro de un sitio, `financialEntity` **no forma parte de la dirección**: es la entidad financiera de la **cuenta de depósito propia del sitio**, la que usa en lugar de la del comercio.
+
+<Note>
+  Si un sitio deposita en el mismo banco que el comercio, no envíes `financialEntity` en absoluto: se hereda.
+</Note>
+
+## Qué se hereda y qué se sobrescribe {{ id: 'inheritance' }}
+
+Lo que un elemento **no nombra no se borra: se hereda** del medio de pago del comercio.
+
+| Campo | Si lo omites | Si lo envías |
+|---|---|---|
+| `financialEntity` | Se usa la entidad del comercio | El sitio deposita en esa entidad |
+| `accountType` | Se usa el tipo del comercio | El sitio usa ese tipo |
+| `accountNumber` | Se usa la cuenta del comercio | El sitio usa esa cuenta |
+| `creditRules` | Se usan las del comercio | El sitio usa esas reglas |
+
+Esta herencia es la razón por la que un elemento mínimo funciona: habilitar un medio de pago sin cambiar nada es enviar solo su dirección.
+
+## Montos por sitio {{ id: 'amounts' }}
+
+`minAmount` y `maxAmount` acotan **este medio de pago dentro de este sitio**. Si no los envías, se aplican los límites generales del bloque `control` del sitio.
+
+<Note>
+  Nombrar uno **con un valor** obliga a enviar el otro, en las dos direcciones. Es lo que impide dejar un mínimo por encima de un máximo.
+</Note>
+
+Un `null` es un caso distinto: **no nombra nada, así que no exige nada**. Eso permite limpiar solo una de las dos mitades — por ejemplo, enviar `minAmount: null` con un `maxAmount` concreto significa «hereda el mínimo del control del sitio y conserva este máximo».
+
+`commissionModel` y `commissionValue` funcionan igual: hay que enviarlos juntos cuando llevan valor.
+
+## La comisión por sitio {{ id: 'commission' }}
+
+<Note type="warning">
+  **La comisión de un medio de pago de sitio se guarda pero no se cobra.** El motor transaccional lee la comisión del **comercio**, no la del sitio. Configurarla aquí no cambia lo que cuesta una transacción.
+</Note>
+
+Se acepta y se almacena porque es el comportamiento existente de la plataforma y hay herramientas administrativas que la leen. Pero si tu objetivo es cambiar la comisión efectiva, el campo que importa es el del [medio de pago del comercio](/en/onboarding/payment-methods).
+
+Hay un segundo efecto que conviene conocer: una comisión **heredada** —es decir, que no enviaste— se muestra como la del comercio, pero la primera vez que alguien guarde esa fila desde el back office pasará a valer `0.00` de forma permanente.
+
+## El bloque `settings` {{ id: 'settings-block' }}
+
+Los ajustes **se fusionan**, igual que en los medios de pago del comercio:
+
+| Envías | Efecto |
+|---|---|
+| Una clave con un valor nuevo | Se actualiza |
+| Una clave que no estaba | Se añade |
+| Una clave con `null` o cadena vacía | **Se elimina** |
+| No envías una clave que existía | **Se conserva** |
+
+<Note type="warning">
+  Esto es lo **contrario** de lo que hacen las [integraciones del sitio](/en/onboarding/site-integrations), donde el bloque se reemplaza entero. Dos colecciones hermanas dentro del mismo sitio con semánticas opuestas: es la fuente más común de configuraciones que desaparecen sin explicación aparente.
+</Note>
+
+En el momento de una transacción, un ajuste del sitio prevalece sobre el mismo ajuste del comercio, que a su vez prevalece sobre el valor por defecto del catálogo.
+
+## Comportamiento en una actualización {{ id: 'update-behaviour' }}
+
+La colección es **upsert-only**: un medio de pago que el cuerpo no nombra sigue habilitado en el sitio, y no existe forma de deshabilitarlo desde este contrato.
+
+Dentro de un elemento nombrado, solo cambia lo que envías.
+
+## Escribir aquí marca el sitio {{ id: 'writing-marks-the-site' }}
+
+<Note>
+  A diferencia de las integraciones del sitio, **escribir un medio de pago marca el sitio como modificado**. Verás ese sitio con `action: "updated"` en el resultado aunque no hayas cambiado ninguno de sus propios campos.
+</Note>
+
+La marca se escribe solo cuando algo cambió realmente, y nunca en un sitio que esta misma petición acaba de crear.
+
+## Errores de direccionamiento {{ id: 'addressing-errors' }}
+
+| Cuerpo | Respuesta |
+|---|---|
+| Un elemento sin ninguna de las tres direcciones | `422` sobre el elemento |
+| Un elemento con dos direcciones a la vez | `422` sobre el elemento |
+| Un `id` que no pertenece al sitio | `422` sobre `id` |
+| Un `paymentMethodId` que no pertenece al comercio | `422` sobre `paymentMethodId` |
+| Un `paymentMethodId` que el sitio ya tiene habilitado | `422` sobre `paymentMethodId` |
+| Un `code` que la raíz del cuerpo no declara, o declara dos veces | `422` sobre `code` |
+| `id` o `paymentMethodId` en una creación, o en un sitio que se está creando | `422` |
+| Dos elementos del mismo sitio que señalan el mismo medio de pago | `422` |
+
+<Note>
+  Los dos primeros se reportan sobre **el elemento** (`sites.0.paymentMethods.0`), no sobre un campo suyo, porque el problema es cómo está direccionado el elemento entero.
+</Note>
+
+Las tres direcciones son tres espacios distintos: el `41` como habilitación de un sitio y el `41` como medio de pago del comercio nunca se confunden.
+
+## El resultado {{ id: 'result-site-payment-methods' }}
+
+<Row>
+  <Col>
+    Un sitio que escribió medios de pago incluye la clave `paymentMethods` en su entrada de `result.sites[]`.
+
+    <Properties>
+      <Property name="code" type="string">
+        El código del medio de pago, leído del registro.
+      </Property>
+      <Property name="financialEntity" type="integer">
+        La entidad financiera **efectiva**: la propia del sitio, o la del comercio cuando el sitio no tiene una.
+      </Property>
+      <Property name="id" type="integer">
+        Identificador de la habilitación en este sitio. Es el que usarás para modificarla después.
+      </Property>
+      <Property name="action" type="string">
+        `created`, `updated` o `unchanged`.
+      </Property>
+    </Properties>
+
+    Nunca incluye `settings`.
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'result' }}
+    {
+      "result": {
+        "merchantId": 18,
+        "sites": [
+          {
+            "id": 214,
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": null,
+            "active": true,
+            "action": "updated",
+            "paymentMethods": [
+              {
+                "code": "TS_VS",
+                "financialEntity": 2,
+                "id": 133,
+                "action": "created"
+              }
+            ]
+          }
+        ]
+      }
+    }
+    ```
+  </Col>
+</Row>
+
+Fíjate en que el sitio aparece como `updated` aunque el cuerpo no cambiara ninguno de sus campos: es el efecto descrito arriba.
+
+## ¿Qué sigue? {{ id: 'site-payment-methods-next' }}
+
+- [Medios de pago del comercio](/en/onboarding/payment-methods)
+- [Integraciones del sitio](/en/onboarding/site-integrations)
+- [Sitios](/en/onboarding/sites)

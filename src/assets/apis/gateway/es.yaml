@@ -83,6 +83,27 @@ paths:
                           type: "integer"
                           description: Índice de medio de pago a seleccionar dentro de una lista de medios de pago disponibles. Este campo es requerido solo cuando se desee emplear el flujo de orquestador de pagos.
                           example: 2
+                - title: "Paystudio TS"
+                  type: "object"
+                  properties:
+                    locale:
+                      type: "string"
+                      description: "Determina el idioma de la respuesta"
+                      example: "es-CO"
+                    auth:
+                      $ref: "../base/es.yaml#/components/schemas/Authentication"
+                    instrument:
+                      $ref: "#/components/schemas/Instrument"
+                    payment:
+                      $ref: "../base/es.yaml#/components/schemas/Payment"
+                    ipAddress:
+                      type: "string"
+                    userAgent:
+                      type: "string"
+                  required:
+                    - "auth"
+                    - "payment"
+                    - "instrument"
                 - title: "PSE"
                   type: "object"
                   properties:
@@ -401,6 +422,62 @@ paths:
                       availablePaymentMethods:
                         type: "integer"
                         description: "Indica el total de medios de pago disponibles para procesar. Se indicará en la respuesta solo si se trata de selección de servicio por medio de índice."
+                      requireCardExpiration:
+                        type: "boolean"
+                        description: "Indica si se requiere la fecha de vencimiento de la tarjeta para procesar la transacción."
+                      allowedDocumentTypes:
+                        type: "array"
+                        description: "Indica los tipos de documentos permitidos para la transacción."
+                        items:
+                          type: "string"
+                    required:
+                      - "status"
+                      - "provider"
+                      - "serviceCode"
+                  - title: "Paystudio TS"
+                    type: "object"
+                    properties:
+                      status:
+                        $ref: "../base/es.yaml#/components/schemas/Status"
+                      provider:
+                        type: "string"
+                        example: "PAYSTUDIO"
+                        description: "Indica cual proveedor será utilizado en la transacción"
+                      serviceCode:
+                        type: "string"
+                        description: "Indica el código del servicio que procesará la transacción"
+                        example: "PS_VS"
+                      cardTypes:
+                        type: "array"
+                        description: "Indica los tipos de tarjeta soportados por el proveedor"
+                        items:
+                          $ref: "#/components/schemas/CardType"
+                      cardType:
+                        $ref: "#/components/schemas/CardType"
+                      displayInterest:
+                        type: "boolean"
+                        description: "Indica si es requerido mostrar los intereses de la transacción"
+                      requiereOtp:
+                        type: "boolean"
+                        description: "Indica si es necesario realizar el flujo de OTP"
+                      requiereCvv2:
+                        type: "boolean"
+                        description: "Indica si es requerido enviar CVV para el procesamiento de la transacción"
+                      threeDS:
+                        type: "string"
+                        enum:
+                          - "optional"
+                          - "required"
+                          - "unsupported"
+                        description: "Indica si es necesario 3DS"
+                      credits:
+                        type: "array"
+                        description: "Indica los créditos disponibles por proveedor. Estructura bajo el modelo **estructura por cuota**. Ver más en [Crédito](/gateway/additional-data#additional-data-credit)"
+                        items:
+                          $ref: "#/components/schemas/CreditPerInstallment"
+                      hasForwarding:
+                        type: "boolean"
+                        description: "Indica si el medio de pago tiene configurado enrutamiento transaccional"
                       requireCardExpiration:
                         type: "boolean"
                         description: "Indica si se requiere la fecha de vencimiento de la tarjeta para procesar la transacción."
@@ -741,6 +818,14 @@ paths:
                       example: 2
                     kount:
                       $ref: '../base/es.yaml#/components/schemas/KountMetadata'
+                    requiresConfirmation:
+                      type: "boolean"
+                      description: "Indica si la transacción requiere confirmación previo a su procesamiento."
+                      example: true
+                    interestQueryCode:
+                      type: "string"
+                      description: "Indica si la cuota cuenta con información disponible para ser aplicada durante el procesamiento de la transacción. Este campo es válido para el servicio **PAYSTUDIO**, *flavour* **TS**, y la información debe estar disponible a través del [servicio de consulta de intereses](/gateway/interests).Si se envía este valor, pero el código proporcionado no es válido o no es retornado por dicho servicio, la transacción será rechazada."
+                      example: true
                 idempotenceKey:
                   type: "string"
                   description: "Clave única para identificar la transacción. Ver más en [Control de Idempotencia](/gateway/idempotency)"
@@ -1217,7 +1302,38 @@ paths:
                       bin: "411076"
                       expiration: "1228"
                       installments: 1
-      description: "Permite realizar un reembolso, re-autorización o checkout sobre una transacción existente"
+        200 Confirm:
+          description: "Respuesta Aprobada de una confirmación"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "../base/es.yaml#/components/schemas/Status"
+                  date:
+                    type: "string"
+                    description: "Fecha de la solicitud de operación"
+                    example: "2021-09-20T21:56:29-05:00"
+                  transactionDate:
+                    type: "string"
+                    description: "Fecha de ejecución de la operación."
+                    example: "2021-09-20T21:56:29-05:00"
+                  internalReference:
+                    type: "integer"
+                    description: "Referencia interna de la operación."
+                    nullable: true
+                  type:
+                    type: "string"
+                    description: "Tipo de transacción"
+                    enum:
+                      - "AUTH_CONFIRM"
+                      - "AUTH_CANCEL"
+                  transactionProcessed:
+                    type: object
+                    description: "Objeto que contiene la información de la transacción original procesada."
+                    $ref: "../base/es.yaml#/components/schemas/Transaction"
+      description: "Permite realizar un reembolso, re-autorización, checkout, confirmación o cancelación sobre una transacción existente"
       tags:
         - "Acciones sobre transacciones"
       requestBody:
@@ -1228,6 +1344,7 @@ paths:
               properties:
                 locale:
                   type: "string"
+                  description: "Contiene el código de localización"
                   example: "es-CO"
                 auth:
                   $ref: "../base/es.yaml#/components/schemas/Authentication"
@@ -1237,11 +1354,20 @@ paths:
                     Tipo de operación a realizar sobre la transacción
 
                     `reverse` para revesar una transacción.
+
                     `reauthorization` para modificar una transacción de checkin.
+                    
                     `checkout` para cerrar y cobrar una transacción de checkin.
+                    
                     `refund` para rembolsar una transacción.
+                    
                     `process`, para aprobar de manera manual una transacción.
+                    
                     `void` para cancelar el procesamiento de una transacción pendiente de aprobación manual.
+                    
+                    `confirm` para procesar una transacción pendiente de confirmación.
+                    
+                    `cancel` para cancelar una transacción pendiente de confirmación.
                   enum:
                     - "reverse"
                     - "refund"
@@ -1250,6 +1376,8 @@ paths:
                     - "dispersion"
                     - "checkout"
                     - "reauthorization"
+                    - "confirm"
+                    - "cancel"
                   example: "reverse"
                 internalReference:
                   type: "number"
@@ -1285,10 +1413,37 @@ paths:
                               Valor total en la moneda base indicada
 
                               EJ: `1000` Valor total en la moneda base indicada
+                instrument:
+                  type: "object"
+                  description: "Estructura que contiene la información acerca del medio de pago a usar en una transacción, esta estructura es variable de acuerdo a la solicitud que se genere, cada servicio requiere que se usen unos u otros datos."
+                  items:
+                    type: "object"
+                    properties:
+                      credit:
+                        description: "Credito seleccionado para procesar. Disponible para action `confirm`"
+                        $ref: "#/components/schemas/CreditPerInstallment"
+                metadata:
+                  type: "object"
+                  description: |
+                    Objeto dinámico clave valor de información adicional que solicitan los servicios externos para ser ejecutados.
+                  properties:
+                    interestQueryCode:
+                      type: "string"
+                      description: "Indica si la cuota cuenta con información disponible para ser aplicada durante el procesamiento de la transacción. Este campo es válido para el servicio **PAYSTUDIO**, *flavour* **TS**, y la información debe estar disponible a través del [servicio de consulta de intereses](/gateway/interests).Si se envía este valor, pero el código proporcionado no es válido o no es retornado por dicho servicio, la transacción será rechazada."
+                      example: true
+                ipAddress:
+                  type: "string"
+                  description: "Dirección IP del cliente"
+                  example: "127.0.0.1"
+                userAgent:
+                  type: "string"
+                  description: "Agente de usuario del cliente"
+                  example: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
               required:
                 - "auth"
                 - "action"
                 - "internalReference"
+              x-conditional: credit
             examples:
               Reembolsos:
                 value:
@@ -1409,6 +1564,37 @@ paths:
                       bin: "365454"
                       expiration: "1122"
                     notificationURL: "https://test.placetopay.ec/redirection/api/notify"
+        200 Confirm:
+          description: "Respuesta de una Transacción de Confirmación"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    $ref: "../base/es.yaml#/components/schemas/Status"
+                  date:
+                    type: "string"
+                    description: "Fecha de la solicitud de operación"
+                    example: "2021-09-20T21:56:29-05:00"
+                  transactionDate:
+                    type: "string"
+                    description: "Fecha de ejecución de la operación."
+                    example: "2021-09-20T21:56:29-05:00"
+                  internalReference:
+                    type: "integer"
+                    description: "Referencia interna de la operación."
+                    nullable: true
+                  type:
+                    type: "string"
+                    description: "Tipo de transacción"
+                    enum:
+                      - "AUTH_CONFIRM"
+                      - "AUTH_CANCEL"
+                  transactionProcessed:
+                    type: object
+                    description: "Objeto que contiene la información de la transacción original procesada."
+                    $ref: "../base/es.yaml#/components/schemas/Transaction"
   /gateway/search:
     post:
       summary: "Búsqueda de transacciones"
@@ -1580,9 +1766,9 @@ paths:
                     total: 1000
   /gateway/interests:
     post:
-      summary: "Cálculo de Intereses (solo Ecuador)"
+      summary: "Cálculo de Intereses"
       operationId: "post-rest-gateway-interests"
-      description: "Este servicio se debe consumir si la tarjeta requiere que se muestren los intereses (displayInterest en true) y como ejemplo de esta manera se muestran los valores en el servicio de redirección."
+      description: "Este servicio se debe consumir si la tarjeta requiere que se muestren los intereses (`displayInterest` en `true`) o sus condiciones de crédito lo permiten (Ver condición en [Créditos por proveedor](/gateway/additional-data/#additional-data-credit-providers)). Está disponible para los flujos que exponen cálculo de intereses, incluidos Ecuador y Chile con PAYSTUDIO flavour `TS`."
       tags:
         - "Obtener información"
       requestBody:
@@ -1599,34 +1785,6 @@ paths:
                   $ref: "#/components/schemas/Instrument"
                 payment:
                   $ref: "../base/es.yaml#/components/schemas/Payment"
-            examples:
-              Consumo:
-                value:
-                  auth:
-                    login: "aabbccdd1234567890aabbccdd123456"
-                    tranKey: "E0gHh8C6fceHnbsLlgBq2n7nRNjr8MVPcz0um1ZYCfs="
-                    nonce: "NjE0YjUwZGNlYjJiNA=="
-                    seed: "2021-09-22T10:50:52-05:00"
-                  payer:
-                    name: "John"
-                    email: "user_email@example.com"
-                  payment:
-                    reference: "1234567890"
-                    amount:
-                      currency: "USD"
-                      total: "1"
-                  instrument:
-                    card:
-                      number: "4111111111111111"
-                      expiration: "12/20"
-                      cvv: "123"
-                    credit:
-                      code: "1"
-                      type: "02"
-                      groupCode: "P"
-                      installment: "24"
-                  ipAddress: "127.0.0.1"
-                  userAgent: "Testing"
       responses:
         200:
           description: "OK"
@@ -1643,6 +1801,14 @@ paths:
                     $ref: "#/components/schemas/InterestValues"
                   conversion:
                     $ref: "../base/es.yaml#/components/schemas/AmountConversion"
+                  additional:
+                    type: object
+                    description: Información adicional del interest
+                    properties:
+                      interestQueryCode:
+                        type: string
+                        description: "Indica si la cuota contiene información adicional que debe considerarse durante el procesamiento de la transacción. Aplica únicamente para **Paystudio TS**. Cuando este campo sea retornado, el valor de `metadata.interestQueryCode` también deberá enviarse explícitamente en la solicitud de procesamiento para que se aplique la información obtenida en la consulta de cuotas."
+                        nullable: true
               examples:
                 Ejemplo:
                   value:
@@ -1651,20 +1817,13 @@ paths:
                       reason: "00"
                       message: "La petición se ha procesado correctamente"
                       date: "2021-09-22T16:08:19-05:00"
-                    provider: "INTERDIN"
+                    provider: "PAYSTUDIO"
                     values:
-                      original: "1"
-                      installment: "0.04"
-                      interest: "0.03"
-                      total: "1.03"
-                    conversion:
-                      from:
-                        currency: "COP"
-                        total: "3000"
-                      to:
-                        currency: "USD"
-                        total: "1"
-                      factor: "0.0003333333333333333"
+                      original: 50000
+                      installment: 25000
+                      interest: 0
+                      total: 50000
+                    conversion: null
     parameters:
   /gateway/otp/generate:
     post:
@@ -3320,7 +3479,7 @@ components:
     Credit:
       title: "Credit"
       type: "object"
-      description: "Estructura que contiene la información del tipo de crédito"
+      description: "Estructura que contiene la información del tipo de crédito. Ver más en [Crédito](/gateway/additional-data#additional-data-credit)"
       properties:
         code:
           type: "string"
@@ -3330,6 +3489,32 @@ components:
           type: "string"
         installment:
           type: "integer"
+        installments:
+          type: "array"
+          items:
+            type: "integer"
+        kind:
+          type: "string"
+          description: "Clasificación de la modalidad de crédito. (Paystudio TS)"
+        description:
+          type: "string"
+    CreditPerInstallment:
+      title: "Credit"
+      type: "object"
+      description: "Estructura que contiene la información del tipo de crédito. Ver más en [Crédito](/gateway/additional-data#additional-data-credit-providers-paystudio-ts)"
+      properties:
+        installment:
+          type: "integer"
+          description: "Numero de cuotas"
+        kind:
+          type: "string"
+          description: "Clasificación de la modalidad de crédito."
+        description:
+          type: "string"
+          description: "Descripción del crédito."
+      required:
+        installment
+        kind
     Pocket:
       title: "Pocket"
       type: "object"
@@ -3532,6 +3717,7 @@ components:
             - "BTNBC"
             - "PGEFT"
             - "BTNAV"
+            - "ATHMV"
         returnURL:
           type: "string"
           format: "uri"

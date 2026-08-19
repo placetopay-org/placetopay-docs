@@ -4,12 +4,11 @@ import { useRouter } from 'next/router'
 import { Button } from '@/components/Button'
 import { useNavigation } from '@/hooks/useNavigation'
 import { useLocale } from './LocaleProvider'
+import { useLocalizePath } from '@/hooks/useLocalizePath'
 import { Logo } from '@/components/Logo'
 import { ROUTES_WITH_INDEX } from '@/constants/routes-with-index'
 
-function PageLink({ label, page, previous = false, locale, hasPrefix }) {
-  const href = hasPrefix ? `/${locale}${page.href}` : page.href
-
+function PageLink({ label, page, previous = false, href }) {
   if (!href) {
     return null
   }
@@ -47,15 +46,21 @@ const PAGE_NAVIGATION_LABELS = {
   },
 }
 
+function flattenPages(links = []) {
+  return links.flatMap((item) =>
+    item.href ? [item] : flattenPages(item.links)
+  )
+}
+
 function PageNavigation() {
-  let { hasPrefix, locale } = useLocale()
+  let { locale } = useLocale()
+  let localizePath = useLocalizePath()
   let navigation = useNavigation()
   let router = useRouter()
-  let allPages = navigation.flatMap((group) => group.links)
-  let currentPageIndex = allPages.findIndex((page) => {
-    const pathname = hasPrefix ? router.pathname.slice(3) : router.pathname
-    return page.href === pathname
-  })
+  let allPages = navigation.flatMap((group) => flattenPages(group.links))
+  let currentPageIndex = allPages.findIndex(
+    (page) => page.href && localizePath(page.href) === router.pathname
+  )
 
   if (currentPageIndex === -1) {
     return null
@@ -75,9 +80,8 @@ function PageNavigation() {
           <PageLink
             label={PAGE_NAVIGATION_LABELS[locale].previous}
             page={previousPage}
+            href={previousPage.href && localizePath(previousPage.href)}
             previous
-            locale={locale}
-            hasPrefix={hasPrefix}
           />
         </div>
       )}
@@ -86,8 +90,7 @@ function PageNavigation() {
           <PageLink
             label={PAGE_NAVIGATION_LABELS[locale].next}
             page={nextPage}
-            locale={locale}
-            hasPrefix={hasPrefix}
+            href={nextPage.href && localizePath(nextPage.href)}
           />
         </div>
       )}
@@ -132,10 +135,18 @@ function SocialLink({ href, icon: Icon, children }) {
   )
 }
 
+const PRIVACY_POLICY_TEXT = {
+  es: 'Política de Privacidad',
+  en: 'Privacy Policy',
+}
+
 function SmallPrint() {
+  const { locale } = useLocale()
+  const homeHref = locale === 'es' ? '/' : `/${locale}`
+
   return (
     <div className="flex flex-col items-center justify-between gap-5 border-t border-gray-900/5 pt-8 dark:border-white/5 sm:flex-row">
-      <Link href="/" aria-label="Home">
+      <Link href={homeHref} aria-label="Home">
         <Logo className="h-6" />
       </Link>
 
@@ -150,24 +161,24 @@ function SmallPrint() {
           Join our Discord server
         </SocialLink> */}
         <p className="text-xs">
-          <span className="text-gray-300">© {new Date().getFullYear()} </span>
+          <span className="text-gray-600 dark:text-gray-300">© {new Date().getFullYear()} </span>
           <Link
             href="https://placetopay.dev/"
             target="_blank"
-            aria-label="Home"
-            className="font-semibold text-gray-200 hover:text-primary-500"
+            aria-label="Evertec Placetopay"
+            className="font-semibold text-gray-500 hover:text-primary-500 dark:text-gray-200 dark:hover:text-primary-500"
           >
             Evertec Placetopay
           </Link>
         </p>
 
         <Link
-          className="text-xs text-gray-300 hover:text-primary-500"
+          className="text-xs text-gray-500 hover:text-primary-500 dark:text-gray-300 dark:hover:text-primary-500"
           href="https://www.placetopay.com/web/politicas-de-privacidad/"
           target="_blank"
           aria-label="Política de Privacidad Placetopay"
         >
-          Política de Privacidad
+          {PRIVACY_POLICY_TEXT[locale] ?? PRIVACY_POLICY_TEXT.es}
         </Link>
       </div>
     </div>
