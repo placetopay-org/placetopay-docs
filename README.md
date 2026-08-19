@@ -17,6 +17,12 @@ This project is made with the [Tailwind UI](https://tailwindui.com) Protocol tem
 
 ## Getting started
 
+> **Requirement:** Node.js **26 or higher** is required (same version used by
+> the CI workflows in `.github/workflows/`). The generation scripts load ES
+> modules via `require()` (module syntax detection), which fails on older
+> versions with `SyntaxError: Unexpected token 'export'`.
+> If you use nvm, run `nvm use` (the repo includes a `.nvmrc`).
+
 To get started with this template, first install the npm dependencies:
 
 ```bash
