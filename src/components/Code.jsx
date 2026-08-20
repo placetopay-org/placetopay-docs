@@ -147,11 +147,6 @@ function CodePanelHeader({ tag, label }) {
   )
 }
 
-const LLM_LOOSE_TEXTS = {
-  es: 'Ejemplo de la documentación de Placetopay:',
-  en: 'Example from the Placetopay documentation:',
-}
-
 const REQUEST_RESPONSE_TITLES = {
   es: { request: 'Solicitud', response: 'Respuesta' },
   en: { request: 'Request', response: 'Response' },
@@ -214,7 +209,6 @@ function resolveOperation(refs, tag, label, variantTitle = null) {
 function CodeCopyActions({ code, language, pairedResponse, endpoint, role, requestFields, responseFields, variantTitle, displayTag, displayLabel }) {
   let { locale } = useLocale()
 
-  const lead = LLM_LOOSE_TEXTS[locale] ?? LLM_LOOSE_TEXTS.es
   const titles = REQUEST_RESPONSE_TITLES[locale] ?? REQUEST_RESPONSE_TITLES.es
   const fieldLabels = FIELD_TEXTS[locale] ?? FIELD_TEXTS.es
 
@@ -256,7 +250,7 @@ function CodeCopyActions({ code, language, pairedResponse, endpoint, role, reque
       : '',
   ].join('')
 
-  const llmContent = `${lead}\n\n${header ? `${header}\n\n` : ''}${body}${responseBlock}${fieldsBlock}\n`
+  const llmContent = `${header ? `${header}\n\n` : ''}${body}${responseBlock}${fieldsBlock}\n`
 
   return <CopyForLLM content={llmContent} />
 }
