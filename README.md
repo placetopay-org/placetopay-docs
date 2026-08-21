@@ -17,6 +17,12 @@ This project is made with the [Tailwind UI](https://tailwindui.com) Protocol tem
 
 ## Getting started
 
+> **Requirement:** Node.js **26 or higher** is required (same version used by
+> the CI workflows in `.github/workflows/`). The generation scripts load ES
+> modules via `require()` (module syntax detection), which fails on older
+> versions with `SyntaxError: Unexpected token 'export'`.
+> If you use nvm, run `nvm use` (the repo includes a `.nvmrc`).
+
 To get started with this template, first install the npm dependencies:
 
 ```bash
@@ -47,7 +53,7 @@ so `http://localhost:3000/my-folder/my-file` corresponds to a file called `my-fi
 
 2. Write the content of your file following the MDX syntax.
     - the `<title />` of the page will be the first header that has been declared in the file.
-    - Second level headers (html: `h2` / mdx: `##`) autogenerate [URL fragments or hashes](https://developer.mozilla.org/en-US/docs/Web/API/URL/hash) which must be modified by adding `{{ id: 'your-has-here' }}` after the header text to be consistent with the language change.
+    - Second level headers (html: `h2` / mdx: `##`) autogenerate [URL fragments or hashes](https://developer.mozilla.org/en-US/docs/Web/API/URL/hash) which must be modified by adding `{{ id: 'your-hash-here' }}` after the header text to be consistent with the language change.
     - Being MDX format, HTML tags are completely accepted and their functionality is the same as in a `.html` file.
     - The images used must be inside the `public/` folder, here they can be added directly to the root of the folder or create subfolders to have better order.
 

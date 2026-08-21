@@ -1,0 +1,138 @@
+export const sectionMode = 'nav';
+
+import { HeroPattern } from '@/components/HeroPattern'
+
+export const apiAssetPath = '/msv-service'
+export const apiRefs = ['/api/validations']
+export const description = 'Create a validation request in MSV Service to get user approval or rejection via WhatsApp, SMS or email.'
+
+<HeroPattern />
+
+## Validation {{ id: 'create-validation', tag: 'POST', label: '/api/validations' }}
+
+Create a validation request: **msv-service** sends the user a message through the channels you specify, with a link to approve or reject.
+
+The `201` response only confirms that the request was created and the messages were sent; the status is always `PENDING`. The user's response arrives later via [webhook](/en/msv-service/api#validation-webhook), or you can check it with the `token` in [Validation Query](/en/msv-service/api/validation-query).
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/validations"
+      method="post"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Request" tag="POST" label="/api/validations">
+
+```bash {{ title: 'Validation MSV Service' }}
+curl -X "POST" {{baseURl}}/api/validations \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "locale": "en",
+    "reference": "ref-12548",
+    "message": "Example Validation",
+    "kind": "Horus",
+    "webhook_url": "https://example-url.com/",
+    "minutes_by_expire": 10,
+    "buttons": {
+      "approve": "accept",
+      "reject": "reject"
+    },
+    "channels": {
+      "sms": {
+        "phone_number": "+573124567890",
+        "short_message": "SMS Message"
+      },
+      "whatsapp": {
+        "phone_number": "+573124567890",
+        "template": {
+          "name": "hello_world",
+          "lang": "en_US",
+          "parameters": [
+            "name"
+          ]
+        }
+      },
+      "email": {
+        "email": "mail@test.com",
+        "subject": "email subject"
+      }
+    }
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/validations"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Response">
+```json {{ title: '201' }}
+{
+  "status": {
+    "status": "PENDING",
+    "reason": null,
+    "message": "Transaction pending approval",
+    "date": "2022-07-08T09:34:48-05:00"
+  },
+  "reference": "ref-12548",
+  "token": "d5d67dcb",
+  "kind": "Horus"
+}
+```
+```json {{ title: '401' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": null,
+    "message": "Unauthenticated.",
+    "date": "2026-08-13T15:10:55+00:00"
+  }
+}
+```
+```json {{ title: '400' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": null,
+    "message": "El mensaje no se ha podido enviar por el canal: SMS",
+    "date": "2022-08-08T17:23:49+00:00"
+  }
+}
+```
+```json {{ title: '422' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": null,
+    "message": "The message field is required.",
+    "date": "2022-08-12T14:50:01+00:00"
+  },
+  "errors": {
+    "message": [
+      "The message field is required."
+    ]
+  }
+}
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Note type="warning">
+Important: a `400` response on `/api/validations` does not roll back an already created request. Channels that were already sent remain active, and the user may still approve or reject the request.
+</Note>
+
+

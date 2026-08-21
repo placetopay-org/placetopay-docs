@@ -1,0 +1,276 @@
+import ProcessStates from "@/components/react-flow/ProcessStates"
+
+export const description =
+  'Consulta el estado de un proceso de Onboarding, interpreta sus estados y sabe cuándo dejar de consultar.'
+
+<MissingTranslationBanner />
+
+# Consultar el proceso
+
+Cuando Onboarding acepta una petición devuelve un `processId`. `GET /api/processes/{processId}` es el endpoint que te dice qué pasó con ella, y es la **fuente de verdad** del resultado.
+
+## La petición {{ id: 'the-request' }}
+
+<CodeGroup title="Solicitud" tag="GET" label="/api/processes/{processId}">
+
+```bash {{ title: 'cURL' }}
+curl --request GET \
+  --url '{URL_BASE}/api/processes/01kz0609xy2hd666mnx6b0jxpc' \
+  --header 'Accept: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}'
+```
+
+</CodeGroup>
+
+Requiere un token con el permiso `onboarding:read`. El `processId` es el que devolvió la petición de creación o actualización; también puedes usar directamente la URL que llegó en el header `Location`.
+
+## La respuesta {{ id: 'the-response' }}
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="status" type="object">
+        Estado actual del proceso: `status`, `reason`, `message` y `date`. El campo `date` es el instante en que el proceso cambió de estado, no el momento de tu consulta.
+      </Property>
+      <Property name="processId" type="string">
+        Identificador del proceso, en minúsculas.
+      </Property>
+      <Property name="action" type="string">
+        La operación pedida: `merchant.create` o `merchant.update`.
+      </Property>
+      <Property name="result" type="object">
+        El resultado, disponible solo cuando el proceso termina bien. `null` mientras tanto.
+      </Property>
+      <Property name="errors" type="object" isRequired={false}>
+        Aparece solo cuando el fallo puede atribuirse a campos concretos que enviaste.
+      </Property>
+      <Property name="notification" type="object">
+        Estado de la entrega del webhook. `null` si no registraste una URL de notificación.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+
+    ```json {{ title: 'En curso' }}
+    {
+      "status": {
+        "status": "PENDING",
+        "reason": null,
+        "message": "The request is waiting to be processed.",
+        "date": "2026-08-17T10:14:03-05:00"
+      },
+      "processId": "01kz0609xy2hd666mnx6b0jxpc",
+      "action": "merchant.create",
+      "result": null,
+      "notification": null
+    }
+    ```
+
+    ```json {{ title: 'Completado' }}
+    {
+      "status": {
+        "status": "OK",
+        "reason": null,
+        "message": "The resource was created successfully.",
+        "date": "2026-08-17T10:14:09-05:00"
+      },
+      "processId": "01kz0609xy2hd666mnx6b0jxpc",
+      "action": "merchant.create",
+      "result": {
+        "merchantId": 18
+      },
+      "notification": {
+        "url": "https://acme.example.com/hooks/onboarding",
+        "state": "DELIVERED",
+        "attempts": 1
+      }
+    }
+    ```
+
+    ```json {{ title: 'Fallido' }}
+    {
+      "status": {
+        "status": "FAILED",
+        "reason": "REQUIRED_FIELD_MISSING",
+        "message": "One or more submitted fields were rejected by the registry.",
+        "date": "2026-08-17T10:14:09-05:00"
+      },
+      "processId": "01kz0609xy2hd666mnx6b0jxpc",
+      "action": "merchant.create",
+      "result": null,
+      "errors": {
+        "name": ["This field is required by the registry."]
+      },
+      "notification": null
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Los cuatro estados {{ id: 'process-states' }}
+
+| `status.status` | Significado | ¿Es final? | ¿Trae `Retry-After`? |
+|---|---|---|---|
+| `PENDING` | La petición fue aceptada y espera su turno | No | Sí |
+| `PENDING_PROCESS` | El registro se está ejecutando | No | Sí |
+| `OK` | El comercio quedó registrado | **Sí** | No |
+| `FAILED` | El registro no pudo completarse | **Sí** | No |
+
+<ProcessStates />
+
+Los dos estados de la izquierda responden con el header `Retry-After`; los dos finales, no. Esa es la diferencia que determina cuándo parar.
+
+## Cómo hacer polling {{ id: 'how-to-poll' }}
+
+<Note type="warning">
+  **La señal para dejar de consultar es la ausencia del header `Retry-After`**, no un valor concreto de `status.status`. Mientras ese header esté presente, el proceso sigue avanzando; cuando desaparece, el resultado es definitivo.
+</Note>
+
+Consultar así en lugar de con un intervalo fijo tiene dos ventajas: no malgastas peticiones cuando el proceso va a tardar, y tu integración no necesita cambiar si en el futuro se añaden estados intermedios nuevos.
+
+<CodeGroup title="Bucle de consulta">
+
+```php {{ title: 'PHP' }}
+do {
+    $response = Http::withToken($token)
+        ->acceptJson()
+        ->get("{$urlBase}/api/processes/{$processId}");
+
+    $retryAfter = $response->header('Retry-After');
+
+    if ($retryAfter !== '') {
+        sleep((int) $retryAfter);
+    }
+} while ($retryAfter !== '');
+
+$result = $response->json('result');
+```
+
+```js {{ title: 'Node' }}
+let response, retryAfter;
+
+do {
+  response = await fetch(`${urlBase}/api/processes/${processId}`, {
+    headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+  });
+
+  retryAfter = response.headers.get('Retry-After');
+
+  if (retryAfter) {
+    await new Promise((resolve) => setTimeout(resolve, Number(retryAfter) * 1000));
+  }
+} while (retryAfter);
+
+const { result } = await response.json();
+```
+
+```python {{ title: 'Python' }}
+while True:
+    response = requests.get(
+        f"{url_base}/api/processes/{process_id}",
+        headers={"Accept": "application/json", "Authorization": f"Bearer {token}"},
+    )
+
+    retry_after = response.headers.get("Retry-After")
+
+    if not retry_after:
+        break
+
+    time.sleep(int(retry_after))
+
+result = response.json()["result"]
+```
+
+</CodeGroup>
+
+Añade siempre un límite de reintentos por tu lado, para que un problema inesperado no deje el bucle girando indefinidamente.
+
+## El resultado {{ id: 'the-result' }}
+
+Cuando el proceso termina bien, `result` describe lo que quedó registrado.
+
+<Properties>
+  <Property name="result.merchantId" type="integer">
+    Identificador del comercio. Está presente tanto en una creación como en una actualización.
+  </Property>
+</Properties>
+
+Si enviaste colecciones, `result` incluye además una clave por cada una, con el detalle de lo que se escribió en ella:
+
+| Clave | Contiene | Detalle |
+|---|---|---|
+| `result.integrations` | Una entrada por integración escrita | [Integraciones](/en/onboarding/integrations) |
+| `result.paymentMethods` | Una entrada por medio de pago escrito | [Medios de pago](/en/onboarding/payment-methods) |
+| `result.sites` | Una entrada por sitio escrito | [Sitios](/en/onboarding/sites) |
+
+Cada entrada lleva un campo `action` con el valor `created`, `updated` o `unchanged`, que te dice qué ocurrió realmente con ese elemento.
+
+<Note>
+  `result` es un objeto **extensible**: pueden aparecer claves nuevas sin que eso se considere un cambio incompatible. Al leerlo, ignora las claves que no conozcas en lugar de rechazar la respuesta.
+</Note>
+
+## El estado de la notificación {{ id: 'notification-state' }}
+
+Si registraste una URL de notificación, `notification` te dice cómo va la entrega del webhook.
+
+<Properties>
+  <Property name="notification.url" type="string">
+    La URL que registraste.
+  </Property>
+  <Property name="notification.state" type="string">
+    `PENDING` mientras la entrega sigue pendiente o en reintentos, `DELIVERED` cuando tu endpoint respondió correctamente, y `FAILED` cuando se agotaron los intentos o tu endpoint rechazó el mensaje.
+  </Property>
+  <Property name="notification.attempts" type="integer">
+    Número de intentos de entrega realizados.
+  </Property>
+</Properties>
+
+<Note>
+  `notification.state` en `FAILED` **no significa que el registro haya fallado**. Son dos cosas distintas: el proceso puede estar en `OK` con el comercio perfectamente registrado y la notificación en `FAILED`. Lo único que se perdió es el aviso.
+</Note>
+
+## Un proceso fallido se consulta con 200 {{ id: 'failed-is-200' }}
+
+Un proceso en `FAILED` responde con código HTTP **200**. No es una inconsistencia: la consulta funcionó y te está informando correctamente de que el registro no se completó.
+
+- `status.reason` trae un código que identifica la causa.
+- `errors` aparece cuando el fallo puede atribuirse a campos concretos, con las mismas rutas del cuerpo que usa el `422`.
+
+El catálogo de códigos y qué hacer ante cada uno está en [Errores](/en/onboarding/errors).
+
+## Errores de la consulta {{ id: 'process-errors' }}
+
+<Row>
+  <Col>
+    **`404` El proceso no existe.** También responde `404` un proceso que existe pero **pertenece a otro consumidor**.
+
+    Es deliberado que en ese caso no responda `403`: un `403` confirmaría que el identificador existe, lo que permitiría descubrir procesos ajenos probando identificadores. Con un `404` uniforme, no hay diferencia observable entre «no existe» y «no es tuyo».
+
+    **`401`** si el token es inválido y **`403`** si no incluye el permiso `onboarding:read`.
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta de error">
+
+    ```json {{ title: '404 Not Found' }}
+    {
+      "status": {
+        "status": "FAILED",
+        "reason": 404,
+        "message": "The requested resource does not exist.",
+        "date": "2026-08-17T10:14:03-05:00"
+      }
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## ¿Qué sigue? {{ id: 'process-status-next' }}
+
+- [Notificación](/en/onboarding/notification) — recibir el resultado sin consultar
+- [Errores](/en/onboarding/errors)
+- [Referencia de la API](/en/onboarding/api/reference/processes) — el contrato completo de la respuesta

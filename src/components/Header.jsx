@@ -13,6 +13,7 @@ import { ModeToggle } from '@/components/ModeToggle'
 import { MobileSearch, Search } from '@/components/Search'
 import { LanguageSwitch } from './LanguageSwitch'
 import { useTabRouter } from './TabProvider'
+import { useLocale } from '@/components/LocaleProvider'
 import { remToPx } from '@/lib/remToPx'
 import { getNavigationByTab } from '@/utils/getNavigationByTab'
 
@@ -86,6 +87,9 @@ const TabNavigation = () => {
 }
 
 export const HeaderHome = ({ className }) => {
+  let { locale } = useLocale()
+  let homeHref = locale === 'es' ? '/' : `/${locale}`
+
   return (
     <div
       className={clsx(
@@ -95,7 +99,7 @@ export const HeaderHome = ({ className }) => {
     >
       <Search />
       <div className="flex items-center gap-5 lg:hidden">
-        <Link href="/" aria-label="Home">
+        <Link href={homeHref} aria-label="Home">
           <Logo className="h-6" />
         </Link>
       </div>
@@ -117,6 +121,8 @@ export const HeaderHome = ({ className }) => {
 export const Header = forwardRef(function Header({ className }, ref) {
   let { isOpen: mobileNavIsOpen } = useMobileNavigationStore()
   let isInsideMobileNavigation = useIsInsideMobileNavigation()
+  let { locale } = useLocale()
+  let homeHref = locale === 'es' ? '/' : `/${locale}`
 
   let { scrollY } = useScroll()
   let bgOpacityLight = useTransform(scrollY, [0, 72], [0.5, 0.9])
@@ -149,7 +155,7 @@ export const Header = forwardRef(function Header({ className }, ref) {
       <TabNavigation />
       <div className="flex items-center gap-5 lg:hidden">
         <MobileNavigation />
-        <Link href="/" aria-label="Home">
+        <Link href={homeHref} aria-label="Home">
           <Logo className="h-6" />
         </Link>
       </div>

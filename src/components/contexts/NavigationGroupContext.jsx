@@ -1,4 +1,5 @@
 import { useLocalizePath } from '@/hooks/useLocalizePath'
+import { useLocale } from '@/components/LocaleProvider'
 import { useRouter } from 'next/router'
 import { createContext, useEffect, useMemo, useState } from 'react'
 
@@ -69,6 +70,7 @@ const foundActiveLink = (links, pathname) => {
 export const NavigationGroupProvider = ({ group, children }) => {
   const router = useRouter()
   const localizePath = useLocalizePath()
+  const { locale } = useLocale()
 
   const [links, setLinks] = useState(
     group.links.map((link) => adaptLinks(link, router.pathname, localizePath))
@@ -80,6 +82,16 @@ export const NavigationGroupProvider = ({ group, children }) => {
   const [activeLinkIndex, changeActiveLinkIndex] = useState(
     foundActiveLink(links, router.pathname)
   )
+
+  useEffect(() => {
+    const nextLinks = group.links.map((link) =>
+      adaptLinks(link, router.pathname, localizePath)
+    )
+    setLinks(nextLinks)
+    changeActiveGroupIndex(foundActiveGroup(nextLinks, router.pathname))
+    changeActiveLinkIndex(foundActiveLink(nextLinks, router.pathname))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale])
 
   const isActiveGroup = useMemo(
     () => activeGroupIndex !== -1,
