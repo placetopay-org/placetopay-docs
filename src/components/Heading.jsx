@@ -70,7 +70,7 @@ export function Heading({
   let ref = useRef()
   let registerHeading = useSectionStore((s) => s.registerHeading)
 
-  if (level === 2) {
+  if (level === 1 || level === 2) {
     setScopeEndpoint(tag, label, id)
   }
 
