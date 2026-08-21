@@ -39,21 +39,43 @@ const describeType = (schema) => {
 }
 
 export const pickResponseSchema = (responses) => {
-  const successCodes = Object.keys(responses ?? {}).filter((code) =>
-    /^2\d\d$/.test(code)
-  )
-  const codes =
-    successCodes.length > 0
-      ? successCodes.sort((a, b) => Number(a) - Number(b))
-      : []
-  for (const code of codes) {
-    const contents = responses?.[code]?.content ?? {}
+  const schemas = listResponseSchemas(responses)
+  return schemas[0]?.schema ?? null
+}
+
+const rankResponseCode = (code) => {
+  const match = String(code).trim().match(/^(\d)(\d{2}|xx)$/i)
+  if (!match) return [9, 1, 0]
+  const wildcard = /x/i.test(match[2])
+  return [
+    Number(match[1]),
+    wildcard ? 1 : 0,
+    wildcard ? 0 : Number(match[2]),
+  ]
+}
+
+/**
+ * Returns the schema of every documented response, sorted by status code
+ * (exact codes before wildcards, e.g. `200`, `400`, `401`, `4XX`).
+ */
+export const listResponseSchemas = (responses) => {
+  const entries = []
+  for (const [code, response] of Object.entries(responses ?? {})) {
+    if (response == null || typeof response !== 'object') continue
+    const contents = response.content ?? {}
     const schema =
       contents['application/json']?.schema ??
       Object.values(contents)[0]?.schema
-    if (schema) return schema
+    if (schema) entries.push({ code, schema })
   }
-  return null
+  return entries.sort((a, b) => {
+    const rankA = rankResponseCode(a.code)
+    const rankB = rankResponseCode(b.code)
+    for (let index = 0; index < rankA.length; index += 1) {
+      if (rankA[index] !== rankB[index]) return rankA[index] - rankB[index]
+    }
+    return 0
+  })
 }
 
 /**
