@@ -14,10 +14,14 @@ const resolveRefTarget = (ref, components) => {
   }
 
   return ref
-    .replace(/~(1|0)/g, (match) => (match === '~1' ? '/' : '~'))
-    .replace('%20', ' ')
     .split('/')
     .slice(2)
+    .map((segment) =>
+      segment
+        .split('%20')
+        .join(' ')
+        .replace(/~(1|0)/g, (match) => (match === '~1' ? '/' : '~'))
+    )
     .reduce((acc, segment) => acc?.[segment], components)
 }
 

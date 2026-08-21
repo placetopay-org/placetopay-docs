@@ -3,6 +3,8 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
+  useRef,
   useState,
 } from 'react'
 import { Tab } from '@headlessui/react'
@@ -10,13 +12,21 @@ import clsx from 'clsx'
 import { create } from 'zustand'
 
 import { Tag } from '@/components/Tag'
-import { useLocale } from '@/components/LocaleProvider'
 import { usePreventLayoutShift } from '@/hooks/usePreventLayoutShift'
-
-const COPY_TEXTS = {
-  es: { copy: 'Copiar', copied: '¡Copiado!' },
-  en: { copy: 'Copy', copied: 'Copied!' },
-}
+import { useLocale } from '@/components/LocaleProvider'
+import { CopyForLLM } from '@/components/CopyForLLM'
+import {
+  getCodeRole,
+  getPairMap,
+  useCodePairingStore,
+} from '@/components/codePairing'
+import { ApiRefsContext } from '@/components/ApiRefsContext'
+import { getScopeEndpoint } from '@/components/endpointScope'
+import {
+  buildFieldDocs,
+  pickResponseSchema,
+} from '@/components/schemaFields'
+import { API_TITLES } from '@/constants/apiReader'
 
 const languageNames = {
   js: 'JavaScript',
@@ -39,6 +49,11 @@ function isGroup(children) {
 
 function getPanelTitle({ title, language }) {
   return title ?? languageNames[language] ?? 'Code'
+}
+
+const COPY_TEXTS = {
+  es: { copy: 'Copiar', copied: '¡Copiado!' },
+  en: { copy: 'Copy', copied: 'Copied!' },
 }
 
 function ClipboardIcon(props) {
@@ -116,7 +131,7 @@ function CodePanelHeader({ tag, label }) {
   }
 
   return (
-    <div className="flex h-9 items-center gap-2 border-y border-b-white/7.5 border-t-transparent bg-gray-900 bg-white/2.5 px-4 dark:border-b-white/5 dark:bg-white/1">
+    <div className="flex h-9 items-center gap-2 border-b border-white/10 bg-gray-900 bg-white/2.5 px-4 dark:border-white/5 dark:bg-white/1">
       {tag && (
         <div className="dark flex">
           <Tag variant="small">{tag}</Tag>
@@ -132,20 +147,129 @@ function CodePanelHeader({ tag, label }) {
   )
 }
 
-function CodePanel({ tag, label, code, children }) {
+const REQUEST_RESPONSE_TITLES = {
+  es: { request: 'Solicitud', response: 'Respuesta' },
+  en: { request: 'Request', response: 'Response' },
+}
+
+const FIELD_TEXTS = {
+  es: { fields: 'Campos', required: 'requerido', optional: 'opcional' },
+  en: { fields: 'Fields', required: 'required', optional: 'optional' },
+}
+
+const getEndpointInfo = (refs, tag, label) => {
+  if (!refs || !tag || !label) return null
+  const operation = refs[label]?.[String(tag).toLowerCase()]
+  if (!operation) return null
+  const { summary, description } = operation
+  if (!summary && !description) return null
+  return {
+    method: String(tag).toUpperCase(),
+    path: label,
+    summary,
+    description,
+  }
+}
+
+const resolveSpecRef = (refs, label, variantTitle = null) => {
+  if (!refs || !label || refs[label]) return label
+  const VERSION_SENTINEL = '__VERSION__'
+  const pattern = new RegExp(
+    `^${label
+      .replace(/\{version\}/g, VERSION_SENTINEL)
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .split(VERSION_SENTINEL)
+      .join('([^/]+)')}$`
+  )
+  const matches = Object.keys(refs).filter((key) => pattern.test(key))
+  if (matches.length <= 1) return matches[0] ?? label
+
+  const want = String(variantTitle ?? '').replace(/\D/g, '')
+  if (want) {
+    const versionMatch = matches.find((key) => {
+      const captured = key.match(pattern)?.[1]
+      return (
+        captured != null &&
+        String(captured).replace(/\D/g, '') === want
+      )
+    })
+    if (versionMatch) return versionMatch
+  }
+  return matches[0]
+}
+
+function resolveOperation(refs, tag, label, variantTitle = null) {
+  const resolvedLabel = resolveSpecRef(refs, label, variantTitle)
+  return {
+    operation: refs?.[resolvedLabel]?.[String(tag).toLowerCase()] ?? null,
+    endpoint: getEndpointInfo(refs, tag, resolvedLabel),
+  }
+}
+
+function CodeCopyActions({ code, language, pairedResponse, endpoint, role, requestFields, responseFields, variantTitle, displayTag, displayLabel }) {
+  let { locale } = useLocale()
+
+  const titles = REQUEST_RESPONSE_TITLES[locale] ?? REQUEST_RESPONSE_TITLES.es
+  const fieldLabels = FIELD_TEXTS[locale] ?? FIELD_TEXTS.es
+
+  const wrap = (blockLanguage, blockCode) =>
+    `\`\`\`${blockLanguage || ''}\n${blockCode}\n\`\`\``
+
+  const blockLabel = role === 'response' ? titles.response : titles.request
+
+  const headerMethod = displayTag ? String(displayTag).toUpperCase() : endpoint?.method
+  const headerPath = displayLabel || endpoint?.path
+
+  const headerDetails = [endpoint?.summary, endpoint?.description].filter(Boolean)
+  const header =
+    headerMethod && headerPath
+      ? [
+          `# ${headerMethod} ${headerPath}`,
+          ...headerDetails.filter(
+            (detail, index) => headerDetails.indexOf(detail) === index
+          ),
+        ]
+          .join('\n')
+      : null
+
+  const body = role
+    ? `## ${blockLabel}\n${wrap(language, code)}`
+    : wrap(language, code)
+
+  const responseBlock = pairedResponse
+    ? `\n\n## ${titles.response}\n${wrap(pairedResponse.language, pairedResponse.code)}`
+    : ''
+
+  const requestTitle = `${titles.request} - ${fieldLabels.fields}${
+    variantTitle ? ` (${variantTitle})` : ''
+  }`
+  const fieldsBlock = [
+    requestFields ? `\n\n## ${requestTitle}\n${requestFields}` : '',
+    responseFields
+      ? `\n\n## ${titles.response} - ${fieldLabels.fields}\n${responseFields}`
+      : '',
+  ].join('')
+
+  const llmContent = `${header ? `${header}\n\n` : ''}${body}${responseBlock}${fieldsBlock}\n`
+
+  return <CopyForLLM content={llmContent} />
+}
+
+function CodePanel({ tag, label, displayTag, displayLabel, language, code, children }) {
   let child = Children.only(children)
+  let rawCode = child.props.code ?? code
 
   return (
     <div className="group dark:bg-white/2.5">
       <CodePanelHeader
-        tag={child.props.tag ?? tag}
-        label={child.props.label ?? label}
+        tag={displayTag ?? child.props.tag ?? tag}
+        label={displayLabel ?? child.props.label ?? label}
       />
       <div className="relative">
         <pre className="max-h-[600px] overflow-x-auto p-4 text-xs text-white">
           {children}
         </pre>
-        <CopyButton code={child.props.code ?? code} />
+        <CopyButton code={rawCode} />
       </div>
     </div>
   )
@@ -279,18 +403,141 @@ export function CodeGroup({ children, title, ...props }) {
   let headerProps = hasGroup ? { selectedIndex: tabGroupProps.selectedIndex, onChange: tabGroupProps.onChange } : {}
   let contentProps = hasTabs ? props : { selectedIndex: tabGroupProps.selectedIndex, ...props }
 
+  const sectionEndpointRef = useRef(null)
+  if (sectionEndpointRef.current == null) {
+    sectionEndpointRef.current = getScopeEndpoint() ?? null
+  }
+  const sectionEndpoint = sectionEndpointRef.current
+  const displayTag = sectionEndpoint?.tag != null ? sectionEndpoint.tag : props.tag
+  const displayLabel = sectionEndpoint?.label != null ? sectionEndpoint.label : props.label
+  contentProps = { ...contentProps, displayTag, displayLabel }
+
+  let panels = Children.toArray(children)
+  let active = panels[tabGroupProps.selectedIndex] ?? panels[0]
+  let activeCode = active?.props?.code ?? props.code
+  let activeLanguage = active?.props?.language ?? props.language
+  const activeTabLabel = active?.props?.label || props.label
+
+  let hasEndpoint = Boolean(props.tag && activeTabLabel)
+  let showActions = Boolean(
+    activeCode && (hasEndpoint || activeCode.trim().split('\n').length >= 2)
+  )
+
+  const codeRole = getCodeRole(title)
+  const { locale } = useLocale()
+  const refs = useContext(ApiRefsContext)
+  const variantTitle = active?.props?.title
+  const { operation, endpoint } = hasEndpoint
+    ? resolveOperation(refs, props.tag, activeTabLabel, variantTitle)
+    : { operation: null, endpoint: null }
+
+  const fieldLabels = FIELD_TEXTS[locale] ?? FIELD_TEXTS.es
+  const propertyLabels =
+    API_TITLES.propertyInformation[locale] ?? API_TITLES.propertyInformation.es
+  const requestSchema =
+    operation?.requestBody?.content?.['application/json']?.schema ??
+    Object.values(operation?.requestBody?.content ?? {})[0]?.schema ??
+    null
+  const responseSchema = pickResponseSchema(operation?.responses)
+
+  const { requestFields, responseFields } = useMemo(() => {
+    if (!codeRole) return { requestFields: '', responseFields: '' }
+
+    const build = (schema, withVariant) =>
+      buildFieldDocs({
+        schema,
+        components: refs?.components,
+        requiredLabel: fieldLabels.required,
+        optionalLabel: fieldLabels.optional,
+        propertyLabels,
+        variantTitle: withVariant ? variantTitle : null,
+      })
+
+    return {
+      requestFields:
+        codeRole === 'request' && requestSchema
+          ? build(requestSchema, true)
+          : '',
+      responseFields:
+        responseSchema != null ? build(responseSchema, true) : '',
+    }
+  }, [
+    codeRole,
+    requestSchema,
+    responseSchema,
+    refs,
+    variantTitle,
+    fieldLabels,
+    propertyLabels,
+  ])
+
+  const idRef = useRef(null)
+  const { register, unregister, updateEntry, entries } = useCodePairingStore()
+  const sectionId = sectionEndpoint?.id ?? null
+
+  useEffect(() => {
+    if (!codeRole) return
+    const id = register({
+      role: codeRole,
+      code: activeCode,
+      language: activeLanguage,
+      sectionId,
+    })
+    idRef.current = id
+    return () => unregister(id)
+  }, [codeRole, register, unregister, sectionId])
+
+  useEffect(() => {
+    if (!codeRole || idRef.current == null) return
+    updateEntry(idRef.current, { code: activeCode, language: activeLanguage })
+  }, [codeRole, activeCode, activeLanguage, updateEntry])
+
+  const pairMap = getPairMap(entries)
+  let pairedResponse = null
+  if (codeRole === 'request' && idRef.current != null) {
+    const responseId = pairMap.get(idRef.current)
+    pairedResponse = entries.find((entry) => entry.id === responseId) ?? null
+  }
+
+  const isPairedResponse =
+    codeRole === 'response' &&
+    idRef.current != null &&
+    Array.from(pairMap.values()).includes(idRef.current)
+
+  if (isPairedResponse) {
+    showActions = false
+  }
+
   return (
-    <CodeGroupContext.Provider value={true}>
-      <Container
-        {...containerProps}
-        className="not-prose my-6 overflow-hidden rounded-2xl bg-gray-900 shadow-md dark:ring-1 dark:ring-white/10"
-      >
-        <CodeGroupHeader title={title} {...headerProps}>
-          {children}
-        </CodeGroupHeader>
-        <CodeGroupPanels {...contentProps}>{children}</CodeGroupPanels>
-      </Container>
-    </CodeGroupContext.Provider>
+    <div className="not-prose my-6">
+      {showActions && (
+        <div className="mb-2 flex items-center justify-end gap-2">
+          <CodeCopyActions
+            code={activeCode}
+            language={activeLanguage}
+            pairedResponse={pairedResponse}
+            endpoint={endpoint}
+            role={codeRole}
+            requestFields={requestFields}
+            responseFields={responseFields}
+            variantTitle={active?.props?.title}
+            displayTag={displayTag}
+            displayLabel={displayLabel}
+          />
+        </div>
+      )}
+      <CodeGroupContext.Provider value={true}>
+        <Container
+          {...containerProps}
+          className="overflow-hidden rounded-2xl bg-gray-900 shadow-md dark:ring-1 dark:ring-white/10"
+        >
+          <CodeGroupHeader title={title} {...headerProps}>
+            {children}
+          </CodeGroupHeader>
+          <CodeGroupPanels {...contentProps}>{children}</CodeGroupPanels>
+        </Container>
+      </CodeGroupContext.Provider>
+    </div>
   )
 }
 
