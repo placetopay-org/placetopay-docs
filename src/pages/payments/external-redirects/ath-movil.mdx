@@ -55,7 +55,7 @@ Además del teléfono, el backend del comercio envía las credenciales de autent
 2. El usuario ingresa el número de teléfono asociado a su cuenta ATH Móvil.
 3. El backend del comercio envía la solicitud a `POST /gateway/process`.
 4. ATH Móvil envía una notificación push al teléfono del usuario y la transacción queda en estado `PENDING`.
-5. El usuario aprueba o rechaza la solicitud desde la aplicación ATH Móvil.
+5. Mientras la transacción permanece `PENDING`, el usuario puede aprobarla o rechazarla desde la aplicación ATH Móvil; el comercio también puede solicitar su cancelación.
 6. El comercio consulta la transacción con el `internalReference` y actualiza su propia interfaz con el resultado final.
 
 ### Componentes visuales de referencia {{ id: 'visual-resources' }}
@@ -171,7 +171,8 @@ Utiliza la variante que mantenga mejor contraste con tu interfaz. Los archivos e
 1. Opcionalmente, consulta las capacidades de ATH Móvil mediante `POST /gateway/information`.
 2. Envía el cobro mediante `POST /gateway/process`.
 3. Conserva el `internalReference` de la respuesta inicial.
-4. Consulta `POST /gateway/query` mientras el estado sea `PENDING` y detente cuando recibas un resultado final.
+4. Si necesitas solicitar la cancelación de un pago que continúa `PENDING`, envía `action: "cancel"` a `POST /gateway/transaction`.
+5. Consulta `POST /gateway/query` mientras el estado sea `PENDING` y detente cuando recibas un resultado final.
 
 Los ejemplos cURL de las siguientes secciones muestran cómo construir y enviar cada petición REST. Las respuestas muestran los datos que el comercio debe procesar en cada paso.
 
@@ -610,18 +611,27 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
   </Col>
 </Row>
 
+### Cancelar un pago pendiente {{ id: 'gateway-cancel', tag: 'POST', label: '/gateway/transaction' }}
+
+Mientras el pago ATH Móvil se encuentre en estado `PENDING`, el comercio puede solicitar su cancelación mediante [Operaciones sobre una transacción](/gateway/api/reference/transaction#transaction-request). La cancelación debe estar habilitada para el servicio y utiliza el `internalReference` original recibido al procesar el pago.
+
+Cuando ATH Móvil aprueba la cancelación, la transacción original pasa a `REJECTED` con razón `MC`. Si la cancelación devuelve `REJECTED` o `FAILED`, la transacción original permanece `PENDING` y todavía puede recibir un resultado desde ATH Móvil.
+
+Consulta nuevamente el `internalReference` original antes de reintentar o iniciar otra operación. Si el pago ya fue aprobado, utiliza un reverso o un reembolso según corresponda.
+
 ### Operaciones posteriores {{ id: 'post-transaction-operations' }}
 
 ATH Móvil permite realizar reversos y reembolsos mediante las operaciones generales de Gateway. Su disponibilidad depende del estado de la transacción y de la configuración del sitio.
 
 Para realizar estas operaciones, consulta [Operaciones sobre una transacción](/gateway/api/reference/transaction#transaction-request).
 
-Los reversos deben realizarse antes de la conciliación. Una vez conciliada la transacción, corresponde realizar un reembolso. Una transacción de reembolso no puede ser reversada.
+La cancelación aplica únicamente mientras el pago continúa `PENDING`. Si el pago ya fue aprobado, los reversos deben realizarse antes de la conciliación y, una vez conciliado, corresponde realizar un reembolso. Una transacción de reembolso no puede ser reversada.
 
 ## Restricciones y consideraciones {{ id: 'validations' }}
 
 - **Flujo asíncrono en Gateway**: El comercio debe implementar la consulta de estado por API hasta obtener un resultado final.
 - **Estado pendiente durante la aprobación**: La transacción permanece pendiente mientras el usuario confirma el pago en su teléfono.
+- **Cancelación de pagos pendientes**: Una respuesta fallida o rechazada de cancelación no cambia el estado de la transacción original; vuelve a consultarla antes de reintentar.
 - **Disponibilidad por región**: ATH Móvil aplica para operaciones en Puerto Rico.
 
 La petición de procesamiento admite montos decimales, los impuestos `stateTax`, `municipalTax` y `reducedStateTax` en `payment.amount.taxes`, y propinas mediante `payment.amount.details` con `kind: "tip"`. El monto base resultante después de restar estos impuestos y la propina debe ser mayor que cero.
@@ -665,4 +675,9 @@ En sitios de prueba, el simulador determina el comportamiento a partir de `payer
 <details>
 <summary>¿Debo redirigir al usuario en una integración Gateway?</summary>
 <p>No en producción. El usuario aprueba el cobro desde la aplicación ATH Móvil y el comercio consulta el resultado con la referencia interna. La URL de redirección solo se entrega en sandbox para acceder al simulador.</p>
+</details>
+
+<details>
+<summary>¿Cuándo debo cancelar, reversar o reembolsar un pago?</summary>
+<p>Solicita una cancelación mientras el pago ATH Móvil permanezca <code>PENDING</code>. Si el pago ya fue aprobado, utiliza un reverso antes de la conciliación o un reembolso después de la conciliación.</p>
 </details>
