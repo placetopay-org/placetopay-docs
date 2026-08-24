@@ -1303,23 +1303,7 @@ components:
           type: [object, 'null']
           description: Reglas de crédito del medio de pago. Hasta 4096 bytes serializados.
         settings:
-          type: object
-          description: |
-            Configuración específica del proveedor. Los nombres de las claves son libres —no hay
-            catálogo que los declare—, así que un error de escritura se guarda sin detectarse.
-
-            Hasta 64 claves y 8192 bytes. Cada nombre admite 30 caracteres y debe ser único
-            ignorando mayúsculas. Los valores pueden ser cadena, número o booleano; un objeto o una
-            lista se rechazan. En una actualización, una clave enviada con `null` o cadena vacía se
-            elimina.
-
-            Para los medios de pago cuyo proveedor es **CREDIBANCO**, las claves `retailCode`,
-            `terminalNumber`, `username` y `password` se rechazan: crea el certificado en el Panel y
-            envía el `pfxID` resultante. Es el único proveedor con este tratamiento.
-          additionalProperties:
-            type: [string, number, boolean, 'null']
-          example:
-            pfxID: '1'
+          $ref: '#/components/schemas/Settings-Payment-Method'
 
     SitePaymentMethod:
       title: SitePaymentMethod
@@ -1404,14 +1388,78 @@ components:
           type: [object, 'null']
           description: Si se omite, se heredan las del comercio.
         settings:
-          type: object
-          description: |
-            Ajustes propios del sitio. Se fusionan con los existentes: una clave enviada con `null` o
-            cadena vacía se elimina, y una que no se envía se conserva.
+          $ref: '#/components/schemas/Settings-Payment-Method'
 
-            En una transacción, un ajuste del sitio prevalece sobre el del comercio.
-          additionalProperties:
-            type: [string, number, boolean, 'null']
+    Settings-Payment-Method:
+      title: Settings-Payment-Method
+      type: object
+      description: |
+        Configuración específica del proveedor del medio de pago. Las claves listadas son las de uso
+        habitual, pero los nombres son libres.
+
+        Los ajustes se fusionan y una clave enviada con `null` o cadena vacía se elimina. Ver
+        [El bloque settings](/onboarding/payment-methods#settings-block).
+      properties:
+        merchantCode:
+          type: string
+          description: Código de entidad.
+        terminalNumber:
+          type: string
+          description: Número de terminal del medio de pago.
+        MID:
+          type: string
+          description: ID de comerciante.
+        RUC:
+          type: string
+          description: Registro único de contribuyente.
+        username:
+          type: string
+          maxLength: 30
+          description: Usuario de la terminal.
+        password:
+          type: string
+          maxLength: 30
+          description: Contraseña de la terminal.
+        retailCode:
+          type: string
+          maxLength: 10
+          description: Código único de venta.
+        terminalLocation:
+          type: string
+          description: Determina la ubicación de la terminal.
+        serviceCode:
+          type: string
+          description: Código que representa el servicio del comercio.
+        isEcommerce:
+          type: boolean
+          description: Determina si es un comercio electrónico.
+        threeDSProvider:
+          type: string
+          default: placetopay
+          description: |
+            Proveedor que resuelve la autenticación 3DS del medio de pago, en minúsculas. Si la
+            clave no se envía, se usa `placetopay`.
+          enum:
+            - placetopay
+            - seglan
+        3DSVersion:
+          type: string
+          description: Determina la versión de 3DS.
+          enum:
+            - v1
+            - v2
+        3DSApiKey:
+          type: string
+          maxLength: 380
+          description: 3DS API key.
+        aggregatorModel:
+          type: boolean
+          default: false
+          description: Determina si es modelo agregador (_PSE_).
+      additionalProperties:
+        type: [string, number, boolean, 'null']
+      example:
+        pfxID: '1'
 
     Site:
       title: Site
