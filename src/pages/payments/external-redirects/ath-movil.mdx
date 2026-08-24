@@ -41,6 +41,20 @@ ATH Móvil puede operar mediante Webcheckout o una integración directa por Gate
 - **Integraciones por**: [Webcheckout](/checkout)
   El usuario aprueba el pago desde su teléfono y la sesión de Checkout se actualiza con el estado final de la transacción.
 
+### Tiempo de confirmación {{ id: 'confirmation-timeout' }}
+
+Al crear una sesión de Webcheckout, puedes enviar [`metadata.athMovilConfirmationTimeOut`](/checkout/metadata) para definir cuántos minutos tiene el pagador para confirmar el pago en ATH Móvil. Es opcional y, cuando tiene un valor, debe ser un entero entre `1` y `60`. Solo aplica a ATH Móvil; si se omite o se envía `null`, se utilizan las reglas de priorización definidas a nivel de medio de pago o de tenant.
+
+```json
+{
+  "metadata": {
+    "athMovilConfirmationTimeOut": 20
+  }
+}
+```
+
+Este tiempo es independiente de `CreateSessionRequest.expiration`, que controla la vigencia general de la sesión de Webcheckout.
+
 ## Integración por Gateway {{ id: 'gateway-integration' }}
 
 La integración por [Gateway](/gateway) es un flujo asíncrono en el que el comercio controla la interfaz y consulta el estado por API hasta obtener el resultado final.
@@ -322,6 +336,9 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/information \
       <Property name="payment.amount.total" type="number">
         Valor total del cobro, mayor que cero.
       </Property>
+      <Property name="metadata.athMovilConfirmationTimeOut" type="integer|null" isRequired={false}>
+        Tiempo de confirmación para ATH Móvil, en minutos. Debe ser un entero entre 1 y 60. Si se omite o se envía `null`, se utilizan las reglas de priorización definidas a nivel de medio de pago o de tenant.
+      </Property>
       <Property name="instrument.redirection.paymentMethod" type="string">
         Código del medio de pago. Debe ser `ATHMV`.
       </Property>
@@ -357,6 +374,9 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/process \
         "currency": "USD",
         "total": 10
       }
+    },
+    "metadata": {
+      "athMovilConfirmationTimeOut": 20
     },
     "instrument": {
       "redirection": {
