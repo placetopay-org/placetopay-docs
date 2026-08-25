@@ -26,6 +26,7 @@ export default $config({
       } : undefined,
       environment: {
         NEXT_PUBLIC_GITHUB_REPO_URL: process.env.NEXT_PUBLIC_GITHUB_REPO_URL || "",
+        NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || "",
       },
       errorPage: "404.html",
     });
