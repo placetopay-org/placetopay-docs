@@ -38,13 +38,8 @@ const describeType = (schema) => {
   return schema.type ?? ''
 }
 
-export const pickResponseSchema = (responses) => {
-  const schemas = listResponseSchemas(responses)
-  return schemas[0]?.schema ?? null
-}
-
 const rankResponseCode = (code) => {
-  const match = String(code).trim().match(/^(\d)(\d{2}|xx)$/i)
+  const match = String(code).trim().match(/^(\d)(\d{2}|xx)\b/i)
   if (!match) return [9, 1, 0]
   const wildcard = /x/i.test(match[2])
   return [

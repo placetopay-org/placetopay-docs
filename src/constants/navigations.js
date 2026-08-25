@@ -792,46 +792,45 @@ export const TAB_NAVIGATION = {
           },
         ],
       },
-{
-            title: 'API',
-            identifier: 'checkout/api',
-            href: '/checkout/api/reference',
-            icon: DocumentCode,
+      {
+        title: 'API',
+        identifier: 'checkout/api',
+        href: '/checkout/api/reference/session',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'Introducción',
             links: [
+              { title: 'Politica de cambios', href: '/checkout/api/policy' },
               {
-                title: 'Introducción',
-                links: [
-                  { title: 'Política de cambios', href: '/checkout/api/policy' },
-                  {
-                    title: 'Historial de cambios',
-                    href: '/checkout/api/changelog',
-                  },
-                ],
+                title: 'Historial de cambios',
+                href: '/checkout/api/changelog',
               },
+            ],
+          },
+          {
+            title: 'API',
+            links: [
+              { title: 'Sesión', href: '/checkout/api/reference/session' },
+              { title: 'Pagos', href: '/checkout/api/reference/payment' },
+              { title: 'Token', href: '/checkout/api/reference/token' },
               {
-                title: 'API',
+                title: 'Gateway',
                 links: [
-                  { title: 'Referencia completa', href: '/checkout/api/reference' },
-                  { title: 'Sesión', href: '/checkout/api/reference/session' },
-                  { title: 'Pagos', href: '/checkout/api/reference/payment' },
-                  { title: 'Token', href: '/checkout/api/reference/token' },
                   {
-                    title: 'Gateway',
-                    links: [
-                      {
-                        title: 'Information',
-                        href: '/checkout/api/reference/gateway/information',
-                      },
-                      {
-                        title: 'Token',
-                        href: '/checkout/api/reference/gateway/token',
-                      },
-                    ],
+                    title: 'Information',
+                    href: '/checkout/api/reference/gateway/information',
+                  },
+                  {
+                    title: 'Token',
+                    href: '/checkout/api/reference/gateway/token',
                   },
                 ],
               },
             ],
           },
+        ],
+      },
     ],
     [LANGUAGES_CODES.EN]: [
       {
@@ -908,7 +907,7 @@ export const TAB_NAVIGATION = {
       {
         title: 'API',
         identifier: 'checkout/api',
-        href: '/en/checkout/api/reference',
+        href: '/en/checkout/api/reference/session',
         icon: DocumentCode,
         links: [
           {
@@ -921,7 +920,6 @@ export const TAB_NAVIGATION = {
           {
             title: 'API',
             links: [
-              { title: 'Full reference', href: '/en/checkout/api/reference' },
               { title: 'Session', href: '/en/checkout/api/reference/session' },
               { title: 'Payments', href: '/en/checkout/api/reference/payment' },
               { title: 'Token', href: '/en/checkout/api/reference/token' },

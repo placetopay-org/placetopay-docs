@@ -282,8 +282,7 @@ function CodeCopyActions({ code, language, variants, pairedResponse, endpoint, r
     variantTitle ? ` (${variantTitle})` : ''
   }`
   const responseFieldsBlock = (responseFieldsList ?? [])
-    .map((entry, index) => {
-      if (!entry?.fields) return ''
+    .map((entry) => {
       const suffix = ` (${entry.code})`
       return `\n\n## ${titles.response} - ${fieldLabels.fields}${suffix}\n${entry.fields}`
     })
@@ -465,7 +464,7 @@ export function CodeGroup({ children, title, ...props }) {
     () =>
       panels
         .map((panel) => ({
-          title: panel?.props?.title ?? null,
+          title: getPanelTitle(panel?.props ?? {}),
           language: panel?.props?.language ?? props.language,
           code: panel?.props?.code ?? props.code,
         }))
@@ -497,7 +496,10 @@ export function CodeGroup({ children, title, ...props }) {
     operation?.requestBody?.content?.['application/json']?.schema ??
     Object.values(operation?.requestBody?.content ?? {})[0]?.schema ??
     null
-  const responseSchemas = listResponseSchemas(operation?.responses, refs?.components)
+  const responseSchemas = useMemo(
+    () => listResponseSchemas(operation?.responses, refs?.components),
+    [operation, refs]
+  )
 
   const { requestFields, responseFieldsList } = useMemo(() => {
     if (!codeRole) return { requestFields: '', responseFieldsList: [] }
