@@ -24,7 +24,7 @@ import { ApiRefsContext } from '@/components/ApiRefsContext'
 import { getScopeEndpoint } from '@/components/endpointScope'
 import {
   buildFieldDocs,
-  pickResponseSchema,
+  listResponseSchemas,
 } from '@/components/schemaFields'
 import { API_TITLES } from '@/constants/apiReader'
 
@@ -157,6 +157,11 @@ const FIELD_TEXTS = {
   en: { fields: 'Fields', required: 'required', optional: 'optional' },
 }
 
+const EXAMPLE_TEXTS = {
+  es: { example: 'Ejemplo' },
+  en: { example: 'Example' },
+}
+
 const getEndpointInfo = (refs, tag, label) => {
   if (!refs || !tag || !label) return null
   const operation = refs[label]?.[String(tag).toLowerCase()]
@@ -206,14 +211,32 @@ function resolveOperation(refs, tag, label, variantTitle = null) {
   }
 }
 
-function CodeCopyActions({ code, language, pairedResponse, endpoint, role, requestFields, responseFields, variantTitle, displayTag, displayLabel }) {
+function CodeCopyActions({ code, language, variants, pairedResponse, endpoint, role, requestFields, responseFieldsList, variantTitle, displayTag, displayLabel }) {
   let { locale } = useLocale()
 
   const titles = REQUEST_RESPONSE_TITLES[locale] ?? REQUEST_RESPONSE_TITLES.es
   const fieldLabels = FIELD_TEXTS[locale] ?? FIELD_TEXTS.es
+  const exampleLabels = EXAMPLE_TEXTS[locale] ?? EXAMPLE_TEXTS.es
 
   const wrap = (blockLanguage, blockCode) =>
     `\`\`\`${blockLanguage || ''}\n${blockCode}\n\`\`\``
+
+  const formatExamples = (examples) => {
+    const list = (examples ?? []).filter(
+      (example) => typeof example?.code === 'string' && example.code.trim() !== ''
+    )
+    if (list.length === 0) return ''
+    if (list.length === 1) return wrap(list[0].language, list[0].code)
+    return list
+      .map(
+        (example, index) =>
+          `### ${example.title || `${exampleLabels.example} ${index + 1}`}\n${wrap(
+            example.language,
+            example.code
+          )}`
+      )
+      .join('\n\n')
+  }
 
   const blockLabel = role === 'response' ? titles.response : titles.request
 
@@ -232,22 +255,41 @@ function CodeCopyActions({ code, language, pairedResponse, endpoint, role, reque
           .join('\n')
       : null
 
+  const ownExamples =
+    variants && variants.length > 0
+      ? variants
+      : [{ title: variantTitle ?? null, language, code }]
+
   const body = role
-    ? `## ${blockLabel}\n${wrap(language, code)}`
-    : wrap(language, code)
+    ? `## ${blockLabel}\n${formatExamples(ownExamples)}`
+    : formatExamples(ownExamples)
 
   const responseBlock = pairedResponse
-    ? `\n\n## ${titles.response}\n${wrap(pairedResponse.language, pairedResponse.code)}`
+    ? `\n\n## ${titles.response}\n${formatExamples(
+        pairedResponse.variants?.length > 0
+          ? pairedResponse.variants
+          : [
+              {
+                title: null,
+                language: pairedResponse.language,
+                code: pairedResponse.code,
+              },
+            ]
+      )}`
     : ''
 
   const requestTitle = `${titles.request} - ${fieldLabels.fields}${
     variantTitle ? ` (${variantTitle})` : ''
   }`
+  const responseFieldsBlock = (responseFieldsList ?? [])
+    .map((entry) => {
+      const suffix = ` (${entry.code})`
+      return `\n\n## ${titles.response} - ${fieldLabels.fields}${suffix}\n${entry.fields}`
+    })
+    .join('')
   const fieldsBlock = [
     requestFields ? `\n\n## ${requestTitle}\n${requestFields}` : '',
-    responseFields
-      ? `\n\n## ${titles.response} - ${fieldLabels.fields}\n${responseFields}`
-      : '',
+    responseFieldsBlock,
   ].join('')
 
   const llmContent = `${header ? `${header}\n\n` : ''}${body}${responseBlock}${fieldsBlock}\n`
@@ -418,6 +460,22 @@ export function CodeGroup({ children, title, ...props }) {
   let activeLanguage = active?.props?.language ?? props.language
   const activeTabLabel = active?.props?.label || props.label
 
+  const variants = useMemo(
+    () =>
+      panels
+        .map((panel) => ({
+          title: getPanelTitle(panel?.props ?? {}),
+          language: panel?.props?.language ?? props.language,
+          code: panel?.props?.code ?? props.code,
+        }))
+        .filter(
+          (variant) =>
+            typeof variant.code === 'string' && variant.code.trim() !== ''
+        ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [children, props.language, props.code]
+  )
+
   let hasEndpoint = Boolean(props.tag && activeTabLabel)
   let showActions = Boolean(
     activeCode && (hasEndpoint || activeCode.trim().split('\n').length >= 2)
@@ -438,10 +496,13 @@ export function CodeGroup({ children, title, ...props }) {
     operation?.requestBody?.content?.['application/json']?.schema ??
     Object.values(operation?.requestBody?.content ?? {})[0]?.schema ??
     null
-  const responseSchema = pickResponseSchema(operation?.responses)
+  const responseSchemas = useMemo(
+    () => listResponseSchemas(operation?.responses, refs?.components),
+    [operation, refs]
+  )
 
-  const { requestFields, responseFields } = useMemo(() => {
-    if (!codeRole) return { requestFields: '', responseFields: '' }
+  const { requestFields, responseFieldsList } = useMemo(() => {
+    if (!codeRole) return { requestFields: '', responseFieldsList: [] }
 
     const build = (schema, withVariant) =>
       buildFieldDocs({
@@ -458,13 +519,17 @@ export function CodeGroup({ children, title, ...props }) {
         codeRole === 'request' && requestSchema
           ? build(requestSchema, true)
           : '',
-      responseFields:
-        responseSchema != null ? build(responseSchema, true) : '',
+      responseFieldsList: responseSchemas
+        .map(({ code, schema }) => ({
+          code,
+          fields: schema != null ? build(schema, true) : '',
+        }))
+        .filter((entry) => entry.fields !== ''),
     }
   }, [
     codeRole,
     requestSchema,
-    responseSchema,
+    responseSchemas,
     refs,
     variantTitle,
     fieldLabels,
@@ -481,22 +546,37 @@ export function CodeGroup({ children, title, ...props }) {
       role: codeRole,
       code: activeCode,
       language: activeLanguage,
+      variants,
       sectionId,
     })
     idRef.current = id
     return () => unregister(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codeRole, register, unregister, sectionId])
 
   useEffect(() => {
     if (!codeRole || idRef.current == null) return
-    updateEntry(idRef.current, { code: activeCode, language: activeLanguage })
+    updateEntry(idRef.current, {
+      code: activeCode,
+      language: activeLanguage,
+      variants,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codeRole, activeCode, activeLanguage, updateEntry])
 
   const pairMap = getPairMap(entries)
   let pairedResponse = null
   if (codeRole === 'request' && idRef.current != null) {
     const responseId = pairMap.get(idRef.current)
-    pairedResponse = entries.find((entry) => entry.id === responseId) ?? null
+    const pairedEntry =
+      entries.find((entry) => entry.id === responseId) ?? null
+    pairedResponse = pairedEntry
+      ? {
+          language: pairedEntry.language,
+          code: pairedEntry.code,
+          variants: pairedEntry.variants ?? null,
+        }
+      : null
   }
 
   const isPairedResponse =
@@ -515,11 +595,12 @@ export function CodeGroup({ children, title, ...props }) {
           <CodeCopyActions
             code={activeCode}
             language={activeLanguage}
+            variants={variants}
             pairedResponse={pairedResponse}
             endpoint={endpoint}
             role={codeRole}
             requestFields={requestFields}
-            responseFields={responseFields}
+            responseFieldsList={responseFieldsList}
             variantTitle={active?.props?.title}
             displayTag={displayTag}
             displayLabel={displayLabel}
