@@ -11,10 +11,17 @@ import * as mdxComponents from '@/components/mdx'
 import { useMobileNavigationStore } from '@/components/MobileNavigation'
 import { ApiRefsContext } from '@/components/ApiRefsContext'
 import { setScopeEndpoint } from '@/components/endpointScope'
+import {
+  absoluteUrl,
+  getLocaleAlternates,
+  splitLocaleFromPath,
+} from '@/mdx/seo.mjs'
 
 import '@/styles/tailwind.css'
 import 'reactflow/dist/style.css';
 import 'focus-visible'
+
+const OG_LOCALE_MAP = { es: 'es_CO', en: 'en_US' }
 
 function onRouteChange() {
   useMobileNavigationStore.getState().close()
@@ -27,6 +34,13 @@ export default function App({ Component, pageProps }) {
   setScopeEndpoint(null, null, null)
   const router = useRouter()
   const LayoutComponent = Component.Layout || Layout
+
+  const { locale } = splitLocaleFromPath(router.pathname)
+  const { es: esPath, en: enPath } = getLocaleAlternates(router.pathname)
+  const canonicalUrl = absoluteUrl(router.pathname)
+  const esUrl = absoluteUrl(esPath)
+  const enUrl = absoluteUrl(enPath)
+  const pageTitle = `${pageProps.title ? pageProps.title + ' - ' : ''}Placetopay Docs`
 
   useEffect(() => {
     const updateDocumentLang = () => {
@@ -66,8 +80,37 @@ export default function App({ Component, pageProps }) {
         </>
       )}
       <Head>
-        <title>{`${pageProps.title ? pageProps.title + ' - ' : ''}Placetopay Docs`}</title>
+        <title>{pageTitle}</title>
         <meta name="description" content={pageProps.description} />
+
+        {/* Canonical + hreflang: ES/EN are declared as equivalents, not
+            duplicate content. See src/mdx/seo.mjs for the URL derivation
+            rules (ES/EN kept 1:1, trailing slash matches trailingSlash: true
+            in next.config.mjs). */}
+        <link rel="canonical" href={canonicalUrl} />
+        <link rel="alternate" hrefLang="es" href={esUrl} />
+        <link rel="alternate" hrefLang="en" href={enUrl} />
+        <link rel="alternate" hrefLang="x-default" href={esUrl} />
+
+        {/* Open Graph / Twitter: link previews on Slack, LinkedIn, email, etc. */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Placetopay Docs" />
+        <meta property="og:title" content={pageTitle} />
+        {pageProps.description && (
+          <meta property="og:description" content={pageProps.description} />
+        )}
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:locale" content={OG_LOCALE_MAP[locale]} />
+        <meta
+          property="og:locale:alternate"
+          content={locale === 'en' ? OG_LOCALE_MAP.es : OG_LOCALE_MAP.en}
+        />
+
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content={pageTitle} />
+        {pageProps.description && (
+          <meta name="twitter:description" content={pageProps.description} />
+        )}
       </Head>
       <LocaleProvider>
         <ImageZoomProvider>
