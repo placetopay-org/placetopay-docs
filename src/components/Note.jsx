@@ -76,7 +76,7 @@ export function Note({ children, type = 'default' }) {
   return (
     <div
       className={twJoin(
-        'my-6 flex gap-2.5 rounded-2xl border p-4 leading-6',
+        'my-6 flex max-w-none gap-2.5 rounded-2xl border p-4 leading-6',
         container
       )}
     >
