@@ -46,6 +46,7 @@ Pages under `src/pages/` use MDX with these conventions:
 - `## Second-level headings` auto-generate URL fragments; add `{{ id: 'your-id' }}` after heading text to keep IDs stable across language changes
 - Export `description` from the MDX file to set the page meta description
 - Export `sectionMode` (`'nav'` or `'content'`) to control sidebar vs inline section navigation
+- For API reference pages, the endpoint list is NOT a persistent side rail — it lives in the page header next to the intro using `<Row>`/`<Col>`, so the endpoint sections below keep their full two-column width. Add `{{ id: '...', tag: 'POST', label: '/api/...' }}` to each `## ` heading; the `tag`/`label` populate the header list (`<EndpointsOverview />`)
 
 ### API Reference Pages
 
