@@ -284,8 +284,7 @@ function CodeCopyActions({ code, language, variants, pairedResponse, endpoint, r
   const responseFieldsBlock = (responseFieldsList ?? [])
     .map((entry, index) => {
       if (!entry?.fields) return ''
-      const suffix =
-        (responseFieldsList?.length ?? 0) > 1 ? ` (${entry.code})` : ''
+      const suffix = ` (${entry.code})`
       return `\n\n## ${titles.response} - ${fieldLabels.fields}${suffix}\n${entry.fields}`
     })
     .join('')
@@ -498,7 +497,7 @@ export function CodeGroup({ children, title, ...props }) {
     operation?.requestBody?.content?.['application/json']?.schema ??
     Object.values(operation?.requestBody?.content ?? {})[0]?.schema ??
     null
-  const responseSchemas = listResponseSchemas(operation?.responses)
+  const responseSchemas = listResponseSchemas(operation?.responses, refs?.components)
 
   const { requestFields, responseFieldsList } = useMemo(() => {
     if (!codeRole) return { requestFields: '', responseFieldsList: [] }

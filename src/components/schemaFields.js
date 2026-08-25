@@ -58,9 +58,10 @@ const rankResponseCode = (code) => {
  * Returns the schema of every documented response, sorted by status code
  * (exact codes before wildcards, e.g. `200`, `400`, `401`, `4XX`).
  */
-export const listResponseSchemas = (responses) => {
+export const listResponseSchemas = (responses, components) => {
   const entries = []
-  for (const [code, response] of Object.entries(responses ?? {})) {
+  for (const [code, rawResponse] of Object.entries(responses ?? {})) {
+    const response = resolveSchema(rawResponse, components)
     if (response == null || typeof response !== 'object') continue
     const contents = response.content ?? {}
     const schema =
