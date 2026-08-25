@@ -1,0 +1,144 @@
+export const description =
+  'Un documento metadata completo tal como lo envía una integración real: los nombres del conector Copper, su forma y lo que la API sí comprueba.'
+
+<MissingTranslationBanner />
+
+# Ejemplo: el conector Copper
+
+El bloque [`sites[].metadata`](/en/onboarding/sites#site-metadata) es el único de un sitio **sin vocabulario cerrado**: los nombres los elige el comercio. Esta página muestra uno completo, el que envía la integración con **Copper** —un middleware de procesamiento—, para que sirva de referencia de forma y de tamaño al construir el tuyo.
+
+<Note type="warning">
+  **Esto es un ejemplo, no un contrato.** La API no conoce ninguno de estos nombres y no valida ninguno de estos valores: un `integration_type` de `"ZZ"` se acepta y se guarda igual que un `"WP"`, y lo mismo vale para la moneda, el idioma o los tipos de tarjeta. Lo único que la API comprueba de un `metadata` son los límites de forma y tamaño que se listan [más abajo](#copper-limits).
+</Note>
+
+Quien define y valida estos nombres es el sistema que consume el documento, en un proceso pactado con Placetopay aparte de este contrato. Si un nombre no viaja, esta API **no lo inventa**: simplemente no queda en el documento.
+
+## El documento completo {{ id: 'copper-document' }}
+
+```json {{ title: 'sites[].metadata' }}
+{
+  "sites": [
+    {
+      "name": "Tienda principal",
+      "type": "INT",
+      "metadata": {
+        "copper_id": "597055555532",
+        "copper_secret": "579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C",
+        "integration_type": "WP",
+        "requires_cvv": true,
+        "currency": "CLP",
+        "card_data_return": "default",
+        "installments_data": { "3": 0, "6": 1.5 },
+        "allow_preauth": false,
+        "allow_transaction_annulment": true,
+        "language": "ES_CL",
+        "merchant": "597055555532",
+        "terminal": "WEBPAY1",
+        "seglan_apikey": "12345678-1234-1234-1234-1234567890ab",
+        "seglan_manager": "MANAGER01",
+        "seglan_integration_code": "INTEG01",
+        "allow_card_types": ["C", "R", "A"],
+        "threeds_risk_level": "CONTINGENCY",
+        "maximum_daily_payments": 10,
+        "maximum_amount_transactions": 500000
+      }
+    }
+  ]
+}
+```
+
+Ese documento pesa unos **700 bytes** de los 4096 que admite el bloque, así que un comercio con esta integración tiene sitio de sobra para sus propios nombres.
+
+## Los nombres {{ id: 'copper-fields' }}
+
+Ninguno es obligatorio, y un nombre que no esté en esta lista se acepta igual.
+
+| Nombre | Qué lleva |
+|---|---|
+| `copper_id` | Identificador de credencial Copper, equivalente a `Tbk-Api-Key-Id` |
+| `copper_secret` | Secreto de credencial Copper, equivalente a `Tbk-Api-Key-Secret` |
+| `integration_type` | Operación del middleware habilitada para el sitio. Ver la [tabla de operaciones](#copper-integration-types) |
+| `requires_cvv` | Con `false`, el CVV se omite en todos los escenarios. Si no viaja, el conector lo solicita cuando la tarjeta lo requiere |
+| `currency` | Código ISO 4217 (alpha-3) de la moneda en la que opera el sitio |
+| `card_data_return` | Dato de tarjeta a retornar: `default` (últimos 4 dígitos) o `bin` (BIN + últimos 4) |
+| `installments_data` | Cuotas disponibles en el sitio. Es un objeto: cada nombre son las cuotas y su valor, la tasa |
+| `allow_preauth` | Con `true`, la operación sigue el flujo checkin/checkout; con `false`, autorización directa |
+| `error_code_level` | Nivel de traducción de los códigos de error que retorna el middleware, según los códigos de respuesta de autorización de Copper |
+| `allow_transaction_annulment` | Si el sitio puede realizar anulaciones |
+| `language` | Idioma del sitio, en formato `xx_XX` |
+| `merchant` | Código del merchant usado en Paystudio |
+| `terminal` | Terminal usada en Paystudio |
+| `parent_copper_id` | `copper_id` del merchant mall padre. Su presencia indica que el sitio es hijo de un merchant mall |
+| `seglan_apikey` | UUID de conexión entregado en el onboarding de la integración |
+| `seglan_manager` | Código asignado al merchant en el onboarding |
+| `seglan_integration_code` | Código de integración usado para la firma de los mensajes |
+| `allow_card_types` | Tipos de tarjeta permitidos, como lista: `C` (crédito), `R` (débito), `A` (prepago) |
+| `threeds_risk_level` | Cuándo se usa autenticación local: `CONTINGENCY` (solo como contingencia) o `ALL_LOCAL` (todas las transacciones locales) |
+| `maximum_daily_payments` | Cantidad máxima de pagos one-click permitidos por día |
+| `maximum_amount_transactions` | Monto máximo permitido por transacción one-click, en la moneda del sitio |
+
+### Las operaciones de `integration_type` {{ id: 'copper-integration-types' }}
+
+| Código | Operación |
+|---|---|
+| `TC` | Transacción Completa |
+| `TCM` | Transacción Completa Mall |
+| `WP` | WebpayPlus |
+| `WPM` | WebpayPlus Mall |
+| `WPC` | Webpay Call Center |
+| `TM` | Tokenización Marca |
+| `PSV` | POS Virtual venta propia |
+| `PSA` | POS Virtual agencia de viaje |
+| `PSC` | POS Virtual call center |
+| `GDS` | GDS |
+| `OC` | OnePay |
+| `TIMW` | Tienda de un mall |
+| `WSCT` | Tienda normal WS |
+| `WSTM` | Tienda de un mall WS |
+| `WSCM` | Mall WS |
+
+## Lo que la API sí comprueba {{ id: 'copper-limits' }}
+
+Son los únicos `422` que un documento como este puede encontrar, y no dependen de los nombres que elijas:
+
+| Límite | Regla |
+|---|---|
+| **Nombre** | Hasta 64 caracteres. En el primer nivel no puede ser un número entero: `"3"` responde `422`, `"01"` no |
+| **Hoja escalar** | Hasta 1024 caracteres |
+| **Anidamiento** | Hasta tres niveles |
+| **Documento** | 4096 bytes, medidos sobre el resultado **fusionado** con lo que el sitio ya tiene |
+
+<Note>
+  Que un nombre entero se rechace solo en el primer nivel es lo que permite el `installments_data` del ejemplo: `"3"` y `"6"` viven **dentro** de una estructura, donde la restricción no rige.
+</Note>
+
+Los límites completos del bloque están en [Metadatos del sitio](/en/onboarding/sites#site-metadata).
+
+## Al actualizar el sitio {{ id: 'copper-update' }}
+
+En un `PUT` el documento se fusiona por nombre de primer nivel: lo que el cuerpo no nombra sobrevive.
+
+<Note type="warning">
+  **Un `null` no guarda `null`: borra el nombre.** Enviar `"parent_copper_id": null` en una actualización **elimina la clave** del documento, no la deja con valor nulo. La cadena vacía hace lo mismo. En una creación, ambas responden `422`, porque no hay nada que borrar.
+</Note>
+
+Y el valor de un nombre que sí viaja se **reemplaza entero**, nunca se combina con el guardado. Para dejar `installments_data` solo con las cuotas de 3, hay que reenviar el objeto completo sin la de 6:
+
+```json {{ title: 'Retirar una cuota' }}
+{
+  "sites": [
+    {
+      "id": 412,
+      "metadata": {
+        "installments_data": { "3": 0 }
+      }
+    }
+  ]
+}
+```
+
+## ¿Qué sigue? {{ id: 'copper-next' }}
+
+- [Metadatos del sitio](/en/onboarding/sites#site-metadata)
+- [Sitios](/en/onboarding/sites)
+- [Actualizar un comercio](/en/onboarding/update-merchant)

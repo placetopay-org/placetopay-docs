@@ -202,9 +202,9 @@ Varios límites son **más estrechos que lo que el registro admitiría**, porque
   <Col>
     El bloque `metadata` guarda información **propia del comercio**, destinada a un proceso pactado con Placetopay aparte de este contrato. Es opcional y lo aceptan tanto la creación como la actualización.
 
-    Es el único bloque de un sitio **sin vocabulario cerrado**: los nombres los eliges tú, no el catálogo. A cambio, la forma sí es fija — un valor por nombre. Un objeto o una lista bajo un nombre responden `422`.
+    Es el único bloque de un sitio **sin vocabulario cerrado**: los nombres los eliges tú, no el catálogo.
 
-    El valor conserva el tipo con el que lo envías: un número sigue siendo número y un booleano, booleano.
+    El valor de un nombre puede ser un escalar o una **estructura** — un objeto o una lista. Un escalar conserva el tipo con el que lo envías: un número sigue siendo número y un booleano, booleano.
   </Col>
   <Col sticky>
     ```json {{ title: 'metadata' }}
@@ -215,7 +215,8 @@ Varios límites son **más estrechos que lo que el registro admitiría**, porque
           "metadata": {
             "contractRef": "AC-2026-0042",
             "onboardingBatch": 17,
-            "requiresManualReview": true
+            "requiresManualReview": true,
+            "reviewers": ["riesgo", "legal"]
           }
         }
       ]
@@ -223,6 +224,20 @@ Varios límites son **más estrechos que lo que el registro admitiría**, porque
     ```
   </Col>
 </Row>
+
+### Qué admite un nombre y qué admite un valor {{ id: 'metadata-shape' }}
+
+Un **nombre** admite hasta 64 caracteres y distingue mayúsculas.
+
+<Note type="warning">
+  Un nombre del **primer nivel** no puede ser un número entero: `"3"` o `"42"` responden `422`, porque una vez decodificado el JSON nada los distingue de una posición. `"01"` sí es un nombre válido, y la restricción **no rige dentro de una estructura**: `{ "3": 0, "6": 1.5 }` es un valor perfectamente aceptable.
+</Note>
+
+Un **valor** es un escalar o una estructura. El anidamiento llega hasta **tres niveles**, y cada hoja escalar admite 1024 caracteres.
+
+<Note>
+  Un objeto cuyos nombres sean exactamente `0`, `1`, … `n-1` se almacena como **lista**: tras decodificar el JSON es indistinguible de una. No es algo que nadie escriba a propósito, pero conviene conocerlo antes de elegir los nombres de una estructura.
+</Note>
 
 ### Se fusiona, y se borra nombrando la clave {{ id: 'metadata-merge' }}
 
@@ -233,6 +248,8 @@ Varios límites son **más estrechos que lo que el registro admitiría**, porque
     Para retirar una clave, **nómbrala con `null` o con la cadena vacía**. Es la misma instrucción que ya usan los `settings` de un medio de pago. En una creación ambas se rechazan, porque no hay nada que borrar.
 
     No existe forma de vaciar el documento entero de una vez: `"metadata": null` responde `422`. Se borra clave por clave.
+
+    La fusión ocurre **por nombre de primer nivel, y el valor se reemplaza entero**: reenviar un objeto no lo combina con el que estaba guardado. Para retirar una cuota de un `installments_data`, reenvía el objeto sin ella.
   </Col>
   <Col sticky>
     <CodeGroup title="Retirar una clave">
@@ -307,6 +324,10 @@ Un cuerpo que no envía `metadata` deja el `result` exactamente igual que antes 
 </Note>
 
 Ten en cuenta además que el back office **todavía no muestra estos datos**. Quedan guardados y auditados, pero verlos desde la ficha del sitio requiere un desarrollo pendiente del lado del back office.
+
+### Un documento completo, de una integración real {{ id: 'metadata-example' }}
+
+[Ejemplo: el conector Copper](/onboarding/site-metadata-copper) muestra el `metadata` que envía una integración en producción, con su forma y sus estructuras anidadas, y la lista de nombres que ese conector reconoce. Es un ejemplo, no un vocabulario: los nombres que veas ahí los eligió ese comercio, y esta API no los conoce.
 
 ## Comportamiento en una actualización {{ id: 'update-behaviour' }}
 
@@ -404,4 +425,5 @@ Un sitio puede llevar sus propias colecciones, con reglas propias:
 
 - [Integraciones del sitio](/onboarding/site-integrations)
 - [Medios de pago del sitio](/onboarding/site-payment-methods)
+- [Ejemplo: el conector Copper](/onboarding/site-metadata-copper)
 - [Actualizar un comercio](/onboarding/update-merchant)
