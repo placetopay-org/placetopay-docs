@@ -202,9 +202,9 @@ Varios límites son **más estrechos que lo que el registro admitiría**, porque
   <Col>
     El bloque `metadata` guarda información **propia del comercio**, destinada a un proceso pactado con Placetopay aparte de este contrato. Es opcional y lo aceptan tanto la creación como la actualización.
 
-    Es el único bloque de un sitio **sin vocabulario cerrado**: los nombres los eliges tú, no el catálogo. A cambio, la forma sí es fija — un valor por nombre. Un objeto o una lista bajo un nombre responden `422`.
+    Es el único bloque de un sitio **sin vocabulario cerrado**: los nombres los eliges tú, no el catálogo.
 
-    El valor conserva el tipo con el que lo envías: un número sigue siendo número y un booleano, booleano.
+    El valor de un nombre puede ser un **dato simple** —un texto, un número, un booleano— o una **estructura**: un objeto o una lista. Un dato simple conserva el tipo con el que lo envías: un número sigue siendo número y un booleano, booleano.
   </Col>
   <Col sticky>
     ```json {{ title: 'metadata' }}
@@ -215,7 +215,8 @@ Varios límites son **más estrechos que lo que el registro admitiría**, porque
           "metadata": {
             "contractRef": "AC-2026-0042",
             "onboardingBatch": 17,
-            "requiresManualReview": true
+            "requiresManualReview": true,
+            "reviewers": ["riesgo", "legal"]
           }
         }
       ]
@@ -223,6 +224,20 @@ Varios límites son **más estrechos que lo que el registro admitiría**, porque
     ```
   </Col>
 </Row>
+
+### Qué admite un nombre y qué admite un valor {{ id: 'metadata-shape' }}
+
+Un **nombre** admite hasta 64 caracteres y distingue mayúsculas.
+
+<Note type="warning">
+  Un nombre del **primer nivel** no puede ser un número entero: `"3"` o `"42"` responden `422`, porque una vez decodificado el JSON nada los distingue de una posición. `"01"` sí es un nombre válido, y la restricción **no rige dentro de una estructura**: `{ "3": 0, "6": 1.5 }` es un valor perfectamente aceptable.
+</Note>
+
+Un **valor** es un dato simple o una estructura. El anidamiento llega hasta **tres niveles**, y cada dato simple admite 1024 caracteres, esté suelto o dentro de una estructura.
+
+<Note>
+  Un objeto cuyos nombres sean exactamente `0`, `1`, … `n-1` se almacena como **lista**: tras decodificar el JSON es indistinguible de una. No es algo que nadie escriba a propósito, pero conviene conocerlo antes de elegir los nombres de una estructura.
+</Note>
 
 ### Se fusiona, y se borra nombrando la clave {{ id: 'metadata-merge' }}
 
@@ -233,6 +248,8 @@ Varios límites son **más estrechos que lo que el registro admitiría**, porque
     Para retirar una clave, **nómbrala con `null` o con la cadena vacía**. Es la misma instrucción que ya usan los `settings` de un medio de pago. En una creación ambas se rechazan, porque no hay nada que borrar.
 
     No existe forma de vaciar el documento entero de una vez: `"metadata": null` responde `422`. Se borra clave por clave.
+
+    La fusión ocurre **por nombre de primer nivel, y el valor se reemplaza entero**: reenviar un objeto no lo combina con el que estaba guardado. Para retirar una entrada de un objeto guardado, reenvía el objeto entero sin ella.
   </Col>
   <Col sticky>
     <CodeGroup title="Retirar una clave">
@@ -285,7 +302,7 @@ Es una consecuencia directa de la fusión: como el documento nunca se reemplaza,
 **Retirar claves es la única forma de recuperar espacio.** Si un sitio se acerca al tope, nombra con `null` lo que ya no uses.
 
 <Note type="warning">
-  `metadata` cuenta además dentro del **tamaño máximo del sitio**, del que las colecciones `integrations` y `paymentMethods` sí están exentas. Un sitio corriente con un `metadata` en su tope cabe sin problema, pero en un sitio con muchos datos propios puede ser lo que lo empuje fuera del límite — y entonces el `422` **señala el sitio entero, no el bloque**. Si recibes ese error sobre un sitio que no has agrandado, mira su `metadata`.
+  Hay un segundo tope, el del **elemento del sitio**, y se mide sobre algo distinto: sobre **lo que la petición envía** —del que las colecciones `integrations` y `paymentMethods` sí están exentas—, no sobre lo que quedaría guardado. Lo que consume ese presupuesto es, por tanto, el `metadata` que viaja en esa petición, no el que el sitio ya tenía: un documento que ha crecido no estrecha tus peticiones futuras. Cuando es el elemento el que se pasa, el `422` **señala el sitio entero, no el bloque**.
 </Note>
 
 Ten en cuenta también que el bloque se valida en cadena y se detiene en el primer fallo: si envías a la vez un nombre inválido y un documento demasiado grande, solo verás el error del nombre.

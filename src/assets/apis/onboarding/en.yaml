@@ -1461,6 +1461,128 @@ components:
       example:
         pfxID: '1'
 
+    Site-Metadata:
+      title: Site-Metadata
+      type: object
+      description: |
+        Documento libre con información propia del comercio. **Las claves listadas son las de una
+        integración concreta, a modo de referencia: los nombres son libres y la API no valida
+        ninguno.**
+
+        El valor es un dato simple, que conserva su tipo, o una estructura anidada. Se fusiona por
+        nombre, y una clave enviada con `null` o con la cadena vacía se elimina. Los límites de tamaño
+        y el resto de reglas, en [Metadatos del sitio](/onboarding/sites#site-metadata).
+      properties:
+        copper_id:
+          type: string
+          description: Identificador de credencial Copper (equivalente a `Tbk-Api-Key-Id`).
+          example: '597055555532'
+        copper_secret:
+          type: string
+          description: Secreto de credencial Copper (equivalente a `Tbk-Api-Key-Secret`).
+        integration_type:
+          type: string
+          description: |
+            Operación del middleware habilitada para el site: `TC` Transacción Completa, `TCM`
+            Transacción Completa Mall, `WP` WebpayPlus, `WPM` WebpayPlus Mall, `WPC` Webpay Call
+            Center, `TM` Tokenización Marca, `PSV` POS Virtual venta propia, `PSA` POS Virtual
+            agencia de viaje, `PSC` POS Virtual call center, `GDS` GDS, `OC` OnePay, `TIMW` Tienda de
+            un mall, `WSCT` Tienda normal WS, `WSTM` Tienda de un mall WS, `WSCM` Mall WS.
+          example: WP
+        requires_cvv:
+          type: boolean
+          description: |
+            Con `false`, el CVV se omite en todos los escenarios. Si la clave no viaja, el conector lo
+            solicita cuando la tarjeta lo requiere.
+          example: true
+        currency:
+          type: string
+          description: Código ISO 4217 (alpha-3) de la moneda en la que opera el site.
+          example: CLP
+        card_data_return:
+          type: string
+          description: |
+            Dato de tarjeta a retornar: `default` (últimos 4 dígitos) o `bin` (BIN más últimos 4).
+          example: default
+        installments_data:
+          type: object
+          description: |
+            Configuración de cuotas disponibles en el site. Cada nombre es un número de cuotas y su
+            valor, la tasa.
+          example:
+            '3': 0
+            '6': 1.5
+        allow_preauth:
+          type: boolean
+          description: |
+            Con `true`, la operación sigue el flujo checkin/checkout; con `false`, autorización
+            directa.
+          example: false
+        error_code_level:
+          type: string
+          description: |
+            Nivel de traducción de los códigos de error que retorna el middleware, según los códigos
+            de respuesta de autorización de Copper.
+        allow_transaction_annulment:
+          type: boolean
+          description: Determina si el site puede realizar anulaciones.
+          example: true
+        language:
+          type: string
+          description: Idioma del site, en formato `xx_XX`.
+          example: ES_CL
+        merchant:
+          type: string
+          description: Código del merchant usado en Paystudio.
+          example: '597055555532'
+        terminal:
+          type: string
+          description: Terminal usada en Paystudio.
+          example: WEBPAY1
+        parent_copper_id:
+          type: string
+          description: |
+            `copper_id` del merchant mall padre. Su presencia indica que el site es hijo de un
+            merchant mall.
+        seglan_apikey:
+          type: string
+          description: UUID de conexión entregado en el onboarding de la integración.
+          example: 12345678-1234-1234-1234-1234567890ab
+        seglan_manager:
+          type: string
+          description: Código asignado al merchant en el onboarding.
+          example: MANAGER01
+        seglan_integration_code:
+          type: string
+          description: Código de integración usado para la firma de los mensajes.
+          example: INTEG01
+        allow_card_types:
+          type: array
+          description: 'Tipos de tarjeta permitidos: `C` crédito, `R` débito, `A` prepago.'
+          items:
+            type: string
+          example: [C, R, A]
+        threeds_risk_level:
+          type: string
+          description: |
+            Cuándo se usa autenticación local: `CONTINGENCY` solo como contingencia, o `ALL_LOCAL` en
+            todas las transacciones locales.
+          example: CONTINGENCY
+        maximum_daily_payments:
+          type: integer
+          description: Cantidad máxima de pagos one-click permitidos por día.
+          example: 10
+        maximum_amount_transactions:
+          type: number
+          description: Monto máximo permitido por transacción one-click, en la moneda del site.
+          example: 500000
+      propertyNames:
+        maxLength: 64
+      additionalProperties:
+        description: |
+          Un dato simple, o una estructura anidada hasta tres niveles. Cada dato simple admite 1024
+          caracteres.
+
     Site:
       title: Site
       type: object
@@ -1574,33 +1696,7 @@ components:
         branding:
           $ref: '#/components/schemas/SiteBrandingBlock'
         metadata:
-          type: object
-          description: |
-            Documento libre con información propia del comercio, con nombres que no pertenecen al
-            catálogo. Opcional en ambos endpoints.
-
-            Un valor por nombre: cadena, número o booleano, y conserva el tipo con el que viaja. Un
-            objeto o una lista responden `422`. El nombre admite hasta 64 caracteres, distingue
-            mayúsculas y no puede ser un número entero; el valor admite hasta 1024.
-
-            Se **fusiona**: una clave que el cuerpo no nombra sobrevive, y se retira nombrándola con
-            `null` o con la cadena vacía —en una creación ambas se rechazan—. El tope de 4096 bytes se
-            mide sobre el documento **resultante**, no sobre lo enviado, y cuenta además dentro de los
-            8192 bytes del sitio.
-
-            **No se devuelve** en `result`, ni en la notificación, ni en la consulta del proceso. No es
-            sitio para un secreto ni para un dato personal.
-
-            Ver [Metadatos del sitio](/onboarding/sites#site-metadata).
-          propertyNames:
-            maxLength: 64
-          additionalProperties:
-            type: [string, number, boolean, 'null']
-            maxLength: 1024
-          example:
-            contractRef: AC-2026-0042
-            onboardingBatch: 17
-            requiresManualReview: true
+          $ref: '#/components/schemas/Site-Metadata'
         integrations:
           type: array
           minItems: 1
