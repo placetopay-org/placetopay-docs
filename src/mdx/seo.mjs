@@ -6,7 +6,7 @@
 export const DEFAULT_LOCALE = 'es'
 
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://docs.placetopay.com'
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://docs.placetopay.dev'
 ).replace(/\/+$/, '')
 
 /**
