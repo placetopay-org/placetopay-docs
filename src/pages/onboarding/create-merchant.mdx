@@ -34,7 +34,7 @@ El cuerpo describe el **estado completo** del comercio que quieres registrar. Lo
 
 <Properties>
   <Property name="Campos del comercio" type="varios" isRequired={true}>
-    Identidad, documento, dirección, representante legal, facturación y control comercial. Van directamente en la raíz: `name`, `brand`, `document`, `address`… Ver [Datos del comercio](/onboarding/merchant-data).
+    Identidad, documento, dirección, representante legal, facturación, agencia de viajes y control comercial. Van directamente en la raíz: `name`, `brand`, `document`, `address`… Ver [Datos del comercio](/onboarding/merchant-data).
   </Property>
   <Property name="integrations" type="array" isRequired={false}>
     Integraciones del comercio con proveedores externos. Ver [Integraciones](/onboarding/integrations).
@@ -85,67 +85,191 @@ Estos son todos los campos que Onboarding exige para registrar un comercio. Todo
 
 ## Cuerpo completo {{ id: 'full-body' }}
 
-Un registro real suele incluir también las colecciones. Este ejemplo muestra la forma general; el detalle de cada colección está en su propia página.
+Este es el cuerpo con **todos los campos** que la petición acepta. Salvo el mínimo de arriba, cada uno puede omitirse: lo que no envías queda con el valor que Onboarding tenga por defecto.
 
-<Row>
-  <Col>
-    Los campos del comercio y las colecciones conviven en el mismo nivel del cuerpo.
+Los campos del comercio y las colecciones conviven en el mismo nivel. Las colecciones son independientes entre sí —puedes enviar solo `sites`, solo `paymentMethods`, ambas o ninguna— y todo lo que envías se registra dentro de la misma operación, de modo que un comercio con sus sitios y sus medios de pago se crea con **una sola petición**.
 
-    Las colecciones son independientes entre sí: puedes enviar solo `sites`, solo `paymentMethods`, ambas o ninguna. Cada elemento que envías se registra dentro de la misma operación, de modo que un comercio con sus sitios y sus medios de pago se crea con **una sola petición**.
+| Colección | Tope | Identidad del elemento |
+|---|---|---|
+| `integrations` | 16 elementos | Un elemento por `type`; repetirlo responde `422` |
+| `paymentMethods` | 50 elementos | El `code` del medio de pago |
+| `sites` | 10 elementos | El `login`, si lo envías; si no, se genera |
+| `sites[].integrations` | 16 elementos | Independientes de las del comercio: el mismo `type` puede estar en ambas |
+| `sites[].paymentMethods` | 50 elementos | Un `code` que la colección `paymentMethods` de este mismo cuerpo declara |
 
-    El bloque `notification` es opcional y se explica más abajo.
-  </Col>
-  <Col sticky>
-    <CodeGroup title="Cuerpo completo">
+<CodeGroup title="Cuerpo completo">
 
-    ```json {{ title: 'merchant.json' }}
+```json {{ title: 'merchant.json' }}
+{
+  "name": "Comercializadora Acme S.A.S.",
+  "brand": "Acme",
+  "active": true,
+  "url": "https://acme.example.com",
+  "incrementType": "IPC",
+  "mcc": "5411",
+  "size": "M",
+  "timezone": "America/Bogota",
+  "languages": ["es", "en"],
+  "currencies": ["COP", "USD"],
+  "document": {
+    "type": "NIT",
+    "number": "9001234567"
+  },
+  "address": {
+    "street": "Carrera 43A # 1-50, Torre 2",
+    "city": "Bogota",
+    "country": "CO",
+    "state": 11,
+    "phone": "6013905000",
+    "postalCode": "110111"
+  },
+  "legalRepresentative": {
+    "name": "Ada",
+    "surname": "Lovelace",
+    "documentType": "CC",
+    "document": "1020304050"
+  },
+  "billing": {
+    "contact": "Contabilidad Acme",
+    "mail": "facturacion@acme.example.com",
+    "registrationNumber": "9001234567-1",
+    "ciiu": "4791",
+    "taxType": 1,
+    "taxRegime": 1,
+    "organizationType": 1
+  },
+  "travelAgency": {
+    "dispersion": false,
+    "iata": "ABCD12"
+  },
+  "control": {
+    "reseller": 1,
+    "seller": 1,
+    "paymentFacilitator": null
+  },
+  "integrations": [
     {
-      "name": "Comercializadora Acme S.A.S.",
-      "brand": "Acme",
+      "type": "kount",
+      "settings": {
+        "sandbox": false,
+        "website": "ACME",
+        "merchant": "201000"
+      }
+    },
+    {
+      "type": "push_notification",
+      "settings": {
+        "enabled": true
+      }
+    }
+  ],
+  "paymentMethods": [
+    {
+      "code": "CR_VS",
+      "financialEntity": 7,
+      "accountNumber": "1234567890",
+      "accountType": 2,
+      "commissionModel": "P",
+      "commissionValue": 2.5,
+      "order": 1,
+      "creditRules": {
+        "minInstallments": 1,
+        "maxInstallments": 36
+      },
+      "settings": {
+        "merchantCode": "201000",
+        "terminalNumber": "00000001",
+        "isEcommerce": true,
+        "threeDSProvider": "placetopay"
+      }
+    }
+  ],
+  "sites": [
+    {
+      "login": "aabbccdd1234567890aabbccdd123456",
+      "name": "Tienda principal",
+      "displayName": "Acme",
+      "type": "INT",
+      "category": "ECOMMERCE",
       "active": true,
-      "url": "https://acme.example.com",
-      "mcc": "5411",
-      "size": "M",
-      "timezone": "America/Bogota",
-      "languages": ["es", "en"],
-      "currencies": ["COP", "USD"],
-      "document": {
-        "type": "NIT",
-        "number": "9001234567"
-      },
-      "address": {
-        "street": "Carrera 43A # 1-50, Torre 2",
-        "city": "Bogota",
-        "country": "CO",
-        "state": 11,
-        "phone": "6013905000",
-        "postalCode": "110111"
-      },
-      "legalRepresentative": {
-        "name": "Ada",
-        "surname": "Lovelace",
-        "documentType": "CC",
-        "document": "1020304050"
-      },
-      "billing": {
-        "contact": "Contabilidad Acme",
-        "mail": "facturacion@acme.example.com",
-        "ciiu": "4791",
-        "taxType": 1,
-        "taxRegime": 1,
-        "organizationType": 1
+      "onTest": false,
+      "currency": "COP",
+      "language": "es",
+      "email": "ops@acme.example.com",
+      "customBatch": 1,
+      "expiration": "2027-01-31 23:59:59",
+      "productionDate": "2026-09-01",
+      "integration": {
+        "allowPartial": false,
+        "checkoutVersion": "v4",
+        "connectionMethod": "REDIRECT",
+        "notificationUrl": "https://acme.example.com/pay/notify",
+        "analyticsCode": "G-ABCDE12345",
+        "sourceRestriction": null,
+        "allowWallet": true,
+        "checkoutAttemptsLimit": 5,
+        "returnAdditional": false,
+        "payerFieldsType": 0
       },
       "control": {
-        "reseller": 1,
-        "seller": 1
+        "minAmount": 1000,
+        "maxAmount": 5000000,
+        "allowedDays": 127,
+        "allowedHours": "ffffffffffffffffffffffffffffffffffffffffff",
+        "filterPse": false,
+        "filterByBin": false,
+        "filterTuya": false,
+        "filterSafetypay": false,
+        "prechargeFilter": 0,
+        "allowedBankCountries": ["CO"],
+        "exceptionBinsList": ["411111"],
+        "delegatedAuthorization": null
+      },
+      "threeDS": {
+        "setting": "LOW",
+        "minAmount": 100000
+      },
+      "securityFilters": {
+        "filterLockedByTries": true,
+        "forceIPMatch": false,
+        "onlyWhitelisted": false,
+        "allowedIssuerCountries": ["CO"],
+        "allowedIPCountries": ["CO", "US"],
+        "excludeIPCountry": null,
+        "allowedCardsDay": 5,
+        "allowedCardsMonth": 20,
+        "allowedCardsYear": 60,
+        "allowedCardsByIP": 10,
+        "dayMax": 5,
+        "monthMax": 100,
+        "dayMaxAmount": 10000000,
+        "monthMaxAmount": 200000000
+      },
+      "operation": {
+        "disableTax": false,
+        "calculateTax": true,
+        "mailCustomer": true,
+        "mailMerchant": false,
+        "taxPercentage": 19,
+        "patternReference": "1234567890"
+      },
+      "subscriptionValidation": {
+        "enable": true,
+        "amount": 1000
+      },
+      "branding": {
+        "buttonColor": "#1a73e8",
+        "sidebarColor": "#0b1220"
+      },
+      "metadata": {
+        "contractRef": "AC-2026-0042",
+        "onboardingBatch": 17
       },
       "integrations": [
         {
-          "type": "kount",
+          "type": "clicktopay_visa",
           "settings": {
-            "sandbox": false,
-            "website": "ACME",
-            "merchant": "201000"
+            "enabled": true
           }
         }
       ],
@@ -155,19 +279,57 @@ Un registro real suele incluir también las colecciones. Este ejemplo muestra la
           "financialEntity": 7,
           "accountNumber": "1234567890",
           "accountType": 2,
+          "minAmount": 2000,
+          "maxAmount": 900000,
           "commissionModel": "P",
-          "commissionValue": 2.5
+          "commissionValue": 2.5,
+          "order": 1,
+          "settings": {
+            "terminalNumber": "00000002"
+          }
         }
-      ],
-      "notification": {
-        "url": "https://acme.example.com/hooks/onboarding"
-      }
+      ]
     }
-    ```
+  ],
+  "notification": {
+    "url": "https://acme.example.com/hooks/onboarding"
+  }
+}
+```
 
-    </CodeGroup>
-  </Col>
-</Row>
+</CodeGroup>
+
+<Note>
+  Los valores de catálogo —`mcc`, `size`, `timezone`, `state`, `taxType`, `taxRegime`, `organizationType`, `reseller`, `seller`, `paymentFacilitator`, `code`, `financialEntity`, `accountType`— salen de los catálogos de Placetopay y **dependen del ambiente**. Los del ejemplo son ilustrativos: pide los tuyos junto con las credenciales, porque un identificador válido en un ambiente no tiene por qué serlo en otro. Además, `reseller` y `seller` deben estar habilitados, no solo existir.
+</Note>
+
+### Un sitio obliga a mucho más que un comercio {{ id: 'site-required-fields' }}
+
+`sites` es opcional, pero **en cuanto envías un sitio casi todo lo suyo pasa a ser obligatorio**: `name`, `displayName`, `type`, `category`, `currency`, `language`, `email` y los bloques `integration` y `control` completos —con sus propios `allowPartial`, `checkoutVersion`, `minAmount`, `maxAmount`, `allowedDays`, `allowedHours`, `filterPse` y `filterByBin`—. El resto de bloques (`threeDS`, `securityFilters`, `operation`, `subscriptionValidation`, `branding`, `metadata`) sigue siendo opcional. El detalle está en [Sitios](/onboarding/sites).
+
+Tres formatos que suelen sorprender:
+
+- **El sitio distingue mayúsculas donde la raíz no.** `languages` y `currencies` de la raíz aceptan cualquier grafía, pero `sites[].language` y `sites[].currency` exigen la del catálogo, que hoy escribe el idioma en minúscula (`es`) y la moneda en mayúscula (`COP`). Un `"language": "ES"` dentro de un sitio responde `422` — y el mensaje del error te dice la grafía que espera.
+- **`allowedHours` son 42 caracteres hexadecimales exactos.** Una cadena más corta no produce un error: produce un horario equivocado.
+- **`sites[].paymentMethods[].code` solo puede nombrar un medio de pago que este mismo cuerpo declaró** en el `paymentMethods` de la raíz. Al crear no hay nada preexistente a lo que apuntar, porque el comercio todavía no existe.
+- **Dentro del sitio basta el `code`.** Los datos de cuenta y comisión son obligatorios en el `paymentMethods` de la raíz, pero opcionales dentro de un sitio: lo que no nombras se hereda del medio de pago del comercio. Envía solo lo que deba diferir.
+
+### Lo que el ejemplo deja fuera {{ id: 'omitted-credentials' }}
+
+Un sitio admite además tres credenciales —`login`, `tranKey` y `md5Hash`, de hasta 32 caracteres cada una— que aquí se omiten a propósito. Si no las envías, Onboarding las genera y te las devuelve en el resultado del proceso, que es la forma recomendada de obtenerlas; las que genera son de 16 caracteres. El ejemplo solo conserva `login` para mostrar dónde va.
+
+## Campos que la petición rechaza {{ id: 'rejected-fields' }}
+
+Estos campos no son ignorados: si viajan en el cuerpo de una creación, la respuesta es `422` nombrándolos. Casi todos son identificadores que solo tienen sentido cuando el comercio ya existe, así que aparecen al reenviar como petición un cuerpo copiado de una respuesta.
+
+| Campo | Por qué |
+|---|---|
+| `id`, `merchantId` en la raíz | El identificador del comercio viaja en la URL, no en el cuerpo — y en una creación todavía no existe |
+| `integrations[].id` | Una integración se identifica por su `type` |
+| `paymentMethods[].id` | Solo existe al [actualizar](/onboarding/update-merchant); al crear, la identidad es el `code` |
+| `sites[].id`, `sites[].customerId` | El sitio se está creando |
+| `sites[].integrations[].siteId` | El sitio que la lleva es el que la contiene |
+| `sites[].paymentMethods[].id`, `.paymentMethodId`, `.siteId` | Al crear, la única forma de nombrar un medio de pago es su `code` |
 
 ## La URL de notificación {{ id: 'notification-url' }}
 

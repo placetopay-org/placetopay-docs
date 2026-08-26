@@ -14,6 +14,8 @@ export const apiRefs = ['/api/merchants', '/api/merchants/{merchantId}'];
   <Col>
     Valida el comercio completo y lo acepta para su registro. La respuesta llega antes de que el comercio exista: trae un `processId` con el que [consultar el resultado](/en/onboarding/process-status).
 
+    El selector de la solicitud recorre tres escenarios: el **cuerpo mínimo**, un comercio **con sus sitios y medios de pago** —donde se ve lo que un sitio obliga a enviar— y el cuerpo **con todos los campos** que la petición acepta.
+
     Las tres colecciones del cuerpo —`integrations`, `paymentMethods` y `sites`— tienen reglas propias de identidad y actualización que se explican en [Integraciones](/en/onboarding/integrations), [Medios de pago](/en/onboarding/payment-methods) y [Sitios](/en/onboarding/sites).
 
     <ApiReader
@@ -32,26 +34,286 @@ export const apiRefs = ['/api/merchants', '/api/merchants/{merchantId}'];
   </Col>
   <Col sticky>
     <CodeGroup title="Solicitud" tag="POST" label="/api/merchants">
+```bash {{ title: 'Crear comercio con datos mínimos' }}
+curl --request POST \
+  --url '{URL_BASE}/api/merchants' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --header 'Idempotency-Key: 8f1c2d3e4a5b6c7d8e9f0a1b' \
+  --data '{
+    "name": "Comercializadora Acme S.A.S.",
+    "brand": "Acme",
+    "languages": ["es"],
+    "currencies": ["COP"],
+    "document": { "type": "NIT", "number": "9001234567" },
+    "address": { "city": "Bogota", "country": "CO", "state": 11 },
+    "legalRepresentative": { "name": "Ada", "surname": "Lovelace" },
+    "control": { "reseller": 1 }
+  }'
+```
 
-    ```bash {{ title: 'cURL' }}
-    curl --request POST \
-      --url '{URL_BASE}/api/merchants' \
-      --header 'Accept: application/json' \
-      --header 'Content-Type: application/json' \
-      --header 'Authorization: Bearer {TU_TOKEN}' \
-      --header 'Idempotency-Key: 8f1c2d3e4a5b6c7d8e9f0a1b' \
-      --data '{
-        "name": "Comercializadora Acme S.A.S.",
-        "brand": "Acme",
-        "languages": ["es"],
-        "currencies": ["COP"],
-        "document": { "type": "NIT", "number": "9001234567" },
-        "address": { "city": "Bogota", "country": "CO", "state": 11 },
-        "legalRepresentative": { "name": "Ada", "surname": "Lovelace" },
-        "control": { "reseller": 1 }
-      }'
-    ```
+```bash {{ title: 'Crear comercio con sitios y medios de pago' }}
+curl --request POST \
+  --url '{URL_BASE}/api/merchants' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --header 'Idempotency-Key: 8f1c2d3e4a5b6c7d8e9f0a1b' \
+  --data '{
+    "name": "Comercializadora Acme S.A.S.",
+    "brand": "Acme",
+    "languages": ["es"],
+    "currencies": ["COP"],
+    "document": { "type": "NIT", "number": "9001234567" },
+    "address": { "city": "Bogota", "country": "CO", "state": 11 },
+    "legalRepresentative": { "name": "Ada", "surname": "Lovelace" },
+    "control": { "reseller": 1 },
+    "paymentMethods": [
+      {
+        "code": "CR_VS",
+        "financialEntity": 7,
+        "accountNumber": "1234567890",
+        "accountType": 2,
+        "commissionModel": "P",
+        "commissionValue": 2.5
+      }
+    ],
+    "sites": [
+      {
+        "name": "Tienda principal",
+        "displayName": "Acme",
+        "type": "INT",
+        "category": "ECOMMERCE",
+        "currency": "COP",
+        "language": "es",
+        "email": "ops@acme.example.com",
+        "integration": {
+          "allowPartial": false,
+          "checkoutVersion": "v4"
+        },
+        "control": {
+          "minAmount": 1000,
+          "maxAmount": 5000000,
+          "allowedDays": 127,
+          "allowedHours": "ffffffffffffffffffffffffffffffffffffffffff",
+          "filterPse": false,
+          "filterByBin": false
+        },
+        "paymentMethods": [
+          { "code": "CR_VS" }
+        ]
+      }
+    ],
+    "notification": {
+      "url": "https://acme.example.com/hooks/onboarding"
+    }
+  }'
+```
 
+```bash {{ title: 'Crear comercio con todos los campos' }}
+curl --request POST \
+  --url '{URL_BASE}/api/merchants' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --header 'Idempotency-Key: 8f1c2d3e4a5b6c7d8e9f0a1b' \
+  --data '{
+    "name": "Comercializadora Acme S.A.S.",
+    "brand": "Acme",
+    "active": true,
+    "url": "https://acme.example.com",
+    "incrementType": "IPC",
+    "mcc": "5411",
+    "size": "M",
+    "timezone": "America/Bogota",
+    "languages": ["es", "en"],
+    "currencies": ["COP", "USD"],
+    "document": {
+      "type": "NIT",
+      "number": "9001234567"
+    },
+    "address": {
+      "street": "Carrera 43A # 1-50, Torre 2",
+      "city": "Bogota",
+      "country": "CO",
+      "state": 11,
+      "phone": "6013905000",
+      "postalCode": "110111"
+    },
+    "legalRepresentative": {
+      "name": "Ada",
+      "surname": "Lovelace",
+      "documentType": "CC",
+      "document": "1020304050"
+    },
+    "billing": {
+      "contact": "Contabilidad Acme",
+      "mail": "facturacion@acme.example.com",
+      "registrationNumber": "9001234567-1",
+      "ciiu": "4791",
+      "taxType": 1,
+      "taxRegime": 1,
+      "organizationType": 1
+    },
+    "travelAgency": {
+      "dispersion": false,
+      "iata": "ABCD12"
+    },
+    "control": {
+      "reseller": 1,
+      "seller": 1,
+      "paymentFacilitator": null
+    },
+    "integrations": [
+      {
+        "type": "kount",
+        "settings": {
+          "sandbox": false,
+          "website": "ACME",
+          "merchant": "201000"
+        }
+      },
+      {
+        "type": "push_notification",
+        "settings": {
+          "enabled": true
+        }
+      }
+    ],
+    "paymentMethods": [
+      {
+        "code": "CR_VS",
+        "financialEntity": 7,
+        "accountNumber": "1234567890",
+        "accountType": 2,
+        "commissionModel": "P",
+        "commissionValue": 2.5,
+        "order": 1,
+        "creditRules": {
+          "minInstallments": 1,
+          "maxInstallments": 36
+        },
+        "settings": {
+          "merchantCode": "201000",
+          "terminalNumber": "00000001",
+          "isEcommerce": true,
+          "threeDSProvider": "placetopay"
+        }
+      }
+    ],
+    "sites": [
+      {
+        "login": "aabbccdd1234567890aabbccdd123456",
+        "name": "Tienda principal",
+        "displayName": "Acme",
+        "type": "INT",
+        "category": "ECOMMERCE",
+        "active": true,
+        "onTest": false,
+        "currency": "COP",
+        "language": "es",
+        "email": "ops@acme.example.com",
+        "customBatch": 1,
+        "expiration": "2027-01-31 23:59:59",
+        "productionDate": "2026-09-01",
+        "integration": {
+          "allowPartial": false,
+          "checkoutVersion": "v4",
+          "connectionMethod": "REDIRECT",
+          "notificationUrl": "https://acme.example.com/pay/notify",
+          "analyticsCode": "G-ABCDE12345",
+          "sourceRestriction": null,
+          "allowWallet": true,
+          "checkoutAttemptsLimit": 5,
+          "returnAdditional": false,
+          "payerFieldsType": 0
+        },
+        "control": {
+          "minAmount": 1000,
+          "maxAmount": 5000000,
+          "allowedDays": 127,
+          "allowedHours": "ffffffffffffffffffffffffffffffffffffffffff",
+          "filterPse": false,
+          "filterByBin": false,
+          "filterTuya": false,
+          "filterSafetypay": false,
+          "prechargeFilter": 0,
+          "allowedBankCountries": ["CO"],
+          "exceptionBinsList": ["411111"],
+          "delegatedAuthorization": null
+        },
+        "threeDS": {
+          "setting": "LOW",
+          "minAmount": 100000
+        },
+        "securityFilters": {
+          "filterLockedByTries": true,
+          "forceIPMatch": false,
+          "onlyWhitelisted": false,
+          "allowedIssuerCountries": ["CO"],
+          "allowedIPCountries": ["CO", "US"],
+          "excludeIPCountry": null,
+          "allowedCardsDay": 5,
+          "allowedCardsMonth": 20,
+          "allowedCardsYear": 60,
+          "allowedCardsByIP": 10,
+          "dayMax": 5,
+          "monthMax": 100,
+          "dayMaxAmount": 10000000,
+          "monthMaxAmount": 200000000
+        },
+        "operation": {
+          "disableTax": false,
+          "calculateTax": true,
+          "mailCustomer": true,
+          "mailMerchant": false,
+          "taxPercentage": 19,
+          "patternReference": "1234567890"
+        },
+        "subscriptionValidation": {
+          "enable": true,
+          "amount": 1000
+        },
+        "branding": {
+          "buttonColor": "#1a73e8",
+          "sidebarColor": "#0b1220"
+        },
+        "metadata": {
+          "contractRef": "AC-2026-0042",
+          "onboardingBatch": 17
+        },
+        "integrations": [
+          {
+            "type": "clicktopay_visa",
+            "settings": {
+              "enabled": true
+            }
+          }
+        ],
+        "paymentMethods": [
+          {
+            "code": "CR_VS",
+            "financialEntity": 7,
+            "accountNumber": "1234567890",
+            "accountType": 2,
+            "minAmount": 2000,
+            "maxAmount": 900000,
+            "commissionModel": "P",
+            "commissionValue": 2.5,
+            "order": 1,
+            "settings": {
+              "terminalNumber": "00000002"
+            }
+          }
+        ]
+      }
+    ],
+    "notification": {
+      "url": "https://acme.example.com/hooks/onboarding"
+    }
+  }'
+```
     </CodeGroup>
   </Col>
 </Row>
@@ -108,7 +370,15 @@ export const apiRefs = ['/api/merchants', '/api/merchants/{merchantId}'];
 
 <Row>
   <Col>
-    Escribe solo los campos que el cuerpo nombra. El resto del comercio conserva su valor, y ningún campo es obligatorio — pero el cuerpo debe nombrar al menos uno.
+    Escribe solo los campos que el cuerpo nombra. El resto del comercio conserva su valor, y ningún campo es obligatorio — pero el cuerpo debe nombrar al menos uno: un `{}` responde `422` con la clave de error `body`, y un cuerpo que solo trae `notification` cuenta igualmente como vacío.
+
+    Dentro de las colecciones, cada elemento **o** modifica una fila existente por su identificador, **o** crea una nueva. Un sitio sin `id` es un sitio que se crea, y entonces vuelven a ser obligatorios todos sus campos: el error lo dice explícitamente, `The sites.0.displayName field is required when sites.0.id is not present.`
+
+    <Note>
+      Al actualizar, un sitio habilita un medio de pago del comercio con **`paymentMethodId`**, no con `code` — también un sitio que esta misma petición está creando, porque ese identificador señala una fila del **comercio**, que existe. Es al revés que al crear el comercio, donde `code` es la única forma posible. El detalle está en [Medios de pago del sitio](/en/onboarding/site-payment-methods).
+
+      En el `paymentMethods` de la raíz, junto al `id` viajan los **valores** —`accountNumber`, `accountType`, `commissionModel`, `commissionValue`, `order`, `creditRules`, `settings`—, pero no la **identidad**: reafirmar `code` o `financialEntity` responde `422` aunque el valor sea el que la fila ya tiene.
+    </Note>
 
     <ApiReader
       path="/api/merchants/{merchantId}"
@@ -132,17 +402,78 @@ export const apiRefs = ['/api/merchants', '/api/merchants/{merchantId}'];
   </Col>
   <Col sticky>
     <CodeGroup title="Solicitud" tag="PATCH" label="/api/merchants/{merchantId}">
+```bash {{ title: 'Cambiar datos del comercio' }}
+curl --request PATCH \
+  --url '{URL_BASE}/api/merchants/18' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --header 'Idempotency-Key: 4b7e1a9c2d3f5e6a8b0c1d2e' \
+  --data '{
+    "name": "Comercializadora Acme S.A.S.",
+    "brand": "Acme Pagos",
+    "url": "https://pagos.acme.example.com"
+  }'
+```
 
-    ```bash {{ title: 'cURL' }}
-    curl --request PATCH \
-      --url '{URL_BASE}/api/merchants/18' \
-      --header 'Accept: application/json' \
-      --header 'Content-Type: application/json' \
-      --header 'Authorization: Bearer {TU_TOKEN}' \
-      --header 'Idempotency-Key: 4b7e1a9c2d3f5e6a8b0c1d2e' \
-      --data '{ "name": "Comercializadora Acme S.A.S." }'
-    ```
+```bash {{ title: 'Modificar un medio de pago existente' }}
+curl --request PATCH \
+  --url '{URL_BASE}/api/merchants/18' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --header 'Idempotency-Key: 4b7e1a9c2d3f5e6a8b0c1d2e' \
+  --data '{
+    "paymentMethods": [
+      {
+        "id": 64,
+        "commissionModel": "P",
+        "commissionValue": 3.1
+      }
+    ]
+  }'
+```
 
+```bash {{ title: 'Añadir un sitio al comercio' }}
+curl --request PATCH \
+  --url '{URL_BASE}/api/merchants/18' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --header 'Idempotency-Key: 4b7e1a9c2d3f5e6a8b0c1d2e' \
+  --data '{
+    "sites": [
+      {
+        "name": "Tienda express",
+        "displayName": "Acme Express",
+        "type": "INT",
+        "category": "ECOMMERCE",
+        "currency": "COP",
+        "language": "es",
+        "email": "express@acme.example.com",
+        "integration": {
+          "allowPartial": false,
+          "checkoutVersion": "v4"
+        },
+        "control": {
+          "minAmount": 1000,
+          "maxAmount": 5000000,
+          "allowedDays": 127,
+          "allowedHours": "ffffffffffffffffffffffffffffffffffffffffff",
+          "filterPse": false,
+          "filterByBin": false
+        },
+        "operation": {
+          "mailCustomer": true,
+          "taxPercentage": 19
+        },
+        "paymentMethods": [
+          { "paymentMethodId": 64 }
+        ]
+      }
+    ]
+  }'
+```
     </CodeGroup>
   </Col>
 </Row>
