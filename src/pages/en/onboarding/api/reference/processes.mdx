@@ -14,7 +14,11 @@ export const apiRefs = ['/api/processes/{processId}'];
   <Col>
     Devuelve el estado del proceso que devolvió una petición de escritura. Es la fuente de verdad del resultado, incluso cuando se registró una URL de notificación.
 
-    Deja de consultar cuando la respuesta **deje de traer el header `Retry-After`**, no cuando veas un valor concreto de `status.status`.
+    Deja de consultar cuando la respuesta **deje de traer el header `Retry-After`**, no cuando veas un valor concreto de `status.status`. El header desaparece en cuanto el proceso llega a un estado final, y eso vale igual para el éxito que para el fallo, así que sirve como única condición de parada.
+
+    <Note type="warning">
+      Un proceso fallido también responde `200`. La consulta funcionó; lo que falló es el proceso. El desenlace se lee en `status.status` —`OK` o `FAILED`—, nunca en el código HTTP.
+    </Note>
 
     <ApiReader
       path="/api/processes/{processId}"
@@ -32,14 +36,44 @@ export const apiRefs = ['/api/processes/{processId}'];
   </Col>
   <Col sticky>
     <CodeGroup title="Solicitud" tag="GET" label="/api/processes/{processId}">
+```bash {{ title: 'Consultar el proceso' }}
+curl --request GET \
+  --url '{URL_BASE}/api/processes/01kz0609xy2hd666mnx6b0jxpc' \
+  --header 'Accept: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}'
+```
 
-    ```bash {{ title: 'cURL' }}
-    curl --request GET \
-      --url '{URL_BASE}/api/processes/01kz0609xy2hd666mnx6b0jxpc' \
-      --header 'Accept: application/json' \
-      --header 'Authorization: Bearer {TU_TOKEN}'
-    ```
+```bash {{ title: 'Ver los headers de la respuesta' }}
+# --include imprime los headers: Retry-After solo llega mientras el proceso sigue en curso.
+curl --request GET --include \
+  --url '{URL_BASE}/api/processes/01kz0609xy2hd666mnx6b0jxpc' \
+  --header 'Accept: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}'
 
+# HTTP/1.1 200 OK
+# Content-Type: application/json
+# Retry-After: 5
+```
+
+```bash {{ title: 'Sondear hasta que termine' }}
+PROCESS_ID='01kz0609xy2hd666mnx6b0jxpc'
+
+while :; do
+  RESPONSE=$(curl --silent --include \
+    --url "{URL_BASE}/api/processes/${PROCESS_ID}" \
+    --header 'Accept: application/json' \
+    --header 'Authorization: Bearer {TU_TOKEN}')
+
+  # Sin Retry-After el proceso terminó: bien o mal, pero terminó.
+  DELAY=$(printf '%s\n' "$RESPONSE" | tr -d '\r' | awk 'tolower($1) == "retry-after:" { print $2 }')
+  [ -z "$DELAY" ] && break
+
+  sleep "$DELAY"
+done
+
+# El desenlace está en status.status, nunca en el código HTTP.
+printf '%s\n' "$RESPONSE" | tail -1
+```
     </CodeGroup>
   </Col>
 </Row>
