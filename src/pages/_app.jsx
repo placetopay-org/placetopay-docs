@@ -40,6 +40,7 @@ export default function App({ Component, pageProps }) {
   const canonicalUrl = absoluteUrl(router.pathname)
   const esUrl = absoluteUrl(esPath)
   const enUrl = absoluteUrl(enPath)
+  const isErrorRoute = router.pathname === '/_error'
   const pageTitle = `${pageProps.title ? pageProps.title + ' - ' : ''}Placetopay Docs`
 
   useEffect(() => {
@@ -83,14 +84,20 @@ export default function App({ Component, pageProps }) {
         <title>{pageTitle}</title>
         <meta name="description" content={pageProps.description} />
 
+        {isErrorRoute && <meta name="robots" content="noindex" />}
+
         {/* Canonical + hreflang: ES/EN are declared as equivalents, not
             duplicate content. See src/mdx/seo.mjs for the URL derivation
             rules (ES/EN kept 1:1, trailing slash matches trailingSlash: true
             in next.config.mjs). */}
-        <link rel="canonical" href={canonicalUrl} />
-        <link rel="alternate" hrefLang="es" href={esUrl} />
-        <link rel="alternate" hrefLang="en" href={enUrl} />
-        <link rel="alternate" hrefLang="x-default" href={esUrl} />
+        {!isErrorRoute && (
+          <>
+            <link rel="canonical" href={canonicalUrl} />
+            <link rel="alternate" hrefLang="es" href={esUrl} />
+            <link rel="alternate" hrefLang="en" href={enUrl} />
+            <link rel="alternate" hrefLang="x-default" href={esUrl} />
+          </>
+        )}
 
         {/* Open Graph / Twitter: link previews on Slack, LinkedIn, email, etc. */}
         <meta property="og:type" content="website" />
@@ -99,12 +106,14 @@ export default function App({ Component, pageProps }) {
         {pageProps.description && (
           <meta property="og:description" content={pageProps.description} />
         )}
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:locale" content={OG_LOCALE_MAP[locale]} />
-        <meta
-          property="og:locale:alternate"
-          content={locale === 'en' ? OG_LOCALE_MAP.es : OG_LOCALE_MAP.en}
-        />
+        {!isErrorRoute && <meta property="og:url" content={canonicalUrl} />}
+        {!isErrorRoute && <meta property="og:locale" content={OG_LOCALE_MAP[locale]} />}
+        {!isErrorRoute && (
+          <meta
+            property="og:locale:alternate"
+            content={locale === 'en' ? OG_LOCALE_MAP.es : OG_LOCALE_MAP.en}
+          />
+        )}
 
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content={pageTitle} />
