@@ -72,7 +72,7 @@ export function Heading({
 
   const hasEndpointMeta = !!(tag || label)
 
-  if (level === 2 || (level === 1 && hasEndpointMeta)) {
+  if (level === 2) {
     setScopeEndpoint(tag, label, id)
   }
 

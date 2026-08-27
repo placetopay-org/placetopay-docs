@@ -29,11 +29,6 @@ export const h2 = function H2(props) {
   return <Heading level={2} {...props} />
 }
 
-export const h1 = function H1(props) {
-  // Keep page title behavior while allowing eyebrow metadata on H1.
-  return <Heading level={1} anchor={false} {...props} />
-}
-
 export const img = function Img({ zoom = true, ...props }) {
   return zoom === false ? (
     // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
