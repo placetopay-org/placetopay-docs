@@ -5,9 +5,16 @@
 
 export const DEFAULT_LOCALE = 'es'
 
-export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://docs.placetopay.dev'
-).replace(/\/+$/, '')
+const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
+
+if (!configuredSiteUrl && process.env.NODE_ENV === 'production') {
+  throw new Error('NEXT_PUBLIC_SITE_URL is required for canonical/hreflang/sitemap in production')
+}
+
+export const SITE_URL = (configuredSiteUrl || 'https://docs.placetopay.dev').replace(
+  /\/+$/,
+  ''
+)
 
 /**
  * Ensures a pathname ends with a trailing slash, except for the root path.
