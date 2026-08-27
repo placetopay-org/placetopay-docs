@@ -8,23 +8,36 @@ export const DEFAULT_LOCALE = 'es'
 const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
 
 if (!configuredSiteUrl && process.env.NODE_ENV === 'production') {
-  throw new Error('NEXT_PUBLIC_SITE_URL is required for canonical/hreflang/sitemap in production')
+  throw new Error('NEXT_PUBLIC_SITE_URL es obligatoria para canonical/hreflang/sitemap en producción')
 }
 
-export const SITE_URL = (configuredSiteUrl || 'https://docs.placetopay.dev').replace(
-  /\/+$/,
-  ''
-)
+export const SITE_URL = (configuredSiteUrl || 'http://localhost:3000').replace(/\/+$/, '')
 
 /**
  * Ensures a pathname ends with a trailing slash, except for the root path.
- * Preserves a trailing `#hash` if present.
+ * Preserves `?query` and trailing `#hash` if present.
  */
 export function withTrailingSlash(pathname) {
   if (!pathname || pathname === '/') return '/'
-  const [path, hash] = pathname.split('#')
-  const normalized = path.endsWith('/') ? path : `${path}/`
-  return hash ? `${normalized}#${hash}` : normalized
+
+  let path = pathname
+  let hash = ''
+  let query = ''
+
+  const hashIndex = path.indexOf('#')
+  if (hashIndex !== -1) {
+    hash = path.slice(hashIndex)
+    path = path.slice(0, hashIndex)
+  }
+
+  const queryIndex = path.indexOf('?')
+  if (queryIndex !== -1) {
+    query = path.slice(queryIndex)
+    path = path.slice(0, queryIndex)
+  }
+
+  const normalizedPath = path.endsWith('/') ? path : `${path}/`
+  return `${normalizedPath}${query}${hash}`
 }
 
 /**
