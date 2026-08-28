@@ -26,7 +26,9 @@ function stripFencedCodeBlocks(mdx) {
 
 function hasH1(mdx) {
   const withoutCode = stripFencedCodeBlocks(mdx)
-  return /^#{1}\s+\S/m.test(withoutCode)
+  const hasAtxH1 = /^#\s+\S/m.test(withoutCode)
+  const hasSetextH1 = /^(?!\s)\S.*\n=+\s*$/m.test(withoutCode)
+  return hasAtxH1 || hasSetextH1
 }
 
 function hasTitleExport(mdx) {
