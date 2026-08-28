@@ -16,6 +16,7 @@ const pagesDir = path.resolve('./src/pages')
 const args = process.argv.slice(2)
 const asJson = args.includes('--json')
 const strict = args.includes('--strict')
+const MIN_DESCRIPTION_LENGTH = 10
 
 // Strips fenced code blocks (``` ... ```) so a `#` used inside a code sample
 // (shell comment, markdown example, etc.) is never mistaken for a heading.
@@ -32,8 +33,14 @@ function hasTitleExport(mdx) {
   return /export\s+const\s+title\b/.test(mdx)
 }
 
+function getDescription(mdx) {
+  const m = mdx.match(/export\s+const\s+description\s*=\s*(["'`])([\s\S]*?)\1/)
+  return m ? m[2].trim() : null
+}
+
 function hasDescription(mdx) {
-  return /export\s+const\s+description\s*=/.test(mdx)
+  const description = getDescription(mdx)
+  return description !== null && description.length >= MIN_DESCRIPTION_LENGTH
 }
 
 function main() {
@@ -74,7 +81,7 @@ function main() {
     console.log('SEO metadata audit — src/pages/**/*.mdx\n')
     console.log(`Total pages scanned: ${summary.totalPages}`)
     console.log(`Missing title:       ${summary.missingTitleCount}`)
-    console.log(`Missing description: ${summary.missingDescriptionCount}`)
+    console.log(`Missing description (or < ${MIN_DESCRIPTION_LENGTH} chars): ${summary.missingDescriptionCount}`)
     console.log(`Missing both:        ${summary.missingBothCount}\n`)
 
     for (const locale of ['es', 'en']) {
@@ -87,7 +94,7 @@ function main() {
       .sort((a, b) => a.file.localeCompare(b.file))
       .forEach(({ file, url }) => console.log(`  ${file}  (${url})`))
 
-    console.log('\n--- Pages missing description ---')
+    console.log(`\n--- Pages missing description (or < ${MIN_DESCRIPTION_LENGTH} chars) ---`)
     missingDescription
       .sort((a, b) => a.file.localeCompare(b.file))
       .forEach(({ file, url }) => console.log(`  ${file}  (${url})`))
