@@ -12,6 +12,7 @@ import { useMobileNavigationStore } from '@/components/MobileNavigation'
 import { ApiRefsContext } from '@/components/ApiRefsContext'
 import { setScopeEndpoint } from '@/components/endpointScope'
 import {
+  SITE_URL,
   absoluteUrl,
   getLocaleAlternates,
   splitLocaleFromPath,
@@ -41,6 +42,9 @@ export default function App({ Component, pageProps }) {
   const esUrl = absoluteUrl(esPath)
   const enUrl = absoluteUrl(enPath)
   const isErrorRoute = router.pathname === '/_error'
+  const hasDescription = Boolean(pageProps.description)
+  // Keep asset URL without trailing slash handling from absoluteUrl().
+  const socialImageUrl = `${SITE_URL}/screen_site.webp`
   const pageTitle = `${pageProps.title ? pageProps.title + ' - ' : ''}Placetopay Docs`
 
   useEffect(() => {
@@ -82,7 +86,7 @@ export default function App({ Component, pageProps }) {
       )}
       <Head>
         <title>{pageTitle}</title>
-        <meta name="description" content={pageProps.description} />
+        {hasDescription && <meta name="description" content={pageProps.description} />}
 
         {isErrorRoute && <meta name="robots" content="noindex" />}
 
@@ -103,9 +107,13 @@ export default function App({ Component, pageProps }) {
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Placetopay Docs" />
         <meta property="og:title" content={pageTitle} />
-        {pageProps.description && (
+        {hasDescription && (
           <meta property="og:description" content={pageProps.description} />
         )}
+        {!isErrorRoute && <meta property="og:image" content={socialImageUrl} />}
+        {!isErrorRoute && <meta property="og:image:width" content="1200" />}
+        {!isErrorRoute && <meta property="og:image:height" content="630" />}
+        {!isErrorRoute && <meta property="og:image:alt" content="Placetopay Docs" />}
         {!isErrorRoute && <meta property="og:url" content={canonicalUrl} />}
         {!isErrorRoute && <meta property="og:locale" content={OG_LOCALE_MAP[locale]} />}
         {!isErrorRoute && (
@@ -115,11 +123,12 @@ export default function App({ Component, pageProps }) {
           />
         )}
 
-        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:card" content={isErrorRoute ? 'summary' : 'summary_large_image'} />
         <meta name="twitter:title" content={pageTitle} />
-        {pageProps.description && (
+        {hasDescription && (
           <meta name="twitter:description" content={pageProps.description} />
         )}
+        {!isErrorRoute && <meta name="twitter:image" content={socialImageUrl} />}
       </Head>
       <LocaleProvider>
         <ImageZoomProvider>
