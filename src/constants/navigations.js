@@ -734,7 +734,15 @@ export const TAB_NAVIGATION = {
               { title: 'Cómo funciona', href: '/checkout/how-checkout-works' },
               { title: 'Plugins y librerías', href: '/checkout/plugins' },
               { title: 'Lightbox', href: '/checkout/lightbox' },
-              { title: 'Lightbox SDK (Suggested)', href: '/checkout/lightbox-sdk' },
+              {
+                title: 'Lightbox SDK (Sugerido)',
+                href: '/checkout/sdk/lightbox',
+                links: [
+                  { title: 'Usar sin instalar', href: '/checkout/sdk/use-without-install' },
+                  { title: 'Referencia API', href: '/checkout/sdk/reference' },
+                  { title: 'Contribuir', href: '/checkout/sdk/contributing' },
+                ],
+              },
               {
                 title: 'Navegadores soportados',
                 href: '/checkout/browser-support',
@@ -847,7 +855,15 @@ export const TAB_NAVIGATION = {
               { title: 'How it works', href: '/en/checkout/how-checkout-works' },
               { title: 'Plugins and libraries', href: '/en/checkout/plugins' },
               { title: 'Lightbox', href: '/en/checkout/lightbox' },
-              { title: 'Lightbox SDK (Suggested)', href: '/en/checkout/lightbox-sdk' },
+              {
+                title: 'Lightbox SDK (Suggested)',
+                href: '/en/checkout/sdk/lightbox',
+                links: [
+                  { title: 'Use without install', href: '/en/checkout/sdk/use-without-install' },
+                  { title: 'API Reference', href: '/en/checkout/sdk/reference' },
+                  { title: 'Contributing', href: '/en/checkout/sdk/contributing' },
+                ],
+              },
               { title: 'Browser support', href: '/en/checkout/browser-support' },
             ],
           },
