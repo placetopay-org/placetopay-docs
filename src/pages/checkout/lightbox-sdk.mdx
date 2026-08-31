@@ -1,0 +1,537 @@
+export const description = 'Lightbox SDK es un conjunto de herramientas que permite a los comercios integrar un flujo de pago seguro y optimizado dentro de su sitio web, ofreciendo una experiencia de usuario fluida y confiable.'
+
+# Lightbox SDK
+
+Lightbox SDK es una librería npm que facilita la creación, manipulación y control de iframes en forma de modales dentro de tu aplicación. {{ className: 'lead' }}
+
+Puedes abrir un lightbox simplemente proporcionando la URL de destino, o configurarlo con mayor detalle si lo necesitas, ya que ofrece varias funcionalidades que te permiten interactuar con el iframe de distintas formas. Por ejemplo, puedes definir estilos del iframe, ocultar el botón de cierre, cerrarlo directamente y, lo más interesante, emitir eventos personalizados.
+
+<Note>
+La página que se muestra dentro del lightbox no necesita instalar la librería. Conoce más en [Uso sin instalación](#use-without-installation).
+</Note>
+
+---
+
+## Instalación {{ id: 'installation' }}
+
+Para instalar Lightbox SDK usa tu gestor de paquetes preferido:
+
+<CodeGroup title="Instalación">
+
+```bash {{ title: 'npm' }}
+npm install -D @placetopay/lightbox-sdk
+```
+
+```bash {{ title: 'yarn' }}
+yarn add -D @placetopay/lightbox-sdk
+```
+
+</CodeGroup>
+
+## Uso {{ id: 'usage' }}
+
+Sigue estos pasos para utilizar Lightbox SDK de forma correcta.
+
+### Importar los estilos {{ id: 'import-styles' }}
+
+Es muy importante importar este archivo CSS al usar la librería, ya que es esencial para que el lightbox tenga la apariencia esperada. Si lo prefieres, también puedes sobrescribir estos estilos con estilos personalizados después de la importación, para ajustar la apariencia del lightbox a las necesidades específicas de tu sitio web.
+
+```javascript
+import '@placetopay/lightbox-sdk/dist/styles.css';
+```
+
+### Uso paso a paso {{ id: 'step-by-step-usage' }}
+
+Importa la librería `createLightbox` e inicialízala con tu URL de destino. Luego, usa el método `open()` para abrir el Lightbox:
+
+```javascript
+import { createLightbox } from '@placetopay/lightbox-sdk';
+
+const lightbox = createLightbox('https://checkout.placetopay.com/');
+lightbox.open();
+```
+
+### Uso en línea {{ id: 'inline-usage' }}
+
+Si prefieres un enfoque más conciso, puedes inicializar y abrir el lightbox de forma encadenada, o usando la opción `launch`:
+
+```javascript
+import { createLightbox } from '@placetopay/lightbox-sdk';
+
+createLightbox('https://checkout.placetopay.com/').open();
+```
+
+```javascript
+import { createLightbox } from '@placetopay/lightbox-sdk';
+
+createLightbox('https://checkout.placetopay.com/', { launch: true });
+```
+
+<Note>
+Recuerda reemplazar `'https://checkout.placetopay.com/'` con la `processUrl` real que obtuviste al [crear una sesión](/checkout/api/reference/session#crear-una-sesion) en tu servidor.
+</Note>
+
+## Integración Avanzada {{ id: 'advanced-integration' }}
+
+Conoce en detalle las funciones, tipos y opciones disponibles.
+
+### createLightbox() {{ id: 'create-lightbox' }}
+
+Inicializa el lightbox con una URL y opciones específicas, y devuelve una instancia del lightbox.
+
+```typescript
+function createLightbox(url: string, options?: InitialOptions): LightboxInstance
+```
+
+| Propiedad | Tipo | Descripción |
+| --- | --- | --- |
+| `url` | `string` | `required` <br/> URL de destino que se mostrará en el lightbox |
+| `options` | `InitialOptions` | Opciones de configuración del lightbox |
+
+```javascript
+import { createLightbox } from '@placetopay/lightbox-sdk';
+
+// Uso básico
+const lightbox = createLightbox('https://checkout.placetopay.com/');
+
+// Con opciones, incluyendo comportamiento de respaldo
+const lightbox = createLightbox('https://checkout.placetopay.com/', {
+  id: 'my-checkout',
+  closeButton: true,
+  allowRedirects: true, // Solo afecta la redirección 'self'
+  backupTarget: 'popup', // Usa un popup como respaldo en Safari/iOS
+  styles: {
+    width: '80%',
+    height: '600px',
+    radius: 8
+  },
+  callbacks: {
+    close: (payload) => console.log('Lightbox cerrado', payload)
+  }
+});
+```
+
+### isInside() {{ id: 'is-inside' }}
+
+Determina si el código actual se está ejecutando dentro de un iframe de lightbox.
+
+```typescript
+function isInside(): boolean
+```
+
+Retorna `true` si se está ejecutando dentro de un lightbox, `false` en caso contrario.
+
+```javascript
+import { isInside } from '@placetopay/lightbox-sdk';
+
+if (isInside()) {
+  console.log('Ejecutándose dentro del lightbox');
+  // Maneja la lógica específica del lightbox
+}
+```
+
+### updateStyles() {{ id: 'update-styles' }}
+
+Actualiza los estilos del lightbox de forma dinámica.
+
+```typescript
+function updateStyles(styles: LightboxStyles): void
+```
+
+| Propiedad | Tipo | Descripción |
+| --- | --- | --- |
+| `styles` | `LightboxStyles` | `required` <br/> Objeto con las propiedades de estilo a actualizar |
+
+```javascript
+import { updateStyles } from '@placetopay/lightbox-sdk';
+
+updateStyles({
+  backdropColor: '#000000',
+  backdropOpacity: 0.8,
+  width: '90%',
+  height: 500
+});
+```
+
+### hideCloseButton() {{ id: 'hide-close-button' }}
+
+Oculta el botón de cierre del lightbox.
+
+```typescript
+function hideCloseButton(): void
+```
+
+```javascript
+import { hideCloseButton } from '@placetopay/lightbox-sdk';
+
+hideCloseButton();
+```
+
+### emitClose() {{ id: 'emit-close' }}
+
+Emite un evento de cierre con un payload opcional y la posibilidad de prevenir el cierre.
+
+```typescript
+function emitClose(payload?: unknown, preventClose?: boolean): void
+```
+
+| Propiedad | Tipo | Descripción |
+| --- | --- | --- |
+| `payload` | `unknown` | Datos a enviar junto con el evento de cierre |
+| `preventClose` | `boolean` | Si es `true`, evita que el lightbox se cierre realmente |
+
+```javascript
+import { emitClose } from '@placetopay/lightbox-sdk';
+
+// Cerrar con datos
+emitClose({ status: 'completed', transactionId: '123' });
+
+// Emitir el evento de cierre sin cerrar realmente
+emitClose({ status: 'processing' }, true);
+```
+
+### emit() {{ id: 'emit' }}
+
+Emite un evento personalizado con la estructura especificada.
+
+```typescript
+function emit(structure: ApiStructure): void
+```
+
+| Propiedad | Tipo | Descripción |
+| --- | --- | --- |
+| `structure` | `ApiStructure` | `required` <br/> Estructura del evento que contiene el tipo, el payload y el flag de prevención |
+
+Detecta automáticamente el contexto de comunicación y usa el canal apropiado:
+
+- **Contexto de iframe:** usa `window.parent.postMessage()`
+- **Contexto de popup:** usa `window.opener.postMessage()`
+
+```javascript
+import { emit } from '@placetopay/lightbox-sdk';
+
+emit({
+  type: 'payment-status',
+  payload: { status: 'approved', amount: 100 },
+  preventClose: false
+});
+
+// Funciona automáticamente desde:
+// - El iframe del lightbox → envía a la ventana padre
+// - Una ventana popup → envía a la ventana que la abrió (opener)
+```
+
+## Tipos {{ id: 'types' }}
+
+### LightboxInstance {{ id: 'lightbox-instance' }}
+
+La instancia principal del lightbox devuelta por `createLightbox()`.
+
+```typescript
+type LightboxInstance = {
+  id: string;
+  element: HTMLElement;
+  allowRedirects: boolean;
+  callbacks: ClientCallbacks;
+  closeButton: boolean;
+  styles: LightboxStyles;
+  backupTarget: BackupTarget;
+  url: string;
+  on: (name: string, callback: ClientCallback) => void;
+  open: () => void;
+  close: (payload?: unknown) => void;
+  updateStyles: (styles: LightboxStyles) => void;
+  hideCloseButton: () => void;
+};
+```
+
+**Métodos**
+
+| Método | Descripción |
+| --- | --- |
+| `on(name, callback)` | Registra un callback para un evento |
+| `open()` | Abre el lightbox (o el popup/ventana de respaldo en Safari/iOS) |
+| `close(payload?)` | Cierra el lightbox/popup/ventana con un payload opcional |
+| `updateStyles(styles)` | Actualiza los estilos del lightbox |
+| `hideCloseButton()` | Oculta el botón de cierre |
+
+<Note>
+El método `close()` maneja automáticamente los distintos escenarios:
+
+- **Lightbox normal:** cierra el iframe y elimina el lightbox.
+- **Respaldo popup:** cierra la ventana popup y elimina el fondo (backdrop).
+- **Respaldo en pestaña nueva:** cierra la ventana de la pestaña (si aún es accesible).
+
+**Manejo de eventos:** todas las instancias del lightbox (normal, popup, blank) escuchan automáticamente los mensajes de la ventana/iframe abierto, de modo que los callbacks funcionan de forma consistente en todos los escenarios de respaldo. El sistema de mensajería detecta automáticamente el contexto (iframe vs. popup) y usa el canal de comunicación apropiado (`parent` para iframes, `opener` para popups).
+</Note>
+
+### InitialOptions {{ id: 'initial-options' }}
+
+Opciones de configuración para crear un lightbox.
+
+```typescript
+type InitialOptions = {
+  id?: string;                    // Identificador único
+  element?: HTMLElement;          // Elemento contenedor
+  allowRedirects?: boolean;       // Permite redirecciones automáticas
+  callbacks?: ClientCallbacks;    // Callbacks de eventos
+  closeButton?: boolean;          // Muestra el botón de cierre
+  styles?: LightboxStyles;        // Estilos personalizados
+  backupTarget?: BackupTarget;    // Comportamiento de respaldo para entornos no soportados
+  launch?: boolean;              // Se abre automáticamente al crearse
+  enforceStyles?: boolean;       // Fuerza la aplicación de los estilos
+};
+```
+
+### LightboxStyles {{ id: 'lightbox-styles' }}
+
+Configuración de estilos para la apariencia del lightbox.
+
+```typescript
+type LightboxStyles = {
+  backdropColor?: string;        // Color del fondo (backdrop)
+  backdropOpacity?: number;      // Opacidad del fondo (0-1)
+  height?: string | number;      // Alto del lightbox
+  width?: string | number;       // Ancho del lightbox
+  radius?: number;               // Radio del borde
+  position?: 'absolute' | 'fixed'; // Posición CSS
+  wrapperWidth?: string | number;  // Ancho del wrapper
+  wrapperHeight?: string | number; // Alto del wrapper
+};
+```
+
+### ClientCallbacks {{ id: 'client-callbacks' }}
+
+Funciones de callback para los eventos del lightbox.
+
+```typescript
+type ClientCallbacks = Record<string, ClientCallback | undefined>;
+type ClientCallback = (payload?: unknown) => void;
+```
+
+### BackupTarget {{ id: 'backup-target' }}
+
+Define el comportamiento de respaldo cuando el lightbox no puede abrirse de forma normal (por ejemplo, en Safari o iOS). Esta configuración es usada automáticamente por el lightbox cuando detecta un entorno no soportado.
+
+```typescript
+type BackupTarget = 'self' | 'popup' | 'blank';
+```
+
+| Valor | Descripción |
+| --- | --- |
+| `self` (por defecto) | Redirige a la URL de procesamiento en la misma ventana |
+| `popup` | Abre una ventana popup con la URL (crea automáticamente un fondo con un mensaje informativo) |
+| `blank` | Abre en una nueva pestaña |
+
+**Características del modo popup:**
+
+- Centra automáticamente la ventana popup (512x640px).
+- Crea un fondo (backdrop) con un mensaje informativo.
+- Soporta español e inglés (detectado automáticamente).
+- Evita el scroll de fondo mientras el popup está abierto.
+- Monitorea la ventana popup y limpia los recursos cuando se cierra.
+
+<Note>
+El comportamiento de respaldo se activa automáticamente cuando el lightbox detecta navegadores Safari o iOS. Solo necesitas configurar la opción `backupTarget` al crear el lightbox.
+</Note>
+
+**Comportamiento de `allowRedirects`:**
+
+- Con `allowRedirects: false` y `backupTarget: 'self'`: no ocurre ninguna redirección, el lightbox falla silenciosamente.
+- Con `allowRedirects: false` y `backupTarget: 'popup'`: el popup se abre de todas formas (`allowRedirects` se ignora).
+- Con `allowRedirects: false` y `backupTarget: 'blank'`: la nueva pestaña se abre de todas formas (`allowRedirects` se ignora).
+- Con `allowRedirects: true`: todos los destinos de respaldo funcionan como se espera.
+
+Esto te permite evitar redirecciones no deseadas mientras sigues permitiendo los respaldos de popup o nueva pestaña.
+
+### ApiStructure {{ id: 'api-structure' }}
+
+Estructura para los eventos personalizados emitidos a través del lightbox.
+
+```typescript
+type ApiStructure = {
+  type: string;           // Identificador del tipo de evento
+  payload?: unknown;      // Datos del evento
+  preventClose?: boolean; // Evita que el lightbox se cierre
+};
+```
+
+## Ejemplos de uso {{ id: 'usage-examples' }}
+
+### Ejemplo de integración completa {{ id: 'complete-integration-example' }}
+
+```javascript
+import { createLightbox, isInside } from '@placetopay/lightbox-sdk';
+
+// Verifica si se está ejecutando dentro del lightbox
+if (isInside()) {
+  // Dentro del lightbox - configura los manejadores de cierre
+  window.addEventListener('beforeunload', () => {
+    emitClose({ status: 'navigation' });
+  });
+} else {
+  // Fuera del lightbox - crea y configura
+  const lightbox = createLightbox('https://checkout.placetopay.com/', {
+    id: 'payment-lightbox',
+    closeButton: true,
+    allowRedirects: true, // Permite redirecciones para el respaldo 'self'
+    backupTarget: 'popup', // Popup mejorado con backdrop y mensaje
+    styles: {
+      width: '800px',
+      height: '600px',
+      radius: 12,
+      backdropColor: '#000000',
+      backdropOpacity: 0.7
+    },
+    callbacks: {
+      close: (payload) => {
+        console.log('Pago completado:', payload);
+        // Maneja el resultado del pago
+      },
+      'payment-status': (payload) => {
+        console.log('Actualización del estado del pago:', payload);
+      }
+    }
+  });
+
+  // Abre el lightbox
+  lightbox.open();
+}
+```
+
+### Ejemplos de control de respaldo {{ id: 'fallback-control-examples' }}
+
+```javascript
+// Ejemplo 1: Evitar redirecciones, pero permitir popups
+const restrictedLightbox = createLightbox('https://checkout.placetopay.com/', {
+  allowRedirects: false, // Bloquea la redirección 'self'
+  backupTarget: 'popup'  // Igual abre el popup en Safari/iOS
+});
+
+// Ejemplo 2: Permitir solo el respaldo de nueva pestaña
+const newTabLightbox = createLightbox('https://checkout.placetopay.com/', {
+  allowRedirects: false, // Bloquea la redirección 'self'
+  backupTarget: 'blank'  // Igual abre una nueva pestaña en Safari/iOS
+});
+
+// Ejemplo 3: Bloquear todo comportamiento de respaldo
+const noFallbackLightbox = createLightbox('https://checkout.placetopay.com/', {
+  allowRedirects: false, // Bloquea la redirección 'self'
+  backupTarget: 'self'   // Combinado con allowRedirects: false, no ocurre ningún respaldo
+});
+```
+
+### Cerrar lightboxes y popups {{ id: 'closing-lightboxes-and-popups' }}
+
+```javascript
+const lightbox = createLightbox('https://checkout.placetopay.com/', {
+  backupTarget: 'popup',
+  callbacks: {
+    close: (payload) => {
+      console.log('Cerrado con payload:', payload);
+    }
+  }
+});
+
+// Abre el lightbox
+lightbox.open(); // Abre un lightbox normal o un popup según el navegador
+
+// Ciérralo de forma programática (funciona tanto para lightbox como para popup)
+setTimeout(() => {
+  lightbox.close({ reason: 'timeout' }); // Cierra el lightbox O el popup
+}, 30000);
+
+// El método close() detecta automáticamente qué se abrió:
+// - Si es un lightbox normal: elimina el iframe y limpia los recursos
+// - Si es un popup: cierra la ventana popup, elimina el backdrop
+// - Si es una pestaña nueva: cierra la ventana de la pestaña (si es accesible)
+```
+
+### Comunicación entre contextos {{ id: 'cross-context-communication' }}
+
+```javascript
+// Desde DENTRO de la página cargada (iframe/popup), envía mensajes al lightbox
+import { emitClose, emit, isInside } from '@placetopay/lightbox-sdk';
+
+if (isInside()) {
+  // Dentro del iframe o popup - puede comunicarse con el lightbox padre
+
+  // Envía eventos personalizados
+  emit({
+    type: 'payment-completed',
+    payload: { transactionId: '123', amount: 100 }
+  });
+
+  // Cierra con datos
+  emitClose({ status: 'success', redirectUrl: '/success' });
+
+  // Funciona automáticamente ya sea en contexto de iframe O popup
+}
+```
+
+<Note>
+El SDK detecta automáticamente si se está ejecutando en un iframe (`window.parent`) o en un popup (`window.opener`) y usa el canal de comunicación correcto sin necesidad de configuración adicional.
+</Note>
+
+### Actualización dinámica de estilos {{ id: 'dynamic-style-updates' }}
+
+```javascript
+const lightbox = createLightbox('https://checkout.placetopay.com/');
+
+// Actualiza los estilos según el tamaño de pantalla
+const updateResponsiveStyles = () => {
+  const isMobile = window.innerWidth < 768;
+
+  lightbox.updateStyles({
+    width: isMobile ? '95%' : '600px',
+    height: isMobile ? '90%' : '500px'
+  });
+};
+
+window.addEventListener('resize', updateResponsiveStyles);
+lightbox.open();
+```
+
+## Uso sin instalación {{ id: 'use-without-installation' }}
+
+Si deseas usar Lightbox SDK sin instalarlo, puedes hacerlo gracias a la interfaz de mensajería que provee. Esta funcionalidad se basa en el método `postMessage` de la API `window` de JavaScript. En lugar de invocar directamente las funciones de la librería, puedes enviar mensajes desde el iframe, los cuales la librería interpretará.
+
+<Note>
+Este enfoque solo es adecuado para la página que se encuentra dentro del iframe del lightbox. Si buscas crear y controlar el lightbox desde tu página padre, debes instalar la librería Lightbox SDK.
+</Note>
+
+### Estructura del mensaje {{ id: 'message-structure' }}
+
+La estructura básica de los mensajes que envíes debe ser la siguiente:
+
+```typescript
+parent.postMessage(
+  { type: string; payload?: unknown, preventClose?: boolean }, '*'
+)
+```
+
+Donde `type` es el nombre del evento que deseas emitir, `payload` son los datos adicionales que quieres pasar al manejador del evento, y `preventClose` indica si se debe evitar que el lightbox se cierre después del evento.
+
+```javascript
+parent.postMessage({ type: 'close' }, '*')
+```
+
+### Tipos reservados {{ id: 'reserved-types' }}
+
+La librería Lightbox SDK usa ciertos tipos de eventos para funciones internas. Usar estos tipos activará las acciones predefinidas asociadas, pero también invocará el callback del mismo nombre (con la información de la interacción). Los tipos reservados son los siguientes:
+
+| Tipo | Descripción |
+| --- | --- |
+| `close` | Provoca que el lightbox se cierre |
+| `sendStyles` | Solicita que se apliquen nuevos estilos al lightbox |
+| `hideCloseButton` | Oculta el botón de cierre manual del lightbox |
+
+### Acciones predefinidas {{ id: 'predefined-actions' }}
+
+Dado el uso de ciertos nombres para eventos predefinidos, puedes activar estas acciones enviando un mensaje con el tipo de evento correspondiente. Por ejemplo, para cerrar el lightbox, puedes enviar el siguiente mensaje:
+
+```javascript
+parent.postMessage({ type: 'close' }, '*')
+```
+
+Esto hará que el lightbox se cierre. Este enfoque se puede usar para interactuar con la librería Lightbox SDK sin necesidad de instalarla directamente en tu código.
