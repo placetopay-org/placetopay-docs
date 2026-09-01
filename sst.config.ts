@@ -14,18 +14,23 @@ export default $config({
     };
   },
   async run() {
+    const siteDomain = process.env.APP_DOMAIN_NAME?.trim();
+    const configuredPublicSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+    const resolvedPublicSiteUrl = configuredPublicSiteUrl || (siteDomain ? `https://${siteDomain}` : "");
+
     const site = new sst.aws.StaticSite("site", {
       build: {
         command: "npm run build",
         output: "out",
       },
-      domain: process.env.APP_DOMAIN_NAME ? {
-        name: process.env.APP_DOMAIN_NAME,
+      domain: siteDomain ? {
+        name: siteDomain,
         cert: process.env.AWS_CERT_ARN,
         dns: false,
       } : undefined,
       environment: {
         NEXT_PUBLIC_GITHUB_REPO_URL: process.env.NEXT_PUBLIC_GITHUB_REPO_URL || "",
+        NEXT_PUBLIC_SITE_URL: resolvedPublicSiteUrl,
       },
       errorPage: "404.html",
     });
