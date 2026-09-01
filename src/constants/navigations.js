@@ -740,7 +740,6 @@ export const TAB_NAVIGATION = {
                 links: [
                   { title: 'Usar sin instalar', href: '/checkout/sdk/use-without-install' },
                   { title: 'Referencia API', href: '/checkout/sdk/reference' },
-                  { title: 'Contribuir', href: '/checkout/sdk/contributing' },
                 ],
               },
               {
@@ -861,7 +860,6 @@ export const TAB_NAVIGATION = {
                 links: [
                   { title: 'Use without install', href: '/en/checkout/sdk/use-without-install' },
                   { title: 'API Reference', href: '/en/checkout/sdk/reference' },
-                  { title: 'Contributing', href: '/en/checkout/sdk/contributing' },
                 ],
               },
               { title: 'Browser support', href: '/en/checkout/browser-support' },
