@@ -733,9 +733,9 @@ export const TAB_NAVIGATION = {
               { title: 'Introducción', href: '/checkout' },
               { title: 'Cómo funciona', href: '/checkout/how-checkout-works' },
               { title: 'Plugins y librerías', href: '/checkout/plugins' },
-              { title: 'Lightbox', href: '/checkout/lightbox' },
+              { title: 'Lightbox (Script)', href: '/checkout/lightbox' },
               {
-                title: 'Lightbox SDK (Sugerido)',
+                title: 'Lightbox (NPM)',
                 href: '/checkout/sdk/lightbox',
                 links: [
                   { title: 'Usar sin instalar', href: '/checkout/sdk/use-without-install' },
@@ -854,9 +854,9 @@ export const TAB_NAVIGATION = {
               { title: 'Introduction', href: '/en/checkout' },
               { title: 'How it works', href: '/en/checkout/how-checkout-works' },
               { title: 'Plugins and libraries', href: '/en/checkout/plugins' },
-              { title: 'Lightbox', href: '/en/checkout/lightbox' },
+              { title: 'Lightbox (Script)', href: '/en/checkout/lightbox' },
               {
-                title: 'Lightbox SDK (Suggested)',
+                title: 'Lightbox (NPM)',
                 href: '/en/checkout/sdk/lightbox',
                 links: [
                   { title: 'Use without install', href: '/en/checkout/sdk/use-without-install' },
