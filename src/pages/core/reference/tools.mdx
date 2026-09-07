@@ -1,6 +1,6 @@
 export const sectionMode = 'nav';
 export const title = 'Herramientas';
-export const apiRefs = ['/core/tools/account-type/search', '/core/tools/airline/search', '/core/tools/conglomerate/search', '/core/tools/document-type/search', '/core/tools/filter/search', '/core/tools/financial-entity/search', '/core/tools/group/search', '/core/tools/payment-facilitator/search', '/core/tools/payment-method/search', '/core/tools/province/search', '/core/tools/reseller/search', '/core/tools/seller/search', '/core/tools/tax-regime/search', '/core/tools/taxpayer/search'];
+export const apiRefs = ['/core/tools/account-type/search', '/core/tools/airline/search', '/core/tools/conglomerate/search', '/core/tools/document-type/search', '/core/tools/filter/search', '/core/tools/financial-entity/search', '/core/tools/group/search', '/core/tools/payment-facilitator/search', '/core/tools/payment-method/search', '/core/tools/province/search', '/core/tools/reseller/search', '/core/tools/seller/search', '/core/tools/tax-regime/search', '/core/tools/taxpayer/search', '/core/tools/breb/credibanco/key-resolve'];
 export const description = 'Accede a diversas herramientas del sistema para tipos de cuenta, aerolíneas, conglomerados y más, con opciones para buscar en estas categorías.';
 
 
@@ -1409,6 +1409,112 @@ curl -X "POST" https://test.placetopay.com/rest/core/tools/taxpayer/search \
   }
 }
 ```
+        </CodeGroup>
+    </Col>
+</Row>
+
+---
+## Resolución de llaves Bre-B Credibanco {{ id: 'post-core-tools-breb-credibanco-key-resolve', tag: 'POST', label: '/core/tools/breb/credibanco/key-resolve' }}
+
+<Row>
+    <Col>
+        Este servicio permite resolver una llave o alias registrado en el ecosistema de pagos Bre-B a través de Credibanco para obtener la información asociada del comercio y su representante legal.
+
+        Se debe enviar el objeto `data` especificando el tipo de llave (`type`) y su correspondiente valor (`value`).
+
+        ### Tipos de llave soportados (`data.type`)
+        * `PHONE`: Número móvil (ej. `327723334`).
+        * `MAIL`: Correo electrónico (ej. `test@example.com`).
+        * `IDENTIFICATION`: Documento de identidad (ej. `91234567`).
+        * `ALPHANUMERIC`: Identificador alfanumérico (ej. `@ID123456ABC`).
+        * `MERCHANT_CODE`: Código de comercio / NIT con dígito de verificación (ej. `900123456-1`).
+
+        <ApiReader
+            path="/core/tools/breb/credibanco/key-resolve"
+            method="post"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <CodeGroup title="Solicitud" tag="POST" label="/core/tools/breb/credibanco/key-resolve">
+            ```bash {{title: 'Resolución de llave Bre-B'}}
+            curl -X "POST" [https://test.placetopay.com/rest/core/tools/breb/credibanco/key-resolve](https://test.placetopay.com/rest/core/tools/breb/credibanco/key-resolve) \
+            -H "Content-Type: application/json" \
+            -d '{
+                "auth": {
+                    "login": "aabbccdd1234567890aabbccdd123456",
+                    "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+                    "nonce": "NjE1MWQ4MDE5YWViMw==",
+                    "seed": "2026-09-03T12:00:00-05:00"
+                },
+                "data": {
+                    "type": "PHONE",
+                    "value": "327723334"
+                }
+            }'
+            ```
+        </CodeGroup>
+    </Col>
+</Row>
+
+<Row>
+    <Col>
+        <ApiReader
+            path="/core/tools/breb/credibanco/key-resolve"
+            method="post"
+            type="response"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <br />
+        <CodeGroup title="Respuesta">
+            ```json {{ title: '200: Resolución exitosa' }}
+            {
+                "status": {
+                    "status": "OK",
+                    "reason": "00",
+                    "message": "La petición se ha procesado correctamente",
+                    "date": "2026-09-03T12:00:00-05:00"
+                },
+                "data": {
+                    "merchant": {
+                        "name": "Company Y",
+                        "document": {
+                            "type": "NIT",
+                            "number": "1431701149"
+                        },
+                        "legalRepresentative": {
+                            "documentType": "CC",
+                            "documentNumber": "123143455",
+                            "name": "Juan Carlos Perez Gomez"
+                        }
+                    }
+                }
+            }
+            ```
+
+            ```json {{ title: '400: Respuesta fallida' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": "BR",
+                    "message": "La petición no se ha enviado correctamente, por favor, verifica los datos",
+                    "date": "2026-09-03T12:00:00-05:00"
+                }
+            }
+            ```
+
+            ```json {{ title: '401: Authenticación fallida' }}
+            {
+                "status": {
+                    "status": "FAILED",
+                    "reason": "401",
+                    "message": "la autenticación no contiene todos los parámetros requeridos (login, tranKey, seed, nonce)",
+                    "date": "2026-09-03T12:00:00-05:00"
+                }
+            }
+            ```
         </CodeGroup>
     </Col>
 </Row>
