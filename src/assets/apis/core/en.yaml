@@ -13654,6 +13654,168 @@ paths:
                         the authentication does not contain all the required parameters
                         (login, tranKey, seed, nonce)
                       date: "2021-09-21T09:34:48-05:00"
+  "/core/tools/breb/credibanco/key-resolve":
+    post:
+      summary: Keys resolution
+      operationId: post-core-tools-breb-credibanco-key-resolve
+      description:
+        "This service allows resolving a key or alias registered in the Bre-B payment ecosystem through Credibanco to obtain the associated information of the merchant and its legal representative.
+
+         The `data` object must be sent specifying the key type (`type`) and its corresponding value (`value`).
+
+         ### Supported key types (`data.type`)
+         * `PHONE`: Mobile number (e.g. `327723334`).
+         * `MAIL`: Email address (e.g. `test@example.com`).
+         * `IDENTIFICATION`: Identity document (e.g. `91234567`).
+         * `ALPHANUMERIC`: Alphanumeric identifier (e.g. `@ID123456ABC`).
+         * `MERCHANT_CODE`: Merchant code / NIT with verification digit (e.g. `900123456-1`)."
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+                  data:
+                    type: object
+                    properties:
+                      merchant:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: Company Y
+                            description: Merchant name associated with the key
+                          document:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                                example: NIT
+                                description: Merchant document type
+                              number:
+                                type: string
+                                example: "1431701149"
+                                description: Merchant document number
+                          legalRepresentative:
+                            type: object
+                            properties:
+                              documentType:
+                                type: string
+                                example: CC
+                                description: Legal representative document type
+                              documentNumber:
+                                type: string
+                                example: "123143455"
+                                description: Legal representative document number
+                              name:
+                                type: string
+                                example: Juan Carlos Perez Gomez
+                                description: Legal representative full name
+              examples:
+                Successful response:
+                  value:
+                    status:
+                      status: OK
+                      reason: "00"
+                      message: "The request has been processed successfully."
+                      date: "2026-09-03T12:00:00-05:00"
+                    data:
+                      merchant:
+                        name: Company Y
+                        document:
+                          type: NIT
+                          number: "1431701149"
+                        legalRepresentative:
+                          documentType: CC
+                          documentNumber: "123143455"
+                          name: Juan Carlos Perez Gomez
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Failed response:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: BR
+                      message: "The request was not sent correctly, please verify the information"
+                      date: "2026-09-03T12:00:00-05:00"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Authentication failed:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "401"
+                      message:
+                        "The authentication does not contain all the required parameters
+                        (login, tranKey, seed, nonce)"
+                      date: "2026-09-03T12:00:00-05:00"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - data
+              properties:
+                auth:
+                  "$ref": "#/components/schemas/Autentication"
+                data:
+                  type: object
+                  description: Object containing the key parameters to resolve
+                  required:
+                    - type
+                    - value
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - PHONE
+                        - MAIL
+                        - IDENTIFICATION
+                        - ALPHANUMERIC
+                        - MERCHANT_CODE
+                      example: PHONE
+                      description: Key type sent for resolution
+                    value:
+                      type: string
+                      example: "327723334"
+                      description: Key value to resolve
+            examples:
+              Bre-B key resolution:
+                value:
+                  auth:
+                    login: aabbccdd1234567890aabbccdd123456
+                    tranKey: ABC123example456trankey+789abc012def3456ABC=
+                    nonce: NjE1MWQ4MDE5YWViMw==
+                    seed: "2026-09-03T12:00:00-05:00"
+                  data:
+                    type: PHONE
+                    value: "327723334"
+        description: ""
+      tags:
+        - Additional procedures
+      parameters: [ ]
 components:
   schemas:
     Person:
