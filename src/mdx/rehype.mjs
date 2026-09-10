@@ -6,6 +6,23 @@ import { toString } from 'mdast-util-to-string'
 import * as acorn from 'acorn'
 import { slugifyWithCounter } from '@sindresorhus/slugify'
 
+function hasMdxExport(tree, name) {
+  return (tree.children ?? []).some(
+    (node) =>
+      node.type === 'mdxjsEsm' &&
+      new RegExp(`export\\s+const\\s+${name}\\s*=`).test(node.value)
+  )
+}
+
+function rehypeMdxTitleSafe() {
+  const addTitleExportFromHeading = rehypeMdxTitle()
+
+  return (tree, file) => {
+    if (hasMdxExport(tree, 'title')) return
+    return addTitleExportFromHeading(tree, file)
+  }
+}
+
 function rehypeParseCodeBlocks() {
   return (tree) => {
     visit(tree, 'element', (node, _nodeIndex, parentNode) => {
@@ -116,7 +133,7 @@ export const rehypePlugins = [
   rehypeParseCodeBlocks,
   rehypeShiki,
   rehypeSlugify,
-  rehypeMdxTitle,
+  rehypeMdxTitleSafe,
   [
     rehypeAddMDXExports,
     (tree) => ({
