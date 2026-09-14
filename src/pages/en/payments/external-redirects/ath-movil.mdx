@@ -69,7 +69,7 @@ In addition to the phone number, the merchant backend sends the authentication c
 2. The user enters the phone number associated with their ATH Móvil account.
 3. The merchant backend sends the request to `POST /gateway/process`.
 4. ATH Móvil sends a push notification to the user's phone, and the transaction remains `PENDING`.
-5. The user approves or rejects the request in the ATH Móvil application.
+5. While the transaction remains `PENDING`, the user can approve or reject it in the ATH Móvil application; the merchant can also request its cancellation.
 6. The merchant queries the transaction using the `internalReference` and updates its own interface with the final result.
 
 ### Visual component examples {{ id: 'visual-resources' }}
@@ -185,7 +185,8 @@ Use the variant that provides the best contrast with your interface. Files are a
 1. Optionally query ATH Móvil capabilities through `POST /gateway/information`.
 2. Send the charge through `POST /gateway/process`.
 3. Store the `internalReference` from the initial response.
-4. Query `POST /gateway/query` while the status is `PENDING`, and stop when a final result is returned.
+4. To request cancellation of a payment that remains `PENDING`, send `action: "cancel"` to `POST /gateway/transaction`.
+5. Query `POST /gateway/query` while the status is `PENDING`, and stop when a final result is returned.
 
 The cURL examples in the following sections show how to build and send each REST request. The responses show the data the merchant must process at each step.
 
@@ -630,18 +631,27 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
   </Col>
 </Row>
 
+### Cancel a pending payment {{ id: 'gateway-cancel', tag: 'POST', label: '/gateway/transaction' }}
+
+While an ATH Móvil payment remains `PENDING`, the merchant can request its cancellation through [Operations on a transaction](/en/gateway/api/reference/transaction#transaction-request). Cancellation must be enabled for the service and uses the original `internalReference` returned when the payment was processed.
+
+When ATH Móvil approves the cancellation, the original transaction changes to `REJECTED` with reason `MC`. If cancellation returns `REJECTED` or `FAILED`, the original transaction remains `PENDING` and can still receive a result from ATH Móvil.
+
+Query the original `internalReference` again before retrying or starting another operation. If the payment has already been approved, use a reversal or refund as appropriate.
+
 ### Post-transaction operations {{ id: 'post-transaction-operations' }}
 
 ATH Móvil supports reversals and refunds through the general Gateway operations. Their availability depends on the transaction status and site configuration.
 
 To perform these operations, see [Operations on a transaction](/en/gateway/api/reference/transaction#transaction-request).
 
-Reversals must be performed before reconciliation. Once the transaction is reconciled, use a refund instead. A refund transaction cannot be reversed.
+Cancellation applies only while the payment remains `PENDING`. If the payment has already been approved, reversals must be performed before reconciliation and, once reconciled, a refund must be used instead. A refund transaction cannot be reversed.
 
 ## Restrictions and Considerations {{ id: 'validations' }}
 
 - **Asynchronous Gateway flow**: The merchant must implement API status polling until a final result is available.
 - **Pending state during approval**: The transaction remains pending while the user confirms the payment on their phone.
+- **Pending payment cancellation**: A failed or rejected cancellation response does not change the original transaction status; query it again before retrying.
 - **Regional availability**: ATH Móvil applies to operations in Puerto Rico.
 
 The processing request supports decimal amounts; `stateTax`, `municipalTax`, and `reducedStateTax` in `payment.amount.taxes`; and tips through `payment.amount.details` with `kind: "tip"`. The base amount remaining after subtracting these taxes and the tip must be greater than zero.
@@ -685,4 +695,9 @@ For test sites, the simulator determines its behavior from `payer.mobile`. Inter
 <details>
 <summary>Should I redirect the user in a Gateway integration?</summary>
 <p>Not in production. The user approves the charge from the ATH Móvil application, and the merchant queries the result using the internal reference. The redirection URL is provided only in sandbox to access the simulator.</p>
+</details>
+
+<details>
+<summary>When should I cancel, reverse, or refund a payment?</summary>
+<p>Request cancellation while the ATH Móvil payment remains <code>PENDING</code>. If it has already been approved, use a reversal before reconciliation or a refund after reconciliation.</p>
 </details>
