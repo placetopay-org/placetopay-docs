@@ -2,199 +2,208 @@ import ReactMarkdown from 'react-markdown';
 import { useLocale } from './LocaleProvider'
 
 const examples = [
-    {
-      key: "credit",
-      example: "{\"type\": \"00\", \"groupCode\": \"C\", \"code\": \"0\", \"installments\": 0}",
-      description: {
-        es: "Datos de crédito, conoce más en [Credit](#additional-data-credit).",
-        en: "Credit data, learn more at [Credit](#additional-data-credit)."
-      }
+  {
+    key: 'credit',
+    example: '{"type": "00", "groupCode": "C", "code": "0", "installments": 0}',
+    description: {
+      es: 'Datos de crédito, conoce más en [Credit](#additional-data-credit).',
+      en: 'Credit data, learn more at [Credit](#additional-data-credit).',
     },
-    {
-      key: "totalAmount",
-      example: 63.58,
-      description: {
-        es: "Monto total.",
-        en: "Total amount."
-      }
+  },
+  {
+    key: 'totalAmount',
+    example: 63.58,
+    description: {
+      es: 'Monto total.',
+      en: 'Total amount.',
     },
-    {
-      key: "interestAmount",
-      example: 5.78,
-      description: {
-        es: "Monto de interés.",
-        en: "Interest amount."
-      }
+  },
+  {
+    key: 'interestAmount',
+    example: 5.78,
+    description: {
+      es: 'Monto de interés.',
+      en: 'Interest amount.',
     },
-    {
-      key: "installmentAmount",
-      example: 2.65,
-      description: {
-        es: "Monto de la cuota.",
-        en: "Installment amount."
-      }
+  },
+  {
+    key: 'installmentAmount',
+    example: 2.65,
+    description: {
+      es: 'Monto de la cuota.',
+      en: 'Installment amount.',
     },
-    {
-      key: "iceAmount",
-      example: 0,
-      description: {
-        es: "Monto de ICE.",
-        en: "ICE amount."
-      }
+  },
+  {
+    key: 'iceAmount',
+    example: 0,
+    description: {
+      es: 'Monto de ICE.',
+      en: 'ICE amount.',
     },
-    {
-      key: "line",
-      example: 123,
-      description: {
-        es: "Posición en el archivo de cierre (Línea).",
-        en: "Position in the closing file (Line)."
-      }
+  },
+  {
+    key: 'line',
+    example: 123,
+    description: {
+      es: 'Posición en el archivo de cierre (Línea).',
+      en: 'Position in the closing file (Line).',
     },
-    {
-      key: "cardType",
-      example: "credit",
-      description: {
-        es: "Tipo de tarjeta.",
-        en: "Card type."
-      }
+  },
+  {
+    key: 'cardType',
+    example: 'credit',
+    description: {
+      es: 'Tipo de tarjeta.',
+      en: 'Card type.',
     },
-    {
-      key: "trazabilyCode",
-      example: 999900,
-      description: {
-        es: "Código de trazabilidad.",
-        en: "Traceability code."
-      }
+  },
+  {
+    key: 'trazabilyCode',
+    example: 999900,
+    description: {
+      es: 'Código de trazabilidad.',
+      en: 'Traceability code.',
     },
-    {
-      key: "transactionCycle",
-      example: 3,
-      description: {
-        es: "Ciclo de transacción.",
-        en: "Transaction cycle."
-      }
+  },
+  {
+    key: 'transactionCycle',
+    example: 3,
+    description: {
+      es: 'Ciclo de transacción.',
+      en: 'Transaction cycle.',
     },
-    {
-      key: "RequestId",
-      example: "1560778247",
-      description: {
-        es: "ID de solicitud.",
-        en: "Request ID."
-      }
+  },
+  {
+    key: 'RequestId',
+    example: '1560778247',
+    description: {
+      es: 'ID de solicitud.',
+      en: 'Request ID.',
     },
-    {
-      key: "PartnerAuthCode",
-      example: "5d029607e1abb",
-      description: {
-        es: "Código de autorización de socio.",
-        en: "Partner authorization code."
-      }
+  },
+  {
+    key: 'PartnerAuthCode',
+    example: '5d029607e1abb',
+    description: {
+      es: 'Código de autorización de socio.',
+      en: 'Partner authorization code.',
     },
-    {
-      key: "merchantCode",
-      example: "4682312740123",
-      description: {
-        es: "Código de negocio.",
-        en: "Merchant code."
-      }
+  },
+  {
+    key: 'merchantCode',
+    example: '4682312740123',
+    description: {
+      es: 'Código de negocio.',
+      en: 'Merchant code.',
     },
-    {
-      key: "terminalNumber",
-      example: "00990101",
-      description: {
-        es: "Número de terminal.",
-        en: "Terminal number."
-      }
+  },
+  {
+    key: 'terminalNumber',
+    example: '00990101',
+    description: {
+      es: 'Número de terminal.',
+      en: 'Terminal number.',
     },
-    {
-      key: "bin",
-      example: "411076",
-      description: {
-        es: "Bin, primeros dígitos de la tarjeta.",
-        en: "BIN, first digits of the card."
-      }
+  },
+  {
+    key: 'bin',
+    example: '411076',
+    description: {
+      es: 'Bin, primeros dígitos de la tarjeta.',
+      en: 'BIN, first digits of the card.',
     },
-    {
-      key: "bankName",
-      example: "Bank Name",
-      description: {
-        es: "Nombre de banco.",
-        en: "Bank name."
-      }
+  },
+  {
+    key: 'bankName',
+    example: 'Bank Name',
+    description: {
+      es: 'Nombre de banco.',
+      en: 'Bank name.',
     },
-    {
-      key: "accountNumber",
-      example: "1111",
-      description: {
-        es: "Número de cuenta.",
-        en: "Account number."
-      }
+  },
+  {
+    key: 'accountNumber',
+    example: '1111',
+    description: {
+      es: 'Número de cuenta.',
+      en: 'Account number.',
     },
-    {
-      key: "expiration",
-      example: "1222",
-      description: {
-        es: "Expiración de la tarjeta en formato (mes)(año).",
-        en: "Card expiration in the format (month)(year)."
-      }
+  },
+  {
+    key: 'expiration',
+    example: '1222',
+    description: {
+      es: 'Expiración de la tarjeta en formato (mes)(año).',
+      en: 'Card expiration in the format (month)(year).',
     },
-    {
-      key: "installments",
-      example: "2",
-      description: {
-        es: "Número de cuotas.",
-        en: "Number of installments."
-      }
+  },
+  {
+    key: 'installments',
+    example: '2',
+    description: {
+      es: 'Número de cuotas.',
+      en: 'Number of installments.',
     },
-    {
-      key: "pocket",
-      example: "80",
-      description: {
-        es: "Número de identificación del bolsillo dependiendo del proveedor.",
-        en: "Pocket identification number depending on the provider."
-      }
+  },
+  {
+    key: 'pocket',
+    example: '80',
+    description: {
+      es: 'Número de identificación del bolsillo dependiendo del proveedor.',
+      en: 'Pocket identification number depending on the provider.',
     },
-    {
-      key: "fiscalControlNumber",
-      example: "Control: MYHFC-KEHKC",
-      description: {
-        es: "Número de control fiscal.",
-        en: "Fiscal control number."
-      }
+  },
+  {
+    key: 'fiscalControlNumber',
+    example: 'Control: MYHFC-KEHKC',
+    description: {
+      es: 'Número de control fiscal.',
+      en: 'Fiscal control number.',
     },
-    {
-      key: "fiscalControlProvider",
-      example: "ET",
-      description: {
-        es: "Proveedor de control fiscal, de ejemplo ET como Evertec.",
-        en: "Fiscal control provider, example ET as Evertec."
-      }
+  },
+  {
+    key: 'fiscalControlProvider',
+    example: 'ET',
+    description: {
+      es: 'Proveedor de control fiscal, de ejemplo ET como Evertec.',
+      en: 'Fiscal control provider, example ET as Evertec.',
     },
-    {
-      key: "PAN",
-      example: "klbrfTC1ol9BV7sFP9bw66\nnLH77QMYAA3GRZrzjutci\nFv/gqg9xZs8n7gPNxRRsl",
-      description: {
-          es: "Número de tarjeta + vector de inicialización encriptado en base64, conoce más en [Retorno de tarjeta](/gateway/card-return)",
-          en: "Card number + initialization vector encrypted in base64, learn more at [Card return](/en/gateway/card-return)"
-      }
+  },
+  {
+    key: 'PAN',
+    example:
+      'klbrfTC1ol9BV7sFP9bw66\nnLH77QMYAA3GRZrzjutci\nFv/gqg9xZs8n7gPNxRRsl',
+    description: {
+      es: 'Número de tarjeta + vector de inicialización encriptado en base64, conoce más en [Retorno de tarjeta](/gateway/card-return)',
+      en: 'Card number + initialization vector encrypted in base64, learn more at [Card return](/en/gateway/card-return)',
     },
-    {
-        key: "canRetry",
-        example: "true",
-        description: {
-            es: "Indica si una transacción rechazada o fallida es elegible para realizar un nuevo procesamiento con un medio de pago alternativo.",
-            en: "Indicates whether a declined or failed transaction is eligible for reprocessing with an alternative payment method."
-        }
+  },
+  {
+    key: 'canRetry',
+    example: 'true',
+    description: {
+      es: 'Indica si una transacción rechazada o fallida es elegible para realizar un nuevo procesamiento con un medio de pago alternativo.',
+      en: 'Indicates whether a declined or failed transaction is eligible for reprocessing with an alternative payment method.',
     },
-    {
-        key: "requiresConfirmation",
-        example: "true",
-        description: {
-            es: "Indica si una transacción requiere ser confirmada previo a su procesamiento.",
-            en: "Indicates whether a transaction requires confirmation before processing."
-        }
+  },
+  {
+    key: 'requiresConfirmation',
+    example: 'true',
+    description: {
+      es: 'Indica si una transacción requiere ser confirmada previo a su procesamiento.',
+      en: 'Indicates whether a transaction requires confirmation before processing.',
     },
-  ];
+  },
+  {
+    key: 'brandCode',
+    example: '1214716637387',
+    description: {
+      es: 'Identificador único generado por la franquicia o marca para identificar y relacionar una transacción original con sus operaciones subsecuentes.',
+      en: 'Unique identifier generated by the card scheme or brand to identify and link an original transaction with its subsequent transactions.',
+    },
+  },
+]
 
 export function AdditionalDataExamples({extraExamples}) {
   const { locale, isEn } = useLocale()
