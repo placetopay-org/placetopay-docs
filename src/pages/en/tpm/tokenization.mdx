@@ -1,0 +1,267 @@
+export const sectionMode = 'nav';
+
+## Tokenization massive
+
+The **tokenization** service converts plain card data into more secure identifiers (tokens) for later use in Placetopay services.
+
+At the end of the process, the following are obtained:
+
+- An alphanumeric **token** with **64 characters**.
+- A numeric **subtoken** with **16 digits**.
+
+Both identifiers, when used in Placetopay services, retain the full functionality of a credit card.
+
+## General process flow {{ id: 'tokenization-flow' }}
+---
+The integration process is carried out as follows:
+
+1. The connection between **SFTP** servers is established through **VPN** or a public network.
+2. Access credentials for **SFTP** communication are generated and validated.
+3. The customer generates and shares its **PGP/RSA** public key with Placetopay.
+4. The customer receives Placetopay's **PGP/RSA** public key.
+5. The customer generates a CSV file containing the cards to be tokenized.
+6. The file is encrypted with Placetopay's public key using **PGP**.
+7. The customer must upload the file to its SFTP service.
+8. Placetopay downloads the file from the SFTP service where the customer uploaded it.
+9. Placetopay decrypts the file.
+10. Placetopay generates a results file.
+11. Placetopay encrypts the results file with PGP.
+12. Placetopay uploads the resulting file to the customer's SFTP service.
+13. The customer decrypts the information.
+14. The customer updates its database with the received tokens and subtokens.
+
+Cards must be sent in a comma-separated flat file, usually with a `.csv` extension, and encrypted with **PGP**.
+
+<Note>
+    If the file does not have an extension, it will be treated as a CSV file.
+</Note>
+
+Each record must include an identifier that allows the tokenized information to be later matched with the customer's database.
+
+### PGP encryption {{ id: 'tokenization-pgp' }}
+
+Before sending the input file:
+
+1. The customer must encrypt the CSV using the public key shared by Placetopay for the process.
+2. The customer must share its own **PGP** public key, since Placetopay will use it to encrypt the results file.
+
+<Note>
+    Public key exchange is mandatory to preserve the confidentiality of the information throughout the process.
+</Note>
+
+## Card tokenization
+---
+### File format {{ id: 'tokenization-input-file' }}
+
+The file must be comma-separated and contain the columns in the specified order.
+
+<Note>
+    **IMPORTANT**
+    - The file must use UTF-8 encoding.
+    - It is recommended to provide all fields in order to strengthen the security, traceability, and tracking of the record.
+</Note>
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="reference" type="string">
+                Record identifier code provided by the customer to link it to their database. It must be unique per record.
+                - Minimum length: `1`
+                - Maximum length: `65`
+            </Property>
+            <Property name="pan" type="string">
+                Full card number, without spaces.
+                - Maximum length: `20`
+            </Property>
+            <Property name="expiration" type="string">
+                Card expiration date in `MM/YY` format.
+            </Property>
+            <Property name="documentType" type="string" isRequired={false}>
+                Customer document type: `CI`, `RUC`, or `PPN`.
+                [See more](/en/gateway/document-types)
+            </Property>
+            <Property name="document" type="string" isRequired={false}>
+                Cardholder document number.
+                - Maximum length: `20`
+            </Property>
+            <Property name="name" type="string" isRequired={false}>
+                Cardholder first name.
+                - Maximum length: `60`
+            </Property>
+            <Property name="surname" type="string" isRequired={false}>
+                Cardholder last name.
+                - Maximum length: `60`
+            </Property>
+            <Property name="cellphone" type="string" isRequired={false}>
+                Cardholder mobile phone number.
+                - Maximum length: `30`
+            </Property>
+            <Property name="phone" type="string" isRequired={false}>
+                Cardholder phone number.
+                - Maximum length: `30`
+            </Property>
+            <Property name="email" type="string" isRequired={false}>
+                Cardholder email address.
+                - Maximum length: `80`
+            </Property>
+            <Property name="address" type="string" isRequired={false}>
+                Cardholder address.
+                - Maximum length: `100`
+            </Property>
+            <Property name="city" type="string" isRequired={false}>
+                Cardholder city.
+                - Maximum length: `50`
+            </Property>
+            <Property name="country" type="string" isRequired={false}>
+                Cardholder country alpha-2 code, for example: `CO`, `EC`, `CR`, `CL`,  `PR`.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Input file structure example' }}
+        reference,pan,expiration,documentType,document,name,surname,cellphone,phone,email,address,city,country
+        REF001,4111111111111111,12/28,CI,1234567890,Name,Surname,3000000000,6000000,customer@example.com,Street 1,Medellin,CO
+        ```
+
+    </Col>
+</Row>
+
+<Note>
+    The `reference` column must be unique per record to ensure the correct association between the submitted information and the tokenization result.
+</Note>
+
+Once the flat file has been generated, it must be encrypted with PGP before being sent through the previously agreed channel. This process must be performed using the public key shared by Placetopay.
+
+In addition, when sending the file, the customer must share their PGP public key, which will be used to encrypt the resulting file.
+
+### Output CSV file {{ id: 'tokenization-output-file' }}
+
+The resulting file replaces the card information with the tokenized identifiers generated during the process.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="Referencia" type="string">
+                Record identifier code provided by the customer.
+            </Property>
+            <Property name="Token" type="string(64)">
+                Alphanumeric code with 64 characters.
+            </Property>
+            <Property name="Subtoken" type="string(16)">
+                Numeric code with 16 digits.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Output file structure example' }}
+        Referencia,Token,Subtoken
+        REF001,abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890,1234567890123456
+        ```
+
+    </Col>
+</Row>
+
+## Account tokenization
+---
+### File format
+
+The file must be comma-separated and contain the columns in the specified order.
+
+<Note>
+    **IMPORTANT**
+    - The file must use UTF-8 encoding.
+    - It is recommended to provide all fields in order to strengthen the security, traceability, and tracking of the record.
+    - The `reference` column must contain a unique and non-repeating value throughout the entire upload to ensure the correct association between the information sent and the tokenization result. Additionally, this field can be used to send the customer account identifier (customerAccountNumber). This identifier must also be unique and non-repeating throughout the entire upload, allowing the identification of the transaction holder and its linking to internal or external processes carried out in Puerto Rico, such as service payments, payments to suppliers, and reconciliation reports.
+</Note>
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="reference" type="string">
+                 Record identifier code provided by the customer to link it to their database. It must be unique per record.
+                 - Minimum length: `1`
+                 - Maximum length: `65`
+            </Property>
+            <Property name="accountNumber" type="string">
+                Full account number, without spaces.
+                - Maximum length: `20`
+            </Property>
+            <Property name="bankCode" type="string">
+               Routing Number (Also known as ABA Number).
+               - Maximum length: `20`
+            </Property>
+            <Property name="accountType" type="string">
+                Account type: `SAV`, `DDA` o `CCD`.
+            </Property>
+            <Property name="name" type="string" isRequired={false}>
+                Cardholder first name.
+                - Maximum length: `60`
+            </Property>
+            <Property name="surname" type="string" isRequired={false}>
+                Cardholder last name.
+                - Maximum length: `60`
+            </Property>
+            <Property name="cellphone" type="string" isRequired={false}>
+                Cardholder mobile phone number.
+                - Maximum length: `30`
+            </Property>
+            <Property name="email" type="string" isRequired={false}>
+                Cardholder email address.
+                - Maximum length: `80`
+            </Property>
+            <Property name="address" type="string" isRequired={false}>
+                Cardholder address.
+                - Maximum length: `100`
+            </Property>
+            <Property name="city" type="string" isRequired={false}>
+                Cardholder city.
+                - Maximum length: `50`
+            </Property>
+            <Property name="country" type="string" isRequired={false}>
+                Cardholder country alpha-2 code, for example: `CO`, `EC`, `CR`, `CL`,  `PR`.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Input file structure example' }}
+        reference,accountNumber,bankCode,accountType,name,surname,cellphone,email,address,city,country
+        REF001,123456789,221571415,CCD,Name,Surname,6000000,customer@example.com,Street 1,Medellin,PR
+        ```
+
+    </Col>
+</Row>
+
+Once the flat file has been generated, it must be encrypted with PGP before being sent through the previously agreed channel. This process must be performed using the public key shared by Placetopay.
+
+In addition, when sending the file, the customer must share their PGP public key, which will be used to encrypt the resulting file.
+
+### Output CSV file {{ id: 'tokenization-output-file' }}
+
+The resulting file replaces the card information with the tokenized identifiers generated during the process.
+
+<Row>
+    <Col>
+        <Properties>
+            <Property name="Referencia" type="string">
+                Record identifier code provided by the customer.
+            </Property>
+            <Property name="Token" type="string(64)">
+                Alphanumeric code with 64 characters.
+            </Property>
+            <Property name="Subtoken" type="string(16)">
+                Numeric code with 16 digits.
+            </Property>
+        </Properties>
+    </Col>
+    <Col sticky>
+
+        ```txt {{ 'title': 'Output file structure example' }}
+        Referencia,Token,Subtoken
+        REF001,abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890,1234567890123456
+        ```
+
+    </Col>
+</Row>

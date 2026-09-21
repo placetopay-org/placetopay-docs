@@ -34,7 +34,7 @@ const generateEditOnGithubURLs = () => {
     });
 
     const constantsPath = pathModule.resolve(__dirname, '../src/constants/routes-with-index.js');
-    const constantsContent = `export const ROUTES_WITH_INDEX = ${JSON.stringify(routeWithIndex)};`;
+    const constantsContent = `export const ROUTES_WITH_INDEX = ${JSON.stringify(routeWithIndex)};\n`;
     fs.writeFileSync(constantsPath, constantsContent);
 
 };

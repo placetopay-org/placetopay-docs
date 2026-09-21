@@ -186,6 +186,14 @@ const examples = [
             en: "Indicates whether a declined or failed transaction is eligible for reprocessing with an alternative payment method."
         }
     },
+    {
+        key: "requiresConfirmation",
+        example: "true",
+        description: {
+            es: "Indica si una transacción requiere ser confirmada previo a su procesamiento.",
+            en: "Indicates whether a transaction requires confirmation before processing."
+        }
+    },
   ];
 
 export function AdditionalDataExamples({extraExamples}) {

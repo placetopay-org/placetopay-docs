@@ -1,0 +1,449 @@
+export const description =
+  'Registra un comercio en Placetopay con POST /api/merchants: estructura del cuerpo, headers obligatorios y la respuesta 202.'
+
+<MissingTranslationBanner />
+
+# Crear un comercio
+
+`POST /api/merchants` registra un comercio nuevo. La petición **no espera** a que el comercio quede escrito: valida el contenido, lo acepta y devuelve un identificador de proceso con el que seguir el resultado.
+
+## La petición {{ id: 'the-request' }}
+
+<CodeGroup title="Solicitud" tag="POST" label="/api/merchants">
+
+```bash {{ title: 'cURL' }}
+curl --request POST \
+  --url '{URL_BASE}/api/merchants' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --header 'Idempotency-Key: 8f1c2d3e4a5b6c7d8e9f0a1b' \
+  --data @merchant.json
+```
+
+</CodeGroup>
+
+| Header | Obligatorio | Detalle |
+|---|---|---|
+| `Authorization` | Sí | `Bearer` con un token que incluya el permiso `onboarding:create`. Ver [Autenticación](/en/onboarding/authentication) |
+| `Idempotency-Key` | Sí | Ver [Idempotencia](/en/onboarding/idempotency) |
+| `Content-Type` | Sí | `application/json` |
+| `Accept` | Recomendado | `application/json` |
+
+## Estructura del cuerpo {{ id: 'body-structure' }}
+
+El cuerpo describe el **estado completo** del comercio que quieres registrar. Los campos del comercio viajan en la raíz, al lado de las colecciones.
+
+<Properties>
+  <Property name="Campos del comercio" type="varios" isRequired={true}>
+    Identidad, documento, dirección, representante legal, facturación, agencia de viajes y control comercial. Van directamente en la raíz: `name`, `brand`, `document`, `address`… Ver [Datos del comercio](/en/onboarding/merchant-data).
+  </Property>
+  <Property name="integrations" type="array" isRequired={false}>
+    Integraciones del comercio con proveedores externos. Ver [Integraciones](/en/onboarding/integrations).
+  </Property>
+  <Property name="paymentMethods" type="array" isRequired={false}>
+    Medios de pago que el comercio acepta. Ver [Medios de pago](/en/onboarding/payment-methods).
+  </Property>
+  <Property name="sites" type="array" isRequired={false}>
+    Sitios de venta del comercio, con sus propias integraciones y medios de pago. Ver [Sitios](/en/onboarding/sites).
+  </Property>
+  <Property name="notification" type="object" isRequired={false}>
+    URL donde quieres recibir el resultado del proceso.
+  </Property>
+</Properties>
+
+## Cuerpo mínimo {{ id: 'minimum-body' }}
+
+Estos son todos los campos que Onboarding exige para registrar un comercio. Todo lo demás es opcional.
+
+<CodeGroup title="Cuerpo mínimo">
+
+```json {{ title: 'merchant.json' }}
+{
+  "name": "Comercializadora Acme S.A.S.",
+  "brand": "Acme",
+  "languages": ["es"],
+  "currencies": ["COP"],
+  "document": {
+    "type": "NIT",
+    "number": "9001234567"
+  },
+  "address": {
+    "city": "Bogota",
+    "country": "CO",
+    "state": 11
+  },
+  "legalRepresentative": {
+    "name": "Ada",
+    "surname": "Lovelace"
+  },
+  "control": {
+    "reseller": 1
+  }
+}
+```
+
+</CodeGroup>
+
+## Cuerpo completo {{ id: 'full-body' }}
+
+Este es el cuerpo con **todos los campos** que la petición acepta. Salvo el mínimo de arriba, cada uno puede omitirse: lo que no envías queda con el valor que Onboarding tenga por defecto.
+
+Los campos del comercio y las colecciones conviven en el mismo nivel. Las colecciones son independientes entre sí —puedes enviar solo `sites`, solo `paymentMethods`, ambas o ninguna— y todo lo que envías se registra dentro de la misma operación, de modo que un comercio con sus sitios y sus medios de pago se crea con **una sola petición**.
+
+| Colección | Tope | Identidad del elemento |
+|---|---|---|
+| `integrations` | 16 elementos | Un elemento por `type`; repetirlo responde `422` |
+| `paymentMethods` | 50 elementos | El `code` del medio de pago |
+| `sites` | 10 elementos | El `login`, si lo envías; si no, se genera |
+| `sites[].integrations` | 16 elementos | Independientes de las del comercio: el mismo `type` puede estar en ambas |
+| `sites[].paymentMethods` | 50 elementos | Un `code` que la colección `paymentMethods` de este mismo cuerpo declara |
+
+<CodeGroup title="Cuerpo completo">
+
+```json {{ title: 'merchant.json' }}
+{
+  "name": "Comercializadora Acme S.A.S.",
+  "brand": "Acme",
+  "active": true,
+  "url": "https://acme.example.com",
+  "incrementType": "IPC",
+  "mcc": "5411",
+  "size": "M",
+  "timezone": "America/Bogota",
+  "languages": ["es", "en"],
+  "currencies": ["COP", "USD"],
+  "document": {
+    "type": "NIT",
+    "number": "9001234567"
+  },
+  "address": {
+    "street": "Carrera 43A # 1-50, Torre 2",
+    "city": "Bogota",
+    "country": "CO",
+    "state": 11,
+    "phone": "6013905000",
+    "postalCode": "110111"
+  },
+  "legalRepresentative": {
+    "name": "Ada",
+    "surname": "Lovelace",
+    "documentType": "CC",
+    "document": "1020304050"
+  },
+  "billing": {
+    "contact": "Contabilidad Acme",
+    "mail": "facturacion@acme.example.com",
+    "registrationNumber": "9001234567-1",
+    "ciiu": "4791",
+    "taxType": 1,
+    "taxRegime": 1,
+    "organizationType": 1
+  },
+  "travelAgency": {
+    "dispersion": false,
+    "iata": "ABCD12"
+  },
+  "control": {
+    "reseller": 1,
+    "seller": 1,
+    "paymentFacilitator": null
+  },
+  "integrations": [
+    {
+      "type": "kount",
+      "settings": {
+        "sandbox": false,
+        "website": "ACME",
+        "merchant": "201000"
+      }
+    },
+    {
+      "type": "push_notification",
+      "settings": {
+        "enabled": true
+      }
+    }
+  ],
+  "paymentMethods": [
+    {
+      "code": "CR_VS",
+      "financialEntity": 7,
+      "accountNumber": "1234567890",
+      "accountType": 2,
+      "commissionModel": "P",
+      "commissionValue": 2.5,
+      "order": 1,
+      "creditRules": {
+        "minInstallments": 1,
+        "maxInstallments": 36
+      },
+      "settings": {
+        "merchantCode": "201000",
+        "terminalNumber": "00000001",
+        "isEcommerce": true,
+        "threeDSProvider": "placetopay"
+      }
+    }
+  ],
+  "sites": [
+    {
+      "login": "aabbccdd1234567890aabbccdd123456",
+      "name": "Tienda principal",
+      "displayName": "Acme",
+      "type": "INT",
+      "category": "ECOMMERCE",
+      "active": true,
+      "onTest": false,
+      "currency": "COP",
+      "language": "es",
+      "email": "ops@acme.example.com",
+      "customBatch": 1,
+      "expiration": "2027-01-31 23:59:59",
+      "productionDate": "2026-09-01",
+      "integration": {
+        "allowPartial": false,
+        "checkoutVersion": "v4",
+        "connectionMethod": "REDIRECT",
+        "notificationUrl": "https://acme.example.com/pay/notify",
+        "analyticsCode": "G-ABCDE12345",
+        "sourceRestriction": null,
+        "allowWallet": true,
+        "checkoutAttemptsLimit": 5,
+        "returnAdditional": false,
+        "payerFieldsType": 0
+      },
+      "control": {
+        "minAmount": 1000,
+        "maxAmount": 5000000,
+        "allowedDays": 127,
+        "allowedHours": "ffffffffffffffffffffffffffffffffffffffffff",
+        "filterPse": false,
+        "filterByBin": false,
+        "filterTuya": false,
+        "filterSafetypay": false,
+        "prechargeFilter": 0,
+        "allowedBankCountries": ["CO"],
+        "exceptionBinsList": ["411111"],
+        "delegatedAuthorization": null
+      },
+      "threeDS": {
+        "setting": "LOW",
+        "minAmount": 100000
+      },
+      "securityFilters": {
+        "filterLockedByTries": true,
+        "forceIPMatch": false,
+        "onlyWhitelisted": false,
+        "allowedIssuerCountries": ["CO"],
+        "allowedIPCountries": ["CO", "US"],
+        "excludeIPCountry": null,
+        "allowedCardsDay": 5,
+        "allowedCardsMonth": 20,
+        "allowedCardsYear": 60,
+        "allowedCardsByIP": 10,
+        "dayMax": 5,
+        "monthMax": 100,
+        "dayMaxAmount": 10000000,
+        "monthMaxAmount": 200000000
+      },
+      "operation": {
+        "disableTax": false,
+        "calculateTax": true,
+        "mailCustomer": true,
+        "mailMerchant": false,
+        "taxPercentage": 19,
+        "patternReference": "1234567890"
+      },
+      "subscriptionValidation": {
+        "enable": true,
+        "amount": 1000
+      },
+      "branding": {
+        "buttonColor": "#1a73e8",
+        "sidebarColor": "#0b1220"
+      },
+      "metadata": {
+        "contractRef": "AC-2026-0042",
+        "onboardingBatch": 17
+      },
+      "integrations": [
+        {
+          "type": "clicktopay_visa",
+          "settings": {
+            "enabled": true
+          }
+        }
+      ],
+      "paymentMethods": [
+        {
+          "code": "CR_VS",
+          "financialEntity": 7,
+          "accountNumber": "1234567890",
+          "accountType": 2,
+          "minAmount": 2000,
+          "maxAmount": 900000,
+          "commissionModel": "P",
+          "commissionValue": 2.5,
+          "order": 1,
+          "settings": {
+            "terminalNumber": "00000002"
+          }
+        }
+      ]
+    }
+  ],
+  "notification": {
+    "url": "https://acme.example.com/hooks/onboarding"
+  }
+}
+```
+
+</CodeGroup>
+
+<Note>
+  Los valores de catálogo —`mcc`, `size`, `timezone`, `state`, `taxType`, `taxRegime`, `organizationType`, `reseller`, `seller`, `paymentFacilitator`, `code`, `financialEntity`, `accountType`— salen de los catálogos de Placetopay y **dependen del ambiente**. Los del ejemplo son ilustrativos: pide los tuyos junto con las credenciales, porque un identificador válido en un ambiente no tiene por qué serlo en otro. Además, `reseller` y `seller` deben estar habilitados, no solo existir.
+</Note>
+
+### Un sitio obliga a mucho más que un comercio {{ id: 'site-required-fields' }}
+
+`sites` es opcional, pero **en cuanto envías un sitio casi todo lo suyo pasa a ser obligatorio**: `name`, `displayName`, `type`, `category`, `currency`, `language`, `email` y los bloques `integration` y `control` completos —con sus propios `allowPartial`, `checkoutVersion`, `minAmount`, `maxAmount`, `allowedDays`, `allowedHours`, `filterPse` y `filterByBin`—. El resto de bloques (`threeDS`, `securityFilters`, `operation`, `subscriptionValidation`, `branding`, `metadata`) sigue siendo opcional. El detalle está en [Sitios](/en/onboarding/sites).
+
+Tres formatos que suelen sorprender:
+
+- **El sitio distingue mayúsculas donde la raíz no.** `languages` y `currencies` de la raíz aceptan cualquier grafía, pero `sites[].language` y `sites[].currency` exigen la del catálogo, que hoy escribe el idioma en minúscula (`es`) y la moneda en mayúscula (`COP`). Un `"language": "ES"` dentro de un sitio responde `422` — y el mensaje del error te dice la grafía que espera.
+- **`allowedHours` son 42 caracteres hexadecimales exactos.** Una cadena más corta no produce un error: produce un horario equivocado.
+- **`sites[].paymentMethods[].code` solo puede nombrar un medio de pago que este mismo cuerpo declaró** en el `paymentMethods` de la raíz. Al crear no hay nada preexistente a lo que apuntar, porque el comercio todavía no existe.
+- **Dentro del sitio basta el `code`.** Los datos de cuenta y comisión son obligatorios en el `paymentMethods` de la raíz, pero opcionales dentro de un sitio: lo que no nombras se hereda del medio de pago del comercio. Envía solo lo que deba diferir.
+
+### Lo que el ejemplo deja fuera {{ id: 'omitted-credentials' }}
+
+Un sitio admite además tres credenciales —`login`, `tranKey` y `md5Hash`, de hasta 32 caracteres cada una— que aquí se omiten a propósito. Si no las envías, Onboarding las genera y te las devuelve en el resultado del proceso, que es la forma recomendada de obtenerlas; las que genera son de 16 caracteres. El ejemplo solo conserva `login` para mostrar dónde va.
+
+## Campos que la petición rechaza {{ id: 'rejected-fields' }}
+
+Estos campos no son ignorados: si viajan en el cuerpo de una creación, la respuesta es `422` nombrándolos. Casi todos son identificadores que solo tienen sentido cuando el comercio ya existe, así que aparecen al reenviar como petición un cuerpo copiado de una respuesta.
+
+| Campo | Por qué |
+|---|---|
+| `id`, `merchantId` en la raíz | El identificador del comercio viaja en la URL, no en el cuerpo — y en una creación todavía no existe |
+| `integrations[].id` | Una integración se identifica por su `type` |
+| `paymentMethods[].id` | Solo existe al [actualizar](/en/onboarding/update-merchant); al crear, la identidad es el `code` |
+| `sites[].id`, `sites[].customerId` | El sitio se está creando |
+| `sites[].integrations[].siteId` | El sitio que la lleva es el que la contiene |
+| `sites[].paymentMethods[].id`, `.paymentMethodId`, `.siteId` | Al crear, la única forma de nombrar un medio de pago es su `code` |
+
+## La URL de notificación {{ id: 'notification-url' }}
+
+Si envías `notification.url`, Onboarding te avisará en esa dirección cuando el proceso termine, tanto si termina bien como si falla.
+
+<Properties>
+  <Property name="notification.url" type="string" isRequired={false}>
+    URL pública sobre `https` donde recibirás el webhook, sin credenciales embebidas.
+  </Property>
+</Properties>
+
+Onboarding valida solo la **forma** de la URL en el momento de aceptar la petición. La accesibilidad real del destino se comprueba justo antes de cada envío, de modo que una URL que apunte a una red no pública se acepta pero nunca se entrega. El detalle está en [Notificación](/en/onboarding/notification).
+
+## La respuesta {{ id: 'accepted-response' }}
+
+<Row>
+  <Col>
+    Si el contenido es válido, la respuesta es `202`.
+
+    <Properties>
+      <Property name="status" type="object">
+        Estado de la petición. En el `202` siempre es `OK`, y significa que la petición fue aceptada.
+      </Property>
+      <Property name="processId" type="string">
+        Identificador del proceso. Consérvalo: es con lo que consultarás el resultado.
+      </Property>
+      <Property name="action" type="string">
+        La operación pedida. En una creación, `merchant.create`.
+      </Property>
+    </Properties>
+
+    Además, dos headers:
+
+    | Header | Para qué |
+    |---|---|
+    | `Location` | URL del proceso recién creado |
+    | `Retry-After` | Segundos a esperar antes de consultar |
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+
+    ```json {{ title: '202 Accepted' }}
+    {
+      "status": {
+        "status": "OK",
+        "reason": null,
+        "message": "The request was accepted and will be processed shortly.",
+        "date": "2026-08-17T10:14:03-05:00"
+      },
+      "processId": "01kz0609xy2hd666mnx6b0jxpc",
+      "action": "merchant.create",
+      "result": null,
+      "notification": {
+        "url": "https://acme.example.com/hooks/onboarding",
+        "state": "PENDING",
+        "attempts": 0
+      }
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Note type="warning">
+  Un `202` con `status.status` en `OK` responde a «¿aceptaste mi petición?», no a «¿ya existe el comercio?». En ese instante el comercio todavía no está registrado y `result` es `null`.
+</Note>
+
+## Qué hacer después {{ id: 'after-the-202' }}
+
+1. **Guarda el `processId`** asociado a la operación en tu sistema.
+2. **Consulta el proceso** con [`GET /api/processes/{processId}`](/en/onboarding/process-status) hasta que la respuesta deje de traer `Retry-After`.
+3. **Guarda `result.merchantId`** cuando el proceso termine bien.
+
+Si registraste una URL de notificación, puedes esperar el webhook en lugar de consultar — pero mantén la consulta como respaldo, porque la entrega no está garantizada.
+
+## Errores de la llamada {{ id: 'create-errors' }}
+
+Estos errores impiden que la petición se acepte. Ninguno crea un proceso, y por eso ninguno trae `processId`.
+
+| Código | Causa |
+|---|---|
+| `401` | Token ausente, inválido o de otro ambiente |
+| `403` | El token no incluye el permiso `onboarding:create` |
+| `409` | La clave de idempotencia ya se usó con un contenido distinto |
+| `422` | El contenido no pasó la validación, o falta el header `Idempotency-Key` |
+
+Un `422` incluye un objeto `errors` **hermano de `status`**, con una entrada por cada campo rechazado. Las claves son las rutas del propio cuerpo que enviaste, de modo que puedes localizar el problema sin traducir nada.
+
+<CodeGroup title="Respuesta de error">
+
+```json {{ title: '422 Unprocessable Content' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": 422,
+    "message": "The given data was invalid.",
+    "date": "2026-08-17T10:14:03-05:00"
+  },
+  "errors": {
+    "name": ["The name field is required."],
+    "currencies.0": ["The selected currencies.0 is invalid."]
+  }
+}
+```
+
+</CodeGroup>
+
+La validación **no se detiene en el primer error**: la respuesta enumera todos los problemas encontrados, para que puedas corregirlos de una vez. El catálogo completo de errores está en [Errores](/en/onboarding/errors).
+
+## ¿Qué sigue? {{ id: 'create-merchant-next' }}
+
+- [Consultar el proceso](/en/onboarding/process-status)
+- [Datos del comercio](/en/onboarding/merchant-data)
+- [Referencia de la API](/en/onboarding/api/reference/merchants) — el contrato completo, campo a campo

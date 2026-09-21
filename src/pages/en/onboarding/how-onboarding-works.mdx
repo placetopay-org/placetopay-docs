@@ -1,0 +1,115 @@
+import CreateMerchantSequence from "@/components/react-flow/SequenceDiagram/Diagrams/Onboarding/CreateMerchantSequence"
+import ProcessStates from "@/components/react-flow/ProcessStates"
+
+export const description =
+  'Conoce el ciclo de vida de un registro en Onboarding: la aceptación, la consulta del proceso y la notificación del resultado.'
+
+<MissingTranslationBanner />
+
+# Cómo funciona Onboarding
+
+Onboarding registra comercios de forma **asíncrona**: la petición no espera a que el comercio quede escrito, sino que recibe un identificador con el que seguir el resultado.
+
+## Ciclo de vida {{ id: 'onboarding-lifecycle' }}
+
+1. Tu servidor envía el comercio completo a Onboarding, junto con una clave de idempotencia.
+2. Onboarding **valida todo el contenido** de forma inmediata. Si algo está mal, responde `422` y nada se registra.
+3. Si el contenido es válido, responde `202` con un `processId`. La petición queda aceptada.
+4. Tu aplicación consulta el proceso hasta conocer el resultado, o espera la notificación.
+5. Cuando el proceso termina, obtienes el identificador del comercio creado en `result.merchantId`.
+
+<Note>
+  Que la respuesta sea `202` y no `201` es intencional: significa **«acepté tu petición»**, no «ya está hecho». El comercio todavía no existe en ese instante.
+</Note>
+
+## Integración {{ id: 'onboarding-integration' }}
+
+El siguiente diagrama describe el ciclo completo, desde el envío hasta la notificación.
+
+<CreateMerchantSequence />
+
+### Aceptación
+
+Tu servidor llama a [`POST /api/merchants`](/en/onboarding/create-merchant) con el comercio completo y el header `Idempotency-Key`.
+
+Onboarding valida el contenido entero antes de aceptar nada: los campos obligatorios, sus formatos y sus longitudes, y también que las referencias que envías existan —el país, la provincia, la moneda, el idioma, el código de un medio de pago—. Esta validación es **síncrona**, así que un `202` es una promesa fuerte: el contenido ya fue revisado y lo que pueda fallar después no será un problema de tus datos.
+
+La respuesta trae tres cosas que debes conservar:
+
+- `processId` — el identificador con el que consultarás el resultado.
+- El header `Location` — la URL exacta del proceso.
+- El header `Retry-After` — cuántos segundos conviene esperar antes de consultar.
+
+### Consulta del proceso
+
+Con el `processId` consultas [`GET /api/processes/{processId}`](/en/onboarding/process-status) hasta que el proceso llegue a un estado final.
+
+La señal para dejar de consultar **no es un valor concreto de estado, sino la ausencia del header `Retry-After`**. Mientras el proceso siga avanzando, ese header estará presente; cuando desaparezca, el resultado es definitivo y no cambiará.
+
+Al terminar bien, la respuesta trae `result.merchantId`: el identificador del comercio recién registrado, que es el que usarás para actualizarlo más adelante.
+
+### Notificación asincrónica
+
+Si al crear el comercio enviaste una URL de notificación, Onboarding te envía un webhook firmado en cuanto el proceso alcanza su estado final, tanto si terminó bien como si falló.
+
+<Note type="warning">
+  La notificación es una **conveniencia, no una garantía**. La fuente de verdad siempre es `GET /api/processes/{processId}`. Si esperabas una notificación y no llegó en un plazo razonable, consulta el proceso.
+</Note>
+
+El detalle de la firma y de cómo implementar el receptor está en [Notificación](/en/onboarding/notification).
+
+## Estados del proceso {{ id: 'process-states' }}
+
+Un proceso atraviesa como máximo tres estados, y dos de ellos son finales:
+
+**`PENDING` Pendiente:**
+La petición fue aceptada y está esperando su turno. Es el estado inicial de todo proceso.
+
+**`PENDING_PROCESS` En ejecución:**
+El registro está ocurriendo en este momento. _No es un estado final._
+
+**`OK` Completado:**
+El comercio quedó registrado. La respuesta incluye `result` con el identificador del comercio y, si enviaste colecciones, el resultado de cada una. _Este es un estado final._
+
+**`FAILED` Fallido:**
+El registro no pudo completarse. La respuesta incluye `status.reason` con un código que explica la causa y, cuando el fallo se puede atribuir a un campo concreto, un objeto `errors` que lo señala. _Este es un estado final._
+
+<ProcessStates />
+
+Un proceso nunca retrocede: una vez alcanzado `OK` o `FAILED`, ese resultado es definitivo.
+
+## El código HTTP y el estado del proceso son dos preguntas distintas {{ id: 'http-vs-status' }}
+
+Es la confusión que más integraciones rompe, y conviene resolverla antes de escribir código.
+
+Todas las respuestas de Onboarding traen un objeto `status`. Ese objeto y el código HTTP responden a preguntas diferentes:
+
+- **El código HTTP dice si la llamada funcionó.**
+- **`status.status` dice qué pasó con el proceso.**
+
+De ahí se siguen dos consecuencias que sorprenden si no se esperan:
+
+| Situación | Código HTTP | `status.status` |
+|---|---|---|
+| Petición aceptada | `202` | `OK` |
+| Proceso todavía en curso | `200` | `PENDING` o `PENDING_PROCESS` |
+| Proceso terminado bien | `200` | `OK` |
+| **Proceso fallido** | **`200`** | **`FAILED`** |
+| Token inválido | `401` | `FAILED` |
+| Contenido inválido | `422` | `FAILED` |
+
+Consultar un proceso que falló es una **consulta exitosa**: la llamada funcionó y te está informando correctamente de un fallo. Por eso responde `200` y no un `5xx`.
+
+<Note type="warning">
+  Una comprobación del tipo `if (status.status !== "OK") throw` **falla ante una respuesta perfectamente sana**, porque un proceso que aún está en curso responde `PENDING`. Evalúa primero el código HTTP para saber si la llamada funcionó, y solo después `status.status` para saber cómo va el proceso.
+</Note>
+
+Los fallos de la llamada se distinguen sin ambigüedad de los fallos del proceso: llegan con un código `4xx` o `5xx` y **no traen `processId`**.
+
+## ¿Qué sigue? {{ id: 'onboarding-next' }}
+
+Ahora que entiendes el ciclo de vida, puedes continuar con:
+
+- [Primeros pasos](/en/onboarding/quickstart) — un comercio mínimo, de principio a fin
+- [Autenticación](/en/onboarding/authentication)
+- [Idempotencia](/en/onboarding/idempotency)

@@ -64,6 +64,13 @@ paths:
                   description: 2 letras idioma y 2 letras país (es_CO)
                   pattern: '^[a-z]{2}_[A-Z]{2}$'
                   example: es_CO
+                metadata:
+                  type: object
+                  description: Es un objeto que permite enviar datos adicionales en formato JSON, los cuales no serán utilizados para la validación de la transacción, pero sí se guardarán en el resultado de la validación.
+                  nullable: true
+                  properties:
+                    kount:
+                      $ref: '../base/es.yaml#/components/schemas/KountMetadataToScudo'
                 payer:
                   $ref: '#/components/schemas/Payer'
                 buyer:
@@ -84,7 +91,7 @@ paths:
                   description: Agente de usuario del cliente
                 additional:
                   type: object
-                  description: Es un objeto que permite enviar datos adicionalmes en formato JSON.
+                  description: Es un objeto que permite enviar datos adicionales en formato JSON.
                   nullable: true
                 fingerprints:
                   type: object
@@ -495,7 +502,7 @@ paths:
                                 isErrorResponse: false
                                 code: null
                                 key: null
-                                errors: []
+                                errors: [ ]
                         - action: continue_with_next_rule
                           name: Monto por cliente
                           rule_code: amount_by_client
@@ -850,7 +857,7 @@ paths:
                       name: rules_not_found
                       message: 'reglas no encontradas, verifique la configuración del sitio'
                     data: null
-    parameters: []
+    parameters: [ ]
   /api/v1/notify:
     post:
       summary: Notificar Validación
@@ -897,7 +904,7 @@ paths:
                     data:
                       id: 81d1ed97-5bd2-4242-8015-12867fdb475a
                       status: approved
-          headers: {}
+          headers: { }
         '422':
           description: Unprocessable Entity
           content:
@@ -999,7 +1006,7 @@ paths:
                     status:
                       name: approved
         description: ''
-    parameters: []
+    parameters: [ ]
   '/api/v1/validations/{scudo_reference}':
     parameters:
       - schema:
@@ -1009,7 +1016,7 @@ paths:
         required: true
     get:
       summary: Obtener Validación
-      tags: []
+      tags: [ ]
       responses:
         '200':
           description: OK
@@ -1369,7 +1376,7 @@ paths:
                             failed: false
                             service_response:
                               score: '10'
-                              errors: []
+                              errors: [ ]
                               ipCity: Boise
                               ipState: Idaho
                               decision: A
@@ -1431,10 +1438,10 @@ paths:
           description: Este parámetro contiene la clave de api proporcionada por Evertec
           required: true
   /api/v1/validations/search:
-    parameters: []
+    parameters: [ ]
     post:
       summary: Busqueda de Validaciones
-      tags: []
+      tags: [ ]
       responses:
         '200':
           description: OK
@@ -1800,7 +1807,7 @@ paths:
                                 failed: false
                                 service_response:
                                   score: '10'
-                                  errors: []
+                                  errors: [ ]
                                   ipCity: Boise
                                   ipState: Idaho
                                   decision: A
@@ -2002,7 +2009,7 @@ paths:
                           failed: false
                           service_response:
                             score: '100'
-                            errors: []
+                            errors: [ ]
                             ipCity: Boise
                             ipState: Idaho
                             decision: D
@@ -2339,7 +2346,7 @@ paths:
                           failed: false
                           service_response:
                             score: '10'
-                            errors: []
+                            errors: [ ]
                             ipCity: Boise
                             ipState: Idaho
                             decision: A
@@ -2484,6 +2491,9 @@ components:
           type: string
           description: Referencia de la transacción/pago del cliente
           maxLength: 40
+        description:
+          type: string
+          description: Descripción de la transacción/pago del cliente
         amount:
           type: object
           required:
@@ -2503,6 +2513,12 @@ components:
               description: Monto total de la transacción/pago ( en formato unidad menor)
               exclusiveMinimum: true
               minimum: 0
+        items:
+          type: array
+          items:
+            $ref: '../base/es.yaml#/components/schemas/Item'
+          description: |
+            Estructura para relacionar productos o artículos en el proceso.
       required:
         - reference
         - amount
@@ -2570,6 +2586,8 @@ components:
                 Id de la sesión creada para el DDC de kount
                 https://developer.kount.com/hc/en-us/articles/4411121644820-How-to-Create-a-Session-ID-for-the-Device-Data-Collector-DDC-
               maxLength: 32
+        threeDS:
+          $ref: "../base/en.yaml#/components/schemas/ThreeDS"
         merchant_code:
           type: string
           description: 'Código del comercio. En Colombia hace referencia al retail-code del comercio, en otros paises hace referencia al codigo único del comercio.'
@@ -3179,6 +3197,203 @@ components:
           isExecuted: true
       title: Emailage
       description: Estructura que define la respuesta para la regla emailage
+    KountV2:
+      title: Kount V2
+      type: object
+      description: Structure that defines the response for the kount rule
+      properties:
+        isExecuted:
+          type: boolean
+          example: true
+        score:
+          type: integer
+          example: 73
+        order:
+          type: object
+          properties:
+            orderId:
+              type: string
+              example: 51W0FGDBQJWQYP3J
+            merchantOrderId:
+              type: string
+              example: 323c8ee0-42d3-4f05-8d16-9f7449a25b96
+            channel:
+              type: string
+              example: DEFAULT
+            deviceSessionId:
+              type: string
+              example: dae320d544734c85a1909e36516224ed
+            creationDateTime:
+              type: string
+              format: date-time
+              example: 2026-02-16T22:21:46-05:00
+            riskInquiry:
+              type: object
+              properties:
+                decision:
+                  type: string
+                  example: APPROVE
+                omniscore:
+                  type: integer
+                  example: 73
+                persona:
+                  type: object
+                  properties:
+                    uniqueCards:
+                      type: integer
+                      example: 1
+                    uniqueDevices:
+                      type: integer
+                      example: 2
+                    uniqueEmails:
+                      type: integer
+                      example: 5
+                    riskiestCountry:
+                      type: string
+                      example: CO
+                    totalBankApprovedOrders:
+                      type: integer
+                      example: 2
+                    totalBankDeclinedOrders:
+                      type: integer
+                      example: 52
+                    maxVelocity:
+                      type: integer
+                      example: 28
+                    riskiestRegion:
+                      type: string
+                      example: ""
+                device:
+                  nullable: true
+                segmentExecuted:
+                  type: object
+                  properties:
+                    segment:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          example: c617266b-aba3-47c2-8f46-470d5b9b3e82
+                        name:
+                          type: string
+                          example: Default
+                        priority:
+                          type: integer
+                          example: 2
+                    policiesExecuted:
+                      type: array
+                      items: { }
+                    tags:
+                      type: array
+                      items: { }
+                email:
+                  nullable: true
+                policyManagement:
+                  type: object
+                  properties:
+                    decision:
+                      type: string
+                      example: APPROVE
+                    setExecuted:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: Testing Env
+                        version:
+                          type: string
+                          example: "2"
+                    segmentExecuted:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          example: c617266b-aba3-47c2-8f46-470d5b9b3e82
+                        name:
+                          type: string
+                          example: Default
+                        priority:
+                          type: integer
+                          example: 2
+                    policiesExecuted:
+                      type: array
+                      items: { }
+                    tags:
+                      type: array
+                      items: { }
+                    tagWeights:
+                      type: array
+                      items: { }
+                    set:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: Testing Env
+                        version:
+                          type: string
+                          example: "2"
+                    segment:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          example: c617266b-aba3-47c2-8f46-470d5b9b3e82
+                        name:
+                          type: string
+                          example: Default
+                        priority:
+                          type: integer
+                          example: 2
+                reasonCode:
+                  type: string
+                  example: ""
+            transactions:
+              type: array
+              items:
+                type: object
+                properties:
+                  transactionId:
+                    type: string
+                    example: 51W0FGDBQJWQYP3J#0
+                  merchantTransactionId:
+                    type: string
+                    example: 323c8ee0-42d3-4f05-8d16-9f7449a25b96
+                  payment:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cardBrand:
+                          type: string
+                          example: DEBIT_CARD
+                  processorMerchantId:
+                    type: string
+                    example: ""
+            fulfillment:
+              type: array
+              items:
+                type: object
+                properties:
+                  fulfillmentId:
+                    type: string
+                    example: 51W0FGDBQJWQYP3J#0
+                  merchantFulfillmentId:
+                    type: string
+                    example: 323c8ee0-42d3-4f05-8d16-9f7449a25b96
+        warnings:
+          type: array
+          items: { }
+          example: [ ]
+        version:
+          type: string
+          example: v2.100.0
+        errors:
+          nullable: true
+          example: null
     Kount:
       type: object
       x-examples:
@@ -3255,7 +3470,7 @@ components:
             isErrorResponse: false
             code: null
             key: null
-            errors: []
+            errors: [ ]
       title: Kount
       description: Estructura que define la respuesta para la regla kount
       properties:
@@ -3480,7 +3695,7 @@ components:
               type: array
               items:
                 type: object
-              example: []
+              example: [ ]
     Historical:
       title: Historical
       x-examples:
@@ -3693,6 +3908,7 @@ components:
             - $ref: '#/components/schemas/Emailage'
             - $ref: '#/components/schemas/Historical'
             - $ref: '#/components/schemas/Kount'
+            - $ref: '#/components/schemas/KountV2'
             - $ref: '#/components/schemas/Transunion'
             - $ref: '#/components/schemas/BehavioralNetwork'
           description: Estructura que define los tipos de respuesta de los servicios
@@ -3816,4 +4032,4 @@ components:
           x-stoplight:
             id: 0fyyrfvwickxp
           nullable: true
-  responses: {}
+  responses: { }

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 
 export const LANGUAGES_CODES = {
@@ -27,6 +27,13 @@ const LocaleProvider = ({ children }) => {
     CODES.find((code) => code === router.pathname.split('/')[1]) ??
       LANGUAGE_DEFAULT
   )
+
+  useEffect(() => {
+    const seg = router.asPath.split('/')[1]
+    const next = CODES.find((c) => c === seg) ?? LANGUAGE_DEFAULT
+    setLocale(next)
+    setHasPrefix(LANGUAGES_WITH_PREFIX[next] ?? false)
+  }, [router.asPath])
 
   const changeLocale = (locale) => {
     setLocale(locale)

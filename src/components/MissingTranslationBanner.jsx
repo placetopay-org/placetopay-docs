@@ -1,4 +1,7 @@
 import { Check } from 'iconsax-react'
+import { useRouter } from 'next/router'
+
+import { isUnderConstruction } from '@/components/UnderConstructionBanner'
 
 const MISSING_TRANSLATION_BANNER_TEXTS = {
   en: {
@@ -9,6 +12,13 @@ const MISSING_TRANSLATION_BANNER_TEXTS = {
 }
 
 export const MissingTranslationBanner = ({ locale = 'en' }) => {
+  const { pathname } = useRouter()
+
+  // Una sección en construcción ya avisa de que su contenido es provisional, y ese aviso llega antes
+  // que este. Dos bandas apiladas sobre el título son ruido, así que aquí cede la más específica.
+  // Vuelve sola en cuanto la sección salga de `UNDER_CONSTRUCTION_ROUTES`.
+  if (isUnderConstruction(pathname)) return null
+
   return (
     <article className="not-prose -mt-6 mb-6 w-full rounded border-l-2 border-gray-400 bg-white/[0.2] shadow-lg shadow-gray-700/60 backdrop-blur-sm dark:bg-gray-900/[0.2] dark:text-white/90 dark:backdrop-blur dark:hover:text-white">
       <div className="mx-auto max-w-7xl p-3">

@@ -9,10 +9,13 @@ import { visit, SKIP } from 'unist-util-visit'
 import { slugifyWithCounter } from '@sindresorhus/slugify'
 import { toString } from 'mdast-util-to-string'
 import { filter } from 'unist-util-filter'
+import { getPageInfo } from './pageInfo.mjs'
 
 const __filename = url.fileURLToPath(import.meta.url)
 const processor = remark().use(remarkMdx).use(extractSections)
 const slugify = slugifyWithCounter()
+
+const API_SECTIONS_FILE = path.resolve('./.cache/search/api-sections.json')
 
 function isObjectExpression(node) {
   return (
@@ -52,7 +55,19 @@ function extractSections() {
         let content = toString(excludeObjectExpressions(node))
         if (node.type === 'heading' && node.depth <= 2) {
           let hash = node.depth === 1 ? null : getSlugify(node, content)
-          sections.push([content, hash, []])
+          let label
+          if (node.depth === 2) {
+            try {
+              label = node.children
+                ?.find((child) => isObjectExpression(child))
+                ?.data?.estree?.body?.[0]?.expression?.properties?.find(
+                  (prop) => prop.key.name === 'label'
+                )?.value?.value
+            } catch {
+              label = undefined
+            }
+          }
+          sections.push([content, hash, [], label])
         } else {
           sections.at(-1)?.[2].push(content)
         }
@@ -61,6 +76,26 @@ function extractSections() {
     })
   }
 }
+
+function loadApiSections() {
+  try {
+    return JSON.parse(fs.readFileSync(API_SECTIONS_FILE, 'utf8'))
+  } catch {
+    console.warn(
+      `[search] API sections artifact not found at ${API_SECTIONS_FILE}. ` +
+        'Run `node scripts/makeSearchIndex.mjs` to include API reference content in the search index.'
+    )
+    return {}
+  }
+}
+
+const cloneSections = (sections) =>
+  sections.map(([title, hash, content, label]) => [
+    title,
+    hash,
+    [...content],
+    label,
+  ])
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default function (nextConfig = {}) {
@@ -75,25 +110,47 @@ export default function (nextConfig = {}) {
             let pagesDir = path.resolve('./src/pages')
             this.addContextDependency(pagesDir)
 
+            let apiSections = loadApiSections()
+
             let files = glob.sync('**/*.mdx', { cwd: pagesDir })
             let data = files.map((file) => {
-              let url =
-                file === 'index.mdx' ? '/' : `/${file.replace(/\.mdx$/, '')}`
+              let { url, locale } = getPageInfo(file)
               let mdx = fs.readFileSync(path.join(pagesDir, file), 'utf8')
-              let locale = path
-                .dirname(file)
-                .split(path.sep)[0]
-                .replace('/', '')
-              locale = locale.length === 2 ? locale : 'es'
 
               let sections = []
 
               if (cache.get(file)?.[0] === mdx) {
-                sections = cache.get(file)[1]
+                // Clone the cached sections before merging the API sections
+                // below: `target[2].push(...)` mutates the arrays in place and
+                // on cache hits (next dev reloads) the content would keep
+                // accumulating otherwise.
+                sections = cloneSections(cache.get(file)[1])
               } else {
                 let vfile = { value: mdx, sections }
                 processor.runSync(processor.parse(vfile), vfile)
                 cache.set(file, [mdx, sections])
+                sections = cloneSections(sections)
+              }
+
+              // Attach the API reference sections (generated at prebuild) to
+              // the level-2 section that documents the operation (matched by
+              // the heading `label` annotation), so searching a field,
+              // operation path or response code leads to the operation anchor.
+              let pageApiSections = apiSections[url]
+              if (pageApiSections) {
+                let fallback = sections.find(([, hash]) => hash !== null)
+                for (let apiSection of Object.values(pageApiSections)) {
+                  let target =
+                    sections.find(
+                      ([, hash, , label]) =>
+                        hash !== null &&
+                        label &&
+                        apiSection.path === label
+                    ) ?? fallback
+                  if (target) {
+                    target[2].push(apiSection.content)
+                  }
+                }
               }
 
               return { url, sections, locale }
@@ -104,25 +161,30 @@ export default function (nextConfig = {}) {
             return `
               import FlexSearch from 'flexsearch'
 
-              let sectionIndex = new FlexSearch.Document({
-                tokenize: 'full',
-                document: {
-                  id: 'url',
-                  index: 'content',
-                  store: ['title', 'pageTitle', 'locale'],
-                },
-                context: {
-                  resolution: 9,
-                  depth: 2,
-                  bidirectional: true
-                }
-              })
+              function createIndex() {
+                return new FlexSearch.Document({
+                  tokenize: 'full',
+                  document: {
+                    id: 'url',
+                    index: 'content',
+                    store: ['title', 'pageTitle', 'locale'],
+                  },
+                  context: {
+                    resolution: 9,
+                    depth: 2,
+                    bidirectional: true
+                  }
+                })
+              }
+
+              let indexes = { es: createIndex(), en: createIndex() }
 
               let data = ${JSON.stringify(data)}
 
               for (let { url, sections, locale } of data) {
+                let index = indexes[locale] ?? indexes.es
                 for (let [title, hash, content] of sections) {
-                  sectionIndex.add({
+                  index.add({
                     url: url + (hash ? ('#' + hash) : ''),
                     title,
                     locale,
@@ -132,8 +194,9 @@ export default function (nextConfig = {}) {
                 }
               }
 
-              export function search(query, options = {}) {
-                let result = sectionIndex.search(query, {
+              export function search(query, { locale, ...options } = {}) {
+                let index = indexes[locale] ?? indexes.es
+                let result = index.search(query, {
                   ...options,
                   enrich: true,
                 })

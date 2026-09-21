@@ -1,0 +1,127 @@
+export const description =
+  'Usa la clave de idempotencia para reintentar una petición sin riesgo de registrar el mismo comercio dos veces.'
+
+# Idempotencia
+
+Toda petición que escribe en Onboarding —crear o actualizar un comercio— **debe** incluir el header `Idempotency-Key`. No es una optimización opcional: sin ese header la petición responde `422` y no se acepta nada.
+
+## Por qué es obligatoria {{ id: 'why-idempotency' }}
+
+La escritura es diferida: cuando recibes el `202`, el comercio todavía no existe. Eso abre una ventana en la que tu aplicación puede quedarse sin saber qué pasó — un timeout de red, un despliegue a mitad de la petición, un proceso que muere antes de guardar la respuesta.
+
+Sin idempotencia, la única salida sería reintentar a ciegas y arriesgarse a registrar el mismo comercio dos veces. Con ella, reintentar es seguro: Onboarding reconoce que ya vio esa petición y te devuelve el resultado de la primera en lugar de crear una nueva.
+
+## El header `Idempotency-Key` {{ id: 'idempotency-key-header' }}
+
+<Properties>
+  <Property name="Idempotency-Key" type="string" isRequired={true}>
+    Identificador único de la operación que estás pidiendo. Entre **16 y 64 caracteres**, y solo puede contener letras, números y los signos `_`, `.`, `:` y `-`.
+  </Property>
+</Properties>
+
+Una clave ausente, demasiado corta, demasiado larga o con caracteres fuera de ese conjunto responde `422`.
+
+```text
+Idempotency-Key: 8f1c2d3e4a5b6c7d8e9f0a1b
+```
+
+## Cómo generar una clave {{ id: 'how-to-generate-a-key' }}
+
+Un UUID o una cadena aleatoria en hexadecimal cumplen el formato sin esfuerzo.
+
+<CodeGroup title="Generar una clave">
+
+```php {{ title: 'PHP' }}
+$idempotencyKey = (string) Str::uuid();
+// o bien
+$idempotencyKey = bin2hex(random_bytes(16));
+```
+
+```js {{ title: 'Node' }}
+const idempotencyKey = crypto.randomUUID();
+```
+
+```python {{ title: 'Python' }}
+import uuid
+idempotency_key = str(uuid.uuid4())
+```
+
+</CodeGroup>
+
+Hay dos reglas que determinan si la idempotencia te protege de verdad:
+
+<Note type="warning">
+  **Una clave por intención, no por intento.** Si generas una clave nueva cada vez que reintentas, cada reintento es una petición distinta para Onboarding, y acabarás con varios comercios idénticos. La clave debe identificar *el comercio que quieres registrar*, no *la llamada HTTP que estás haciendo*.
+</Note>
+
+**Guarda la clave antes de enviar la petición**, no cuando recibas la respuesta. Si tu proceso muere justo después de enviar, esa clave guardada es lo único que te permite reintentar sin duplicar.
+
+## Reintentar la misma petición {{ id: 'replay' }}
+
+Si reenvías **la misma clave con el mismo contenido**, Onboarding no crea un proceso nuevo: te devuelve el que ya existía.
+
+La respuesta cambia respecto de la original en tres cosas:
+
+- El código es `200`, no `202`.
+- Aparece el header `Idempotency-Replayed: true`.
+- No viene el header `Location`.
+
+El `processId` es **el mismo** que devolvió la primera petición, así que puedes seguir consultándolo con normalidad. Si el proceso todavía no ha terminado, la respuesta seguirá trayendo `Retry-After`.
+
+## Cuando el contenido no coincide {{ id: 'conflict' }}
+
+Si reutilizas una clave con un contenido distinto, Onboarding responde `409`. Es una protección deliberada: significa que estás usando una clave que ya identifica otra operación.
+
+<CodeGroup title="Respuesta">
+
+```json {{ title: '409 Conflict' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": 409,
+    "message": "The idempotency key was already used with a different payload.",
+    "date": "2026-08-17T10:14:03-05:00"
+  }
+}
+```
+
+</CodeGroup>
+
+Dos matices importantes sobre qué cuenta como «el mismo contenido»:
+
+- **El orden de las colecciones no importa.** Onboarding ordena `integrations`, `paymentMethods` y `sites` antes de compararlas, así que reconstruir el cuerpo desde un diccionario —donde el orden puede variar— sigue produciendo un reintento válido y no un conflicto.
+- **En una actualización, el comercio de la URL forma parte de la comparación.** Reutilizar la misma clave apuntando a otro `merchantId` responde `409`, no un reintento. Es lo que impide que una clave reutilizada por error aplique unos datos al comercio equivocado.
+
+Cambiar cualquier valor del cuerpo —incluso un solo campo dentro de un `settings`— sí produce un conflicto.
+
+## Los tres escenarios, en resumen {{ id: 'idempotency-scenarios' }}
+
+| Envías | Código | Headers de la respuesta | `processId` |
+|---|---|---|---|
+| Clave nueva | `202` | `Location`, `Retry-After` | Uno nuevo |
+| Misma clave, mismo contenido | `200` | `Idempotency-Replayed: true`, y `Retry-After` si sigue en curso | **El mismo** de la primera |
+| Misma clave, contenido distinto | `409` | — | Ninguno |
+
+## Cuánto dura una clave {{ id: 'key-retention' }}
+
+Una clave queda asociada a su operación durante **24 horas contadas desde que el proceso termina**. Pasado ese plazo se libera y vuelve a estar disponible.
+
+<Note>
+  Reutilizar una clave liberada **no produce un reintento ni un conflicto**: arranca un proceso completamente nuevo. Si el cuerpo es el mismo de una creación, registrarás un segundo comercio.
+</Note>
+
+Esto rara vez importa cuando reintentas en segundos o minutos, que es el caso normal. Importa si tu sistema reencola trabajo con días de retraso: en ese escenario, la protección ya expiró y hace falta comprobar en tus propios registros si la operación ya se completó.
+
+## Reintentar después de un fallo {{ id: 'retrying-after-a-failure' }}
+
+<Note type="warning">
+  Si un proceso terminó en `FAILED` y quieres volver a intentarlo, usa una **clave de idempotencia nueva**. Reenviar la misma clave devuelve el proceso fallido tal cual —es exactamente para lo que sirve la idempotencia— y tu integración quedará repitiendo indefinidamente la lectura de un fallo que nunca cambia.
+</Note>
+
+Un proceso que alcanzó un estado final no vuelve a ejecutarse. Corregir el dato que falló y reenviar con una clave nueva es la forma correcta de reintentar.
+
+## ¿Qué sigue? {{ id: 'idempotency-next' }}
+
+- [Crear un comercio](/onboarding/create-merchant)
+- [Consultar el proceso](/onboarding/process-status)
+- [Errores](/onboarding/errors)

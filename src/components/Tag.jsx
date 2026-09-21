@@ -36,6 +36,7 @@ const valueColorMap = {
   get: 'primary',
   post: 'sky',
   put: 'amber',
+  patch: 'amber',
   delete: 'rose',
 }
 

@@ -1,0 +1,131 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+export const apiAssetPath = '/msv-service'
+export const apiRefs = ['/api/notifications']
+export const description = 'Create a notification request in MSV Service to send messages via WhatsApp, SMS or Email.'
+
+<HeroPattern />
+
+## Notification {{ id: 'create-notification', tag: 'POST', label: '/api/notifications' }}
+
+This endpoint allows you to send an informational message to the user via the channels you specify. Unlike a [validation](/en/msv-service/api/validation), a notification does not await a response, does not generate a `token`, cannot be queried later, and does not trigger a webhook. The message also does not include a confirmation link.
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/notifications"
+      method="post"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Request" tag="POST" label="/api/notifications">
+
+```bash {{ title: 'Notification MSV Service' }}
+curl -X "POST" {{baseURl}}/api/notifications \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "locale": "en",
+    "message": "This is a very long and generic message",
+    "kind": "Horus",
+    "site_id": 123,
+    "channels": {
+      "sms": {
+        "phone_number": "+573124567890",
+        "short_message": "SMS Message"
+      },
+      "whatsapp": {
+        "phone_number": "+573124567890",
+        "template": {
+          "name": "hello_world",
+          "lang": "en_US",
+          "parameters": [
+            "name"
+          ]
+        }
+      },
+      "email": {
+        "email": "mail@test.com",
+        "subject": "email subject"
+      }
+    }
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/notifications"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Response">
+```json {{ title: '200' }}
+{
+  "status": {
+    "status": "OK",
+    "reason": null,
+    "message": "The message was sent successfully",
+    "date": "2022-08-12T15:44:17+00:00"
+  }
+}
+```
+```json {{ title: '401' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": null,
+    "message": "Unauthenticated.",
+    "date": "2026-08-13T15:10:55+00:00"
+  }
+}
+```
+```json {{ title: '400' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": null,
+    "message": "El mensaje no se ha podido enviar por el canal: SMS",
+    "date": "2022-08-12T14:50:01+00:00"
+  }
+}
+```
+```json {{ title: '422' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": null,
+    "message": "The message field is required.",
+    "date": "2022-08-12T14:50:01+00:00"
+  },
+  "errors": {
+    "message": [
+      "The message field is required."
+    ]
+  }
+}
+```
+```json {{ title: '422 - site_id query fails' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": 500,
+    "message": "An unexpected error occurred, please try again later",
+    "date": "2026-08-14T20:15:33+00:00"
+  }
+}
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+

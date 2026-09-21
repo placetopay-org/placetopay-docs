@@ -1,0 +1,157 @@
+import { HeroPattern } from '@/components/HeroPattern'
+import ValidationLifecycle from '@/components/react-flow/SequenceDiagram/Diagrams/MSVService/ValidationLifecycle'
+
+export const description = 'Referencia técnica de MSV Service: autenticación, validaciones, notificaciones y webhooks usando canales como WhatsApp, SMS y email.'
+
+<HeroPattern />
+
+# Referencia API MSV Service
+
+Bienvenido a la referencia técnica de MSV Service. Nuestra API está construida bajo principios RESTful, utiliza **JSON** para el intercambio de datos y códigos de respuesta HTTP estándar.
+
+<ApiDownloads />
+
+## ¿Qué es MSV Service?
+MSV Service (Multi Step Validator) es un servicio que envía mensajes a un usuario final por WhatsApp, SMS o correo electrónico, en dos modalidades:
+
+- **Notificación:** entrega un mensaje informativo. Termina ahí: no genera token, no se puede consultar y no notifica nada de vuelta.
+- **Validación:** entrega un mensaje con un enlace para que el usuario apruebe o rechace. El servicio te avisa la respuesta por webhook y puedes consultarla cuando quieras.
+
+## Entornos y base URL
+
+Todas las solicitudes deben enviarse a las siguientes URL base, dependiendo del entorno en el que te encuentres:
+
+| Entorno | Base URL |
+| :--- | :--- |
+| **Producción** | `https://msv-service.placetopay.com/` |
+| **UAT** | `https://msv-service-uat.placetopay.net` |
+| **Develop** | `https://msv-service-dev.placetopay.ws` |
+
+## Ciclo de vida de una validación
+
+1. Creas la solicitud con `POST /api/validations`. El servicio responde `201` con un `token` y envía el mensaje por los canales que hayas indicado. En este punto la validación se crea con status `PENDING`.
+2. El mensaje lleva al usuario a una página de confirmación alojada por msv-service, donde aprueba o rechaza. En SMS y correo el enlace se agrega automáticamente; en WhatsApp solo aparece si incluyes `[URL_VALIDATION]` entre los parámetros de la plantilla.
+3. En cuanto responde, la solicitud pasa a `APPROVED` o `REJECTED` y se envía el webhook.
+4. Si no responde dentro de `minutes_by_expire` (30 minutos por defecto, máximo 60), la solicitud pasa a `PARTIAL_EXPIRED` y también se envía el webhook.
+
+| Estado | Significado |
+| :--- | :--- |
+| `PENDING` | Creada, a la espera de que el usuario responda. |
+| `APPROVED` | El usuario aprobó. |
+| `REJECTED` | El usuario rechazó. |
+| `PARTIAL_EXPIRED` | Venció el plazo sin respuesta. |
+
+### Flujo visual
+
+<ValidationLifecycle />
+
+Puedes consultar el estado en cualquier momento con [Consulta validación](/msv-service/api/validation-query).
+
+## Webhook {{ id: 'validation-webhook' }}
+
+Cuando el usuario responde la validación o cuando la validación expira sin respuesta, **msv-service** envía de forma asíncrona un `POST` a la url que configuraste en el campo `webhook_url`. Este payload **NO** es la respuesta síncrona del endpoint `/api/validations`. Llega despues, y es una notificación que tu servidor debe recibir y procesar.
+
+### Estructura del payload
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="status" type="object" isRequired={false}>
+        Objeto que contiene el estado de la validación.
+        <Properties nested>
+          <Property name="status" type="string" isRequired={false}>
+            Estado actual: `PENDING`, `APPROVED`, `REJECTED` o `PARTIAL_EXPIRED`.
+          </Property>
+          <Property name="reason" type="string | null" isRequired={false}>
+            Código de razón adicional (puede ser nulo).
+          </Property>
+          <Property name="message" type="string" isRequired={false}>
+            Descripción del cambio de estado (ej: "El usuario ha respondido").
+          </Property>
+          <Property name="date" type="date (ISO 8601)" isRequired={false}>
+            Fecha y hora del cambio. Formato: `YYYY-MM-DDTHH:MM:SS+00:00`.
+          </Property>
+        </Properties>
+      </Property>
+      <Property name="token" type="string" isRequired={false}>
+        Identificador único de la solicitud (8 caracteres hexadecimales). Generado al crear la validación.
+      </Property>
+      <Property name="reference" type="string" isRequired={false}>
+        Referencia del ítem validado (el `reference` que enviaste en la solicitud original).
+      </Property>
+      <Property name="kind" type="string" isRequired={false}>
+        Clasificación de la solicitud (el `kind` que enviaste originalmente).
+      </Property>
+      <Property name="signature" type="string" isRequired={false}>
+        Firma SHA-256 para autenticar el mensaje. Calculada como: `hash('sha256', token + status.status + status.date + secret_token)`. Debes validarla siempre.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Ejemplos de payload">
+
+```json {{ title: 'APPROVED' }}
+{
+  "status": {
+    "status": "APPROVED",
+    "reason": null,
+    "message": "El usuario ha respondido",
+    "date": "2022-08-08T17:23:49+00:00"
+  },
+  "token": "d5d67dcb",
+  "reference": "0122333444455555",
+  "kind": "horus",
+  "signature": "c1c0a085837b4042ab6cce604d5a51e665aa038c2eab58a6212037b459612ca1"
+}
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+### Validación de la firma
+
+Antes de procesar el webhook, recalcula el hash SHA-256 y compáralo con el valor recibido en el campo `signature`. Si la firma calculada coincide con la firma proporcionada, se valida la autenticidad de la respuesta y se procede a persistir el registro en la base de datos:
+
+```php
+$calculated = hash('sha256', $token . $status . $date . $secret_token);
+// Ejemplo: hash('sha256', 'd5d67dcbAPPROVED2022-08-08T17:23:49+00:00ABCD1234')
+
+if (!hash_equals($calculated, $signature)) {
+    // Rechazar — no auténtico
+    http_response_code(400);
+    exit;
+}
+
+// Procesar el webhook
+http_response_code(200);
+```
+
+<Note>
+  Responde `200` en cuanto valides la firma. Si tu servidor no está disponible en ese momento, msv-service no lo detecta: la entrega se delega a un proceso asíncrono, así que trata el webhook como un aviso best-effort y concilia con [Consulta validación](/msv-service/api/validation-query) las solicitudes de las que no hayas recibido respuesta.
+</Note>
+
+<Note>
+  Bajo ninguna circunstancia expongas tu `secret_token` en ninguna parte accesible a los clientes o usuarios de tu aplicación.
+</Note>
+
+## Códigos de respuesta
+
+| Código | Cuándo ocurre |
+| :--- | :--- |
+| `200` / `201` | La solicitud se procesó correctamente. |
+| `400` | No fue posible entregar el mensaje por alguno de los canales. |
+| `401` | Falta el token, es inválido o expiró. |
+| `404` | El token consultado no existe (solo en consulta de validación). |
+| `422` | Los datos no superaron la validación; el detalle viene en `errors`. |
+| `429` | Superaste el límite de 60 peticiones por minuto. |
+
+---
+
+## Servicios disponibles
+
+Explora los endpoints disponibles:
+
+* [**Login**](/msv-service/api/login): Permite obtener un token para realizar peticiones a la API.
+* [**Validación**](/msv-service/api/validation): Crea una solicitud de validación (respuesta síncrona: `HTTP 201`).
+* [**Consulta validación**](/msv-service/api/validation-query): Consulta el estado actual de una validación previamente creada.
+* [**Notificación**](/msv-service/api/notification): Crea una solicitud de notificación.
