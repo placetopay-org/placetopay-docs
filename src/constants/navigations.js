@@ -2395,7 +2395,7 @@ export const TAB_NAVIGATION = {
               },
               {
                 title: 'Actions on Ads',
-                href: '/core/reference/ads'
+                href: '/en/core/reference/ads'
               },
             ]
           },
