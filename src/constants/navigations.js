@@ -2326,6 +2326,10 @@ export const TAB_NAVIGATION = {
                 title: 'Acciones sobre integraciones de sitios',
                 href: '/core/reference/site/integrations',
               },
+              {
+                title: 'Acciones sobre autopay',
+                href: '/core/reference/autopay',
+              },
             ],
           },
         ],
@@ -2388,6 +2392,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Actions on site integrations',
                 href: '/en/core/reference/site/integrations',
+              },
+              {
+                title: 'Actions on autopay',
+                href: '/en/core/reference/autopay',
               },
             ],
           },

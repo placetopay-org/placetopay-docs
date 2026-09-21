@@ -38,6 +38,8 @@ tags:
     description: Actions on the administration of integrations associated with a merchant.
   - name: Site integration actions
     description: Actions on the administration of integrations associated with a site.
+  - name: Core / Autopay
+    description: Actions on autopay subscriptions.
 paths:
   "/core/merchant/create":
     post:
@@ -14188,6 +14190,1082 @@ paths:
       tags:
         - Additional procedures
       parameters: [ ]
+  "/core/autopay/create":
+    post:
+      summary: Create an autopay subscription
+      operationId: post-core-autopay-create
+      description: |
+        Creates a new autopay record and its associated subscription. The site must have the autopay integration enabled.
+        Authentication is handled via the PlacetoPay `auth` block in the request body (login + tranKey derived from seed + nonce).
+      tags:
+        - Core / Autopay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - data
+              properties:
+                auth:
+                  type: object
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: Site login identifier.
+                      example: aabbccdd1234567890aabbccdd123456
+                    tranKey:
+                      type: string
+                      description: |
+                        Base64-encoded SHA256 hash of `nonce + seed + secretTranKey`.
+                      example: ABC123example456trankey+789abc012def3456ABC=
+                    nonce:
+                      type: string
+                      description: Base64-encoded random nonce.
+                      example: enQ4dXh3YWhkMWM=
+                    seed:
+                      type: string
+                      format: date-time
+                      description: ISO-8601 timestamp used to generate the tranKey.
+                      example: 2023-06-21T09:56:06-05:00
+                data:
+                  type: object
+                  required:
+                    - id
+                    - siteId
+                    - payer
+                    - subscription
+                    - instrument
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      description: Unique identifier for the autopay (must be a UUID and not already exist).
+                      example: 328eb09a-363f-48a6-a16e-51c5a58b89ec
+                    siteId:
+                      type: integer
+                      description: Site identifier. Must exist in `tp14_customers_sites` and have autopay enabled.
+                      example: 18
+                    buyer:
+                      type: object
+                      nullable: true
+                      description: Buyer information. If provided, `documentType` and `document` become required together.
+                      properties:
+                        documentType:
+                          type: string
+                          maxLength: 5
+                          enum:
+                            - CC
+                            - CE
+                            - TI
+                            - NIT
+                            - RUT
+                            - PPN
+                            - TAX
+                            - LIC
+                            - CIP
+                            - PARUC
+                            - CPF
+                            - CI
+                            - RUC
+                            - DNI
+                            - PERUC
+                            - CRCPF
+                            - CPJ
+                            - DIMEX
+                            - DIDI
+                            - CLRUT
+                            - HNDNI
+                            - HNDR
+                            - RTN
+                            - BZSSN
+                            - BRN
+                            - EIN
+                            - UYCI
+                            - UYRUT
+                          example: CC
+                        document:
+                          type: string
+                          maxLength: 20
+                          description: Document number validated according to the document type.
+                          example: "911111111"
+                        name:
+                          type: string
+                          maxLength: 60
+                          example: john
+                        surname:
+                          type: string
+                          maxLength: 60
+                          example: doe
+                        email:
+                          type: string
+                          format: email
+                          maxLength: 80
+                          example: john@doe.com
+                        mobile:
+                          type: string
+                          maxLength: 30
+                          example: "+573111111111"
+                    payer:
+                      type: object
+                      required:
+                        - name
+                        - surname
+                        - email
+                      properties:
+                        documentType:
+                          type: string
+                          maxLength: 5
+                          enum:
+                            - CC
+                            - CE
+                            - TI
+                            - NIT
+                            - RUT
+                            - PPN
+                            - TAX
+                            - LIC
+                            - CIP
+                            - PARUC
+                            - CPF
+                            - CI
+                            - RUC
+                            - DNI
+                            - PERUC
+                            - CRCPF
+                            - CPJ
+                            - DIMEX
+                            - DIDI
+                            - CLRUT
+                            - HNDNI
+                            - HNDR
+                            - RTN
+                            - BZSSN
+                            - BRN
+                            - EIN
+                            - UYCI
+                            - UYRUT
+                          example: CC
+                        document:
+                          type: string
+                          maxLength: 20
+                          example: "911111111"
+                        name:
+                          type: string
+                          maxLength: 60
+                          example: john
+                        surname:
+                          type: string
+                          maxLength: 60
+                          example: doe
+                        email:
+                          type: string
+                          format: email
+                          maxLength: 80
+                          example: john@doe.com
+                        mobile:
+                          type: string
+                          maxLength: 30
+                          example: "+573111111111"
+                    subscription:
+                      type: object
+                      required:
+                        - reference
+                        - description
+                        - recurring
+                      properties:
+                        reference:
+                          type: string
+                          maxLength: 32
+                          example: RF-12345
+                        description:
+                          type: string
+                          maxLength: 255
+                          example: Plan de suscripción mensual
+                        recurring:
+                          type: object
+                          required:
+                            - type
+                            - periodicity
+                            - interval
+                            - nextPayment
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                                - FIXED
+                                - TOTAL_BALANCE
+                                - MINIMUM_BALANCE
+                              description: |
+                                `FIXED`: charge a fixed amount (requires `amount`).<br>
+                                `TOTAL_BALANCE`: charge the full outstanding balance.<br>
+                                `MINIMUM_BALANCE`: charge only the minimum balance.
+                              example: TOTAL_BALANCE
+                            periodicity:
+                              type: string
+                              enum:
+                                - D
+                                - M
+                                - Y
+                              description: D = daily, M = monthly, Y = yearly.
+                              example: D
+                            interval:
+                              type: integer
+                              minimum: 1
+                              maximum: 30
+                              description: Number of periods between charges.
+                              example: 1
+                            nextPayment:
+                              type: string
+                              format: date
+                              description: Date of the first payment. Must be after today (`Y-m-d`).
+                              example: "2026-09-22"
+                            dueDate:
+                              type: string
+                              format: date
+                              description: Final charge date. Must be after `nextPayment` (`Y-m-d`).
+                              example: "2027-09-22"
+                        amount:
+                          type: object
+                          description: Required when `recurring.type` is `FIXED`; ignored for other types.
+                          required:
+                            - total
+                            - currency
+                          properties:
+                            total:
+                              type: number
+                              minimum: 0.01
+                              example: 10
+                            currency:
+                              type: string
+                              minLength: 3
+                              maxLength: 3
+                              description: ISO-4217 currency code. Must exist in `tp02_currencies`.
+                              example: USD
+                    instrument:
+                      type: object
+                      required:
+                        - token
+                      properties:
+                        token:
+                          type: object
+                          required:
+                            - token
+                          properties:
+                            token:
+                              type: string
+                              minLength: 64
+                              maxLength: 64
+                              description: 64-character token identifier. Must belong to the site.
+                              example: aabbccdd1234567890aabbccdd1234567890aabbccdd1234567890aabbccdd
+                            subtoken:
+                              type: string
+                              minLength: 16
+                              maxLength: 16
+                              example: "0001000200030004"
+                            franchise:
+                              type: string
+                              example: master
+                            franchiseName:
+                              type: string
+                              example: Mastercard
+                            lastDigits:
+                              type: string
+                              minLength: 4
+                              maxLength: 4
+                              example: "0005"
+                            validUntil:
+                              type: string
+                              format: date
+                              example: "2018-12-31"
+                    additional:
+                      type: object
+                      nullable: true
+                      properties:
+                        customerAccountNumber:
+                          type: string
+                          nullable: true
+                          example: "1232312323"
+                        sessionId:
+                          type: string
+                          nullable: true
+                          example: fakesubtoken00005
+                        dueDay:
+                          type: string
+                          maxLength: 2
+                          nullable: true
+                          example: "25"
+              example:
+                auth:
+                  login: aabbccdd1234567890aabbccdd123456
+                  tranKey: ABC123example456trankey+789abc012def3456ABC=
+                  nonce: enQ4dXh3YWhkMWM=
+                  seed: 2023-06-21T09:56:06-05:00
+                data:
+                  id: 328eb09a-363f-48a6-a16e-51c5a58b89ec
+                  siteId: 18
+                  payer:
+                    name: john
+                    surname: doe
+                    email: john@doe.com
+                    mobile: "+573111111111"
+                  subscription:
+                    reference: RF-12345
+                    description: Plan de suscripción mensual
+                    recurring:
+                      type: TOTAL_BALANCE
+                      periodicity: D
+                      interval: 1
+                      nextPayment: "2026-09-22"
+                  instrument:
+                    token:
+                      token: aabbccdd1234567890aabbccdd1234567890aabbccdd1234567890aabbccdd
+
+      responses:
+        "201":
+          description: Autopay created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: 328eb09a-363f-48a6-a16e-51c5a58b89ec
+                      siteId:
+                        type: integer
+                        example: 18
+                      status:
+                        $ref: "#/components/schemas/Status"
+                      buyer:
+                        nullable: true
+                        allOf:
+                          - $ref: "#/components/schemas/Person"
+                      payer:
+                        $ref: "#/components/schemas/Person"
+                      subscription:
+                        $ref: "#/components/schemas/Subscription"
+                      instrument:
+                        type: object
+                        properties:
+                          token:
+                            $ref: "#/components/schemas/Token"
+                      additional:
+                        type: object
+                        description: Empty object when no additional data was sent.
+                        example: {}
+                      acceptedAt:
+                        type: string
+                        format: date-time
+                        example: "2026-09-21T10:30:00-05:00"
+              example:
+                status:
+                  status: OK
+                  reason: "00"
+                  message: success
+                  date: "2026-09-21T10:30:00-05:00"
+                data:
+                  id: 328eb09a-363f-48a6-a16e-51c5a58b89ec
+                  siteId: 18
+                  status:
+                    status: APPROVED
+                    reason: "00"
+                    message: success
+                    date: "2026-09-21T10:30:00-05:00"
+                  buyer: null
+                  payer:
+                    name: john
+                    surname: doe
+                    email: john@doe.com
+                    mobile: "+573111111111"
+                  subscription:
+                    reference: RF-12345
+                    description: Plan de suscripción mensual
+                    recurring:
+                      type: TOTAL_BALANCE
+                      periodicity: D
+                      interval: 1
+                      nextPayment: "2026-09-22"
+                      startDate: "2026-09-22"
+                  instrument:
+                    token:
+                      token: aabbccdd1234567890aabbccdd1234567890aabbccdd1234567890aabbccdd
+                  additional: {}
+                  acceptedAt: "2026-09-21T10:30:00-05:00"
+
+        "400":
+          description: Validation or authentication failure.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+              examples:
+                validationFailure:
+                  summary: Validation failure (e.g., missing data)
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "400"
+                      message: The data field is required.
+                      date: "2026-09-21T10:30:00-05:00"
+                authenticationFailure:
+                  summary: Authentication failure
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "401"
+                      message: "Authentication failed [101]"
+                      date: "2026-09-21T10:30:00-05:00"
+  "/core/autopay/update":
+    post:
+      summary: Update an existing autopay subscription
+      operationId: post-core-autopay-update
+      description: |
+        Partially updates an approved autopay record. Only specific fields can be changed:
+        buyer, payer, instrument (token), additional metadata, and the next payment / due date
+        of the current subscription.
+
+        When `data.subscription.recurring.nextPayment` is provided, the current enabled
+        subscription is cancelled (reason `SP`) and a new subscription is created with the
+        new dates. Updating the next payment is not allowed if the autopay was already
+        suspended before without any approved installments.
+
+        The autopay must be in `APPROVED` status, belong to the provided `siteId`, and not be
+        expired (`dueDate` must be in the future).
+      tags:
+        - Core / Autopay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+                - siteId
+                - data
+              properties:
+                auth:
+                  type: object
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: Site login identifier.
+                      example: dnetix
+                    tranKey:
+                      type: string
+                      description: |
+                        Base64-encoded SHA256 hash of `nonce + seed + secretTranKey`.
+                      example: ABC123example456trankey+789abc012def3456ABC=
+                    nonce:
+                      type: string
+                      description: Base64-encoded random nonce.
+                      example: enQ4dXh3YWhkMWM=
+                    seed:
+                      type: string
+                      format: date-time
+                      description: ISO-8601 timestamp used to generate the tranKey.
+                      example: 2023-06-21T09:56:06-05:00
+                id:
+                  type: string
+                  format: uuid
+                  description: UUID of the autopay to update. Must exist, be APPROVED, and belong to `siteId`.
+                  example: 328eb09a-363f-48a6-a16e-51c5a58b89ec
+                siteId:
+                  type: integer
+                  description: Site identifier. Must exist and have autopay enabled.
+                  example: 18
+                locale:
+                  type: string
+                  description: Locale hint (ignored by the endpoint, accepted for compatibility).
+                  example: es_ES
+                data:
+                  type: object
+                  description: |
+                    At least one updatable field must be present. Sending an empty `data`
+                    object returns a validation error.
+                  properties:
+                    buyer:
+                      type: object
+                      nullable: true
+                      description: Buyer information. If provided, `documentType` and `document` become required together. Set to `null` to clear the buyer.
+                      properties:
+                        documentType:
+                          type: string
+                          maxLength: 5
+                          enum:
+                            - CC
+                            - CE
+                            - TI
+                            - NIT
+                            - RUT
+                            - PPN
+                            - TAX
+                            - LIC
+                            - CIP
+                            - PARUC
+                            - CPF
+                            - CI
+                            - RUC
+                            - DNI
+                            - PERUC
+                            - CRCPF
+                            - CPJ
+                            - DIMEX
+                            - DIDI
+                            - CLRUT
+                            - HNDNI
+                            - HNDR
+                            - RTN
+                            - BZSSN
+                            - BRN
+                            - EIN
+                            - UYCI
+                            - UYRUT
+                          example: CC
+                        document:
+                          type: string
+                          maxLength: 20
+                          example: "811111111"
+                        name:
+                          type: string
+                          maxLength: 60
+                          example: test
+                        surname:
+                          type: string
+                          maxLength: 60
+                          example: doe
+                        email:
+                          type: string
+                          format: email
+                          maxLength: 80
+                          example: test@doe.com
+                        mobile:
+                          type: string
+                          maxLength: 30
+                          example: "+573111111111"
+                    payer:
+                      type: object
+                      description: Payer information. If provided, `name`, `surname`, and `email` are required.
+                      properties:
+                        documentType:
+                          type: string
+                          maxLength: 5
+                          enum:
+                            - CC
+                            - CE
+                            - TI
+                            - NIT
+                            - RUT
+                            - PPN
+                            - TAX
+                            - LIC
+                            - CIP
+                            - PARUC
+                            - CPF
+                            - CI
+                            - RUC
+                            - DNI
+                            - PERUC
+                            - CRCPF
+                            - CPJ
+                            - DIMEX
+                            - DIDI
+                            - CLRUT
+                            - HNDNI
+                            - HNDR
+                            - RTN
+                            - BZSSN
+                            - BRN
+                            - EIN
+                            - UYCI
+                            - UYRUT
+                          example: CC
+                        document:
+                          type: string
+                          maxLength: 20
+                          example: "911111111"
+                        name:
+                          type: string
+                          maxLength: 60
+                          example: john
+                        surname:
+                          type: string
+                          maxLength: 60
+                          example: doe
+                        email:
+                          type: string
+                          format: email
+                          maxLength: 80
+                          example: john@doe.com
+                        mobile:
+                          type: string
+                          maxLength: 30
+                          example: "+573111111111"
+                    instrument:
+                      type: object
+                      description: Tokenized payment instrument. If provided, `instrument.token` and `instrument.token.token` are required.
+                      properties:
+                        token:
+                          type: object
+                          required:
+                            - token
+                          properties:
+                            token:
+                              type: string
+                              minLength: 64
+                              maxLength: 64
+                              description: 64-character token identifier. Must belong to the site.
+                              example: aabbccdd1234567890aabbccdd1234567890aabbccdd1234567890aabbccdd
+                            subtoken:
+                              type: string
+                              minLength: 16
+                              maxLength: 16
+                              example: "0001000200030004"
+                            franchise:
+                              type: string
+                              example: master
+                            franchiseName:
+                              type: string
+                              example: Mastercard
+                            lastDigits:
+                              type: string
+                              minLength: 4
+                              maxLength: 4
+                              example: "0005"
+                            validUntil:
+                              type: string
+                              format: date
+                              example: "2018-12-31"
+                    additional:
+                      type: object
+                      nullable: true
+                      description: Additional metadata. Unknown keys are silently discarded.
+                      properties:
+                        customerAccountNumber:
+                          type: string
+                          nullable: true
+                          example: "1232312323"
+                        sessionId:
+                          type: string
+                          nullable: true
+                          example: fakesubtoken00005
+                        dueDay:
+                          type: string
+                          maxLength: 2
+                          nullable: true
+                          example: "25"
+                    subscription:
+                      type: object
+                      description: Only the recurring dates can be updated.
+                      properties:
+                        recurring:
+                          type: object
+                          properties:
+                            nextPayment:
+                              type: string
+                              format: date
+                              description: New next payment date (`Y-m-d`). Must be after today. Changing this cancels the current subscription and creates a new one.
+                              example: "2026-09-22"
+                            dueDate:
+                              type: string
+                              format: date
+                              description: New final charge date (`Y-m-d`). Must be after `nextPayment`.
+                              example: "2027-09-22"
+              example:
+                auth:
+                  login: dnetix
+                  tranKey: ABC123example456trankey+789abc012def3456ABC=
+                  nonce: enQ4dXh3YWhkMWM=
+                  seed: 2023-06-21T09:56:06-05:00
+                id: 328eb09a-363f-48a6-a16e-51c5a58b89ec
+                siteId: 18
+                data:
+                  buyer:
+                    document: "811111111"
+                    documentType: CC
+                    name: test
+                    surname: doe
+                    email: test@doe.com
+                    mobile: "+573111111111"
+                  payer:
+                    document: "911111111"
+                    documentType: CC
+                    name: john
+                    surname: doe
+                    email: john@doe.com
+                    mobile: "+573111111111"
+                  instrument:
+                    token:
+                      token: aabbccdd1234567890aabbccdd1234567890aabbccdd1234567890aabbccdd
+                      subtoken: "0001000200030004"
+                      franchise: master
+                      franchiseName: Mastercard
+                      lastDigits: "0005"
+                      validUntil: "2018-12-31"
+                  additional:
+                    customerAccountNumber: "1232312323"
+                    sessionId: fakesubtoken00005
+                    dueDay: "25"
+
+      responses:
+        "200":
+          description: Autopay updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: 328eb09a-363f-48a6-a16e-51c5a58b89ec
+                      siteId:
+                        type: integer
+                        example: 18
+                      status:
+                        $ref: "#/components/schemas/Status"
+                      buyer:
+                        nullable: true
+                        allOf:
+                          - $ref: "#/components/schemas/Person"
+                      payer:
+                        $ref: "#/components/schemas/Person"
+                      subscription:
+                        $ref: "#/components/schemas/Subscription"
+                      instrument:
+                        type: object
+                        properties:
+                          token:
+                            $ref: "#/components/schemas/Token"
+                      additional:
+                        type: object
+                        example: {}
+                      acceptedAt:
+                        type: string
+                        format: date-time
+                        example: "2026-09-21T10:30:00-05:00"
+              example:
+                status:
+                  status: OK
+                  reason: "00"
+                  message: success
+                  date: "2026-09-21T10:30:00-05:00"
+                data:
+                  id: 328eb09a-363f-48a6-a16e-51c5a58b89ec
+                  siteId: 18
+                  status:
+                    status: APPROVED
+                    reason: "00"
+                    message: success
+                    date: "2026-09-21T10:30:00-05:00"
+                  buyer:
+                    document: "811111111"
+                    documentType: CC
+                    name: test
+                    surname: doe
+                    email: test@doe.com
+                    mobile: "+573111111111"
+                  payer:
+                    document: "911111111"
+                    documentType: CC
+                    name: john
+                    surname: doe
+                    email: john@doe.com
+                    mobile: "+573111111111"
+                  subscription:
+                    reference: RF-12345
+                    description: Plan de suscripción mensual
+                    amount:
+                      total: 10
+                      currency: USD
+                    recurring:
+                      type: FIXED
+                      periodicity: D
+                      interval: 1
+                      nextPayment: "2026-09-22"
+                      startDate: "2026-09-22"
+                  instrument:
+                    token:
+                      token: aabbccdd1234567890aabbccdd1234567890aabbccdd1234567890aabbccdd
+                      subtoken: "0001000200030004"
+                      franchise: master
+                      franchiseName: Mastercard
+                      lastDigits: "0005"
+                      validUntil: "2018-12-31"
+                  additional:
+                    customerAccountNumber: "1232312323"
+                    sessionId: fakesubtoken00005
+                    dueDay: "25"
+                  acceptedAt: "2026-09-20T10:30:00-05:00"
+
+        "400":
+          description: Validation error, authentication failure, or business rule violation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+              examples:
+                invalidData:
+                  summary: Empty or invalid data
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "400"
+                      message: The data field is invalid.
+                      date: "2026-09-21T10:30:00-05:00"
+                notFoundOrNotApproved:
+                  summary: Autopay not found or not in APPROVED status
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "400"
+                      message: The selected id is invalid.
+                      date: "2026-09-21T10:30:00-05:00"
+                expired:
+                  summary: Autopay has expired
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "400"
+                      message: Autopay expired.
+                      date: "2026-09-21T10:30:00-05:00"
+                cannotSuspend:
+                  summary: Already suspended without approved installments
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "400"
+                      message: Autopay cannot be suspended.
+                      date: "2026-09-21T10:30:00-05:00"
+                authenticationFailure:
+                  summary: Authentication failure
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "401"
+                      message: "Authentication failed [101]"
+                      date: "2026-09-21T10:30:00-05:00"
+
+  "/core/autopay/query":
+    post:
+      summary: Query an existing autopay subscription
+      operationId: post-core-autopay-query
+      description: |
+        Retrieves the current state of an autopay record by its UUID. The autopay must
+        belong to the provided `siteId` and the site must have autopay enabled.
+      tags:
+        - Core / Autopay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+                - siteId
+              properties:
+                auth:
+                  type: object
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: Site login identifier.
+                      example: dnetix
+                    tranKey:
+                      type: string
+                      description: |
+                        Base64-encoded SHA256 hash of `nonce + seed + secretTranKey`.
+                      example: ABC123example456trankey+789abc012def3456ABC=
+                    nonce:
+                      type: string
+                      description: Base64-encoded random nonce.
+                      example: enQ4dXh3YWhkMWM=
+                    seed:
+                      type: string
+                      format: date-time
+                      description: ISO-8601 timestamp used to generate the tranKey.
+                      example: 2023-06-21T09:56:06-05:00
+                id:
+                  type: string
+                  format: uuid
+                  description: UUID of the autopay to query. Must exist and belong to `siteId`.
+                  example: 328eb09a-363f-48a6-a16e-51c5a58b89ec
+                siteId:
+                  type: integer
+                  description: Site identifier. Must exist and have autopay enabled.
+                  example: 18
+                locale:
+                  type: string
+                  description: Locale hint (ignored by the endpoint, accepted for compatibility).
+                  example: es_ES
+            example:
+              auth:
+                login: dnetix
+                tranKey: ABC123example456trankey+789abc012def3456ABC=
+                nonce: enQ4dXh3YWhkMWM=
+                seed: 2023-06-21T09:56:06-05:00
+              id: 328eb09a-363f-48a6-a16e-51c5a58b89ec
+              siteId: 18
+
+      responses:
+        "200":
+          description: Autopay found and returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: 328eb09a-363f-48a6-a16e-51c5a58b89ec
+                      siteId:
+                        type: integer
+                        example: 18
+                      status:
+                        $ref: "#/components/schemas/Status"
+                      buyer:
+                        nullable: true
+                        allOf:
+                          - $ref: "#/components/schemas/Person"
+                      payer:
+                        $ref: "#/components/schemas/Person"
+                      subscription:
+                        $ref: "#/components/schemas/Subscription"
+                      instrument:
+                        type: object
+                        properties:
+                          token:
+                            $ref: "#/components/schemas/Token"
+                      additional:
+                        type: object
+                        description: Additional metadata stored with the autopay.
+                        example: {}
+                      acceptedAt:
+                        type: string
+                        format: date-time
+                        example: "2026-09-21T10:30:00-05:00"
+              example:
+                status:
+                  status: OK
+                  reason: "00"
+                  message: success
+                  date: "2026-09-21T10:30:00-05:00"
+                data:
+                  id: 328eb09a-363f-48a6-a16e-51c5a58b89ec
+                  siteId: 18
+                  status:
+                    status: APPROVED
+                    reason: "00"
+                    message: success
+                    date: "2026-09-21T10:30:00-05:00"
+                  buyer: null
+                  payer:
+                    name: john
+                    surname: doe
+                    email: john@doe.com
+                    mobile: "+573111111111"
+                  subscription:
+                    reference: RF-12345
+                    description: Plan de suscripción mensual
+                    recurring:
+                      type: TOTAL_BALANCE
+                      periodicity: D
+                      interval: 1
+                      nextPayment: "2026-09-22"
+                      startDate: "2026-09-22"
+                  instrument:
+                    token:
+                      token: aabbccdd1234567890aabbccdd1234567890aabbccdd1234567890aabbccdd
+                  additional: {}
+                  acceptedAt: "2026-09-21T10:30:00-05:00"
+
+        "400":
+          description: Validation error, authentication failure, or business rule violation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+              examples:
+                invalidId:
+                  summary: Invalid or missing autopay id
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "400"
+                      message: The id field must be a valid UUID.
+                      date: "2026-09-21T10:30:00-05:00"
+                siteMismatch:
+                  summary: Autopay does not belong to the site
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "400"
+                      message: The selected id is invalid.
+                      date: "2026-09-21T10:30:00-05:00"
+                integrationDisabled:
+                  summary: Autopay integration disabled for the site
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "400"
+                      message: The site does not allow autopay setup.
+                      date: "2026-09-21T10:30:00-05:00"
+                authenticationFailure:
+                  summary: Authentication failure
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "401"
+                      message: "Authentication failed [101]"
+                      date: "2026-09-21T10:30:00-05:00"
+
 components:
   schemas:
     Person:
@@ -17495,6 +18573,92 @@ components:
         - kind
         - amount
 
+    Subscription:
+      type: object
+      properties:
+        reference:
+          type: string
+          example: RF-12345
+        description:
+          type: string
+          example: Plan de suscripción mensual
+        amount:
+          type: object
+          nullable: true
+          properties:
+            total:
+              type: number
+              example: 10
+            currency:
+              type: string
+              example: USD
+        recurring:
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - FIXED
+                - TOTAL_BALANCE
+                - MINIMUM_BALANCE
+              example: TOTAL_BALANCE
+            periodicity:
+              type: string
+              enum:
+                - D
+                - M
+                - Y
+              example: D
+            interval:
+              type: integer
+              example: 1
+            startDate:
+              type: string
+              format: date
+              example: "2026-09-22"
+            nextPayment:
+              type: string
+              format: date
+              example: "2026-09-22"
+            dueDate:
+              type: string
+              format: date
+              nullable: true
+              example: "2027-09-22"
+
+    Token:
+      type: object
+      properties:
+        token:
+          type: string
+          example: aabbccdd1234567890aabbccdd1234567890aabbccdd1234567890aabbccdd
+        subtoken:
+          type: string
+          nullable: true
+          example: "0001000200030004"
+        franchise:
+          type: string
+          nullable: true
+          example: master
+        franchiseName:
+          type: string
+          nullable: true
+          example: Mastercard
+        issuerName:
+          type: string
+          nullable: true
+        lastDigits:
+          type: string
+          nullable: true
+          example: "0005"
+        validUntil:
+          type: string
+          format: date
+          nullable: true
+          example: "2018-12-31"
+        installments:
+          type: integer
+          nullable: true
   securitySchemes:
   responses:
   requestBodies:
