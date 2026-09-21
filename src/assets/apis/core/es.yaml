@@ -15349,6 +15349,215 @@ paths:
                       message: "Authentication failed [101]"
                       date: "2026-09-21T10:30:00-05:00"
 
+  "/core/autopay/subscriptions":
+    post:
+      summary: Listar suscripciones asociadas a un autopay
+      operationId: post-core-autopay-subscriptions
+      description: |
+        Retorna las suscripciones vinculadas a un UUID de autopay, ordenadas de la más reciente
+        a la más antigua (`created_at` DESC, `id` DESC). Los resultados están paginados.
+      tags:
+        - Core / Autopay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - id
+              properties:
+                auth:
+                  type: object
+                  required:
+                    - login
+                    - tranKey
+                    - nonce
+                    - seed
+                  properties:
+                    login:
+                      type: string
+                      description: Identificador de inicio de sesión del sitio.
+                      example: dnetix
+                    tranKey:
+                      type: string
+                      description: |
+                        Hash SHA256 de `nonce + seed + secretTranKey` codificado en Base64.
+                      example: ABC123example456trankey+789abc012def3456ABC=
+                    nonce:
+                      type: string
+                      description: Valor aleatorio codificado en Base64.
+                      example: enQ4dXh3YWhkMWM=
+                    seed:
+                      type: string
+                      format: date-time
+                      description: Timestamp ISO-8601 usado para generar el tranKey.
+                      example: 2023-06-21T09:56:06-05:00
+                id:
+                  type: string
+                  format: uuid
+                  description: UUID del autopay cuyas suscripciones se listarán.
+                  example: 328eb09a-363f-48a6-a16e-51c5a58b89ec
+                pagination:
+                  type: object
+                  description: Controles de paginación.
+                  properties:
+                    perPage:
+                      type: integer
+                      minimum: 1
+                      description: Número de elementos por página. Valor por defecto 20.
+                      example: 20
+                    page:
+                      type: integer
+                      minimum: 1
+                      description: Número de página a recuperar. Valor por defecto 1.
+                      example: 1
+            example:
+              auth:
+                login: dnetix
+                tranKey: ABC123example456trankey+789abc012def3456ABC=
+                nonce: enQ4dXh3YWhkMWM=
+                seed: 2023-06-21T09:56:06-05:00
+              id: 328eb09a-363f-48a6-a16e-51c5a58b89ec
+              pagination:
+                perPage: 20
+                page: 1
+
+      responses:
+        "200":
+          description: Suscripciones encontradas y retornadas exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        reference:
+                          type: string
+                          description: Referencia de pago de los datos originales de la transacción de suscripción.
+                          example: RF-12345
+                        description:
+                          type: string
+                          description: Descripción de pago de los datos originales de la transacción de suscripción.
+                          example: Plan de suscripción mensual
+                        recurring:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                                - FIXED
+                                - TOTAL_BALANCE
+                                - MINIMUM_BALANCE
+                              example: FIXED
+                            periodicity:
+                              type: string
+                              enum:
+                                - D
+                                - M
+                                - Y
+                              example: M
+                            interval:
+                              type: integer
+                              example: 1
+                            startDate:
+                              type: string
+                              format: date-time
+                              example: "2026-09-21T00:00:00-05:00"
+                            nextPayment:
+                              type: string
+                              format: date-time
+                              example: "2026-09-21T00:00:00-05:00"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                    description: Presente cuando se retorna al menos un elemento.
+              example:
+                status:
+                  status: OK
+                  reason: "00"
+                  message: success
+                  date: "2026-09-21T10:30:00-05:00"
+                data:
+                  - reference: RF-12345
+                    description: Plan de suscripción mensual
+                    recurring:
+                      type: FIXED
+                      periodicity: M
+                      interval: 1
+                      startDate: "2026-09-21T00:00:00-05:00"
+                      nextPayment: "2026-09-21T00:00:00-05:00"
+                  - reference: RF-12345
+                    description: Plan de suscripción mensual
+                    recurring:
+                      type: FIXED
+                      periodicity: M
+                      interval: 1
+                      startDate: "2026-08-21T00:00:00-05:00"
+                      nextPayment: "2026-08-21T00:00:00-05:00"
+                pagination:
+                  total: 2
+                  perPage: 20
+                  currentPage: 1
+                  lastPage: 1
+
+        "400":
+          description: Error de validación, falla de autenticación o autopay no encontrado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+              examples:
+                missingId:
+                  summary: ID de autopay faltante
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "400"
+                      message: El campo id es obligatorio.
+                      date: "2026-09-21T10:30:00-05:00"
+                invalidId:
+                  summary: ID de autopay inválido
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "400"
+                      message: El campo id debe ser un UUID válido.
+                      date: "2026-09-21T10:30:00-05:00"
+                notFound:
+                  summary: Autopay no encontrado
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "400"
+                      message: El id seleccionado es inválido.
+                      date: "2026-09-21T10:30:00-05:00"
+                invalidPagination:
+                  summary: Valor de paginación inválido
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "400"
+                      message: El campo pagination.per page debe ser un entero.
+                      date: "2026-09-21T10:30:00-05:00"
+                authenticationFailure:
+                  summary: Falla de autenticación
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "401"
+                      message: "Authentication failed [101]"
+                      date: "2026-09-21T10:30:00-05:00"
+
 components:
   schemas:
     Person:
