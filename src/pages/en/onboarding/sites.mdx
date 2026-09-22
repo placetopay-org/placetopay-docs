@@ -40,7 +40,7 @@ Cada sitio tiene sus propias credenciales, con las que se identifica ante la pla
 **Si no las envías, Onboarding las genera.** Esa es la razón por la que son opcionales incluso al crear un sitio.
 
 <Note type="warning">
-  Una credencial generada se publica **una sola vez**, en `result.sites[]` del proceso. No hay forma de recuperarla después. Guarda el resultado del proceso en cuanto lo recibas.
+  Una credencial generada se publica en `result.sites[]` del proceso. Guarda el resultado en cuanto lo recibas: después solo puede volver a leerse con [Consultar un comercio](/en/onboarding/show-merchant), que exige el permiso `onboarding:read`.
 </Note>
 
 Como el `login` no distingue mayúsculas, `ACME` y `acme` son el mismo identificador y no pueden coexistir. Sigue estando disponible en dos casos, además de cuando está libre: cuando lo tiene el propio sitio que estás modificando, y cuando pertenece a un sitio que **esta misma clave de idempotencia ya creó** —sin lo cual un reintento colisionaría con su propio primer intento—.
@@ -311,10 +311,10 @@ Ten en cuenta también que el bloque se valida en cadena y se detiene en el prim
 
 Los límites exactos están en la [referencia de la API](/en/onboarding/api/reference/merchants#update-a-merchant), junto con la longitud máxima de un nombre y de un valor.
 
-### No se puede leer de vuelta {{ id: 'metadata-not-readable' }}
+### Dónde se lee {{ id: 'metadata-reading' }}
 
 <Note type="warning">
-  `metadata` **no viaja en `result`**, y por tanto tampoco en la notificación ni en `GET /api/processes/{processId}`. Tampoco hay ningún endpoint que lo devuelva. Conserva tu propia copia: esta API no te la puede restituir.
+  `metadata` **no viaja en `result`**, y por tanto tampoco en la notificación ni en `GET /api/processes/{processId}`. El documento guardado, ya fusionado, solo se lee con [Consultar un comercio](/en/onboarding/show-merchant), en `sites[].metadata`.
 </Note>
 
 Un cuerpo que no envía `metadata` deja el `result` exactamente igual que antes de que este bloque existiera.
@@ -322,7 +322,7 @@ Un cuerpo que no envía `metadata` deja el `result` exactamente igual que antes 
 ### Qué no poner aquí {{ id: 'metadata-not-for' }}
 
 <Note type="warning">
-  **No es sitio para un secreto ni para un dato personal.** El documento se guarda en claro, se copia entero al registro de auditoría del back office —cuya retención no controla esta API— y se conserva en el contenido del proceso, donde nada lo oculta.
+  **No es sitio para un secreto ni para un dato personal.** El documento se guarda en claro, se copia entero al registro de auditoría del back office —cuya retención no controla esta API—, se conserva en el contenido del proceso, donde nada lo oculta, y lo devuelve la consulta del comercio a cualquier token con el permiso `onboarding:read`.
 </Note>
 
 Ten en cuenta además que el back office **todavía no muestra estos datos**. Quedan guardados y auditados, pero verlos desde la ficha del sitio requiere un desarrollo pendiente del lado del back office.
@@ -375,7 +375,9 @@ Más concretamente, en una actualización el valor vuelve **solo si cambió**. R
 
 ### Si pierdes las credenciales {{ id: 'lost-credentials' }}
 
-No hay forma de volver a leerlas: ningún endpoint las devuelve. Lo que sí puedes hacer es **fijar unas nuevas**. Envía un `tranKey` distinto en una actualización del sitio: al cambiar de valor se escribe, y viaja en el `result` de ese proceso.
+Puedes volver a leerlas con [Consultar un comercio](/en/onboarding/show-merchant), que devuelve las credenciales de cada sitio en claro.
+
+Si lo que necesitas es reemplazarlas —porque quedaron expuestas, por ejemplo—, **fija unas nuevas**. Envía un `tranKey` distinto en una actualización del sitio: al cambiar de valor se escribe, y viaja en el `result` de ese proceso.
 
 <Note>
   El valor anterior **deja de estar almacenado**, y Onboarding no lo conserva en ningún otro registro: en el historial de cambios las credenciales quedan enmascaradas, tanto la nueva como la que se reemplazó. Tampoco se emite ninguna notificación por el cambio.
