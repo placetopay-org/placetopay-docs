@@ -6,12 +6,15 @@ const initialNodes = [
 
     { id: 'ACTION_T_APPROVED', type: 'action', position: { x: 200, y: -95 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'Approved Transaction', rounded: true } },
     { id: 'ACTION_T_REJECTED', type: 'action', position: { x: 200, y: -25 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'Rejected Transaction', rounded: true } },
-    { id: 'ACTION_EXPIRATION', type: 'action', position: { x: 200, y: 45 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'Expiration time ends', rounded: true } },
-    { id: 'ACTION_USER_CANCEL', type: 'action', position: { x: 200, y: 115 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'User canceled', rounded: true } },
+    
+    { id: 'ACTION_T_CAPTURED', type: 'action', position: { x: 200, y: 45 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'Captured Transaction [1]', rounded: true } },
+
+    { id: 'ACTION_EXPIRATION', type: 'action', position: { x: 200, y: 115 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'Expiration time ends', rounded: true } },
+    { id: 'ACTION_USER_CANCEL', type: 'action', position: { x: 200, y: 185 }, sourcePosition: 'right', targetPosition: 'left', data: { label: 'User canceled', rounded: true } },
 
     { id: 'STATE_APPROVED', type:'tag', position: { x: 450, y: -110 }, data: { label: "Session", tagLabel: 'APPROVED', tagColor: 'primary', sourceHandle: false } },
-    { id: 'STATE_PENDING_2', type: 'tag', position: { x: 450, y: -25 }, data: { label: "Session", tagLabel: 'PENDING', tagColor: 'amber', sourceHandle: false} },
-    { id: 'STATE_REJECTED', type: 'tag', position: { x: 450, y: 60 }, data: { label: "Session", tagLabel: 'REJECTED', tagColor: 'rose', sourceHandle: false} },
+    { id: 'STATE_PENDING_2', type: 'tag', position: { x: 450, y: 0 }, data: { label: "Session", tagLabel: 'PENDING', tagColor: 'amber', sourceHandle: false} },
+    { id: 'STATE_REJECTED', type: 'tag', position: { x: 450, y: 130 }, data: { label: "Session", tagLabel: 'REJECTED', tagColor: 'rose', sourceHandle: false} },
 ];
 
 const initialEdges = [
@@ -26,6 +29,10 @@ const initialEdges = [
 
     { id: 'e__7', source: 'STATE_PENDING', target: 'ACTION_T_REJECTED' },
     { id: 'e__8', source: 'ACTION_T_REJECTED', target: 'STATE_PENDING_2' },
+
+    { id: 'e__9', source: 'STATE_PENDING', target: 'ACTION_T_CAPTURED' },
+    { id: 'e__10', source: 'ACTION_T_CAPTURED', target: 'STATE_PENDING_2' },
+
 ];
 
 

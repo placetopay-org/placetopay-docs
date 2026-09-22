@@ -1,0 +1,159 @@
+export const description =
+  'Distingue los errores de la llamada de los fallos del proceso en Onboarding, y conoce el catálogo completo de códigos.'
+
+# Errores
+
+Onboarding puede fallar de dos maneras muy distintas, y confundirlas es el error de integración más frecuente.
+
+## Dos preguntas distintas {{ id: 'two-questions' }}
+
+- **El código HTTP dice si la llamada funcionó.**
+- **`status.status` dice qué pasó con el proceso.**
+
+Un error de la llamada llega con un código `4xx` o `5xx` y **nunca trae `processId`**: la petición no se aceptó y no hay nada que consultar.
+
+Un fallo del proceso llega con código **`200`** al consultar el proceso, porque la consulta funcionó correctamente y te está informando de que el registro no se completó.
+
+<Note type="warning">
+  Una comprobación del tipo `if (status.status !== "OK") throw` falla ante respuestas perfectamente sanas: un proceso en curso responde `PENDING`. Evalúa **primero** el código HTTP, y solo después `status.status`.
+</Note>
+
+Este es el orden correcto para interpretar cualquier respuesta:
+
+1. ¿El código HTTP es `2xx`? Si no, falló la llamada: lee `status.reason`, que contiene el propio código HTTP.
+2. Si es `2xx` y estás consultando un proceso, lee `status.status`.
+3. Si es `PENDING` o `PENDING_PROCESS`, sigue consultando.
+4. Si es `OK`, usa `result`.
+5. Si es `FAILED`, lee `status.reason` y, cuando exista, `errors`.
+
+## Errores de la llamada {{ id: 'call-errors' }}
+
+En estas respuestas `status.reason` contiene el código HTTP como número.
+
+| Código | `status.message` | Causa |
+|---|---|---|
+| `401` | `The access token is missing or invalid.` | Token ausente, inválido, revocado o de otro ambiente |
+| `403` | `The access token does not grant the required scope.` | El token no incluye el permiso que la operación exige |
+| `404` | `The requested resource does not exist.` | El proceso o el comercio no existe, o el proceso pertenece a otro consumidor |
+| `409` | `The idempotency key was already used with a different payload.` | Clave de idempotencia reutilizada con otro contenido |
+| `422` | Mensaje de validación | El contenido no pasó la validación |
+| `500` | `An unexpected error occurred while processing the request.` | Error inesperado. Reintenta con la **misma** clave de idempotencia |
+
+<Note>
+  Ante un `500` o un problema de red, reintenta con la **misma** clave de idempotencia. Es exactamente el caso para el que existe: si la petición sí llegó a aceptarse, recibirás el proceso original en lugar de crear uno nuevo.
+</Note>
+
+## Errores de validación {{ id: 'validation-errors' }}
+
+Un `422` incluye un objeto `errors` **hermano de `status`**, nunca dentro de él. Las claves son las rutas del cuerpo que enviaste, con la misma notación con la que lo construiste.
+
+<CodeGroup title="Respuesta de error">
+
+```json {{ title: '422 Unprocessable Content' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": 422,
+    "message": "The given data was invalid.",
+    "date": "2026-08-17T10:14:03-05:00"
+  },
+  "errors": {
+    "name": ["The name field is required."],
+    "currencies.0": ["The selected currencies.0 is invalid."],
+    "sites.0.integration.checkoutVersion": ["The selected sites.0.integration.checkoutVersion is invalid."]
+  }
+}
+```
+
+</CodeGroup>
+
+Dos características que conviene aprovechar:
+
+- **La validación no se detiene en el primer error.** La respuesta enumera todos los problemas encontrados, para que puedas corregirlos en una sola pasada en lugar de descubrirlos de uno en uno.
+- **Las rutas son las de tu propio cuerpo.** `sites.0.integration.checkoutVersion` señala el primer sitio de tu colección, así que puedes localizar el campo sin traducir nada.
+
+### La clave `body` {{ id: 'empty-body-error' }}
+
+Hay una única clave de `errors` que **no** es una ruta del payload: `body`. Aparece cuando una actualización no nombra ningún campo actualizable —un cuerpo vacío, o uno que solo traiga `notification`—, porque en ese caso el problema no está en un campo sino en el cuerpo entero.
+
+<CodeGroup title="Respuesta de error">
+
+```json {{ title: '422 Unprocessable Content' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": 422,
+    "message": "The request body must name at least one field to update.",
+    "date": "2026-08-17T10:20:41-05:00"
+  },
+  "errors": {
+    "body": ["The request body must name at least one field to update."]
+  }
+}
+```
+
+</CodeGroup>
+
+Si tu código mapea las claves de `errors` a campos de un formulario, contempla este caso aparte. Ver [Actualizar un comercio](/onboarding/update-merchant).
+
+## Fallos del proceso {{ id: 'process-failures' }}
+
+Cuando un proceso termina en `FAILED`, `status.reason` contiene un código que identifica la causa. Estas respuestas llegan con código HTTP `200`.
+
+| `status.reason` | Qué significa | ¿Trae `errors`? | Qué hacer |
+|---|---|---|---|
+| `REQUIRED_FIELD_MISSING` | Un campo obligatorio llegó vacío | Sí | Corrige el campo señalado y reenvía con clave nueva |
+| `FIELD_TOO_LONG` | Un valor supera la longitud admitida | Sí | Acorta el valor señalado |
+| `FIELD_OUT_OF_RANGE` | Un valor está fuera del rango admitido | Sí | Corrige el valor señalado |
+| `DUPLICATE_MERCHANT` | El recurso ya existe | No | Verifica si el comercio ya estaba registrado antes de reintentar |
+| `REFERENCE_NOT_FOUND` | Una referencia que enviaste ya no existe | No | Revisa los catálogos: un intermediario, una entidad financiera o una provincia pudo cambiar |
+| `RESOURCE_NOT_FOUND` | El comercio que ibas a actualizar desapareció | No | Verifica que el `merchantId` siga siendo válido |
+| `VALIDATION_FAILED` | El contenido fue rechazado al escribirlo | No | Revisa el cuerpo enviado |
+| `INTERRUPTED` | El proceso se detuvo antes de completarse | No | Reenvía la operación con una clave de idempotencia nueva |
+
+<Note>
+  Existen dos códigos más, `DEPENDENCY_UNAVAILABLE` e `INTERNAL_ERROR`, que hoy no se emiten pero forman parte del contrato. **Deja siempre un caso por defecto** al interpretar `status.reason`: pueden aparecer códigos nuevos sin que eso se considere un cambio incompatible.
+</Note>
+
+Cuando el fallo puede atribuirse a campos concretos, la respuesta incluye `errors` con la misma forma que el `422`:
+
+<CodeGroup title="Respuesta">
+
+```json {{ title: 'Proceso fallido' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": "REQUIRED_FIELD_MISSING",
+    "message": "One or more submitted fields were rejected by the registry.",
+    "date": "2026-08-17T10:14:09-05:00"
+  },
+  "processId": "01kz0609xy2hd666mnx6b0jxpc",
+  "action": "merchant.create",
+  "result": null,
+  "errors": {
+    "name": ["This field is required by the registry."]
+  },
+  "notification": null
+}
+```
+
+</CodeGroup>
+
+## Reintentar después de un fallo {{ id: 'retrying-after-a-failure' }}
+
+<Note type="warning">
+  Un proceso `FAILED` es **definitivo**: no vuelve a ejecutarse. Para reintentar la operación, corrige el problema y envía una petición con una **clave de idempotencia nueva**.
+</Note>
+
+Reenviar con la misma clave devuelve el proceso fallido tal cual —es precisamente lo que la idempotencia garantiza—, y una integración que no lo tenga en cuenta se queda releyendo indefinidamente un fallo que nunca va a cambiar.
+
+## Sobre los mensajes {{ id: 'error-messages' }}
+
+`status.message` es un texto genérico pensado para diagnóstico humano, y **puede cambiar sin previo aviso**. No lo uses para tomar decisiones en tu código.
+
+Para eso está `status.reason`, que es estable: contiene el código HTTP en los errores de la llamada, y el código de fallo en los procesos.
+
+## ¿Qué sigue? {{ id: 'errors-next' }}
+
+- [Idempotencia](/onboarding/idempotency) — cómo reintentar sin duplicar
+- [Consultar el proceso](/onboarding/process-status)

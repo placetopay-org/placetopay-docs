@@ -1,0 +1,131 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+export const apiAssetPath = '/msv-service'
+export const apiRefs = ['/api/notifications']
+export const description = 'Crea una solicitud de notificación en MSV Service para enviar mensajes por WhatsApp, SMS o Email.'
+
+<HeroPattern />
+
+## Notificación {{ id: 'create-notification', tag: 'POST', label: '/api/notifications' }}
+
+Este endpoint permite enviar un mensaje informativo al usuario por los canales que indiques. A diferencia de una [validación](/msv-service/api/validation), una notificación no espera respuesta, no genera `token`, no se puede consultar después y no dispara webhook. El mensaje tampoco incluye enlace de confirmación.
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/notifications"
+      method="post"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/api/notifications">
+
+```bash {{ title: 'Notificación MSV Service' }}
+curl -X "POST" {{baseURl}}/api/notifications \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "locale": "es",
+    "message": "This is a very long and generic message",
+    "kind": "Horus",
+    "site_id": 123,
+    "channels": {
+      "sms": {
+        "phone_number": "+573124567890",
+        "short_message": "SMS Message"
+      },
+      "whatsapp": {
+        "phone_number": "+573124567890",
+        "template": {
+          "name": "hello_world",
+          "lang": "en_US",
+          "parameters": [
+            "name"
+          ]
+        }
+      },
+      "email": {
+        "email": "mail@test.com",
+        "subject": "email subject"
+      }
+    }
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/notifications"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Respuesta">
+```json {{ title: '200' }}
+{
+  "status": {
+    "status": "OK",
+    "reason": null,
+    "message": "El mensaje fue enviado exitosamente",
+    "date": "2022-08-12T15:44:17+00:00"
+  }
+}
+```
+```json {{ title: '401' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": null,
+    "message": "Unauthenticated.",
+    "date": "2026-08-13T15:10:55+00:00"
+  }
+}
+```
+```json {{ title: '400' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": null,
+    "message": "El mensaje no se ha podido enviar por el canal: SMS",
+    "date": "2022-08-12T14:50:01+00:00"
+  }
+}
+```
+```json {{ title: '422' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": null,
+    "message": "El campo message es obligatorio.",
+    "date": "2022-08-12T14:50:01+00:00"
+  },
+  "errors": {
+    "message": [
+      "El campo message es obligatorio."
+    ]
+  }
+}
+```
+```json {{ title: '422 - Consulta del site_id falla' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": 500,
+    "message": "Ha ocurrido un error inesperado, por favor intente nuevamente más tarde",
+    "date": "2026-08-14T20:15:33+00:00"
+  }
+}
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+

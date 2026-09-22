@@ -1,12 +1,12 @@
 openapi: 3.1.0
 info:
-  title: PlacetoPay Payment Links
+  title: Placetopay Payment Links
   version: '1.0'
   description: |
-    PlacetoPay Payment Links is a solution that allows you to create payment links quickly and securely. With this solution, you can create personalized payment links with the payment methods you want and the ability to send notifications to your customers.
+    Placetopay Payment Links is a solution that allows you to create payment links quickly and securely. With this solution, you can create personalized payment links with the payment methods you want and the ability to send notifications to your customers.
   contact:
     url: 'https://www.evertecinc.com/pasarela-de-pagos-e-commerce/'
-    name: PlacetoPay by Evertec
+    name: Placetopay by Evertec
   summary: Use Payment Links to collect payments securely
 servers:
   - description: 'Sandbox (CO)'
@@ -220,10 +220,34 @@ paths:
                     EX: `["pse", "visa", "master"]`
                 receiverEmails:
                   type: array
+                  deprecated: true
                   description: |
+                    > **Deprecated:** This field is deprecated. Please use `recipients` instead.
                     List of email addresses to which the link will be sent once it has been successfully created.
 
                     EX: `["user_email@example.com", "user2@example.com"]`
+                recipients:
+                  type: array
+                  maxItems: 20
+                  description: |
+                    List of recipients to be notified via email address, SMS and WhatsApp. Maximum 20 recipients.
+                  properties:
+                    email:
+                      type: string
+                      description: |
+                        Email address to which the link will be sent once it has been created successfully.
+                    phoneNumber:
+                      type: string
+                      description: |
+                        Mobile phone number to which notifications will be sent. Must include the country code (e.g., +573001234567). This field is required if sendSMS or sendWhatsapp is set to true.
+                    sendSMS:
+                      type: boolean
+                      description: |
+                        Determines whether the system should attempt to send the payment link via text message. Requires a valid receiverPhoneNumber.
+                    sendWhatsapp:
+                      type: boolean
+                      description: |
+                        Determines whether the system should attempt to send the payment link via WhatsApp. Requires a valid receiverPhoneNumber.
                 additional:
                   type: object
                   description: |
@@ -255,6 +279,10 @@ paths:
                 isGeneric:
                   type: boolean
                   description: Allows the user to pay multiple times using the same link as long as the total limit of approved payments `paymentsAllowed` is not exceeded.
+                  default: false
+                skipResult:
+                  type: boolean
+                  description: Skip the payment result screen.
                   default: false
       responses:
         "201":
@@ -746,6 +774,16 @@ paths:
                       Indicates whether the user can pay multiple times using the same link.
 
                       EJ: `false`
+                  skipResult:
+                    type: boolean
+                    description: |
+                      Indicates whether to skip the payment result screen and return automatically.
+
+                      EJ: `false`
+                  recipients:
+                    type: array
+                    description: |
+                      List of recipients associated with the payment link. It returns the email addresses and/or phone numbers configured to receive link notifications, along with the enabled mobile channels for each recipient (sendSMS and sendWhatsapp).
         "401":
           description: "Unauthorized (An attempt was made to query a link that does not belong to your site)"
           content:

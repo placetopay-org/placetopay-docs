@@ -1,0 +1,136 @@
+export const sectionMode = 'nav';
+
+import { HeroPattern } from '@/components/HeroPattern'
+
+export const apiAssetPath = '/msv-service'
+export const apiRefs = ['/api/validations']
+export const description = 'Crea una solicitud de validación en MSV Service para obtener la aprobación o rechazo del usuario por WhatsApp, SMS o email.'
+
+<HeroPattern />
+
+## Validación {{ id: 'create-validation', tag: 'POST', label: '/api/validations' }}
+
+Crea una solicitud de validación: **msv-service** envía al usuario un mensaje por los canales que indiques, con un enlace para aprobar o rechazar.
+
+La respuesta `201` confirma únicamente que la solicitud se creó y los mensajes se enviaron; el estado siempre es `PENDING`. La respuesta del usuario llega después por [webhook](/msv-service/api#validation-webhook), o puedes consultarla con el `token` en [Consulta validación](/msv-service/api/validation-query).
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/validations"
+      method="post"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/api/validations">
+
+```bash {{ title: 'Validación MSV Service' }}
+curl -X "POST" {{baseURl}}/api/validations \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "locale": "es",
+    "reference": "ref-12548",
+    "message": "Example Validation",
+    "kind": "Horus",
+    "webhook_url": "https://example-url.com/",
+    "minutes_by_expire": 10,
+    "buttons": {
+      "approve": "aceptar",
+      "reject": "rechazar"
+    },
+    "channels": {
+      "sms": {
+        "phone_number": "+573124567890",
+        "short_message": "SMS Message"
+      },
+      "whatsapp": {
+        "phone_number": "+573124567890",
+        "template": {
+          "name": "hello_world",
+          "lang": "en_US",
+          "parameters": [
+            "name"
+          ]
+        }
+      },
+      "email": {
+        "email": "mail@test.com",
+        "subject": "email subject"
+      }
+    }
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/validations"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+
+  <Col sticky>
+    <br />
+    <CodeGroup title="Respuesta">
+```json {{ title: '201' }}
+{
+  "status": {
+    "status": "PENDING",
+    "reason": null,
+    "message": "Transacción pendiente de aprobación",
+    "date": "2022-07-08T09:34:48-05:00"
+  },
+  "reference": "ref-12548",
+  "token": "d5d67dcb",
+  "kind": "Horus"
+}
+```
+```json {{ title: '401' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": null,
+    "message": "Unauthenticated.",
+    "date": "2026-08-13T15:10:55+00:00"
+  }
+}
+```
+```json {{ title: '400' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": null,
+    "message": "El mensaje no se ha podido enviar por el canal: SMS",
+    "date": "2022-08-08T17:23:49+00:00"
+  }
+}
+```
+```json {{ title: '422' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": null,
+    "message": "El campo message es obligatorio.",
+    "date": "2022-08-12T14:50:01+00:00"
+  },
+  "errors": {
+    "message": [
+      "El campo message es obligatorio."
+    ]
+  }
+}
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Note type="warning">
+Importante: una respuesta `400` en `/api/validations` no revierte la solicitud ya creada. Los canales que alcanzaron a enviarse permanecen activos y el usuario podría aprobar o rechazar la solicitud.
+</Note>

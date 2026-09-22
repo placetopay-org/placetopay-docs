@@ -1,0 +1,107 @@
+import { HeroPattern } from '@/components/HeroPattern'
+
+export const sectionMode = 'nav';
+export const description = 'Conoce cómo funciona DCC (Dynamic Currency Conversion) en Webcheckout con Transerver, cuándo aplica, qué cambia en la experiencia del usuario y cómo se integra en el flujo de pago.'
+
+<HeroPattern />
+
+# Conversión dinámica de monedas (DCC)
+
+DCC (Dynamic Currency Conversion) permite mostrar al tarjetahabiente, durante el pago en **Webcheckout**, una conversión de moneda basada en el país de origen del BIN de la tarjeta. Si el BIN corresponde a un país diferente al del comercio, el usuario puede ver la equivalencia y elegir si desea continuar en la moneda local del comercio o en la moneda asociada a su tarjeta. {{ className: 'lead' }}
+
+## ¿Qué es DCC?
+
+DCC (Dynamic Currency Conversion) es una funcionalidad orientada a compras internacionales que le permite al usuario conocer el valor que podría pagar por la transacción en su moneda local, permitiéndole decidir con cual moneda desea realizar el pago.
+
+La conversión presentada por DCC es **informativa para el usuario** y no cambia la lógica actual del procesamiento. Los montos enviados para autorización y liquidación conservan el flujo operativo del comercio y la información de DCC se incorpora como un dato adicional hacia el proveedor **Transerver**.
+
+### Características principales
+- **Cálculo en tiempo real:** muestra la equivalencia en la moneda del tarjetahabiente.
+- **Decisión del usuario**: el cliente puede aceptar o rechazar DCC.
+- **Sin cambio de procesamiento**: los montos de autorización y liquidación mantienen el flujo actual del comercio.
+
+## ¿Cuándo aplica?
+
+DCC aplica cuando se cumplen todas estas condiciones:
+
+- El método de integración es **Webcheckout**.
+- El proveedor configurado para el procesamiento es **Transerver Costa Rica**.
+- El medio de pago del sitio tiene DCC habilitado.
+- La tarjeta pertenece a un país distinto al del comercio.
+- La operación corresponde a un flujo soportado por la funcionalidad.
+
+Si el BIN pertenece al mismo país del comercio, no se ofrece DCC y la transacción continúa con su flujo normal.
+
+## ¿Dónde se soporta?
+
+| Aspecto | Detalle |
+|---------|---------|
+| Método de integración | Webcheckout |
+| Proveedor soportado | Transerver |
+| Experiencia del usuario | Selección de moneda directamente en la interfaz de pago |
+
+<Note>
+Actualmente DCC no está documentado como disponible para integraciones directas por Gateway ni para otros proveedores de procesamiento distintos de Transerver.
+</Note>
+
+## ¿Qué cambia en la experiencia de pago?
+
+Cuando DCC aplica, Webcheckout muestra un bloque adicional para que el pagador pueda decidir cómo desea continuar:
+
+- Visualiza la **moneda local del comercio** y la **moneda del tarjetahabiente**.
+- Ve el **tipo de cambio**, el **margen** y el **monto convertido**.
+- Puede **rechazar** seleccionando la moneda con la que se realizó inicialmente la transacción o **aceptar** al seleccionar la moneda convertida.
+- Si acepta DCC, la selección queda reflejada dentro de la transacción, además se muestra en la pantalla de resultado y en el comprobante de pago enviado al correo electrónico del tarjetahabiente.
+- Si rechaza DCC, la transacción continúa con el flujo normal del comercio, sin cambiar la experiencia base de Webcheckout.
+
+En otras palabras, lo que cambia es la **experiencia de decisión y visualización para el usuario**; no cambia el contrato principal de integración del comercio.
+
+
+## DCC en flujos de preautorización
+
+Además de pagos de venta, DCC tiene implicaciones importantes en flujos de [preautorización](/payments/preauthorization):
+
+### Check-in
+
+- En el **Check-in** el usuario puede aceptar o rechazar DCC.
+- Si el usuario **acepta**, la transacción continúa con DCC.
+- Si el usuario **rechaza**, la transacción continúa con su flujo normal, sin DCC.
+
+### Reautorización
+
+- En cada **Reautorización** se vuelve a consultar la información de la conversión, siempre y cuando el usuario haya aceptado DCC en la transacción de **Check-in**.
+- Si la consulta de conversión falla, la reautorización se procesa **sin DCC**.
+- Esto evita bloquear el flujo de negocio por una falla en la consulta de conversión.
+
+### Checkout
+
+- En el **Checkout** también se vuelve a consultar la información de la conversión, siempre y cuando el usuario haya aceptado DCC en la transacción de **Check-in**
+- Si la consulta falla, el checkout se procesa **sin DCC**.
+- El objetivo es mantener la continuidad operativa del flujo incluso si la información de conversión no está disponible en ese momento.
+
+
+## DCC en otros flujos
+
+En **Anulación**, **Reverso** y **Reembolso completo** no se recalcula la conversión. En estos casos se envía la información de DCC obtenida en la transacción inicial para mantener consistencia en el flujo.
+
+
+## Operaciones donde aplica
+
+| Operación | Aplica |
+|-----------|--------|
+| Venta | ✅ |
+| Check-in | ✅ |
+| Reautorización | ✅ |
+| Checkout | ✅ |
+| Anulación | ✅ |
+| Reverso | ✅ |
+| Reembolso completo | ✅ |
+
+## ¿Dónde no aplica?
+
+- Pagos parciales
+- Dispersión
+- Recurrencia
+- Reembolso parcial
+- Operaciones con Créditos
+- Cuotas con intereses

@@ -1,6 +1,6 @@
-# PlacetoPay Docs
+# Placetopay Docs
 
-This documentation project contains all the information necessary to perform integrations with the PlacetoPay Checkout and PlacetoPay Gateway API services.
+This documentation project contains all the information necessary to perform integrations with the Placetopay Checkout and Placetopay Gateway API services.
 
 This project is made with the [Tailwind UI](https://tailwindui.com) Protocol template which was built using [Tailwind CSS](https://tailwindcss.com) and [Next.js](https://nextjs.org).
 
@@ -16,6 +16,12 @@ This project is made with the [Tailwind UI](https://tailwindui.com) Protocol tem
 - [Learn more](#learn-more)
 
 ## Getting started
+
+> **Requirement:** Node.js **26 or higher** is required (same version used by
+> the CI workflows in `.github/workflows/`). The generation scripts load ES
+> modules via `require()` (module syntax detection), which fails on older
+> versions with `SyntaxError: Unexpected token 'export'`.
+> If you use nvm, run `nvm use` (the repo includes a `.nvmrc`).
 
 To get started with this template, first install the npm dependencies:
 
@@ -47,7 +53,7 @@ so `http://localhost:3000/my-folder/my-file` corresponds to a file called `my-fi
 
 2. Write the content of your file following the MDX syntax.
     - the `<title />` of the page will be the first header that has been declared in the file.
-    - Second level headers (html: `h2` / mdx: `##`) autogenerate [URL fragments or hashes](https://developer.mozilla.org/en-US/docs/Web/API/URL/hash) which must be modified by adding `{{ id: 'your-has-here' }}` after the header text to be consistent with the language change.
+    - Second level headers (html: `h2` / mdx: `##`) autogenerate [URL fragments or hashes](https://developer.mozilla.org/en-US/docs/Web/API/URL/hash) which must be modified by adding `{{ id: 'your-hash-here' }}` after the header text to be consistent with the language change.
     - Being MDX format, HTML tags are completely accepted and their functionality is the same as in a `.html` file.
     - The images used must be inside the `public/` folder, here they can be added directly to the root of the folder or create subfolders to have better order.
 
@@ -154,7 +160,7 @@ When creating or reviewing examples, ensure all data follows these patterns:
   - ❌ Tokens that could be mistaken for real credentials
 
 - **Card numbers**: Use industry-standard test numbers
-  - ✅ `4111111111111111` (widely recognized PlacetoPay test card)
+  - ✅ `4111111111111111` (widely recognized Placetopay test card)
   - ✅ `4000000000000002` (standard test card number)
   - ❌ Any sequence that could be a real card number
 

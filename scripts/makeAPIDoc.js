@@ -38,7 +38,7 @@ const getStubFiles = async (readFile) => {
     ];
 }
 
-const getAndMakeFolder = async (folderPath, exists, mkdir, rmFile, isForce) => {
+const getAndMakeFolder = async (folderPath, exists, mkdir, rmFile, isForce, isEnLocale) => {
     const folder = pathModule.join('src', 'pages', isEnLocale ? 'en' : '', folderPath, 'reference');
     const existsFolder = await exists(folder);
 
@@ -70,10 +70,18 @@ const getOrRemovePage = async (folder, page, exists, mkdir, rmFile, isForce) => 
     } else {
         const newFolderPath = newFilePath.split(pathModule.sep).slice(0, -1).join(pathModule.sep);
         logger.warn('Creating new folder', newFolderPath);
-        mkdir(newFolderPath, { recursive: true });
+        await mkdir(newFolderPath, { recursive: true });
     }
 
     return newFilePath;
+}
+
+const joinServerUrl = (serverUrl, endpoint) => {
+    const url = new URL(serverUrl);
+    const basePath = url.pathname.replace(/\/+$/, '');
+    const endpointPath = String(endpoint).replace(/^\/+/, '');
+    url.pathname = `${basePath}/${endpointPath}`;
+    return url.href;
 }
 
 const getRequestBodyExamples = (requestBody) => {
@@ -102,7 +110,7 @@ const generateAPIDoc = async (folderPath, options) => {
     const mkdir = promisify(fs.mkdir);
     const writeFile = promisify(fs.writeFile);
 
-    const apiData = await getApiData(folderPath, isEnLocale);
+    const apiData = await getApiData(folderPath, options.isEnLocale);
 
     const [
         APIPageHeaderStub,
@@ -118,7 +126,8 @@ const generateAPIDoc = async (folderPath, options) => {
         exists,
         mkdir,
         rmFile,
-        options.isForce
+        options.isForce,
+        options.isEnLocale
     );
 
     const pages = routes[folderPath].pages;
@@ -162,7 +171,7 @@ const generateAPIDoc = async (folderPath, options) => {
                             RequestExampleStub
                                 .replace(/STUB_EXAMPLE_TITLE/g, requestTitle)
                                 .replace(/STUB_METHOD_UPPERCASE/g, method.toUpperCase())
-                                .replace(/STUB_EXAMPLE_URL/g, pathModule.join(apiData.servers[0].url, endpoint))
+                                .replace(/STUB_EXAMPLE_URL/g, joinServerUrl(apiData.servers[0].url, endpoint))
                                 .replace(/STUB_REQUEST_CONTENT_TYPE/g, 'application/json')
                                 .replace(/STUB_BODY_REQUEST/g, JSON.stringify(requestExample.value, null, 2))
                         );
@@ -174,6 +183,7 @@ const generateAPIDoc = async (folderPath, options) => {
                             .replace(/STUB_METHOD_UPPERCASE/g, method.toUpperCase())
                             .replace(/STUB_ENDPOINT/g, endpoint)
                             .replace(/STUB_REQUEST_EXAMPLES/g, contentRequestExamples.join('\n'))
+                            .replace(/STUB_REQUEST_TITLE/g, options.isEnLocale ? 'Request' : 'Solicitud')
                     )
                 } else {
                     endpointSection = endpointSection.replace(/STUB_REQUEST_EXAMPLE_SECTION/g, '');
@@ -199,7 +209,9 @@ const generateAPIDoc = async (folderPath, options) => {
                     }
                     endpointSection = endpointSection.replace(
                         /STUB_RESPONSE_EXAMPLE_SECTION/g,
-                        ResponseExampleSectionStub.replace(/STUB_RESPONSE_EXAMPLES/g, contentResponseExamples.join('\n'))
+                        ResponseExampleSectionStub
+                            .replace(/STUB_RESPONSE_EXAMPLES/g, contentResponseExamples.join('\n'))
+                            .replace(/STUB_RESPONSE_TITLE/g, options.isEnLocale ? 'Response' : 'Respuesta')
                     );
                 } else {
                     endpointSection = endpointSection.replace(/STUB_RESPONSE_EXAMPLE_SECTION/g, '');

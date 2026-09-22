@@ -1,0 +1,234 @@
+export const description =
+  'Registra los medios de pago que acepta un comercio, con su entidad financiera, cuenta de depósito y comisión.'
+
+<MissingTranslationBanner />
+
+# Medios de pago
+
+La colección `paymentMethods` registra los medios de pago que el comercio acepta, junto con la cuenta donde recibe los fondos y la comisión pactada.
+
+Viaja en la raíz del cuerpo, junto a los campos del propio comercio, y la aceptan tanto la creación como la actualización.
+
+## Crear o modificar un medio de pago {{ id: 'create-or-patch' }}
+
+Un elemento hace una de dos cosas, y **nunca las dos a la vez**:
+
+| El elemento | Efecto |
+|---|---|
+| Lleva **`id`** | Modifica ese medio de pago. Solo cambia lo que nombras |
+| Lleva **`code`** (y opcionalmente `financialEntity`) | Registra un medio de pago nuevo |
+
+<Note type="warning">
+  Las dos formas son excluyentes. Un elemento que lleva `id` **no puede** repetir `code` ni `financialEntity`: responde `422`. Y en una creación (`POST`), enviar `id` también responde `422`, porque el comercio todavía no tiene nada que modificar.
+</Note>
+
+<Row>
+  <Col>
+    **Modificar uno existente**
+
+    Basta con su `id` y los campos que cambian.
+
+    El `id` está acotado al comercio de la URL: no puedes modificar la configuración de otro comercio con un identificador ajeno.
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'Modificar' }}
+    {
+      "paymentMethods": [
+        {
+          "id": 64,
+          "commissionValue": 3.10
+        }
+      ]
+    }
+    ```
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    **Registrar uno nuevo**
+
+    El `code` identifica el medio de pago en el catálogo, y `financialEntity` la entidad con la que se liquida.
+
+    Un mismo código puede repetirse con entidades distintas: el mismo tipo de tarjeta liquidada en dos bancos son dos configuraciones diferentes.
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'Registrar' }}
+    {
+      "paymentMethods": [
+        {
+          "code": "CR_VS",
+          "financialEntity": 1,
+          "accountNumber": "1234567890",
+          "accountType": 2,
+          "commissionModel": "P",
+          "commissionValue": 2.5
+        }
+      ]
+    }
+    ```
+  </Col>
+</Row>
+
+## De dónde sale el `id` {{ id: 'where-the-id-comes-from' }}
+
+El identificador lo publica `result.paymentMethods[].id` cuando el proceso termina bien. Guárdalo junto al medio de pago en tu sistema: es lo que te permitirá modificarlo después.
+
+<Note type="warning">
+  Onboarding no expone un endpoint para consultar los medios de pago de un comercio, así que **los identificadores solo llegan por el resultado de un proceso que tú mismo lanzaste**. Si necesitas modificar una configuración que no creaste desde esta API, su identificador tiene que venir de otra fuente.
+</Note>
+
+## Forma de un elemento {{ id: 'element-shape' }}
+
+<Properties>
+  <Property name="id" type="integer" isRequired={false}>
+    Identificador de un medio de pago ya registrado. Solo en la actualización, y excluyente con `code`.
+  </Property>
+  <Property name="code" type="string" isRequired={false}>
+    Código del medio de pago, tal como lo declara el catálogo. Obligatorio al registrar uno nuevo.
+  </Property>
+  <Property name="financialEntity" type="integer" isRequired={false}>
+    Entidad financiera con la que se liquida. Puede omitirse o enviarse como `null`.
+  </Property>
+  <Property name="accountNumber" type="string" isRequired={false}>
+    Número de la cuenta de depósito.
+  </Property>
+  <Property name="accountType" type="integer" isRequired={false}>
+    Tipo de cuenta, del catálogo correspondiente.
+  </Property>
+  <Property name="commissionModel" type="string" isRequired={false}>
+    `P` para comisión porcentual o `F` para comisión fija.
+  </Property>
+  <Property name="commissionValue" type="number" isRequired={false}>
+    Valor de la comisión, según el modelo elegido.
+  </Property>
+  <Property name="order" type="integer" isRequired={false}>
+    Posición del medio de pago en el listado.
+  </Property>
+  <Property name="settings" type="object" isRequired={false}>
+    Configuración específica del proveedor.
+  </Property>
+</Properties>
+
+## El código {{ id: 'the-code' }}
+
+<Note type="warning">
+  El `code` debe escribirse **exactamente como lo escribe el catálogo**, respetando mayúsculas y minúsculas. Una grafía distinta responde `422` indicando cuál es la correcta.
+</Note>
+
+No es una exigencia caprichosa: el registro compara los códigos sin distinguir mayúsculas, de modo que una grafía alternativa se guardaría sin error aparente, pero las herramientas que la comparan de forma exacta nunca volverían a encontrar esa configuración.
+
+Además del código en sí, el catálogo determina qué proveedor opera el medio de pago, lo que a su vez define qué credenciales admite su bloque `settings`.
+
+<Note>
+  Los catálogos ofrecen únicamente las opciones **habilitadas**. Un código o una entidad financiera retirados no sirven para registrar un medio de pago nuevo; las configuraciones que ya los usan siguen funcionando y se modifican por su `id`, sin volver a nombrarlos.
+</Note>
+
+## Credenciales gestionadas por certificado {{ id: 'managed-credentials' }}
+
+Para los medios de pago cuyo proveedor es **CREDIBANCO**, las credenciales de conexión se administran mediante un certificado. En ese caso, los campos `retailCode`, `terminalNumber`, `username` y `password` responden `422` dentro de `settings`: crea el certificado en el Panel y envía el `pfxID` resultante.
+
+<Note>
+  La regla se aplica **por proveedor, no por código**. Qué códigos de medio de pago pertenecen a CREDIBANCO lo determina el catálogo, así que no hay una lista fija que consultar: si envías esas claves para uno de ellos, el `422` te lo indica. Es el único proveedor con este tratamiento.
+</Note>
+
+## El bloque `settings` {{ id: 'settings-block' }}
+
+A diferencia de las [integraciones](/en/onboarding/integrations), aquí **los nombres de las claves son libres**: no hay un catálogo que los declare.
+
+<Note type="warning">
+  Como consecuencia, **un error de escritura en el nombre de una clave se guarda tal cual y no se detecta**. Verifica los nombres contra la documentación del proveedor antes de enviarlos.
+</Note>
+
+Reglas del bloque:
+
+- El **valor** puede ser una cadena, un número o un booleano. Un objeto o una lista responden `422`.
+- Un booleano se almacena como `"1"` o `"0"`.
+- Dos claves que difieran **solo en mayúsculas** responden `422`, porque el registro las trata como una sola.
+
+Al buscar una clave existente, la comparación **ignora mayúsculas**: un ajuste guardado como `entitycode` es el que un `entityCode: null` posterior elimina.
+
+## Comportamiento en una actualización {{ id: 'update-behaviour' }}
+
+**A nivel de colección**, un medio de pago que el cuerpo no nombra sobrevive intacto. Enviar `"paymentMethods": []` responde `422`, y no existe forma de eliminar un medio de pago desde este contrato.
+
+**Dentro de un elemento que sí nombras, el parcheo también es parcial.** Solo cambia lo que envías; los campos que omites conservan su valor almacenado.
+
+Para el bloque `settings`:
+
+| Envías | Efecto |
+|---|---|
+| Una clave con un valor nuevo | Se actualiza |
+| Una clave que no estaba | Se añade |
+| Una clave con `null` o cadena vacía | **Se elimina** |
+| No envías una clave que existía | **Se conserva** |
+
+<Note>
+  Es la semántica **contraria** a la de las integraciones del comercio, donde `settings` se reemplaza entero. Si trabajas con ambas colecciones, tenlo presente.
+</Note>
+
+## Errores de direccionamiento {{ id: 'addressing-errors' }}
+
+| Cuerpo | Respuesta |
+|---|---|
+| Un elemento sin `id` ni `code` | `422` sobre el elemento |
+| Un elemento con `id` **y** `code` o `financialEntity` | `422` sobre el elemento |
+| Un `id` que no pertenece al comercio de la URL | `422` sobre `id` |
+| Un alta cuyo `(code, financialEntity)` el comercio ya tiene | `422` sobre `code` |
+| `id` en una creación (`POST`) | `422` sobre `id` |
+
+<Note>
+  Los dos primeros se reportan sobre **el elemento** (`paymentMethods.0`), no sobre un campo suyo, porque el problema es cómo está direccionado el elemento entero.
+</Note>
+
+## El orden no importa {{ id: 'order-is-irrelevant' }}
+
+Los elementos se ordenan antes de compararse con una petición anterior, de modo que el orden en que los envíes no afecta a la idempotencia. Omitir `financialEntity` y enviarlo como `null` cuentan como lo mismo, igual que omitir `id` o enviarlo nulo. Ver [Idempotencia](/en/onboarding/idempotency).
+
+## El resultado {{ id: 'result-payment-methods' }}
+
+<Row>
+  <Col>
+    <Properties>
+      <Property name="code" type="string">
+        El código del medio de pago.
+      </Property>
+      <Property name="financialEntity" type="integer">
+        La entidad financiera. Viaja siempre, porque sin ella dos entradas del mismo código serían indistinguibles.
+      </Property>
+      <Property name="id" type="integer">
+        Identificador con el que quedó registrado. **Es el que usarás para modificarlo después.**
+      </Property>
+      <Property name="action" type="string">
+        `created`, `updated` o `unchanged`.
+      </Property>
+    </Properties>
+
+    `code` y `financialEntity` se leen del registro, no del cuerpo: un elemento direccionado por `id` no los envía y aun así aparecen en el resultado.
+
+    El resultado **nunca incluye `settings`**.
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'result' }}
+    {
+      "result": {
+        "merchantId": 18,
+        "paymentMethods": [
+          {
+            "code": "CR_VS",
+            "financialEntity": 1,
+            "id": 64,
+            "action": "created"
+          }
+        ]
+      }
+    }
+    ```
+  </Col>
+</Row>
+
+## ¿Qué sigue? {{ id: 'payment-methods-next' }}
+
+- [Sitios](/en/onboarding/sites)
+- [Medios de pago del sitio](/en/onboarding/site-payment-methods) — cómo un sitio habilita uno de estos
+- [Actualizar un comercio](/en/onboarding/update-merchant)

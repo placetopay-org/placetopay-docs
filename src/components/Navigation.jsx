@@ -272,7 +272,7 @@ function NavigationGroup({ className, withSections = false }) {
         <ul role="list" className="border-l border-transparent">
           {links.map((link, index) => (
             <NavigationGroupItem
-              key={link.href ?? link.title.replaceAll(' ', '/')}
+              key={link.href || link.title.replaceAll(' ', '/')}
               index={index}
               link={link}
               withSections={withSections}
@@ -310,6 +310,7 @@ function SubSectionNavigation() {
 
 export function Navigation({ withSections, ...props }) {
   let navigation = useNavigation()
+  let { locale } = useLocale()
 
   return (
     <nav {...props}>

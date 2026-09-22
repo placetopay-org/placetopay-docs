@@ -5,6 +5,7 @@ import { useInView } from 'framer-motion'
 import { useSectionStore } from '@/components/SectionProvider'
 import { Tag } from '@/components/Tag'
 import { remToPx } from '@/lib/remToPx'
+import { setScopeEndpoint } from '@/components/endpointScope'
 
 function AnchorIcon(props) {
   return (
@@ -68,6 +69,10 @@ export function Heading({
   let Component = `h${level}`
   let ref = useRef()
   let registerHeading = useSectionStore((s) => s.registerHeading)
+
+  if (level === 2) {
+    setScopeEndpoint(tag, label, id)
+  }
 
   let inView = useInView(ref, {
     margin: `${remToPx(-3.5)}px 0px 0px 0px`,

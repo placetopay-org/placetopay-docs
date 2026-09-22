@@ -29,9 +29,12 @@ const patterns = [
 const exceptions = [
   'servicioposventa@placetopay.com',
   'Bearer test123abc123abc123abc123abc123abc123abc123abc123abc123abc',
-  '"login": "123example456token789abc012def345"',
+  '"login": "example456token789abc012def3456"',
   '"login": "aabbccdd1234567890aabbccdd123456"',
-  '"tranKey": "ABC123example456trankey+789abc012def3456ABC="'
+  // Autenticacion de Checkout, Core, Microsites y Token Requestor: un SHA-1 en base64.
+  '"tranKey": "ABC123example456trankey+789abc012def3456ABC="',
+  // Onboarding: credencial generada por el API, de 16 caracteres.
+  '"tranKey": "exampleTranKey16"'
 ].map(s => s.toLowerCase());
 
 function shouldScan(file) {
