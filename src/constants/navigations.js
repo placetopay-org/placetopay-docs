@@ -524,6 +524,10 @@ export const TAB_NAVIGATION = {
                 title: 'Billeteras',
                 links: [
                   {
+                    title: 'Apple Pay',
+                    href: '/payments/wallets/applepay',
+                  },
+                  {
                     title: 'Click to Pay',
                     href: '/payments/wallets/clicktopay',
                   },
@@ -693,6 +697,7 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Wallets',
                 links: [
+                  { title: 'Apple Pay', href: '/en/payments/wallets/applepay' },
                   { title: 'Click to Pay', href: '/en/payments/wallets/clicktopay' },
                   { title: 'Google Pay', href: '/en/payments/wallets/googlepay' },
                 ],
