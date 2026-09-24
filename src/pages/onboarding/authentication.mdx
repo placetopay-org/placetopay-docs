@@ -40,7 +40,7 @@ En esta documentación, `{URL_BASE}` representa la URL del ambiente en el que es
 
 ## Autorizar una petición {{ id: 'authorization-header' }}
 
-El token viaja como _bearer token_. Añade también los headers de contenido, para que las respuestas de error lleguen en formato JSON.
+El token viaja como _bearer token_.
 
 <CodeGroup title="Headers">
 
@@ -68,24 +68,25 @@ const response = await fetch(`${urlBase}/api/user`, {
 
 </CodeGroup>
 
-<Note type="warning">
-  El header `Accept: application/json` importa. Sin él, algunos errores podrían responderse en un formato distinto al que espera tu integración.
-</Note>
-
 ## Permisos {{ id: 'token-abilities' }}
 
-Un token lleva asociados uno o varios permisos, y cada operación exige el suyo. Esto permite emitir tokens limitados: por ejemplo, uno que solo pueda consultar procesos.
+Un token lleva asociados uno o varios permisos, y cada operación exige el suyo. Esto permite emitir tokens limitados: por ejemplo, uno que solo pueda consultar, sin crear ni actualizar.
 
 | Permiso | Habilita | Operación |
 |---|---|---|
 | `onboarding:create` | `POST /api/merchants` | [Crear un comercio](/onboarding/create-merchant) |
 | `onboarding:update` | `PATCH /api/merchants/{merchantId}` | [Actualizar un comercio](/onboarding/update-merchant) |
 | `onboarding:read` | `GET /api/processes/{processId}` | [Consultar el proceso](/onboarding/process-status) |
+| `onboarding:read` | `GET /api/merchants/{merchantId}` | [Consultar un comercio](/onboarding/show-merchant) |
 
 Si tu token no incluye el permiso que la operación exige, la respuesta es `403`.
 
 <Note>
   Ten en cuenta que crear un comercio requiere **dos** permisos en la práctica: `onboarding:create` para enviarlo y `onboarding:read` para consultar el resultado del proceso.
+</Note>
+
+<Note type="warning">
+  `onboarding:read` no es un permiso menor: además de consultar procesos, lee **cualquier** comercio con las credenciales de sus sitios y proveedores en claro. Protege un token con este permiso igual que uno de escritura.
 </Note>
 
 ## Verificar tu token {{ id: 'verify-your-token' }}
@@ -120,7 +121,7 @@ Antes de escribir el resto de la integración, comprueba que tus credenciales fu
         "status": "OK",
         "reason": null,
         "message": null,
-        "date": "2026-08-17T10:14:03-05:00"
+        "date": "2026-08-17T15:14:03+00:00"
       },
       "id": 1,
       "username": "acme",
@@ -150,7 +151,7 @@ Antes de escribir el resto de la integración, comprueba que tus credenciales fu
         "status": "FAILED",
         "reason": 401,
         "message": "The access token is missing or invalid.",
-        "date": "2026-08-17T10:14:03-05:00"
+        "date": "2026-08-17T15:14:03+00:00"
       }
     }
     ```
@@ -161,7 +162,7 @@ Antes de escribir el resto de la integración, comprueba que tus credenciales fu
         "status": "FAILED",
         "reason": 403,
         "message": "The access token does not grant the required scope.",
-        "date": "2026-08-17T10:14:03-05:00"
+        "date": "2026-08-17T15:14:03+00:00"
       }
     }
     ```

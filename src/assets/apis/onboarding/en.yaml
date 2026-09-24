@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Placetopay Onboarding API
   description: |
-    API para registrar y actualizar comercios en Placetopay de forma asíncrona.
+    API para registrar, actualizar y consultar comercios en Placetopay.
 
     Las peticiones de escritura no esperan a que el comercio quede registrado: validan el contenido,
     responden `202` con un identificador de proceso y ejecutan el registro en segundo plano.
@@ -56,7 +56,7 @@ paths:
         - name: Accept
           in: header
           required: false
-          description: Recomendado, para que los errores lleguen en formato JSON.
+          description: Recomendado.
           schema:
             type: string
             example: application/json
@@ -139,6 +139,71 @@ paths:
           type: integer
           minimum: 1
           example: 18
+    get:
+      summary: Consultar un comercio
+      operationId: show-merchant
+      description: |
+        Devuelve el comercio **completo**: sus datos, sus medios de pago, sus integraciones y todos sus
+        sitios, cada uno con sus propios medios de pago e integraciones.
+
+        Es una consulta **síncrona y de solo lectura**: no crea proceso, no envía notificación y no
+        modifica nada. No admite parámetros de consulta ni paginación.
+
+        La respuesta incluye **credenciales en claro**: las de cada sitio y los `settings` de medios
+        de pago e integraciones.
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Token de acceso con el permiso `onboarding:read`.
+          schema:
+            type: string
+            example: Bearer 1|tu-token-de-acceso
+        - name: Accept
+          in: header
+          required: false
+          description: Recomendado.
+          schema:
+            type: string
+            example: application/json
+      responses:
+        '200':
+          description: |
+            El comercio existe. Los campos viajan en la raíz, junto a `status`. Un comercio o un sitio
+            deshabilitado se devuelve igual, con `active: false`.
+          headers:
+            Cache-Control:
+              description: |
+                `no-cache, private` en todas las respuestas: la respuesta contiene credenciales y
+                ninguna caché compartida debe guardarla.
+              schema:
+                type: string
+                example: no-cache, private
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantRead'
+        '401':
+          description: Token ausente, inválido o revocado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: El token no incluye el permiso `onboarding:read`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: |
+            No existe un comercio con ese identificador, o el identificador no es numérico. La consulta
+            no se limita a los comercios que creó tu aplicación, así que un `404` significa siempre
+            que el comercio no existe.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     patch:
       summary: Actualizar un comercio
       operationId: update-merchant
@@ -448,7 +513,7 @@ components:
           type: string
           format: date-time
           description: Instante de la transición, no el de la respuesta.
-          example: '2026-08-17T10:14:03-05:00'
+          example: '2026-08-17T15:14:03+00:00'
 
     MerchantWrite:
       title: MerchantWrite
@@ -1673,9 +1738,9 @@ components:
           maxLength: 5
           description: |
             Idioma del sitio, del catálogo y con la **grafía exacta**: a diferencia de `languages` en
-            la raíz, aquí la comparación distingue mayúsculas. Hoy el catálogo escribe el idioma en
-            minúscula (`es`) y la moneda en mayúscula (`COP`).
-          example: es
+            la raíz, aquí la comparación distingue mayúsculas. Hoy el catálogo escribe el idioma y la
+            moneda en mayúscula (`ES`, `COP`).
+          example: ES
         email:
           type: string
           format: email
@@ -1827,7 +1892,7 @@ components:
           type: [array, 'null']
           minItems: 1
           maxItems: 267
-          description: Países cuyos bancos se admiten. Sin repetidos.
+          description: Países cuyos bancos se admiten.
           items:
             type: string
             minLength: 2
@@ -1837,7 +1902,7 @@ components:
           type: [array, 'null']
           minItems: 1
           maxItems: 500
-          description: BINes exceptuados del filtro. Sin repetidos.
+          description: BINes exceptuados del filtro.
           items:
             type: string
             pattern: '^\d{6}$'
@@ -1979,6 +2044,858 @@ components:
           type: [string, 'null']
           pattern: '^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$'
 
+    MerchantRead:
+      title: MerchantRead
+      type: object
+      description: |
+        Comercio completo, tal como está registrado. Sus campos viajan en la raíz, junto a `status`,
+        cuyo `date` es el momento de la respuesta, en UTC.
+
+        Es una lectura, no un cuerpo para reenviar: un `PATCH` no acepta esta forma tal cual. Ver
+        [Consultar un comercio](/onboarding/show-merchant#not-a-write-body).
+      required:
+        - status
+        - id
+        - name
+        - brand
+        - mcc
+        - active
+        - timezone
+        - size
+        - incrementType
+        - languages
+        - currencies
+        - url
+        - document
+        - address
+        - legalRepresentative
+        - billing
+        - travelAgency
+        - control
+        - paymentMethods
+        - integrations
+        - sites
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        id:
+          type: integer
+          description: Identificador del comercio. Es el `result.merchantId` del proceso de creación.
+          example: 18
+        name:
+          type: string
+          description: Nombre o razón social.
+          example: Comercializadora Acme S.A.S.
+        brand:
+          type: string
+          description: Marca. Si no está registrada, sale el valor de `name`.
+          example: Acme
+        mcc:
+          type: [string, 'null']
+          example: '5411'
+        active:
+          type: boolean
+          description: Si el comercio está habilitado.
+        timezone:
+          type: [string, 'null']
+          example: America/Bogota
+        size:
+          type: [string, 'null']
+          description: Código de tamaño del comercio.
+          example: M
+        incrementType:
+          type: string
+          enum: [SMLMV, IPC]
+          description: Si no está registrado, `SMLMV`.
+        languages:
+          type: [array, 'null']
+          description: |
+            Códigos de idioma en orden alfabético, con la grafía con que están registrados: pueden
+            venir en minúscula aunque `sites[].language` salga en mayúscula. `null` si no tiene
+            ninguno.
+          items:
+            type: string
+          example: [en, es]
+        currencies:
+          type: [array, 'null']
+          description: Códigos de moneda en orden alfabético. `null` si no tiene ninguna.
+          items:
+            type: string
+          example: [COP, USD]
+        url:
+          type: [string, 'null']
+          example: https://acme.example.com
+        document:
+          type: object
+          required: [type, number]
+          properties:
+            type:
+              type: string
+              description: Tipo de documento. Si el documento se registró sin tipo, sale `NIT`.
+              example: NIT
+            number:
+              type: string
+              description: |
+                Número de documento. `""` si no hay documento registrado. Si el documento registrado
+                contiene más de un espacio, solo sale el tramo entre el primero y el segundo.
+              example: '9001234567'
+        address:
+          type: object
+          required: [street, city, state, country, phone, postalCode]
+          properties:
+            street:
+              type: [string, 'null']
+            city:
+              type: [string, 'null']
+            state:
+              type: [integer, 'null']
+              description: Identificador de la provincia o departamento.
+              example: 11
+            country:
+              type: string
+              description: Código de país ISO 3166-1 alfa-2.
+              example: CO
+            phone:
+              type: string
+              description: '`""` si no está registrado.'
+            postalCode:
+              type: [string, 'null']
+        legalRepresentative:
+          type: object
+          required: [name, surname, document, documentType]
+          description: |
+            `name` y `surname` se deducen del nombre completo registrado con una regla aproximada,
+            así que pueden no coincidir con los que se enviaron. Ver
+            [Consultar un comercio](/onboarding/show-merchant#legal-representative).
+          properties:
+            name:
+              type: string
+              description: Nombres. `""` si no hay representante.
+              example: Ada
+            surname:
+              type: [string, 'null']
+              description: |
+                Apellidos. `null` si no hay representante, o si el nombre registrado tiene una sola
+                palabra o más de siete.
+              example: Lovelace
+            document:
+              type: [string, 'null']
+            documentType:
+              type: [string, 'null']
+        billing:
+          type: object
+          required: [contact, mail, registrationNumber, taxType, taxRegime, organizationType, ciiu]
+          properties:
+            contact:
+              type: [string, 'null']
+            mail:
+              type: [string, 'null']
+            registrationNumber:
+              type: [string, 'null']
+            taxType:
+              type: [integer, 'null']
+            taxRegime:
+              type: [integer, 'null']
+            organizationType:
+              type: [integer, 'null']
+            ciiu:
+              type: [string, 'null']
+        travelAgency:
+          type: object
+          required: [dispersion, iata]
+          properties:
+            dispersion:
+              type: boolean
+            iata:
+              type: [string, 'null']
+        control:
+          type: object
+          required: [seller, reseller, paymentFacilitator]
+          properties:
+            seller:
+              type: [integer, 'null']
+            reseller:
+              type: integer
+            paymentFacilitator:
+              type: [integer, 'null']
+        paymentMethods:
+          type: array
+          description: Medios de pago del comercio, por su `id`.
+          items:
+            $ref: '#/components/schemas/PaymentMethodRead'
+        integrations:
+          type: array
+          description: Integraciones del comercio, por su `id`.
+          items:
+            $ref: '#/components/schemas/IntegrationRead'
+        sites:
+          type: array
+          description: Sitios del comercio, por su `id`. `[]` si no tiene ninguno.
+          items:
+            $ref: '#/components/schemas/SiteRead'
+
+    PaymentMethodRead:
+      title: PaymentMethodRead
+      type: object
+      description: Medio de pago del comercio.
+      required:
+        - id
+        - customerId
+        - code
+        - name
+        - commissionModel
+        - commissionValue
+        - accountNumber
+        - accountType
+        - franchise
+        - financialEntity
+        - order
+        - disabled
+        - creditRules
+        - settings
+      properties:
+        id:
+          type: integer
+          description: |
+            Identificador del medio de pago. Es el `id` con el que un `PATCH` lo modifica, y el que
+            referencia `sites[].paymentMethods[].customerPaymentId`.
+          example: 64
+        customerId:
+          type: integer
+          description: Identificador del comercio.
+          example: 18
+        code:
+          type: string
+          example: CR_VS
+        name:
+          type: string
+          example: Credibanco Visa
+        commissionModel:
+          type: string
+          enum: [P, F]
+        commissionValue:
+          type: number
+          description: Entero o decimal. Un valor sin parte decimal se escribe sin decimales (`1200`).
+          example: 2.5
+        accountNumber:
+          type: [string, 'null']
+        accountType:
+          type: [integer, 'null']
+        franchise:
+          type: [string, 'null']
+          description: |
+            Franquicia que el catálogo asocia al medio de pago. Es solo informativa: puede ser `null`
+            también en medios de tarjeta, y no siempre coincide con la marca de su nombre. No la uses
+            para deducir la franquicia de una transacción.
+          example: VISA
+        financialEntity:
+          type: [integer, 'null']
+        order:
+          type: integer
+        disabled:
+          type: boolean
+          description: Si el medio de pago está deshabilitado en el catálogo de Placetopay.
+        creditRules:
+          type: [object, array]
+          description: Reglas de crédito. `[]` si no tiene.
+        settings:
+          type: [object, array]
+          description: |
+            Configuración del proveedor, **en claro**. Un objeto vacío sale como `[]`.
+
+            En los medios de CREDIBANCO, un `pfxID` que corresponde a un certificado registrado sale
+            sustituido por las credenciales de ese certificado: `username`, `password` (estos dos
+            pueden ser `null`), `retailCode` y `terminalNumber`. Si no corresponde a ninguno, sale el
+            `pfxID` tal cual.
+
+            `selection_rules` no devuelve su contenido: sale como `{}`, o `null` si su configuración
+            es inválida.
+
+    IntegrationRead:
+      title: IntegrationRead
+      type: object
+      description: Integración del comercio con un proveedor externo.
+      required: [id, customerId, type, settings]
+      properties:
+        id:
+          type: integer
+          description: |
+            Identificador de la integración. Solo informativo: al escribir, una integración se
+            direcciona por su `type`, y enviar `id` responde `422`.
+          example: 42
+        customerId:
+          type: integer
+          example: 18
+        type:
+          type: string
+          example: kount
+        settings:
+          description: |
+            Configuración tal como está registrada, **en claro**. Normalmente es un objeto; uno vacío
+            sale como `[]`.
+
+    SiteRead:
+      title: SiteRead
+      type: object
+      description: Sitio del comercio, con sus propios medios de pago e integraciones.
+      required:
+        - id
+        - login
+        - tranKey
+        - md5Hash
+        - customerId
+        - name
+        - displayName
+        - type
+        - category
+        - email
+        - customBatch
+        - language
+        - currency
+        - onTest
+        - productionDate
+        - active
+        - createdAt
+        - expiration
+        - integration
+        - control
+        - threeDS
+        - historic
+        - creditBureau
+        - riskEngine
+        - securityFilters
+        - operation
+        - subscriptionValidation
+        - branding
+        - promotions
+        - metadata
+        - paymentMethods
+        - integrations
+      properties:
+        id:
+          type: integer
+          description: Identificador del sitio. Es el `sites[].id` con el que un `PATCH` lo modifica.
+          example: 214
+        login:
+          type: string
+          description: Identificador público del sitio.
+        tranKey:
+          type: string
+          description: Clave secreta del sitio, **en claro**.
+        md5Hash:
+          type: string
+          description: |
+            Segunda credencial del sitio, **en claro**. Se declara por completitud del contrato; para
+            integrar un sitio se usan `login` y `tranKey`.
+        customerId:
+          type: integer
+          description: Identificador del comercio.
+          example: 18
+        name:
+          type: string
+        displayName:
+          type: [string, 'null']
+        type:
+          type: string
+          enum: [POS, INT, IVR, REC, ONE, POS_AIR]
+        category:
+          type: [string, 'null']
+          enum: [COLLECT, ECOMMERCE, null]
+        email:
+          type: [string, 'null']
+        customBatch:
+          type: [string, 'null']
+          description: Código de conciliación. Es numérico, pero viaja como texto.
+          example: '1001'
+        language:
+          type: string
+          description: Idioma del sitio, con la grafía del catálogo (`ES`).
+          example: ES
+        currency:
+          type: string
+          example: COP
+        onTest:
+          type: boolean
+        productionDate:
+          type: [string, 'null']
+          description: '`YYYY-MM-DD`.'
+        active:
+          type: boolean
+          description: '`true` solo si el sitio **y** su comercio están habilitados.'
+        createdAt:
+          type: string
+          description: |
+            Fecha y hora de creación, `YYYY-MM-DD HH:MM:SS`, sin zona horaria. Está en hora de
+            Colombia (UTC−5), no en UTC como `status.date`.
+          example: '2026-09-22 16:27:16'
+        expiration:
+          type: [string, 'null']
+          description: '`YYYY-MM-DD HH:MM:SS`, sin zona horaria.'
+        integration:
+          type: object
+          required:
+            - allowPartial
+            - allowWallet
+            - allowConfirmationFlow
+            - checkoutAttemptsLimit
+            - connectionMethod
+            - checkoutVersion
+            - notificationUrl
+            - analyticsCode
+            - sourceRestriction
+            - returnAdditional
+            - payerFieldsType
+          properties:
+            allowPartial:
+              type: boolean
+            allowWallet:
+              type: [boolean, 'null']
+              description: |
+                Si el sitio no lo tiene configurado, sale el valor por defecto de la plataforma.
+                `null` si la configuración del sitio no se puede leer.
+            allowConfirmationFlow:
+              type: [boolean, 'null']
+              description: |
+                `false` si no está configurado; `null` si la configuración del sitio no se puede leer.
+            checkoutAttemptsLimit:
+              type: [integer, 'null']
+            connectionMethod:
+              type: [string, 'null']
+              example: REDIRECT
+            checkoutVersion:
+              type: string
+              description: '`v4` si no está registrada.'
+            notificationUrl:
+              type: [string, 'null']
+              description: |
+                URL de notificación registrada en el sitio. Si el sitio tiene una integración
+                `notifier`, es la dirección del servicio de notificaciones de Placetopay, y el destino
+                del comercio está en `settings.additional.uri` de esa integración.
+            analyticsCode:
+              type: [string, 'null']
+            sourceRestriction:
+              type: [string, 'null']
+            returnAdditional:
+              type: boolean
+            payerFieldsType:
+              description: Tal como se configuró. Puede ser `null`.
+        control:
+          type: object
+          required:
+            - minAmount
+            - maxAmount
+            - allowedDays
+            - allowedHours
+            - delegatedAuthorization
+            - filterPse
+            - filterTuya
+            - filterSafetypay
+            - prechargeFilter
+            - allowedBankCountries
+            - filterByBin
+            - exceptionBinsList
+          properties:
+            minAmount:
+              type: string
+              description: Texto con dos decimales.
+              example: '1000.00'
+            maxAmount:
+              type: string
+              description: Texto con dos decimales.
+              example: '5000000.00'
+            allowedDays:
+              type: integer
+              description: Días de la semana, como máscara de bits. `127` son los siete.
+              example: 127
+            allowedHours:
+              type: [string, 'null']
+              description: |
+                Horas de la semana: 42 caracteres hexadecimales que forman 168 bits, uno por hora.
+                Todo `f` son todas las horas.
+            delegatedAuthorization:
+              type: [string, 'null']
+              description: Horas con autorización delegada, con el mismo formato que `allowedHours`.
+            filterPse:
+              type: boolean
+            filterTuya:
+              type: boolean
+            filterSafetypay:
+              type: boolean
+            prechargeFilter:
+              type: integer
+              description: '`0` si no está registrado.'
+            allowedBankCountries:
+              type: [array, 'null']
+              items:
+                type: string
+            filterByBin:
+              type: boolean
+            exceptionBinsList:
+              type: [array, 'null']
+              items:
+                type: string
+        threeDS:
+          type: object
+          required: [setting, minAmount]
+          properties:
+            setting:
+              type: string
+              enum: [VERY_LOW, LOW, MEDIUM, HIGH, '']
+              description: '`""` si el valor registrado no corresponde a ninguno.'
+            minAmount:
+              type: [string, 'null']
+              description: Texto con dos decimales.
+        historic:
+          type: object
+          required: [lowerScore, rejectionScore, behaviour]
+          properties:
+            lowerScore:
+              type: [integer, 'null']
+            rejectionScore:
+              type: [integer, 'null']
+            behaviour:
+              type: [string, 'null']
+              enum: [DISABLED, IGNORE, PROCESS, null]
+        creditBureau:
+          type: object
+          required: [behaviour, minAmount, paymentGroups, onCalibration, behaviours]
+          properties:
+            behaviour:
+              description: |
+                Comportamiento codificado en bits; su lectura está en `behaviours`. Normalmente es un
+                entero, pero en configuraciones antiguas puede venir como texto, decimal o booleano.
+                `0` si no está registrado.
+            minAmount:
+              type: number
+              description: '`0` si no está registrado.'
+            paymentGroups:
+              type: array
+              description: '`[]` si no está registrado.'
+            onCalibration:
+              description: '`0` si no está registrado.'
+            behaviours:
+              type: [object, 'null']
+              description: |
+                Para cada caso, el nivel activo —`REJECTED`, `MANUAL`, `IGNORE` o `PROCESS`— o
+                `false`.
+              properties:
+                onFailed:
+                  type: [string, boolean]
+                onNoMatch:
+                  type: [string, boolean]
+                onMatch:
+                  type: [string, boolean]
+        riskEngine:
+          type: object
+          required:
+            - behaviour
+            - minAmount
+            - approvalScore
+            - rejectionScore
+            - onCalibration
+            - paymentGroups
+            - behaviours
+          properties:
+            behaviour:
+              description: |
+                Comportamiento codificado en bits; su lectura está en `behaviours`. Normalmente es un
+                entero, pero en configuraciones antiguas puede venir como texto, decimal o booleano.
+                `0` si no está registrado.
+            minAmount:
+              type: number
+              description: '`0` si no está registrado.'
+            approvalScore:
+              description: '`0` si no está registrado.'
+            rejectionScore:
+              description: '`0` si no está registrado.'
+            onCalibration:
+              description: '`0` si no está registrado.'
+            paymentGroups:
+              type: array
+              description: '`[]` si no está registrado.'
+            behaviours:
+              type: [object, 'null']
+              description: |
+                Para cada caso, el nivel activo —`REJECTED`, `MANUAL`, `IGNORE` o `PROCESS`— o
+                `false`.
+              properties:
+                onFailed:
+                  type: [string, boolean]
+                onLowRisk:
+                  type: [string, boolean]
+                onMediumRisk:
+                  type: [string, boolean]
+                onHighRisk:
+                  type: [string, boolean]
+        securityFilters:
+          type: object
+          required:
+            - filterLockedByTries
+            - allowedIssuerCountries
+            - forceIPMatch
+            - excludeIPCountry
+            - onlyWhitelisted
+            - allowedIPCountries
+            - allowedCardsDay
+            - allowedCardsByIP
+            - allowedCardsMonth
+            - allowedCardsYear
+            - dayMax
+            - dayMaxAmount
+            - monthMax
+            - monthMaxAmount
+          properties:
+            filterLockedByTries:
+              type: [boolean, 'null']
+              description: |
+                `true` si no está configurado; `null` si la configuración del sitio no se puede leer.
+            allowedIssuerCountries:
+              type: [array, 'null']
+              items:
+                type: string
+            forceIPMatch:
+              type: integer
+              enum: [0, 1]
+            excludeIPCountry:
+              type: [array, 'null']
+              items:
+                type: string
+            onlyWhitelisted:
+              type: boolean
+            allowedIPCountries:
+              type: [array, 'null']
+              items:
+                type: string
+            allowedCardsDay:
+              type: integer
+            allowedCardsByIP:
+              type: integer
+            allowedCardsMonth:
+              type: integer
+            allowedCardsYear:
+              type: integer
+            dayMax:
+              type: integer
+              description: Transacciones máximas por día.
+            dayMaxAmount:
+              type: string
+              description: Monto máximo por día, como texto con dos decimales.
+            monthMax:
+              type: integer
+              description: Transacciones máximas por mes.
+            monthMaxAmount:
+              type: string
+              description: Monto máximo por mes, como texto con dos decimales.
+        operation:
+          type: object
+          required: [disableTax, calculateTax, taxPercentage, patternReference, mailCustomer, mailMerchant]
+          properties:
+            disableTax:
+              type: boolean
+            calculateTax:
+              type: boolean
+            taxPercentage:
+              type: number
+            patternReference:
+              type: [string, 'null']
+            mailCustomer:
+              type: boolean
+            mailMerchant:
+              type: boolean
+        subscriptionValidation:
+          type: object
+          required: [enable, amount]
+          properties:
+            enable:
+              type: boolean
+            amount:
+              type: number
+        branding:
+          type: [object, array, 'null']
+          description: |
+            Personalización de la página de pago, con sus claves tal como se guardaron (pueden venir
+            en `null`). Si el sitio tiene logo, incluye `logoUrl` con su URL pública, o `null` si no
+            se puede construir. `[]` si no tiene nada; `null` si la personalización guardada no se
+            puede leer.
+          properties:
+            buttonColor:
+              type: [string, 'null']
+            sidebarColor:
+              type: [string, 'null']
+            logoUrl:
+              type: [string, 'null']
+        promotions:
+          type: array
+          description: |
+            Promociones generales **vigentes hoy**, según la fecha actual en Colombia: primero las del
+            sitio y después las que aplican a todos los sitios del comercio, cada grupo en orden de
+            creación. No incluye las promociones asociadas a un medio de pago, ni las deshabilitadas,
+            las que aún no empiezan o las vencidas.
+          items:
+            type: object
+            required:
+              - code
+              - description
+              - type
+              - startDate
+              - endDate
+              - condition
+              - discountBase
+              - discountVariable
+              - maxDiscount
+              - franchise
+            properties:
+              code:
+                type: string
+              description:
+                type: [string, 'null']
+              type:
+                type: string
+                enum: [MERCHANT, FRANCHISE, OTHER]
+              startDate:
+                type: string
+                description: '`YYYY-MM-DD`.'
+              endDate:
+                type: string
+                description: '`YYYY-MM-DD`.'
+              condition:
+                type: [string, 'null']
+                description: Condición de la promoción, como texto JSON.
+              discountBase:
+                type: string
+                description: Descuento fijo, como texto con cuatro decimales.
+              discountVariable:
+                type: string
+                description: Descuento porcentual, como texto con cuatro decimales.
+              maxDiscount:
+                type: string
+                description: Descuento máximo, como texto con cuatro decimales.
+              franchise:
+                type: [string, 'null']
+                description: '`null` en las promociones generales.'
+        metadata:
+          type: [object, array, 'null']
+          description: |
+            El documento libre del sitio, tal como quedó tras las escrituras. Un objeto vacío sale
+            como `[]`; `null` si el sitio no tiene.
+        paymentMethods:
+          type: array
+          description: Medios de pago habilitados en el sitio, por su `id`.
+          items:
+            $ref: '#/components/schemas/SitePaymentMethodRead'
+        integrations:
+          type: array
+          description: Integraciones del sitio, por su `type`.
+          items:
+            $ref: '#/components/schemas/SiteIntegrationRead'
+
+    SitePaymentMethodRead:
+      title: SitePaymentMethodRead
+      type: object
+      description: |
+        Habilitación en el sitio de un medio de pago del comercio. Los campos salen **como están
+        registrados en el sitio**, sin combinarlos con los del medio de pago del comercio: un `null`
+        significa que el sitio hereda ese valor. Ver
+        [Consultar un comercio](/onboarding/show-merchant#site-payment-methods).
+      required:
+        - id
+        - siteId
+        - customerPaymentId
+        - code
+        - name
+        - order
+        - commissionModel
+        - commissionValue
+        - minAmount
+        - maxAmount
+        - accountNumber
+        - accountType
+        - franchise
+        - financialEntity
+        - disabled
+        - settings
+        - creditRules
+      properties:
+        id:
+          type: integer
+          description: |
+            Identificador de la habilitación. Es el `id` con el que un `PATCH` la modifica.
+          example: 131
+        siteId:
+          type: integer
+          example: 214
+        customerPaymentId:
+          type: integer
+          description: |
+            Medio de pago del comercio que habilita (`paymentMethods[].id`). En un `PATCH`, este mismo
+            valor se envía como `paymentMethodId`.
+          example: 64
+        code:
+          type: string
+        name:
+          type: string
+        order:
+          type: integer
+        commissionModel:
+          type: [string, 'null']
+          enum: [P, F, null]
+          description: Informativo. La comisión que se cobra es la del medio de pago del comercio.
+        commissionValue:
+          type: [number, 'null']
+          description: Informativo.
+        minAmount:
+          type: [number, 'null']
+          description: '`null`: rige `control.minAmount` del sitio.'
+        maxAmount:
+          type: [number, 'null']
+          description: '`null`: rige `control.maxAmount` del sitio.'
+        accountNumber:
+          type: [string, 'null']
+          description: '`null`: rige la del medio de pago del comercio.'
+        accountType:
+          type: [integer, 'null']
+          description: '`null`: rige el del medio de pago del comercio.'
+        franchise:
+          type: [string, 'null']
+          description: Franquicia del catálogo, con la misma advertencia que en el comercio.
+        financialEntity:
+          type: [integer, 'null']
+          description: '`null`: rige la del medio de pago del comercio.'
+        disabled:
+          type: boolean
+          description: Si el medio de pago está deshabilitado en el catálogo de Placetopay.
+        settings:
+          type: [object, array]
+          description: |
+            Claves que el sitio sobrescribe, **en claro**; las demás rigen desde el medio de pago del
+            comercio. Sigue las mismas reglas de CREDIBANCO y de `selection_rules` que en el comercio.
+        creditRules:
+          type: [object, array]
+          description: '`[]`: rigen las del medio de pago del comercio.'
+
+    SiteIntegrationRead:
+      title: SiteIntegrationRead
+      type: object
+      description: Integración propia del sitio.
+      required: [id, siteId, type, settings]
+      properties:
+        id:
+          type: integer
+          description: |
+            Identificador de la integración. Solo informativo: al escribir, una integración del sitio
+            se direcciona por su `type`, y enviar `id` responde `422`.
+          example: 78
+        siteId:
+          type: integer
+          example: 214
+        type:
+          type: string
+          example: notifier
+        settings:
+          description: |
+            Configuración tal como está registrada, **en claro**. Normalmente es un objeto; uno vacío
+            sale como `[]`.
+
     Process:
       title: Process
       type: object
@@ -2098,8 +3015,7 @@ components:
                   una actualización vuelve **solo si cambió**, así que reenviar el mismo valor que ya
                   está guardado devuelve `null`.
 
-                  Es el único lugar donde una credencial generada se publica, y no hay forma de
-                  recuperarla después.
+                  Después solo puede volver a leerse con `GET /api/merchants/{merchantId}`.
               md5Hash:
                 type: [string, 'null']
                 description: |
@@ -2252,7 +3168,7 @@ components:
               type: string
               format: date-time
               description: Instante del **envío**, distinto de `status.date`, que marca la transición.
-              example: '2026-08-17T10:14:10-05:00'
+              example: '2026-08-17T15:14:10+00:00'
             attempt:
               type: integer
               minimum: 1

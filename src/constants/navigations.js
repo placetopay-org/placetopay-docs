@@ -2326,7 +2326,11 @@ export const TAB_NAVIGATION = {
                 title: 'Acciones sobre integraciones de sitios',
                 href: '/core/reference/site/integrations',
               },
-            ],
+              {
+                title: 'Acciones sobre anuncios',
+                href: '/core/reference/ads'
+              },
+            ]
           },
         ],
       },
@@ -2389,7 +2393,11 @@ export const TAB_NAVIGATION = {
                 title: 'Actions on site integrations',
                 href: '/en/core/reference/site/integrations',
               },
-            ],
+              {
+                title: 'Actions on Ads',
+                href: '/en/core/reference/ads'
+              },
+            ]
           },
         ],
       },
@@ -3170,6 +3178,7 @@ export const TAB_NAVIGATION = {
               { title: 'Crear un comercio', href: '/onboarding/create-merchant' },
               { title: 'Consultar el proceso', href: '/onboarding/process-status' },
               { title: 'Notificación', href: '/onboarding/notification' },
+              { title: 'Consultar un comercio', href: '/onboarding/show-merchant' },
               { title: 'Actualizar un comercio', href: '/onboarding/update-merchant' },
               { title: 'Errores', href: '/onboarding/errors' },
             ],
@@ -3238,6 +3247,7 @@ export const TAB_NAVIGATION = {
               { title: 'Create a merchant', href: '/en/onboarding/create-merchant' },
               { title: 'Check the process', href: '/en/onboarding/process-status' },
               { title: 'Notification', href: '/en/onboarding/notification' },
+              { title: 'Get a merchant', href: '/en/onboarding/show-merchant' },
               { title: 'Update a merchant', href: '/en/onboarding/update-merchant' },
               { title: 'Errors', href: '/en/onboarding/errors' },
             ],

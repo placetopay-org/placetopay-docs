@@ -38,6 +38,8 @@ tags:
     description: Actions on the administration of integrations associated with a merchant.
   - name: Site integration actions
     description: Actions on the administration of integrations associated with a site.
+  - name: Actions on Ads
+    description: Actions on the management of ads.
 paths:
   "/core/merchant/create":
     post:
@@ -1328,6 +1330,12 @@ paths:
                       isEcommerce: true
                       3DSVersion: v2
                       3DSApiKey: "468232"
+                      selection_rules:
+                        strict: false
+                        bin:
+                          policy: denies
+                          collection:
+                            - "511111"
                     creditRules:
                       RM_MC:
                         C:
@@ -1485,6 +1493,12 @@ paths:
                       isEcommerce: true
                       3DSVersion: v2
                       3DSApiKey: "468232"
+                      selection_rules:
+                        strict: false
+                        bin:
+                          policy: denies
+                          collection:
+                            - "511111"
                     creditRules:
         description: ""
       description: This service allows updating a payment method associated with a merchant. If the response is successful, it returns the identifier of the payment method.
@@ -1625,6 +1639,12 @@ paths:
                         order: 1
                         disabled: true
                         settings:
+                          selection_rules:
+                            strict: false
+                            bin:
+                              policy: denies
+                              collection:
+                                - "511111"
                         creditRules:
                           RM_MC:
                             C:
@@ -4376,6 +4396,34 @@ paths:
                         the authentication does not contain all the required parameters
                         (login, tranKey, seed, nonce)
                       date: "2021-09-21T09:34:48-05:00"
+        "422":
+          description: Unprocessable Entity - Validation Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+              examples:
+                Invalid ad type:
+                  value:
+                    message: "The field type is invalid"
+                    errors:
+                      type:
+                        - "The field type is invalid"
+                Invalid pagination:
+                  value:
+                    message: "The pagination.perPage field must be at least 1."
+                    errors:
+                      pagination.perPage:
+                        - "The pagination.perPage field must be at least 1."
         "500":
           description: Internal Server Error
           content:
@@ -4981,6 +5029,12 @@ paths:
                       RUC: "1234567890147"
                       terminalNumber: "01234567"
                       aggregatorModel: false
+                      selection_rules:
+                        strict: false
+                        bin:
+                          policy: denies
+                          collection:
+                            - "511111"
                     creditRules:
                       RM_MC:
                         C:
@@ -5214,6 +5268,12 @@ paths:
                       RUC: "1234567890147"
                       terminalNumber: "01234567"
                       aggregatorModel: false
+                      selection_rules:
+                        strict: false
+                        bin:
+                          policy: denies
+                          collection:
+                            - "511111"
                     creditRules:
               Update a payment method on a site (CREDIBANCO):
                 value:
@@ -5392,6 +5452,12 @@ paths:
                         order: 1
                         disabled: true
                         settings:
+                          selection_rules:
+                            strict: false
+                            bin:
+                              policy: denies
+                              collection:
+                                - "511111"
                         creditRules:
                           RM_MC:
                             C:
@@ -11497,6 +11563,95 @@ paths:
                             enable:
                               type: boolean
                               example: true
+                - title: "Google Pay"
+                  type: object
+                  required:
+                    - auth
+                    - data
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    data:
+                      type: object
+                      description: Object with the necessary information to add an integration to a merchant.
+                      required:
+                        - customerId
+                        - type
+                        - settings
+                      properties:
+                        customerId:
+                          type: integer
+                          example: 1
+                          minimum: 1
+                          description: Merchant identifier.
+                        type:
+                          type: string
+                          example: "google_pay"
+                          description: Identifier code of the integration.
+                        settings:
+                          type: object
+                          description: Object containing the integration parameters.
+                          required:
+                            - enabled
+                            - environment
+                            - allowed_auth_methods
+                          properties:
+                            enabled:
+                              type: boolean
+                              example: true
+                              description: Integration enabled status.
+                            environment:
+                              type: string
+                              enum:
+                                - TEST
+                                - PRODUCTION
+                              example: "PRODUCTION"
+                              description: Google Pay execution environment.
+                            allowed_auth_methods:
+                              type: array
+                              items:
+                                type: string
+                                enum:
+                                  - PAN_ONLY
+                                  - CRYPTOGRAM_3DS
+                              minItems: 1
+                              example: [ "PAN_ONLY", "CRYPTOGRAM_3DS" ]
+                              description: Allowed authentication methods.
+                - title: "Click to Pay Visa"
+                  type: object
+                  required:
+                    - auth
+                    - data
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    data:
+                      type: object
+                      description: Object with the necessary information to add an integration to a merchant.
+                      required:
+                        - customerId
+                        - type
+                        - settings
+                      properties:
+                        customerId:
+                          type: integer
+                          example: 1
+                          minimum: 1
+                          description: Merchant identifier.
+                        type:
+                          type: string
+                          example: "click_to_pay_visa"
+                          description: Identifier code of the integration.
+                        settings:
+                          type: object
+                          description: Object containing the integration parameters.
+                          required:
+                            - enabled
+                          properties:
+                            enabled:
+                              type: boolean
+                              example: true
+                              description: Integration enabled status.
       responses:
         "200":
           description: OK
@@ -11995,6 +12150,83 @@ paths:
                             enable:
                               type: boolean
                               example: false
+                - title: "Google Pay"
+                  type: object
+                  required:
+                    - auth
+                    - id
+                    - data
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    id:
+                      type: integer
+                      description: Identifier of the integration.
+                      example: 1
+                    data:
+                      type: object
+                      description: Object with the necessary information to update a merchant integration.
+                      required:
+                        - settings
+                      properties:
+                        settings:
+                          type: object
+                          description: Object containing the integration parameters.
+                          required:
+                            - enabled
+                            - environment
+                            - allowed_auth_methods
+                          properties:
+                            enabled:
+                              type: boolean
+                              example: true
+                              description: Integration enablement status.
+                            environment:
+                              type: string
+                              enum:
+                                - TEST
+                                - PRODUCTION
+                              example: "PRODUCTION"
+                              description: Google Pay execution environment.
+                            allowed_auth_methods:
+                              type: array
+                              items:
+                                type: string
+                                enum:
+                                  - PAN_ONLY
+                                  - CRYPTOGRAM_3DS
+                              minItems: 1
+                              example: [ "PAN_ONLY", "CRYPTOGRAM_3DS" ]
+                              description: Allowed authentication methods.
+                - title: "Click to Pay Visa"
+                  type: object
+                  required:
+                    - auth
+                    - id
+                    - data
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    id:
+                      type: integer
+                      description: Identifier of the integration.
+                      example: 1
+                    data:
+                      type: object
+                      description: Object with the necessary information to update a merchant integration.
+                      required:
+                        - settings
+                      properties:
+                        settings:
+                          type: object
+                          description: Object containing the integration parameters.
+                          required:
+                            - enabled
+                          properties:
+                            enabled:
+                              type: boolean
+                              example: false
+                              description: Integration enablement status.
       responses:
         "200":
           description: OK
@@ -12189,6 +12421,8 @@ paths:
                     - clicktopay
                     - azure_notification
                     - open_finance
+                    - google_pay
+                    - click_to_pay_visa
                 pagination:
                   type: object
                   x-stoplight:
@@ -12826,6 +13060,95 @@ paths:
                             enable:
                               type: boolean
                               example: true
+                - title: "Google Pay"
+                  type: object
+                  required:
+                    - auth
+                    - data
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    data:
+                      type: object
+                      description: Object with the necessary information to add an integration to a site.
+                      required:
+                        - siteId
+                        - type
+                        - settings
+                      properties:
+                        siteId:
+                          type: integer
+                          example: 1
+                          minimum: 1
+                          description: Site identifier.
+                        type:
+                          type: string
+                          example: "google_pay"
+                          description: Identifier code of the integration.
+                        settings:
+                          type: object
+                          description: Object containing the integration parameters.
+                          required:
+                            - enabled
+                            - environment
+                            - allowed_auth_methods
+                          properties:
+                            enabled:
+                              type: boolean
+                              example: true
+                              description: Integration enabled status.
+                            environment:
+                              type: string
+                              enum:
+                                - TEST
+                                - PRODUCTION
+                              example: "PRODUCTION"
+                              description: Google Pay execution environment.
+                            allowed_auth_methods:
+                              type: array
+                              items:
+                                type: string
+                                enum:
+                                  - PAN_ONLY
+                                  - CRYPTOGRAM_3DS
+                              minItems: 1
+                              example: [ "PAN_ONLY", "CRYPTOGRAM_3DS" ]
+                              description: Allowed authentication methods.
+                - title: "Click to Pay Visa"
+                  type: object
+                  required:
+                    - auth
+                    - data
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    data:
+                      type: object
+                      description: Object with the necessary information to add an integration to a site.
+                      required:
+                        - siteId
+                        - type
+                        - settings
+                      properties:
+                        siteId:
+                          type: integer
+                          example: 1
+                          minimum: 1
+                          description: Site identifier.
+                        type:
+                          type: string
+                          example: "click_to_pay_visa"
+                          description: Identifier code of the integration.
+                        settings:
+                          type: object
+                          description: Object containing the integration parameters.
+                          required:
+                            - enabled
+                          properties:
+                            enabled:
+                              type: boolean
+                              example: true
+                              description: Integration enabled status.
       responses:
         "200":
           description: OK
@@ -13324,6 +13647,83 @@ paths:
                             enable:
                               type: boolean
                               example: false
+                - title: "Google Pay"
+                  type: object
+                  required:
+                    - auth
+                    - id
+                    - data
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    id:
+                      type: integer
+                      description: Identifier of the integration.
+                      example: 1
+                    data:
+                      type: object
+                      description: Object with the necessary information to update a site integration.
+                      required:
+                        - settings
+                      properties:
+                        settings:
+                          type: object
+                          description: Object containing the integration parameters.
+                          required:
+                            - enabled
+                            - environment
+                            - allowed_auth_methods
+                          properties:
+                            enabled:
+                              type: boolean
+                              example: true
+                              description: Integration enablement status.
+                            environment:
+                              type: string
+                              enum:
+                                - TEST
+                                - PRODUCTION
+                              example: "PRODUCTION"
+                              description: Google Pay execution environment.
+                            allowed_auth_methods:
+                              type: array
+                              items:
+                                type: string
+                                enum:
+                                  - PAN_ONLY
+                                  - CRYPTOGRAM_3DS
+                              minItems: 1
+                              example: [ "PAN_ONLY", "CRYPTOGRAM_3DS" ]
+                              description: Allowed authentication methods.
+                - title: "Click to Pay Visa"
+                  type: object
+                  required:
+                    - auth
+                    - id
+                    - data
+                  properties:
+                    auth:
+                      "$ref": "#/components/schemas/Autentication"
+                    id:
+                      type: integer
+                      description: Identifier of the integration.
+                      example: 1
+                    data:
+                      type: object
+                      description: Object with the necessary information to update a site integration.
+                      required:
+                        - settings
+                      properties:
+                        settings:
+                          type: object
+                          description: Object containing the integration parameters.
+                          required:
+                            - enabled
+                          properties:
+                            enabled:
+                              type: boolean
+                              example: false
+                              description: Integration enablement status.
       responses:
         "200":
           description: OK
@@ -13518,6 +13918,8 @@ paths:
                     - clicktopay
                     - azure_notification
                     - open_finance
+                    - google_pay
+                    - click_to_pay_visa
                 pagination:
                   type: object
                   x-stoplight:
@@ -13654,6 +14056,321 @@ paths:
                         the authentication does not contain all the required parameters
                         (login, tranKey, seed, nonce)
                       date: "2021-09-21T09:34:48-05:00"
+  "/core/tools/breb/credibanco/key-resolve":
+    post:
+      summary: Keys resolution
+      operationId: post-core-tools-breb-credibanco-key-resolve
+      description:
+        "This service allows resolving a key or alias registered in the Bre-B payment ecosystem through Credibanco to obtain the associated information of the merchant and its legal representative.
+
+         The `data` object must be sent specifying the key type (`type`) and its corresponding value (`value`).
+
+         ### Supported key types (`data.type`)
+         * `PHONE`: Mobile number (e.g. `327723334`).
+         * `MAIL`: Email address (e.g. `test@example.com`).
+         * `IDENTIFICATION`: Identity document (e.g. `91234567`).
+         * `ALPHANUMERIC`: Alphanumeric identifier (e.g. `@ID123456ABC`).
+         * `MERCHANT_CODE`: Merchant code / NIT with verification digit (e.g. `900123456-1`)."
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+                  data:
+                    type: object
+                    properties:
+                      merchant:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: Company Y
+                            description: Merchant name associated with the key
+                          document:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                                example: NIT
+                                description: Merchant document type
+                              number:
+                                type: string
+                                example: "1431701149"
+                                description: Merchant document number
+                          legalRepresentative:
+                            type: object
+                            properties:
+                              documentType:
+                                type: string
+                                example: CC
+                                description: Legal representative document type
+                              documentNumber:
+                                type: string
+                                example: "123143455"
+                                description: Legal representative document number
+                              name:
+                                type: string
+                                example: Juan Carlos Perez Gomez
+                                description: Legal representative full name
+              examples:
+                Successful response:
+                  value:
+                    status:
+                      status: OK
+                      reason: "00"
+                      message: "The request has been processed successfully."
+                      date: "2026-09-03T12:00:00-05:00"
+                    data:
+                      merchant:
+                        name: Company Y
+                        document:
+                          type: NIT
+                          number: "1431701149"
+                        legalRepresentative:
+                          documentType: CC
+                          documentNumber: "123143455"
+                          name: Juan Carlos Perez Gomez
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Failed response:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: BR
+                      message: "The request was not sent correctly, please verify the information"
+                      date: "2026-09-03T12:00:00-05:00"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Authentication failed:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "401"
+                      message:
+                        "The authentication does not contain all the required parameters
+                        (login, tranKey, seed, nonce)"
+                      date: "2026-09-03T12:00:00-05:00"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth
+                - data
+              properties:
+                auth:
+                  "$ref": "#/components/schemas/Autentication"
+                data:
+                  type: object
+                  description: Object containing the key parameters to resolve
+                  required:
+                    - type
+                    - value
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - PHONE
+                        - MAIL
+                        - IDENTIFICATION
+                        - ALPHANUMERIC
+                        - MERCHANT_CODE
+                      example: PHONE
+                      description: Key type sent for resolution
+                    value:
+                      type: string
+                      example: "327723334"
+                      description: Key value to resolve
+            examples:
+              Bre-B key resolution:
+                value:
+                  auth:
+                    login: aabbccdd1234567890aabbccdd123456
+                    tranKey: ABC123example456trankey+789abc012def3456ABC=
+                    nonce: NjE1MWQ4MDE5YWViMw==
+                    seed: "2026-09-03T12:00:00-05:00"
+                  data:
+                    type: PHONE
+                    value: "327723334"
+        description: ""
+      tags:
+        - Additional procedures
+      parameters: [ ]
+  "/core/ads/search":
+    post:
+      summary: Ads search
+      operationId: post-core-ads-search
+      description:
+        "This service allows querying the ads available for the site. Only active ads (where end_date is greater than or equal to the current date) are returned. Results are sorted by start_date in ascending order.\n\nIt is possible to use filtering through the parameters: \"type\".\n\n> ### Note\n>\n> **It is not required to enter all the parameters for the filter.**\n\nIf custom pagination is required, send the 'pagination' parameter in the request."
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+                  data:
+                    type: array
+                    description: Array containing the ads found.
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: Ad identifier.
+                        type:
+                          type: string
+                          description: Ad type (e.g. info, error).
+                        content:
+                          type: string
+                          description: Ad content. May contain HTML.
+                        logo:
+                          type: string
+                          nullable: true
+                          description: URL of the logo associated with the ad.
+                        start_date:
+                          type: string
+                          description: Ad start date.
+                        end_date:
+                          type: string
+                          description: Ad end date.
+                  pagination:
+                    "$ref": "#/components/schemas/Pagination"
+              examples:
+                Respuesta exitosa:
+                  value:
+                    status:
+                      status: OK
+                      reason: "00"
+                      message: La petición se ha procesado correctamente
+                      date: "2026-04-29T08:44:58-05:00"
+                    data:
+                      - id: 3
+                        type: error
+                        content: kjhbfgklihsdfv;ipdn
+                        logo: https://panel.test/storage/ads/favicon.jpeg
+                        start_date: "2026-03-31T12:00:00-05:00"
+                        end_date: "2026-05-07T12:00:00-05:00"
+                      - id: 4
+                        type: info
+                        content: hola <b>test</b>
+                        logo: null
+                        start_date: "2026-04-01T12:00:00-05:00"
+                        end_date: "2026-04-29T12:00:00-05:00"
+                    pagination:
+                      total: 2
+                      perPage: 10
+                      currentPage: 1
+                      lastPage: 1
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Invalid type:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: BR
+                      message: The selected type field is invalid.
+                      date: "2026-07-24T13:16:59-05:00"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    "$ref": "#/components/schemas/Status"
+              examples:
+                Auntenticación fallida:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: "401"
+                      message:
+                        la autenticación no contiene todos los parámetros requeridos
+                        (login, tranKey, seed, nonce)
+                      date: "2021-09-21T09:34:48-05:00"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth:
+                  "$ref": "#/components/schemas/Autentication"
+                type:
+                  type: string
+                  description: Code of the add type to filter the search (case-sensitive, lowercase only).
+                  example: info
+                  enum:
+                    - info
+                    - warning
+                    - success
+                    - error
+                pagination:
+                  type: object
+                  description: Object containing the pagination parameters. This parameter is optional.
+                  properties:
+                    perPage:
+                      type: integer
+                      default: 15
+                      example: 10
+                      description: Number of records per page
+                    currentPage:
+                      type: integer
+                      default: 1
+                      example: 1
+                      description: Current page
+              required:
+                - auth
+            examples:
+              Ads search:
+                value:
+                  auth:
+                    login: aabbccdd1234567890aabbccdd123456
+                    tranKey: ABC123example456trankey+789abc012def3456ABC=
+                    nonce: NjE1MWQ4MDE5YWViMw==
+                    seed: "2021-09-27T09:41:05-05:00"
+                  pagination:
+                    perPage: 10
+                    currentPage: 1
+        description: ""
+      tags:
+        - Actions on Ads
+    parameters: []
 components:
   schemas:
     Person:
@@ -16486,16 +17203,80 @@ components:
             id: 3185185y0s0xt
           default: false
           description: Determines if it is an aggregator model (_PSE_)
+        selection_rules:
+          type: object
+          description: Rules to restrict or allow transactions based on card BINs and other criteria.
+          properties:
+            strict:
+              type: boolean
+              description: Determines if the selection rules are strict.
+              example: false
+            bin:
+              type: object
+              description: BIN filtering rules.
+              properties:
+                policy:
+                  type: string
+                  enum:
+                    - denies
+                    - allows
+                  description: Policy to apply for the collection of BINs.
+                  example: denies
+                collection:
+                  type: array
+                  items:
+                    type: string
+                  description: List of BINs to apply the policy.
+                  example:
+                    - "511111"
+            credit:
+              type: object
+              description: Credit type filtering rules.
+              properties:
+                policy:
+                  type: string
+                  enum:
+                    - denies
+                    - allows
+                  description: Policy to apply for the credit types collection.
+                  example: allows
+                useOnEmpty:
+                  type: boolean
+                  default: true
+                  description: Indicates if the payment method can be selected when no credit type is sent in the request.
+                  example: true
+                collection:
+                  type: array
+                  description: List of credit options to apply the policy.
+                  items:
+                    type: object
+                    properties:
+                      groupCode:
+                        type: string
+                        description: Group code for the credit type.
+                        example: "C"
+                      installment:
+                        type: integer
+                        description: Number of installments allowed.
+                        example: 1
+                      type:
+                        type: string
+                        description: Credit type identifier.
+                        example: "00"
+                      code:
+                        type: integer
+                        description: Specific credit option code.
+                        example: 1
         allowedCardTypes:
           type: array
           nullable: false
           description: "Array containing the card types supported by the payment method.
             The values must be consistent with the types supported in the global service settings.
-          
+
             - C: Credit
-          
+
             - P: Prepaid
-        
+
             - R: Debit
           "
           enum:

@@ -1,0 +1,279 @@
+export const description =
+  'Lee un comercio completo con GET /api/merchants/{merchantId}: sus datos, sus medios de pago, sus integraciones y todos sus sitios.'
+
+<MissingTranslationBanner />
+
+# Consultar un comercio
+
+`GET /api/merchants/{merchantId}` devuelve un comercio **completo** en una sola respuesta: sus datos, sus medios de pago, sus integraciones y todos sus sitios, cada uno con sus propios medios de pago e integraciones.
+
+A diferencia de la creación y la actualización, es **síncrona y de solo lectura**: responde de inmediato con el comercio, no crea proceso, no envía notificación y no modifica nada. Sirve, por ejemplo, para leer un comercio después de crearlo o antes de actualizarlo.
+
+## La petición {{ id: 'the-request' }}
+
+<CodeGroup title="Solicitud" tag="GET" label="/api/merchants/{merchantId}">
+
+```bash {{ title: 'cURL' }}
+curl --request GET \
+  --url '{URL_BASE}/api/merchants/18' \
+  --header 'Accept: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}'
+```
+
+</CodeGroup>
+
+Requiere un token con el permiso `onboarding:read`, el mismo que [consultar el proceso](/en/onboarding/process-status). No lleva cuerpo, no admite parámetros de consulta y no pagina: la respuesta trae todas las colecciones completas, así que su tamaño crece con los sitios y los medios de pago del comercio.
+
+## De dónde sale el `merchantId` {{ id: 'where-the-merchant-id-comes-from' }}
+
+Es el `result.merchantId` que devolvió el proceso de creación, y el mismo que usa [`PATCH /api/merchants/{merchantId}`](/en/onboarding/update-merchant). Debe ser numérico: uno que no lo sea responde `404`.
+
+La consulta **no se limita a los comercios que creó tu aplicación**: con el permiso `onboarding:read` puedes leer cualquier comercio que exista en el registro de Placetopay, y la respuesta es la misma para todos los consumidores. Por eso, a diferencia de lo que ocurre con un proceso, aquí un `404` significa siempre que el comercio no existe.
+
+## La respuesta {{ id: 'the-response' }}
+
+<Row>
+  <Col>
+    La respuesta trae el objeto `status` y, al mismo nivel, los datos del comercio —`id`, `name`, `document`, `address`…— con los mismos nombres que en la escritura. Ver [Datos del comercio](/en/onboarding/merchant-data).
+
+    <Properties>
+      <Property name="status" type="object">
+        `status` en `OK`, y `reason` y `message` en `null`. `date` es el momento de la respuesta, en UTC.
+      </Property>
+      <Property name="paymentMethods" type="array">
+        Los medios de pago del comercio.
+      </Property>
+      <Property name="integrations" type="array">
+        Las integraciones del comercio.
+      </Property>
+      <Property name="sites" type="array">
+        Los sitios, cada uno con sus propios `paymentMethods` e `integrations`. `[]` si no tiene ninguno.
+      </Property>
+    </Properties>
+
+    El ejemplo de la derecha es un extracto. El ejemplo completo y el contrato campo a campo están en la [referencia de la API](/en/onboarding/api/reference/merchants#show-a-merchant).
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta" tag="GET" label="/api/merchants/{merchantId}">
+
+    ```json {{ title: '200 OK (extracto)' }}
+    {
+      "status": {
+        "status": "OK",
+        "reason": null,
+        "message": null,
+        "date": "2026-09-22T21:27:20+00:00"
+      },
+      "id": 18,
+      "name": "Comercializadora Acme S.A.S.",
+      "brand": "Acme",
+      "active": true,
+      "languages": ["en", "es"],
+      "currencies": ["COP", "USD"],
+      "document": {
+        "type": "NIT",
+        "number": "9001234567"
+      },
+      "paymentMethods": [
+        {
+          "id": 64,
+          "customerId": 18,
+          "code": "CR_VS",
+          "commissionModel": "P",
+          "commissionValue": 2.5,
+          "financialEntity": 7
+        }
+      ],
+      "integrations": [
+        {
+          "id": 42,
+          "customerId": 18,
+          "type": "kount",
+          "settings": {
+            "sandbox": false,
+            "website": "ACME",
+            "merchant": "201000"
+          }
+        }
+      ],
+      "sites": [
+        {
+          "id": 214,
+          "login": "aabbccdd1234567890aabbccdd123456",
+          "tranKey": "exampleTranKey16",
+          "md5Hash": "exampleMd5Hash16",
+          "language": "ES",
+          "active": true,
+          "createdAt": "2026-09-22 16:27:16",
+          "control": {
+            "minAmount": "1000.00",
+            "maxAmount": "5000000.00"
+          },
+          "paymentMethods": [
+            {
+              "id": 131,
+              "customerPaymentId": 64,
+              "code": "CR_VS",
+              "financialEntity": null
+            }
+          ]
+        }
+      ]
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Credenciales en claro {{ id: 'credentials-in-clear' }}
+
+<Note type="warning">
+  La respuesta devuelve **sin enmascarar** el `tranKey` y el `md5Hash` de cada sitio, y todos los `settings` de medios de pago e integraciones: contraseñas de proveedores incluidas y, en CREDIBANCO, las credenciales del certificado. Trátala como información sensible: no la registres en logs ni la guardes sin protección.
+</Note>
+
+Todas las respuestas llegan con `Cache-Control: no-cache, private`, también las de error: ninguna caché compartida —un proxy, una CDN— debe guardarlas, y un cliente que las conserve debe revalidarlas antes de reutilizarlas.
+
+Ten presente también el alcance del permiso: un token con `onboarding:read` puede leer las credenciales de **cualquier** comercio, no solo las de los que creó tu aplicación. Protégelo con el mismo cuidado que un token de escritura.
+
+Por la misma razón, esta consulta es la forma de recuperar las credenciales de un sitio si perdiste el resultado del proceso que las generó. Ver [Sitios](/en/onboarding/sites#lost-credentials).
+
+## Cómo leer los valores {{ id: 'reading-values' }}
+
+La respuesta es una lectura del registro, y algunos valores no tienen la misma forma que en la escritura:
+
+- **Montos como texto.** Los de `control`, `threeDS` y `securityFilters` de un sitio salen como texto con dos decimales (`"1000.00"`), y los de las promociones, con cuatro (`"5000.0000"`). El resto de los valores numéricos sale como número —comisiones y montos de medios de pago, `subscriptionValidation.amount`, `operation.taxPercentage`— y, si no tiene parte decimal, se escribe sin decimales (`1200`, no `1200.0`). Un cliente tipado debe aceptar entero y decimal en esos campos.
+- **Objetos vacíos como `[]`.** Un objeto sin claves sale como lista vacía, no como `{}`. Pasa en `settings`, `creditRules`, `branding` y `metadata`, así que un cliente tipado debe aceptar las dos formas en esos campos.
+- **Deshabilitados incluidos.** Un comercio o un sitio deshabilitado se devuelve igual, con `active: false`. El `active` de un sitio es `true` solo si el sitio **y** su comercio están habilitados.
+- **Orden.** Los medios de pago, las integraciones del comercio y los sitios salen por su `id`, igual que los medios de pago de cada sitio. Las integraciones de un sitio salen por `type`, y `languages` y `currencies`, en orden alfabético.
+- **Mayúsculas.** `languages` conserva la grafía con que se registró y puede venir en minúscula (`es`), mientras que `sites[].language` sale en mayúscula (`ES`). Compáralos sin distinguir mayúsculas.
+- **Fechas.** `status.date` va en UTC y con su zona (`+00:00`). `sites[].createdAt` y `sites[].expiration` van como `YYYY-MM-DD HH:MM:SS`, sin zona, y `createdAt` está en hora de Colombia (UTC−5). `productionDate` y la vigencia de las promociones son solo fecha, `YYYY-MM-DD`.
+
+### Valores que el sistema completa {{ id: 'filled-values' }}
+
+Algunos campos salen con un valor aunque el comercio no lo tenga registrado:
+
+| Campo | Valor si no está registrado |
+|---|---|
+| `brand` | El de `name` |
+| `document.type` | `NIT`, si el documento se registró sin tipo |
+| `incrementType` | `SMLMV` |
+| `sites[].integration.checkoutVersion` | `v4` |
+| `sites[].integration.allowWallet` | El valor por defecto de la plataforma |
+| `sites[].integration.allowConfirmationFlow` | `false` |
+| `sites[].securityFilters.filterLockedByTries` | `true` |
+| `sites[].control.prechargeFilter` | `0` |
+| `sites[].creditBureau` y `sites[].riskEngine` | `0` o `[]` en cada campo |
+
+`document.number` y `address.phone` salen como `""`, no como `null`, cuando no hay nada registrado. Y `document.number` solo trae el tramo entre el primer y el segundo espacio del documento registrado: uno guardado como `CC 123 456` sale como `123`.
+
+Cuando la configuración guardada de un sitio no se puede leer, `allowWallet`, `allowConfirmationFlow`, `filterLockedByTries` y `branding` salen en `null`.
+
+## El representante legal {{ id: 'legal-representative' }}
+
+El representante legal se guarda como **un solo nombre completo** —por eso [nombre y apellido viajan en pareja](/en/onboarding/update-merchant#paired-fields) al escribir—, así que al leerlo `name` y `surname` se reconstruyen con una regla aproximada y pueden no coincidir con los que enviaste:
+
+- Con una palabra, todo es nombre y `surname` es `null`.
+- Con dos, la segunda es el apellido.
+- Con más, las dos últimas son apellidos, y las partículas `de`, `del`, `la`, `las`, `los`, `y`, `i`, `san`, `van`, `von`, `mac` y `mc` se agrupan con la palabra que las sigue: `María José de la Torre Pérez` sale como `María José` y `de la Torre Pérez`.
+- Con ocho palabras o más, normalmente el nombre completo sale en `name`, y `surname` es `null`.
+
+Si necesitas comparar lo que leíste con lo que enviaste, compara el nombre completo, no cada mitad por separado.
+
+## Medios de pago {{ id: 'payment-methods' }}
+
+`paymentMethods[].id` es el identificador con el que un `PATCH` modifica cada medio de pago, así que esta consulta es también la forma de obtenerlo para uno que no creaste desde esta API. Ver [Medios de pago](/en/onboarding/payment-methods#where-the-id-comes-from).
+
+- `disabled` indica si el medio de pago está deshabilitado **en el catálogo** de Placetopay, no en el comercio.
+- `franchise` es la franquicia que el catálogo asocia al medio de pago, y es solo informativa: puede ser `null` también en medios de tarjeta, y en algunos no coincide con la marca de su nombre. No es la franquicia con la que se procesa una transacción, así que no la uses para deducir la marca.
+- `settings` sale en claro y tal como está guardado, salvo en dos casos. En los medios de CREDIBANCO, un `pfxID` que corresponde a un certificado registrado sale **sustituido** por las credenciales de ese certificado —`username`, `password`, `retailCode` y `terminalNumber`, donde las dos primeras pueden ser `null`—; si no corresponde a ninguno, sale el `pfxID` tal cual. Y `selection_rules` no devuelve su contenido: sale siempre como `{}`, o como `null` si su configuración es inválida.
+
+<Note>
+  En CREDIBANCO, la escritura funciona al revés que la lectura: exige el `pfxID` y rechaza esas cuatro claves. Ver [Credenciales gestionadas por certificado](/en/onboarding/payment-methods#managed-credentials).
+</Note>
+
+## Sitios {{ id: 'sites' }}
+
+- **Credenciales.** Cada sitio trae `login` y `tranKey` completos, junto con `md5Hash`.
+- **URL de notificación.** `integration.notificationUrl` es la URL guardada en el sitio, que no siempre es la del comercio. Si el sitio tiene una integración `notifier`, ahí está la dirección del servicio de notificaciones de Placetopay, y el destino del comercio queda en `settings.additional.uri` de esa integración. Ver [El efecto del tipo `notifier`](/en/onboarding/site-integrations#notifier-side-effect).
+- **Bloques que solo se leen.** `historic`, `creditBureau`, `riskEngine` e `integration.allowConfirmationFlow` no forman parte del cuerpo de escritura. En `creditBureau` y `riskEngine`, `behaviour` es el valor registrado, codificado en bits, y su lectura está en `behaviours`: para cada caso, el nivel activo —`REJECTED`, `MANUAL`, `IGNORE` o `PROCESS`— o `false`. En configuraciones antiguas, `behaviour` puede venir como texto, decimal o booleano.
+- **Promociones.** `promotions` trae las promociones generales **vigentes hoy**, según la fecha actual en Colombia: primero las del sitio y después las que aplican a todos los sitios del comercio, cada grupo en orden de creación. No incluye las asociadas a un medio de pago, ni las deshabilitadas, las que aún no empiezan o las vencidas.
+- **Metadatos.** `metadata` es el documento tal como quedó después de las [fusiones](/en/onboarding/sites#metadata-merge), o `null` si el sitio no tiene.
+- **Logo.** Si el sitio tiene un logo registrado, `branding` incluye `logoUrl` con su URL pública, o `null` si no se puede construir.
+
+## Medios de pago del sitio {{ id: 'site-payment-methods' }}
+
+Cada elemento de `sites[].paymentMethods` habilita en el sitio un medio de pago del comercio: el de `paymentMethods[]` cuyo `id` es `customerPaymentId`. En un `PATCH`, ese mismo valor se envía como `paymentMethodId`.
+
+Los campos salen **como están registrados en el sitio**, sin combinarlos con los del comercio: un `null` significa que el sitio hereda ese valor. Es una diferencia con el resultado del proceso, que en `result.sites[].paymentMethods[].financialEntity` publica la entidad efectiva.
+
+Para obtener el valor que rige al transaccionar:
+
+| Campo | Valor que rige |
+|---|---|
+| `accountNumber`, `accountType`, `financialEntity` | El del sitio; si es `null`, el del medio de pago del comercio |
+| `creditRules` | Las del sitio; si es `[]`, las del medio de pago del comercio |
+| `minAmount`, `maxAmount` | El del sitio; si es `null`, el de `control.minAmount` o `control.maxAmount` del sitio. Cada uno se resuelve por separado |
+| `settings` | Clave por clave: la del sitio si la tiene; si no, la del medio de pago del comercio |
+| `commissionModel`, `commissionValue` | Siempre los del medio de pago del comercio. Los del sitio son informativos |
+
+Ver [La comisión por sitio](/en/onboarding/site-payment-methods#commission).
+
+## Integraciones {{ id: 'integrations' }}
+
+Las integraciones del comercio y las de cada sitio traen un `id`, pero es solo informativo: al escribir, una integración se direcciona por su `type`, y enviar `id` responde `422`. Su `settings` sale en claro, tal como está guardado.
+
+## No es un cuerpo para reenviar {{ id: 'not-a-write-body' }}
+
+La respuesta describe el comercio, pero no se puede devolver tal cual en un `PATCH`:
+
+- **Identificadores de más.** El `PATCH` pide que cada elemento se identifique de una sola forma —`id`, `code` o, en los medios de pago de un sitio, `paymentMethodId`—, y la respuesta trae varias a la vez.
+- **Campos que la escritura rechaza**, como `customerId` o `siteId` dentro de un elemento, o los bloques que solo se leen.
+- **Formas distintas.** Montos como texto, `[]` en lugar de objetos vacíos, valores que el sistema completó y algunos `null` que la escritura no acepta.
+- **CREDIBANCO.** La escritura espera `pfxID`, no las credenciales que devuelve la consulta.
+
+Para actualizar, envía **solo lo que cambia**, como se explica en [Actualizar un comercio](/en/onboarding/update-merchant#partial-update). Lo que esta consulta sí te da son los identificadores que ese cuerpo necesita: `paymentMethods[].id`, `sites[].id` y, dentro de un sitio, `paymentMethods[].id` o `customerPaymentId`.
+
+## Errores de la consulta {{ id: 'show-merchant-errors' }}
+
+| Código | Causa |
+|---|---|
+| `401` | Token ausente, inválido o revocado |
+| `403` | El token no incluye el permiso `onboarding:read` |
+| `404` | El comercio no existe, o el identificador no es numérico |
+| `405` | `POST`, `PUT` o `DELETE` sobre la URL del comercio. El mensaje nombra los métodos admitidos |
+| `500` | Error inesperado |
+
+En todas, `status.reason` trae el código HTTP como número. El catálogo completo está en [Errores](/en/onboarding/errors).
+
+<CodeGroup title="Respuesta de error">
+
+```json {{ title: '404 Not Found' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": 404,
+    "message": "The requested resource does not exist.",
+    "date": "2026-09-22T21:27:20+00:00"
+  }
+}
+```
+
+```json {{ title: '405 Method Not Allowed' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": 405,
+    "message": "The POST method is not supported for route api/merchants/18. Supported methods: GET, HEAD, PATCH.",
+    "date": "2026-09-22T21:27:20+00:00"
+  }
+}
+```
+
+</CodeGroup>
+
+## ¿Qué sigue? {{ id: 'show-merchant-next' }}
+
+- [Actualizar un comercio](/en/onboarding/update-merchant)
+- [Sitios](/en/onboarding/sites) — las credenciales y los metadatos del sitio
+- [Referencia de la API](/en/onboarding/api/reference/merchants#show-a-merchant) — el ejemplo completo y el contrato campo a campo
