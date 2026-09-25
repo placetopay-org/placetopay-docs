@@ -1,9 +1,48 @@
 # Indicador de iniciador de transacción
 
-Para transacciones Mastercard, para seguir el Programa de Control de Integridad de los Datos para los
-Indicadores de Transacción Iniciada por el Tarjetahabiente y Transacción Iniciada por el Comercio, se
-envía un indicador a la red. La aplicación calculará este indicador automáticamente pero si necesitas
-de un valor específico, se puede enviar como valor adicional.
+Para transacciones Mastercard, se envía un indicador a la red que identifica si la operación fue iniciada por el tarjetahabiente o por el comercio.
+
+## Orden de prioridad
+
+Placetopay determina el indicador en este orden:
+
+1. **Valor del comercio:** si la solicitud de pago incluye un `additional.initiatorIndicator` válido, se utiliza sin modificaciones y tiene prioridad sobre la configuración del sitio.
+2. **Configuración del sitio:** si la solicitud omite el indicador o envía `null`, se utiliza el valor configurado en el sitio, cuando exista.
+3. **Valor automático:** si no envías un indicador ni tienes uno configurado en el sitio, Placetopay lo determina automáticamente.
+
+## Configurar un valor fijo por sitio
+
+Utiliza `data.integration.initiatorIndicator` en los endpoints de Core para [crear o actualizar sitios](/core/reference/site). El campo es opcional y admite cualquiera de los indicadores de la tabla siguiente. Los valores inválidos para el sitio se rechazan.
+
+El siguiente fragmento configura un valor fijo al crear un sitio (`/core/site/create`) o actualizarlo (`/core/site/update-all`). Incluye los demás campos requeridos por el endpoint:
+
+```json
+{
+  "data": {
+    "integration": {
+      "initiatorIndicator": "MERCHANT_COF"
+    }
+  }
+}
+```
+
+Al actualizar un sitio, omitir el campo conserva el valor actual. Envía `null` para quitar el valor fijo y volver al cálculo automático cuando el comercio no envíe el indicador:
+
+```json
+{
+  "data": {
+    "integration": {
+      "initiatorIndicator": null
+    }
+  }
+}
+```
+
+Puedes consultar el valor configurado en `integration.initiatorIndicator` de la respuesta de búsqueda de sitios.
+
+Por ejemplo, un sitio configurado con `MERCHANT_COF` utiliza `CARDHOLDER_COF` si la solicitud de pago envía explícitamente ese valor en `additional.initiatorIndicator`. Si lo omite, se utiliza el valor del sitio: `MERCHANT_COF`.
+
+## Valores admitidos
 
 |              Indicador               | Descripción                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Ejemplo                                                                                                                                                                                                                                                                                                                                |
 |:------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

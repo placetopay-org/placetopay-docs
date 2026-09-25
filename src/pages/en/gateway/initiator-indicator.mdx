@@ -1,6 +1,48 @@
 # Transaction Initiator Indicator
 
-For Mastercard transactions, to comply with the Data Integrity Control Program for Cardholder-Initiated and Merchant-Initiated Transaction Indicators, an indicator is sent to the network. The application will calculate this indicator automatically, but if a specific value is needed, it can be sent as an additional value.
+For Mastercard transactions, an indicator is sent to the network to identify whether the cardholder or the merchant initiated the transaction.
+
+## Resolution order
+
+Placetopay determines the indicator in this order:
+
+1. **Merchant value:** a valid `additional.initiatorIndicator` sent in the payment request is used without modification and takes precedence over the site configuration.
+2. **Site configuration:** when the request omits the indicator or sends `null`, the configured site value is used, if present.
+3. **Automatic value:** if you do not send an indicator and none is configured for the site, Placetopay determines it automatically.
+
+## Configure a fixed value for a site
+
+Use `data.integration.initiatorIndicator` in the Core [create or update site endpoints](/en/core/reference/site). The field is optional and accepts any of the indicators listed below. Invalid site values are rejected.
+
+The following fragment configures a fixed value when creating a site (`/core/site/create`) or updating it (`/core/site/update-all`). Include the other required fields for the endpoint:
+
+```json
+{
+  "data": {
+    "integration": {
+      "initiatorIndicator": "MERCHANT_COF"
+    }
+  }
+}
+```
+
+When updating a site, omitting the field preserves its current value. Send `null` to remove the fixed value and restore automatic calculation when the merchant does not provide an indicator:
+
+```json
+{
+  "data": {
+    "integration": {
+      "initiatorIndicator": null
+    }
+  }
+}
+```
+
+You can check the configured value in `integration.initiatorIndicator` in the site search response.
+
+For example, a site configured with `MERCHANT_COF` uses `CARDHOLDER_COF` if the payment request explicitly sends that value in `additional.initiatorIndicator`. If the request omits it, the site value `MERCHANT_COF` is used.
+
+## Supported values
 
 |               Indicator                | Description                                                                                                                                                                                                                                                                                                                                                         | Example                                                                                                                                                                                                                                                                                                                              |
 |:--------------------------------------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
