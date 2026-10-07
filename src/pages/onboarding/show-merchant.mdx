@@ -36,7 +36,7 @@ La consulta **no se limita a los comercios que creó tu aplicación**: con el pe
 
     <Properties>
       <Property name="status" type="object">
-        `status` en `OK`, y `reason` y `message` en `null`. `date` es el momento de la respuesta, en UTC.
+        `status` en `OK`, y `reason` y `message` en `null`. `date` es el momento de la respuesta, con su desfase horario.
       </Property>
       <Property name="paymentMethods" type="array">
         Los medios de pago del comercio.
@@ -145,7 +145,7 @@ La respuesta es una lectura del registro, y algunos valores no tienen la misma f
 - **Deshabilitados incluidos.** Un comercio o un sitio deshabilitado se devuelve igual, con `active: false`. El `active` de un sitio es `true` solo si el sitio **y** su comercio están habilitados.
 - **Orden.** Los medios de pago, las integraciones del comercio y los sitios salen por su `id`, igual que los medios de pago de cada sitio. Las integraciones de un sitio salen por `type`, y `languages` y `currencies`, en orden alfabético.
 - **Mayúsculas.** `languages` conserva la grafía con que se registró y puede venir en minúscula (`es`), mientras que `sites[].language` sale en mayúscula (`ES`). Compáralos sin distinguir mayúsculas.
-- **Fechas.** `status.date` va en UTC y con su zona (`+00:00`). `sites[].createdAt` y `sites[].expiration` van como `YYYY-MM-DD HH:MM:SS`, sin zona, y `createdAt` está en hora de Colombia (UTC−5). `productionDate` y la vigencia de las promociones son solo fecha, `YYYY-MM-DD`.
+- **Fechas.** `status.date` lleva su desfase horario: interprétala con él, sin asumir ninguna zona. `sites[].createdAt` y `sites[].expiration` van como `YYYY-MM-DD HH:MM:SS`, sin zona. `productionDate` y la vigencia de las promociones son solo fecha, `YYYY-MM-DD`.
 
 ### Valores que el sistema completa {{ id: 'filled-values' }}
 
@@ -194,9 +194,9 @@ Si necesitas comparar lo que leíste con lo que enviaste, compara el nombre comp
 
 - **Credenciales.** Cada sitio trae `login` y `tranKey` completos, junto con `md5Hash`.
 - **URL de notificación.** `integration.notificationUrl` es la URL guardada en el sitio, que no siempre es la del comercio. Si el sitio tiene una integración `notifier`, ahí está la dirección del servicio de notificaciones de Placetopay, y el destino del comercio queda en `settings.additional.uri` de esa integración. Ver [El efecto del tipo `notifier`](/onboarding/site-integrations#notifier-side-effect).
-- **Bloques que solo se leen.** `historic`, `creditBureau`, `riskEngine` e `integration.allowConfirmationFlow` no forman parte del cuerpo de escritura. En `creditBureau` y `riskEngine`, `behaviour` es el valor registrado, codificado en bits, y su lectura está en `behaviours`: para cada caso, el nivel activo —`REJECTED`, `MANUAL`, `IGNORE` o `PROCESS`— o `false`. En configuraciones antiguas, `behaviour` puede venir como texto, decimal o booleano.
-- **Promociones.** `promotions` trae las promociones generales **vigentes hoy**, según la fecha actual en Colombia: primero las del sitio y después las que aplican a todos los sitios del comercio, cada grupo en orden de creación. No incluye las asociadas a un medio de pago, ni las deshabilitadas, las que aún no empiezan o las vencidas.
-- **Metadatos.** `metadata` es el documento tal como quedó después de las [fusiones](/onboarding/sites#metadata-merge), o `null` si el sitio no tiene.
+- **Bloques que solo se leen.** `historic`, `creditBureau` y `riskEngine` no forman parte del cuerpo de escritura. En `creditBureau` y `riskEngine`, `behaviour` es el valor registrado, codificado en bits, y su lectura está en `behaviours`: para cada caso, el nivel activo —`REJECTED`, `MANUAL`, `IGNORE` o `PROCESS`— o `false`. En configuraciones antiguas, `behaviour` puede venir como texto, decimal o booleano.
+- **Promociones.** `promotions` trae las promociones generales **vigentes hoy**, según la fecha actual: primero las del sitio y después las que aplican a todos los sitios del comercio, cada grupo en orden de creación. No incluye las asociadas a un medio de pago, ni las deshabilitadas, las que aún no empiezan o las vencidas.
+- **Metadatos.** `metadata` es el documento tal como quedó después de las [fusiones](/onboarding/sites#metadata-merge), o `null` si el sitio no tiene. En un [sitio migrado](/onboarding/sites#copper-migrated-sites) incluye el bloque `copper` tal como se envió.
 - **Logo.** Si el sitio tiene un logo registrado, `branding` incluye `logoUrl` con su URL pública, o `null` si no se puede construir.
 
 ## Medios de pago del sitio {{ id: 'site-payment-methods' }}
