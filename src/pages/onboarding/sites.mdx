@@ -328,7 +328,7 @@ El back office **todavía no muestra estos datos**. Quedan guardados y auditados
   <Col>
     Un sitio que llega desde Copper con integración de Transacción Completa se marca con el nombre reservado **`copper`** dentro de `metadata`, que guarda los datos de su integración de origen. Con `is_migrated: true`, el sitio queda **migrado**.
 
-    `copper` es el único nombre de `metadata` con **vocabulario cerrado**: nueve claves, cada una con su tipo. Los demás nombres siguen siendo libres, y un sitio que no es migrado no necesita enviarlo.
+    `copper` es el único nombre de `metadata` con **vocabulario cerrado**: diez claves, cada una con su tipo. Los demás nombres siguen siendo libres, y un sitio que no es migrado no necesita enviarlo.
 
     Las claves se guardan y se devuelven tal como llegaron. La API valida su forma, pero no cambian cómo procesa Placetopay los pagos del sitio: `requires_cvv: true`, por ejemplo, no hace que se pida el código de seguridad.
   </Col>
@@ -348,7 +348,8 @@ El back office **todavía no muestra estos datos**. Quedan guardados y auditados
               "error_code_level": 2,
               "card_data_return": "bin_last4",
               "allow_preauth": false,
-              "requires_cvv": true
+              "requires_cvv": true,
+              "assigned_version": "1.0"
             }
           }
         }
@@ -358,7 +359,7 @@ El back office **todavía no muestra estos datos**. Quedan guardados y auditados
   </Col>
 </Row>
 
-### Las nueve claves {{ id: 'copper-keys' }}
+### Las diez claves {{ id: 'copper-keys' }}
 
 | Clave | Tipo | Obligatoria con `is_migrated: true` | Valores admitidos |
 |---|---|---|---|
@@ -368,19 +369,20 @@ El back office **todavía no muestra estos datos**. Quedan guardados y auditados
 | `error_code_level` | entero | Sí | Del `0` al `9` |
 | `allow_preauth` | booleano | Sí | `true`, `false` |
 | `requires_cvv` | booleano | Sí | `true`, `false` |
+| `assigned_version` | texto | Sí | `1.0`, `1.1`, `1.2`, `1.3` |
 | `parent_id` | texto | No | Cualquier texto |
 | `secret` | texto | No | Cualquier texto |
 | `card_data_return` | texto | No | `none`, `last4`, `bin_last4`, `bin_only` |
 
-`id` es el identificador del sitio en Copper, y `parent_id`, el identificador en Copper del comercio padre. `secret` es el secreto de la integración en Copper.
+`id` es el identificador del sitio en Copper, y `parent_id`, el identificador en Copper del comercio padre. `secret` es el secreto de la integración en Copper, y `assigned_version`, la versión de la integración de Transacción Completa que Copper le asignó al sitio.
 
 ### Cómo se valida {{ id: 'copper-validation' }}
 
-- **Solo `is_migrated: true` marca el sitio como migrado**, y entonces exige las cinco claves obligatorias. Con `false`, o sin la clave, no se exige ninguna, pero las que envíes se validan igual: tipo y valores admitidos.
-- **Los tipos son estrictos.** Un booleano es `true` o `false` de JSON: `"true"`, `"1"` y `1` responden `422`. Un entero es un número de JSON: `"2"` responde `422`.
+- **Solo `is_migrated: true` marca el sitio como migrado**, y entonces exige las seis claves obligatorias. Con `false`, o sin la clave, no se exige ninguna, pero las que envíes se validan igual: tipo y valores admitidos.
+- **Los tipos son estrictos.** Un booleano es `true` o `false` de JSON: `"true"`, `"1"` y `1` responden `422`. Un entero es un número de JSON: `"2"` responde `422`. Una versión es una cadena de JSON con uno de los cuatro valores exactos: `1.1` como número, `"1"` y `"1.10"` responden `422`.
 - **Ninguna clave admite `null` ni texto vacío**, tampoco `is_migrated`. Una clave sin valor simplemente no se envía.
 - **`copper` es un objeto con al menos una clave.** `{}`, una lista o un valor suelto responden `422`.
-- **Una clave fuera de las nueve responde `422`**, y el error la nombra. Así, una errata como `is_migrate` no deja el sitio sin marcar en silencio.
+- **Una clave fuera de las diez responde `422`**, y el error la nombra. Así, una errata como `is_migrate` no deja el sitio sin marcar en silencio.
 - **El `id` de Copper no tiene que ser único**: dos sitios pueden compartirlo, en la misma petición o en comercios distintos.
 - Siguen rigiendo los [límites de `metadata`](#metadata-shape): 1024 caracteres por texto, tres niveles de anidamiento y el [tope de tamaño](#metadata-size) del documento.
 
@@ -421,7 +423,7 @@ Cada problema llega en `errors` bajo la ruta de la clave, como cualquier otro [e
 | Qué ocurre | Mensaje |
 |---|---|
 | Falta una clave obligatoria con `is_migrated: true` | `The sites.0.metadata.copper.id field is required when sites.0.metadata.copper.is_migrated is true.` |
-| Una clave fuera de las nueve | `The sites.0.metadata.copper field contains keys that are not part of this contract: is_migrate.` |
+| Una clave fuera de las diez | `The sites.0.metadata.copper field contains keys that are not part of this contract: is_migrate.` |
 | Un booleano que no es `true` ni `false` | `The sites.0.metadata.copper.requires_cvv field must be true or false.` |
 | Un entero que no es un número de JSON | `The sites.0.metadata.copper.error_code_level field must be an integer.` |
 | Un texto que no es una cadena | `The sites.0.metadata.copper.id field must be a string.` |
