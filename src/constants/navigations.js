@@ -828,6 +828,10 @@ export const TAB_NAVIGATION = {
               { title: 'Pagos', href: '/checkout/api/reference/payment' },
               { title: 'Token', href: '/checkout/api/reference/token' },
               {
+                title: 'Códigos de respuesta',
+                href: '/checkout/api/reference/reason-codes',
+              },
+              {
                 title: 'Gateway',
                 links: [
                   {
@@ -944,6 +948,10 @@ export const TAB_NAVIGATION = {
               { title: 'Session', href: '/en/checkout/api/reference/session' },
               { title: 'Payments', href: '/en/checkout/api/reference/payment' },
               { title: 'Token', href: '/en/checkout/api/reference/token' },
+              {
+                title: 'Response codes',
+                href: '/en/checkout/api/reference/reason-codes',
+              },
               {
                 title: 'Gateway', links: [
                   { title: 'Information', href: '/en/checkout/api/reference/gateway/information' },

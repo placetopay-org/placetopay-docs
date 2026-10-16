@@ -1,0 +1,223 @@
+export const sectionMode = 'nav'
+export const description =
+  'Consulta los códigos de respuesta de Web Checkout, su significado y las acciones recomendadas para resolverlos.'
+
+# Códigos de respuesta
+
+Las respuestas de Web Checkout incluyen información para determinar si una operación fue exitosa, quedó pendiente o no pudo procesarse. Entender estos valores permite implementar reintentos seguros, mostrar mensajes adecuados y evitar depender de textos que pueden cambiar por idioma o versión.
+
+## Cómo interpretar una respuesta
+
+En las respuestas del API clásico de Web Checkout, revisa los valores en este orden:
+
+1. **Código HTTP**: indica el resultado de la solicitud a nivel de transporte y API.
+2. **`status.status`**: indica el estado de la operación o transacción.
+3. **`status.reason`**: identifica la causa o condición con un código estable.
+4. **`status.message`**: proporciona información adicional para diagnóstico o presentación.
+
+No uses `status.message` para tomar decisiones de negocio. Puede estar localizado, puede cambiar y, en algunas operaciones, puede provenir del servicio de pagos que procesa la transacción.
+
+Una respuesta exitosa del API no siempre significa que el pago fue aprobado. Por ejemplo, una respuesta HTTP `200` puede contener `REJECTED` o `PENDING`.
+
+```json
+{
+  "status": {
+    "status": "FAILED",
+    "reason": "request_not_valid",
+    "message": "No existe la transacción que busca",
+    "date": "2025-01-21T21:20:07-05:00"
+  }
+}
+```
+
+## Estados de una operación
+
+| Estado | Significado | Acción recomendada |
+| --- | --- | --- |
+| `OK` | La operación del API fue procesada correctamente. | Continúa con la respuesta y valida el estado de la sesión o transacción cuando aplique. |
+| `APPROVED` | La transacción fue aprobada. | Confirma el resultado y guarda la referencia interna. |
+| `APPROVED_PARTIAL` | La operación fue aprobada parcialmente. | Revisa el monto aprobado y el detalle de la respuesta. |
+| `PENDING` | El resultado aún no está disponible. | Consulta la sesión o espera la notificación; no dupliques la operación. |
+| `PENDING_VALIDATION` | La transacción requiere una validación adicional. | Sigue el flujo indicado por el método de pago. |
+| `PENDING_CONFIRMATION` | La transacción requiere confirmación o una acción posterior. | Usa la acción correspondiente cuando el estado lo permita. |
+| `REJECTED` | La operación fue rechazada por una regla de negocio, el emisor o un servicio de pagos. | Revisa `reason` y decide si debes informar al cliente o solicitar otro medio de pago. |
+| `FAILED` | La solicitud no pudo procesarse. | Corrige la solicitud, revisa la configuración o reintenta solo cuando la causa lo permita. |
+
+## Errores del API clásico
+
+Estos códigos identifican errores generados por Web Checkout antes o durante la ejecución de una operación del API. Normalmente se devuelven dentro de `status`.
+
+| Código | Contexto | Significado | Acción recomendada |
+| --- | --- | --- | --- |
+| `request_not_valid` | Solicitud | Faltan datos, hay un valor inválido o la operación no corresponde a la solicitud. | Revisa los campos requeridos, tipos, montos y la acción solicitada. |
+| `payer_data_missing` | Creación de sesión | Faltan datos obligatorios del pagador. | Completa los campos indicados por el mensaje. |
+| `payer_data_not_valid` | Creación de sesión | Los datos del pagador no cumplen las reglas de validación. | Corrige el formato y el contenido de los datos. |
+| `shipping_address_data_not_valid` | Creación de sesión | La dirección de envío no es válida. | Revisa los campos de la dirección y sus formatos. |
+| `metadata_not_valid` | Creación de sesión | La metadata no cumple la estructura o las reglas permitidas. | Corrige las claves y valores enviados. |
+| `unauthorized` | Acceso a recursos | El comercio no puede acceder a la sesión o transacción solicitada. | Verifica las credenciales y que el recurso pertenezca al comercio. |
+| `action_not_allowed` | Cancelación o acción transaccional | La acción no está permitida para el estado actual. | Consulta el estado y usa la acción correspondiente. |
+| `external_service_failed` | Cancelación o servicio externo | Falló un servicio externo requerido por la operación. | Revisa el estado de la operación antes de reintentar. |
+| `transaction_request_error` | `transaction`, `reverse` y acciones transaccionales | No fue posible completar la solicitud contra el servicio de pagos. | Verifica el resultado de la transacción y reintenta con control de idempotencia. |
+| `transaction_modifier_not_matched_error` | Modificadores | Los acuerdos o modificadores enviados no coinciden con la configuración. | Revisa los modificadores y la configuración del comercio. |
+| `transaction_modifiers_site_sync_error` | Modificadores | No fue posible sincronizar los modificadores del comercio. | Verifica la configuración y solicita soporte si persiste. |
+| `max_dispersion_error` | Dispersión | Se alcanzó el máximo de dispersiones permitido. | Reduce la cantidad de dispersiones o revisa la configuración. |
+| `transaction_modifiers_max_dispersion_error` | Modificadores y dispersión | Se alcanzó el máximo de dispersiones para los modificadores. | Revisa los acuerdos y límites configurados. |
+| `autopay_edit_sync_error` | Autopay | No fue posible sincronizar la edición del autopago. | Consulta el estado antes de enviar otra modificación. |
+
+### Ejemplo: solicitud inválida
+
+```json
+{
+  "status": {
+    "status": "FAILED",
+    "reason": "request_not_valid",
+    "message": "Referencia no válida, debe ser de tipo string entre 1 a 32 caracteres",
+    "date": "2025-01-21T21:20:07-05:00"
+  }
+}
+```
+
+### Ejemplo: servicio externo no disponible
+
+```json
+{
+  "status": {
+    "status": "FAILED",
+    "reason": "transaction_request_error",
+    "message": "No se ha logrado conexión con el servicio externo, por favor intenta en unos minutos",
+    "date": "2025-01-21T21:20:07-05:00"
+  }
+}
+```
+
+## Errores de Web Checkout V4
+
+Los endpoints V4 devuelven las razones directamente en la respuesta, sin el objeto `status` del API clásico.
+
+```json
+{
+  "reason": "session_not_found",
+  "message": "La sesión proporcionada no existe."
+}
+```
+
+### Sesión y solicitud
+
+| Código | Significado | Acción recomendada |
+| --- | --- | --- |
+| `not_valid_params` | Faltan parámetros de ruta o de la solicitud. | Revisa los parámetros requeridos por el endpoint. |
+| `not_valid_salt` | El identificador o salt de la sesión no es válido. | Usa la URL y el identificador entregados al crear la sesión. |
+| `session_not_found` | La sesión no existe. | Verifica el identificador y el ambiente utilizado. |
+| `session_expired` | La sesión expiró. | Crea una nueva sesión. |
+| `session_not_in_progress` | La sesión no está disponible para continuar el flujo. | Consulta su estado y no intentes procesarla nuevamente. |
+| `inactive_session` | La sesión está inactiva o bloqueada. | Consulta la sesión o inicia un nuevo flujo. |
+| `site_not_found` | No se encontró el sitio configurado para la operación. | Revisa la configuración del comercio. |
+| `transaction_not_found` | No se encontró la transacción solicitada. | Verifica la referencia y el ambiente. |
+| `not_valid_signature` | La firma recibida no es válida. | Verifica la firma y las credenciales usadas para notificaciones. |
+
+### Instrumentos, pagador y monto
+
+| Código | Significado | Acción recomendada |
+| --- | --- | --- |
+| `not_valid_instrument_provided` | No se proporcionó un instrumento de pago válido. | Envía el instrumento requerido por el método de pago. |
+| `invalid_instrument_token` | El token del instrumento no es válido para la solicitud. | Verifica el token y su asociación con la sesión. |
+| `not_valid_payer_provided` | Los datos del pagador no son válidos. | Corrige los datos del pagador. |
+| `invalid_payment_amount` | El monto está fuera de los límites permitidos. | Revisa el total, la moneda y los límites del comercio. |
+| `franchise_not_valid` | La franquicia no está permitida para la operación. | Usa una franquicia habilitada o revisa la configuración. |
+| `card_type_not_allowed` | El tipo de tarjeta no está habilitado. | Solicita otro medio de pago o revisa la configuración. |
+| `card_cvv_required` | Se requiere el código de seguridad de la tarjeta. | Envía el CVV cuando el método lo requiera. |
+| `card_expiration_required` | Se requiere la fecha de expiración. | Envía la fecha con el formato esperado. |
+| `card_expiration_not_valid` | La fecha de expiración no es válida. | Corrige la fecha o solicita otro medio de pago. |
+| `not_valid_credit_id` | El crédito o número de cuotas no es válido. | Revisa las opciones disponibles para el instrumento. |
+| `account_type_required` | Falta el tipo de cuenta requerido. | Envía el tipo de cuenta solicitado por el método. |
+| `not_valid_zip_code` | El código postal no es válido. | Corrige el código postal. |
+
+### Servicios, autenticación y wallets
+
+| Código | Significado | Acción recomendada |
+| --- | --- | --- |
+| `service_unreachable` | No se pudo contactar un servicio externo. | Consulta el estado antes de reintentar; usa backoff cuando corresponda. |
+| `create_external_session_failed` | No fue posible crear una sesión en un servicio externo. | No dupliques la operación; verifica el resultado y reintenta de forma controlada. |
+| `information_card_failed` | Falló la consulta de información de la tarjeta. | Reintenta si es transitorio o solicita otro instrumento. |
+| `interest_information_failed` | Falló la consulta de intereses. | Revisa la configuración de crédito o continúa sin intereses si el flujo lo permite. |
+| `balance_information_failed` | Falló la consulta de saldo. | Consulta nuevamente cuando el servicio esté disponible. |
+| `otp_generate_failed` | No fue posible generar un OTP. | Solicita un nuevo código después de verificar el estado del proceso. |
+| `otp_delivery_failed` | No fue posible enviar el OTP. | Verifica los datos de contacto y solicita un nuevo código. |
+| `otp_validation_process_failed` | No fue posible validar el OTP. | Solicita otro código; respeta los límites de intentos. |
+| `wallet_user_unauthorized` | El usuario no está autorizado para utilizar la wallet. | Verifica la autenticación y la asociación de la wallet. |
+| `undefined_wallet_user` | No se encontró el usuario de la wallet. | Verifica los datos del usuario o inicia el registro correspondiente. |
+| `wallet_user_otp_expired` | El OTP de la wallet expiró. | Solicita un nuevo OTP. |
+| `wallet_user_otp_invalid_code` | El código OTP de la wallet no es válido. | Solicita un nuevo código y evita superar el máximo de intentos. |
+| `wallet_user_otp_max_attempts_exceeded` | Se superó el máximo de intentos del OTP. | Espera el desbloqueo o inicia el flujo indicado por la aplicación. |
+| `wallet_user_sms_not_enabled` | El envío de SMS no está habilitado para el usuario. | Verifica la configuración de contacto o usa otro método disponible. |
+
+### Otros códigos V4
+
+| Código | Contexto | Significado |
+| --- | --- | --- |
+| `information_undefined_wallet_method` | Wallet | No se encontró el método de wallet solicitado. |
+| `otp_required_for_instrument` | Instrumento | El instrumento requiere validación OTP antes de continuar. |
+| `wallet_otp_generate_failed_by_time` | Wallet | No fue posible generar el OTP dentro del tiempo permitido. |
+| `wallet_user_otp_already_sent` | Wallet | Ya se envió un OTP y aún no corresponde solicitar otro. |
+| `wallet_user_sending_sms_failed` | Wallet | Falló el envío del SMS de la wallet. |
+| `mpi_lookup_response_not_valid` | 3DS | La respuesta de consulta inicial de 3DS no es válida. |
+| `mpi_lookup_attempts_exceeded` | 3DS | Se superó el máximo de intentos de consulta de 3DS. |
+| `mpi_query_response_not_valid` | 3DS | La respuesta de consulta de 3DS no es válida. |
+| `redirect_response_failed` | Redirección | La respuesta de un servicio de redirección no pudo procesarse. |
+| `file_response_failed` | Archivos | La respuesta asociada a un archivo no pudo procesarse. |
+| `avs_required_for_instrument` | Instrumento | El instrumento requiere validación AVS. |
+| `error_required_pin_pad_for_instrument` | PinPad | El instrumento requiere un PinPad para continuar. |
+| `currency_conversion_required_for_payment` | Conversión | La operación requiere conversión de moneda. |
+| `error_getting_pin_block_from_service` | PinPad | No fue posible obtener el bloque PIN de un servicio externo. |
+| `otp_generated_for_register_new_user` | Wallet | Se generó un OTP como parte del registro de un usuario nuevo. |
+| `failed_process_gana_assign_pin` | Gana | Falló la asignación del PIN en Gana. |
+| `not_valid_assign_pin` | Gana | Los datos para asignar el PIN no son válidos. |
+| `ach_validator_create_session_failed` | ACH | No fue posible crear la sesión de validación ACH. |
+| `ach_validator_query_session_failed` | ACH | No fue posible consultar la sesión de validación ACH. |
+| `not_valid_threeds_process_data` | 3DS | Los datos del proceso 3DS no son válidos. |
+| `pinpad_generate_failed` | PinPad | No fue posible generar la información requerida por el PinPad. |
+| `clicktopay_visa_transient_token_not_valid` | Click to Pay | El token transitorio de Visa no es válido. |
+| `autopay_tokenization_failed` | Autopay | Falló la tokenización del medio de pago para Autopay. |
+| `transient_token_not_supported_for_instrument` | Instrumento | El instrumento no soporta el token transitorio recibido. |
+
+El catálogo puede crecer cuando se incorporan nuevos métodos o flujos. Su significado depende del contexto y del método habilitado para el comercio; deben tratarse como códigos de integración y no como mensajes de pago.
+
+## Respuestas dependientes del gateway
+
+En operaciones de pago, confirmación, reembolso o reverso, el estado y el `reason` pueden reflejar la respuesta del gateway, banco, franquicia o procesador utilizado. Por eso pueden aparecer códigos como `00`, `05`, `?-`, `?!`, `BR`, `XH`, `XN` o `XR`.
+
+Estos códigos describen el resultado de la transacción en la red de pagos y no necesariamente un error de Web Checkout. Para conocer su significado completo, consulta la documentación de [Transacciones de Gateway](/gateway/api/reference/transaction).
+
+Por ejemplo, un reverso puede responder HTTP `200` con una transacción rechazada:
+
+```json
+{
+  "status": {
+    "status": "REJECTED",
+    "reason": "05",
+    "message": "Rechazada",
+    "date": "2025-01-21T21:20:07-05:00"
+  }
+}
+```
+
+## Acciones transaccionales
+
+### Reverso
+
+El endpoint `POST /api/reverse` fuerza la acción `reverse` y requiere la referencia interna de la transacción. Un reverso aprobado devuelve `APPROVED` con `reason` `00`. Un fallo de comunicación puede devolver `FAILED` con `transaction_request_error`; un rechazo del gateway puede devolver `REJECTED` con el código entregado por el procesador.
+
+Antes de reintentar un reverso, consulta el estado de la transacción. Esto evita duplicar una operación cuando el servicio externo recibió la solicitud, pero la respuesta no llegó a Web Checkout.
+
+### Reembolso y otras acciones
+
+Las acciones `checkout`, `reauthorization`, `confirm` y `cancel` tienen reglas distintas según el tipo y estado de la sesión. Consulta [Acciones sobre transacciones](/checkout/api/reference/payment#transaction-actions) y [Reembolsos](/checkout/refund) para conocer sus condiciones y ejemplos.
+
+## Buenas prácticas
+
+- Usa `status` y `reason` para clasificar la respuesta; no uses el texto de `message` como código.
+- Registra el endpoint, código HTTP, `status`, `reason`, fecha y referencia interna.
+- No reintentes automáticamente operaciones con resultado indeterminado sin consultar primero la transacción.
+- Aplica backoff para errores de servicios externos y límites de solicitudes.
+- Implementa un caso por defecto para códigos nuevos o códigos entregados por un gateway.
+- No expongas credenciales, llaves, nonces ni trazas internas en logs o mensajes al usuario.
