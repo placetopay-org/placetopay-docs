@@ -121,3 +121,32 @@ Número | Comportamiento
 2215714777972730 | Aprueba
 2215719446775653 | Arroja una excepción en el proceso
 0215026116775785 | Rechaza
+
+## Simulador de devoluciones ACH (ACH Return)
+
+> **Importante:** este simulador es exclusivo del ambiente de pruebas/certificación (`test`). No reproduce el proceso real de generación de devoluciones ACH entre Placetopay y las redes bancarias, y **no implica ningún tipo de certificación** entre Placetopay y los procesos de retorno. Su único objetivo es permitir que los comercios validen en test los eventos, estados y notificaciones (Webhooks) que recibirían si se presentara una devolución ACH real en producción.
+
+En producción, las devoluciones ACH (ACH Returns) son generadas por procesos externos a Placetopay y posteriormente capturadas, enriquecidas y notificadas (por ejemplo, vía Webhooks). Este comportamiento no puede replicarse de forma real en el ambiente de pruebas, por lo que se habilitaron 3 cuentas mock adicionales, exclusivas para el instrumento `account` (ACH Bank Debit), con un comportamiento fijo (no configurable desde el Panel):
+
+Cuenta | Número | Comportamiento esperado
+-------|--------|------------------------
+A | `1111111111` | La transacción se aprueba y permanece aprobada.
+B | `2222222222` | La transacción se rechaza inmediatamente.
+C | `370366438` | La transacción se aprueba y, pasados algunos minutos, se genera automáticamente una devolución ACH (ACH Return) con el código de devolución NACHA **R09 (Uncollected Funds)**.
+
+### Comportamiento de la cuenta C
+
+Al generarse la devolución simulada de la cuenta C, se crea una transacción hija de tipo `CHARGEBACK` asociada a la transacción original, y se notifica mediante el mismo [Webhook de devoluciones ACH](/payments/external-redirects/ach-bank-debit#notificacion-de-webhook-para-devoluciones-ach) utilizado en producción. Los campos relevantes se completan así:
+
+Campo | Valor
+------|------
+`originalTransactionDate` | Fecha de la transacción original (padre).
+`clientBankAccountNumber` | Número de cuenta bancaria de la transacción original (`370366438`).
+`bankRoutingNumber` | Número de ruta bancaria (routing number) de la transacción original.
+`processBatchId` | Identificador de lote simulado.
+`returnId` | Identificador de devolución simulado.
+`returnDate` | Fecha posterior a la de la transacción original.
+`returnData` | Los primeros 9 dígitos en cero seguidos del número de autorización (CUS) de la transacción original.
+`reason` | `R09` (Uncollected Funds).
+
+Estas transacciones simuladas son visibles tanto en el Panel administrativo como en las APIs de consulta, igual que una devolución real.
