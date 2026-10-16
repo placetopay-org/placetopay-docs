@@ -1,0 +1,193 @@
+export const sectionMode = 'nav';
+export const description =
+  'Learn how to reverse an approved payment and the possible responses of the service.'
+
+export const apiRefs = ['/api/reverse']
+
+# Reversal
+
+<Row>
+  <Col>
+    Allows you to reverse an approved payment using its internal reference `internalReference`. {{ className: 'lead' }}
+  </Col>
+  <Col>
+    <EndpointsOverview />
+  </Col>
+</Row>
+
+<ApiDownloads />
+
+## Reverse transaction {{ id: 'reverse', tag: 'POST', label: '/api/reverse' }}
+
+<Row>
+    <Col>
+        It is equivalent to [Transaction actions](/en/checkout/api/reference/payment#transaction-actions) with `action: reverse`, without the need to send the `action` field. For the complete process, see [Refund](/en/checkout/refund).
+
+        <ApiReader
+            path="/api/reverse"
+            method="post"
+            api={props.refs}
+        />
+    </Col>
+    <Col sticky>
+        <CodeGroup title="Request" tag="POST" label="/api/reverse">
+```bash {{ title: 'Reverse' }}
+curl -X "POST" https://checkout-test.placetopay.com/api/reverse \
+    -H "Content-Type: application/json" \
+    -d "{
+        "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "NjE0OWVkODgwYjNhNw==",
+            "seed": "2021-09-21T09:34:48-05:00"
+        },
+        "internalReference": 644
+    }"
+```
+        </CodeGroup>
+    </Col>
+</Row>
+
+## Possible responses {{ id: 'reverse-responses' }}
+
+<Row>
+    <Col>
+        These are the possible responses of the service and their cause. All of them include the `status` object; only an approved reversal also includes the `payment` object.
+
+        | Scenario | HTTP | `status` | `reason` | `message` | Cause |
+        | --- | --- | --- | --- | --- | --- |
+        | Reversal approved | 200 | `APPROVED` | `00` | Approved | The reversal was processed successfully. Includes the `payment` object. |
+        | Reversal pending | 200 | `PENDING` | `?-` | Depends on the provider | The acquirer or provider reports that the reversal is in process. |
+        | Reversal rejected by the provider | 200 | `REJECTED` or `FAILED` | Provider code | Provider message | The acquirer or provider rejected the reversal. |
+        | Invalid reference | 400 | `FAILED` | `request_not_valid` | Invalid reference: must be a string between 1 and 32 characters | `internalReference` was not sent or is not numeric. Although the message indicates a string of 1 to 32 characters, the validation requires a numeric value. |
+        | Invalid amount | 400 | `FAILED` | `request_not_valid` | The amount it is bad formed, not numeric total | `amount` was sent and `amount.total` is not numeric. |
+        | Amount sent with negative or zero total | 400 | `FAILED` | `request_not_valid` | The amount base its required to the payment | In a reversal `amount` is optional. The error occurs only if it is sent with a `total` less than or equal to zero. |
+        | Transaction does not exist | 400 | `FAILED` | `request_not_valid` | The transaction you search does not exists | There is no transaction with the `internalReference` sent. |
+        | Transaction from another site | 400 | `FAILED` | `request_not_valid` | The session with that identification does not exists | The transaction belongs to another site. |
+        | No response from the gateway | 400 | `FAILED` | `transaction_request_error` | The service could not be reached, please try again in a few moments | The request is valid, but no response was obtained from the gateway due to a timeout or connection problems. |
+        | Gateway rejects the reversal | 400 | `FAILED` | `transaction_request_error` | La transacción no puede ser procesada<br />The authorization code provided does not match<br />Transaction already refunded<br />The transaction already has a reverse in process<br />Another operation is being processing<br />Transaction is not conciliated<br />The currency provided is invalid<br />The service does not support reverse<br />The payment method associated with the transaction is no longer enabled | The gateway answered with an HTTP error due to a business validation, such as an incorrect authorization, an already refunded transaction or a reversal in process. Checkout keeps the gateway message, but returns `transaction_request_error` instead of the original code. |
+        | Payment method without reversal support | 400 | `FAILED` | `0` | Reverse transaction not supported yet | The payment method does not support reversals (Breb, PSE, PSE Nequi, ALIA and RedirectRest). |
+        | Internal error | 503 | `FAILED` | `MN` | Maintenance service | Error in Placetopay services. |
+
+        <Note>
+            The availability of reversals may vary depending on the payment method, country, and/or provider used.
+            Authentication errors are described in [Possible errors](/en/checkout/authentication#possible-errors) and [Frequent errors](/en/checkout/authentication#frequent-errors).
+        </Note>
+    </Col>
+    <Col sticky>
+        <CodeGroup title="Response">
+```json {{ title: '200: Approved' }}
+{
+    "status": {
+        "status": "APPROVED",
+        "reason": "00",
+        "message": "Approved",
+        "date": "2021-11-30T09:37:46-05:00"
+    },
+    "payment": {
+        "status": {
+            "status": "APPROVED",
+            "reason": "00",
+            "message": "Approved",
+            "date": "2021-11-30T09:37:46-05:00"
+        },
+        "internalReference": 644,
+        "paymentMethod": "visa",
+        "paymentMethodName": "Visa",
+        "issuerName": "JPMORGAN CHASE BANK, N.A.",
+        "amount": {
+            "from": { "currency": "USD", "total": 500 },
+            "to": { "currency": "USD", "total": 500 },
+            "factor": 1
+        },
+        "authorization": "550044",
+        "reference": "1122334455",
+        "receipt": "499435368733",
+        "franchise": "PS_VS",
+        "refunded": false
+    }
+}
+```
+```json {{ title: '200: Pending' }}
+{
+    "status": {
+        "status": "PENDING",
+        "reason": "?-",
+        "message": "Please check with your financial institution whether the debit was made",
+        "date": "2021-11-30T09:37:46-05:00"
+    }
+}
+```
+```json {{ title: '200: Rejected' }}
+{
+    "status": {
+        "status": "REJECTED",
+        "reason": "05",
+        "message": "Rejected",
+        "date": "2021-11-30T09:37:46-05:00"
+    }
+}
+```
+```json {{ title: '400: Invalid reference' }}
+{
+    "status": {
+        "status": "FAILED",
+        "reason": "request_not_valid",
+        "message": "Invalid reference: must be a string between 1 and 32 characters",
+        "date": "2021-11-30T09:37:46-05:00"
+    }
+}
+```
+```json {{ title: '400: Transaction not found' }}
+{
+    "status": {
+        "status": "FAILED",
+        "reason": "request_not_valid",
+        "message": "The transaction you search does not exists",
+        "date": "2021-11-30T09:37:46-05:00"
+    }
+}
+```
+```json {{ title: '400: No connection' }}
+{
+    "status": {
+        "status": "FAILED",
+        "reason": "transaction_request_error",
+        "message": "The service could not be reached, please try again in a few moments",
+        "date": "2021-11-30T09:37:46-05:00"
+    }
+}
+```
+```json {{ title: '400: Gateway rejects' }}
+{
+    "status": {
+        "status": "FAILED",
+        "reason": "transaction_request_error",
+        "message": "Transaction already refunded",
+        "date": "2021-11-30T09:37:46-05:00"
+    }
+}
+```
+```json {{ title: '400: Reverse not supported' }}
+{
+    "status": {
+        "status": "FAILED",
+        "reason": "0",
+        "message": "Reverse transaction not supported yet",
+        "date": "2021-11-30T09:37:46-05:00"
+    }
+}
+```
+```json {{ title: '503: Maintenance' }}
+{
+    "status": {
+        "status": "FAILED",
+        "reason": "MN",
+        "message": "Maintenance service",
+        "date": "2021-11-30T09:37:46-05:00"
+    }
+}
+```
+        </CodeGroup>
+    </Col>
+</Row>

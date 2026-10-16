@@ -1473,6 +1473,152 @@ paths:
                   action: cancel
         description: ''
       x-internal: false
+  /api/reverse:
+    post:
+      summary: Reverse transaction (ReversePayment)
+      operationId: post-api-reverse
+      description: |
+        Allows reversing an approved payment using its internal reference `internalReference`.
+
+        This endpoint is equivalent to [`/api/transaction`](/en/checkout/api/reference/payment#transaction-actions) with `action: reverse`: you do not need to send the `action` field, the service sets it automatically. Use it when you only need to reverse transactions and want a reference focused on its possible responses.
+
+        **Availability:** not all payment methods support reversals. If the payment method of the transaction does not support it, the reversal will be rejected (see [possible responses](#reverse-responses)).
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReverseRequest'
+            examples:
+              Reverse:
+                value:
+                  auth:
+                    login: aabbccdd1234567890aabbccdd123456
+                    tranKey: ABC123example456trankey+789abc012def3456ABC=
+                    nonce: NjE0OWVkODgwYjNhNw==
+                    seed: '2021-09-21T09:34:48-05:00'
+                  internalReference: 123
+      responses:
+        '200':
+          description: |
+            The gateway processed the reversal. The result can be `APPROVED` (with the `payment` object), `PENDING` or a provider rejection (`REJECTED`/`FAILED`) that only includes `status`.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  payment:
+                    type: object
+                    description: Information of the reversal transaction. Only included when the reversal was approved.
+              examples:
+                Approved:
+                  value:
+                    status:
+                      status: APPROVED
+                      reason: '00'
+                      message: Approved
+                      date: '2021-11-30T09:37:46-05:00'
+                    payment:
+                      status:
+                        status: APPROVED
+                        reason: '00'
+                        message: Approved
+                        date: '2021-11-30T09:37:46-05:00'
+                      internalReference: 644
+                      paymentMethod: visa
+                      paymentMethodName: Visa
+                      issuerName: 'JPMORGAN CHASE BANK, N.A.'
+                      amount:
+                        from:
+                          currency: USD
+                          total: 500
+                        to:
+                          currency: USD
+                          total: 500
+                        factor: 1
+                      authorization: '550044'
+                      reference: '1122334455'
+                      receipt: '499435368733'
+                      franchise: PS_VS
+                      refunded: false
+                Rejected:
+                  value:
+                    status:
+                      status: REJECTED
+                      reason: '05'
+                      message: Rejected
+                      date: '2021-11-30T09:37:46-05:00'
+                Pending:
+                  value:
+                    status:
+                      status: PENDING
+                      reason: '?-'
+                      message: Please check with your financial institution whether the debit was made
+                      date: '2021-11-30T09:37:46-05:00'
+        '400':
+          description: Invalid request or error communicating with the gateway
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+              examples:
+                TransactionNotFound:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: request_not_valid
+                      message: The transaction you search does not exists
+                      date: '2021-11-30T09:37:46-05:00'
+                GatewayConnectionError:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: transaction_request_error
+                      message: The service could not be reached, please try again in a few moments
+                      date: '2021-11-30T09:37:46-05:00'
+                ReversalRejectedByGateway:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: transaction_request_error
+                      message: Transaction already refunded
+                      date: '2021-11-30T09:37:46-05:00'
+                InvalidReference:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: request_not_valid
+                      message: 'Invalid reference: must be a string between 1 and 32 characters'
+                      date: '2021-11-30T09:37:46-05:00'
+                ReverseNotSupported:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: '0'
+                      message: Reverse transaction not supported yet
+                      date: '2021-11-30T09:37:46-05:00'
+        '503':
+          description: Internal service error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+              examples:
+                ServiceUnderMaintenance:
+                  value:
+                    status:
+                      status: FAILED
+                      reason: MN
+                      message: Maintenance service
+                      date: '2021-11-30T09:37:46-05:00'
+      x-internal: false
   /api/instrument/invalidate:
     post:
       summary: Invalidar Token (InstrumentInvalidateRequest)
@@ -3063,6 +3209,25 @@ components:
           $ref: '#/components/schemas/InternalReference'
         amount:
           $ref: '#/components/schemas/Amount'
+    ReverseRequest:
+      title: ReverseRequest
+      type: object
+      description: 'Structure to reverse an approved payment in `/api/reverse`. Equivalent to a `TransactionActionRequest` with `action: reverse`.'
+      x-examples:
+        reverse example:
+          internalReference: 1
+      required:
+        - auth
+        - internalReference
+      properties:
+        auth:
+          $ref: '#/components/schemas/Authentication'
+        internalReference:
+          $ref: '#/components/schemas/InternalReference'
+        amount:
+          $ref: '#/components/schemas/Amount'
+          description: |
+            Optional. If sent, `amount.total` must be numeric and greater than 0, and must match the total reversible amount of the transaction.
     DispersionDetail:
       title: DispersionDetail
       type: object

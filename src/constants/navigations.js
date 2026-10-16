@@ -826,6 +826,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Sesión', href: '/checkout/api/reference/session' },
               { title: 'Pagos', href: '/checkout/api/reference/payment' },
+              { title: 'Reversos', href: '/checkout/api/reference/reverse' },
               { title: 'Token', href: '/checkout/api/reference/token' },
               {
                 title: 'Gateway',
@@ -943,6 +944,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Session', href: '/en/checkout/api/reference/session' },
               { title: 'Payments', href: '/en/checkout/api/reference/payment' },
+              { title: 'Reversals', href: '/en/checkout/api/reference/reverse' },
               { title: 'Token', href: '/en/checkout/api/reference/token' },
               {
                 title: 'Gateway', links: [
