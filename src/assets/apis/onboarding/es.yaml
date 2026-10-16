@@ -30,7 +30,9 @@ paths:
         - name: Authorization
           in: header
           required: true
-          description: Token de acceso con el permiso `onboarding:create`.
+          description: |
+            Token de acceso con el permiso `onboarding:create`. Si algún sitio trae
+            `threeDS.seglan`, el token debe incluir además `onboarding:enroll`.
           schema:
             type: string
             example: Bearer 1|tu-token-de-acceso
@@ -107,7 +109,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '403':
-          description: El token no incluye el permiso requerido.
+          description: |
+            El token no incluye el permiso requerido: `onboarding:create` o, si algún sitio trae
+            `threeDS.seglan`, `onboarding:enroll`.
           content:
             application/json:
               schema:
@@ -493,6 +497,8 @@ components:
             - `REFERENCE_NOT_FOUND` — una referencia enviada ya no existe
             - `RESOURCE_NOT_FOUND` — el comercio a actualizar desapareció
             - `VALIDATION_FAILED` — el contenido fue rechazado al escribirlo
+            - `DEPENDENCY_UNAVAILABLE` — un servicio externo que el proceso necesita rechazó la
+              operación o no estaba disponible
             - `INTERRUPTED` — el proceso se detuvo antes de completarse
           oneOf:
             - type: integer
@@ -1904,6 +1910,84 @@ components:
           type: [number, 'null']
           minimum: 0
           description: Monto a partir del cual se aplica la autenticación.
+        seglan:
+          $ref: '#/components/schemas/SiteThreeDSSeglan'
+
+    SiteThreeDSSeglan:
+      title: seglan
+      type: object
+      description: |
+        Registra el sitio en Seglan como proveedor 3-D Secure de sus medios de pago PayStudio. Solo
+        al crear el comercio, y exige el permiso `onboarding:enroll`.
+      required: [code, name, country, mcc, url, subscriptions]
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: |
+            Código del sitio en Seglan. Único entre los sitios de la petición, sin distinguir
+            mayúsculas.
+          example: acme-tienda-principal
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Nombre del sitio en Seglan.
+          example: Acme
+        country:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: País del sitio en código ISO 3166-1 alfa-3, del catálogo de países.
+          example: COL
+        mcc:
+          type: string
+          minLength: 4
+          maxLength: 4
+          description: Código de categoría de comercio (MCC) del sitio, del catálogo.
+          example: '5411'
+        url:
+          type: string
+          format: uri
+          maxLength: 2048
+          description: URL del sitio.
+          example: https://acme.example.com
+        subscriptions:
+          type: array
+          minItems: 1
+          maxItems: 4
+          description: Al menos una suscripción, y como máximo una por marca de tarjeta.
+          items:
+            $ref: '#/components/schemas/SiteThreeDSSeglanSubscription'
+
+    SiteThreeDSSeglanSubscription:
+      title: subscription
+      type: object
+      description: Datos de adquirencia de una marca.
+      required: [brand, acquirerBin, acquirerMerchantId]
+      additionalProperties: false
+      properties:
+        brand:
+          type: string
+          enum: [visa, mastercard, amex, diners]
+          description: |
+            Marca de tarjeta. Exige su medio PayStudio en el `paymentMethods` del sitio: `PS_VS`
+            (visa), `PS_MC` (mastercard), `PS_AM` (amex) o `PS_DN` (diners).
+          example: visa
+        acquirerBin:
+          type: string
+          minLength: 1
+          maxLength: 11
+          description: BIN del adquirente de la marca.
+          example: '411111'
+        acquirerMerchantId:
+          type: string
+          minLength: 1
+          maxLength: 35
+          description: Identificador del comercio ante el adquirente de la marca.
+          example: '12345678901'
 
     SiteSecurityFiltersBlock:
       title: securityFilters
@@ -3022,6 +3106,29 @@ components:
                     action:
                       type: string
                       enum: [created, updated, unchanged]
+              threeDS:
+                type: object
+                description: Presente solo en los sitios registrados en Seglan con `threeDS.seglan`.
+                required: [provider, merchantId, tokenId, expiresAt]
+                properties:
+                  provider:
+                    type: string
+                    enum: [seglan]
+                    description: Proveedor 3-D Secure del sitio.
+                    example: seglan
+                  merchantId:
+                    type: integer
+                    description: Identificador del comercio en Seglan.
+                    example: 7310
+                  tokenId:
+                    type: string
+                    description: Identificador de la credencial 3-D Secure emitida para el sitio.
+                    example: exampleTokenId
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: Vencimiento de la credencial al momento del registro.
+                    example: '2029-08-17T15:14:09+00:00'
               paymentMethods:
                 type: array
                 description: |
