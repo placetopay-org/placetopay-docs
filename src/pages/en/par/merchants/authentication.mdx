@@ -1,0 +1,81 @@
+export const description =
+  'Authenticate your merchant requests to PAR with your secret key and your site commerce code.'
+
+# Merchant authentication
+
+The requests your server makes to PAR —the enrollment and the status check— are authenticated with **two headers**: your secret key and the commerce code of the site you operate with.
+
+## Credentials {{ id: 'credentials' }}
+
+Placetopay gives you the credentials when it registers you as a PAR partner:
+
+<Properties>
+  <Property name="Secret key" type="string" isRequired={true}>
+    Identifies your merchant as a PAR partner. It travels in the `Authorization` header.
+  </Property>
+  <Property name="Commerce code" type="string" isRequired={true}>
+    Identifies the site of your merchant where autopays are enrolled. It travels in the `Commercecode` header. If your merchant has several sites, each one has its own code.
+  </Property>
+</Properties>
+
+## Environments and base URL {{ id: 'environments' }}
+
+PAR runs in separate environments, and each one has its own base URL and its own credentials. A credential from one environment does not work in another.
+
+In this documentation, `{BASE_URL}` stands for the URL of the environment you are working in:
+
+```text
+{BASE_URL}/restpatpass/v1/services/patInscription
+```
+
+## Authorize a request {{ id: 'authorization-headers' }}
+
+Send the secret key exactly as you received it in the `Authorization` header, without any prefix, and the commerce code in the `Commercecode` header.
+
+<CodeGroup title="Headers">
+
+```bash {{ title: 'cURL' }}
+curl --request POST \
+  --url '{BASE_URL}/restpatpass/v1/services/status' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: {YOUR_SECRET_KEY}' \
+  --header 'Commercecode: {YOUR_COMMERCE_CODE}' \
+  --data '{"token": "{TOKEN}"}'
+```
+
+```php {{ title: 'PHP' }}
+$response = Http::acceptJson()
+    ->withHeaders([
+        'Authorization' => $secretKey,
+        'Commercecode' => $commerceCode,
+    ])
+    ->post("{$baseUrl}/restpatpass/v1/services/status", [
+        'token' => $token,
+    ]);
+```
+
+```js {{ title: 'Node' }}
+const response = await fetch(`${baseUrl}/restpatpass/v1/services/status`, {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'Authorization': secretKey,
+    'Commercecode': commerceCode,
+  },
+  body: JSON.stringify({ token }),
+});
+```
+
+</CodeGroup>
+
+## What PAR validates {{ id: 'validation' }}
+
+On every request, PAR checks in this order:
+
+1. That both headers are present. If either is missing, it answers `401` with code `-110`.
+2. That the secret key belongs to an active merchant partner. If not, it answers `401` with code `-111`.
+3. That the commerce code belongs to an active site of that same merchant. If not, it answers `422` with code `-108`.
+
+The format of these responses and the rest of the codes are in [Errors](/en/par/merchants/errors).

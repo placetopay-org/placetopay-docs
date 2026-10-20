@@ -1,0 +1,95 @@
+export const description =
+  'Confirm from your server whether the enrollment of an autopay in PAR was authorized.'
+
+# Check the status
+
+After the return, your server uses the token to confirm whether the enrollment was **authorized**, that is, whether the cardholder completed the autopay on your site.
+
+## Check {{ id: 'query-status' }}
+
+`POST {BASE_URL}/restpatpass/v1/services/status`
+
+The request is authenticated with the `Authorization` and `Commercecode` headers, as explained in [Authentication](/en/par/merchants/authentication).
+
+<Properties>
+  <Property name="token" type="string" isRequired={true}>
+    The token you received when [requesting the enrollment](/en/par/merchants/enrollment) and that PAR returned to you in `j_token`.
+  </Property>
+</Properties>
+
+<CodeGroup title="Request" tag="POST" label="/restpatpass/v1/services/status">
+
+```bash {{ title: 'cURL' }}
+curl --request POST \
+  --url '{BASE_URL}/restpatpass/v1/services/status' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: {YOUR_SECRET_KEY}' \
+  --header 'Commercecode: 1234567890' \
+  --data '{"token": "{TOKEN}"}'
+```
+
+```php {{ title: 'PHP' }}
+$response = Http::acceptJson()
+    ->withHeaders([
+        'Authorization' => $secretKey,
+        'Commercecode' => '1234567890',
+    ])
+    ->post("{$baseUrl}/restpatpass/v1/services/status", [
+        'token' => $token,
+    ]);
+```
+
+```js {{ title: 'Node' }}
+const response = await fetch(`${baseUrl}/restpatpass/v1/services/status`, {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'Authorization': secretKey,
+    'Commercecode': '1234567890',
+  },
+  body: JSON.stringify({ token }),
+});
+```
+
+</CodeGroup>
+
+## Response {{ id: 'response' }}
+
+PAR answers `200` whether the enrollment was authorized or not:
+
+<CodeGroup title="Response">
+
+```json {{ title: 'Authorized' }}
+{
+  "authorized": true,
+  "voucherUrl": "{BASE_URL}/nuevo-ic-rest/tokenVoucherLogin"
+}
+```
+
+```json {{ title: 'Not authorized' }}
+{
+  "authorized": false,
+  "voucherUrl": null
+}
+```
+
+</CodeGroup>
+
+<Properties>
+  <Property name="authorized" type="boolean">
+    `true` if the cardholder started the session with that token and completed the enrollment of an autopay on the site of your commerce code.
+  </Property>
+  <Property name="voucherUrl" type="string | null">
+    URL of the autopay [voucher](/en/par/merchants/voucher). Only present when `authorized` is `true`.
+  </Property>
+</Properties>
+
+`authorized` is `false` when the token does not exist, has not been used to log in yet, was revoked, belongs to another merchant or site, or when the cardholder abandoned the enrollment without completing it. PAR does not distinguish between these cases so as not to reveal information about other partners' tokens.
+
+<Note>
+  Check the status every time you receive a return, instead of assuming the result. Once authorized, the enrollment does not go back to unauthorized, unless Placetopay revokes the session.
+</Note>
+
+`authorized` confirms that the autopay **was enrolled**, not its current status. If your site requires autopays to be approved, it may be pending approval; and the cardholder may cancel it later from PAR without this response changing.

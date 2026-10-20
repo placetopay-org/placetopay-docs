@@ -1,0 +1,200 @@
+export const description =
+  'Solicita el token de inscripción de un autopago en PAR y envía al tarjetahabiente a completarla.'
+
+# Inscribir un autopago
+
+Para que tu cliente inscriba un autopago, tu servidor solicita un token a PAR con los datos del servicio y del cliente, y luego su navegador presenta ese token a PAR para iniciar la sesión.
+
+## Solicitar el token {{ id: 'request-token' }}
+
+`POST {URL_BASE}/restpatpass/v1/services/patInscription`
+
+La petición se autentica con los headers `Authorization` y `Commercecode`, como se explica en [Autenticación](/par/merchants/authentication).
+
+### Campos obligatorios
+
+<Properties>
+  <Property name="commerceCode" type="string" isRequired={true}>
+    El código de comercio de tu sitio. Debe ser **idéntico** al que envías en el header `Commercecode`.
+  </Property>
+  <Property name="url" type="string" isRequired={true}>
+    URL de retorno. PAR envía al tarjetahabiente a esta dirección al terminar la inscripción. Debe ser una URL pública.
+  </Property>
+  <Property name="finalUrl" type="string" isRequired={true}>
+    URL final. PAR envía al tarjetahabiente a esta dirección cuando sale del comprobante del autopago. Debe ser una URL pública.
+  </Property>
+  <Property name="correoPersona" type="string" isRequired={true}>
+    Correo electrónico del tarjetahabiente. Si ya tiene una cuenta en PAR con ese correo, la sesión se abre con su cuenta.
+  </Property>
+  <Property name="serviceId" type="string" isRequired={true}>
+    Identificador del servicio que se cobrará, por ejemplo el número de contrato o de cliente. Máximo 32 caracteres. La persona no puede tener otro autopago activo con el mismo identificador en tu sitio.
+  </Property>
+</Properties>
+
+### Campos opcionales
+
+Estos campos prellenan el formulario de inscripción, para que el tarjetahabiente no tenga que escribirlos.
+
+<Properties>
+  <Property name="rut" type="string" isRequired={false}>
+    Documento de identidad del tarjetahabiente. Máximo 10 caracteres.
+  </Property>
+  <Property name="nombre" type="string" isRequired={false}>
+    Nombre del tarjetahabiente. Máximo 60 caracteres.
+  </Property>
+  <Property name="pApellido" type="string" isRequired={false}>
+    Primer apellido del tarjetahabiente. Máximo 60 caracteres.
+  </Property>
+  <Property name="sApellido" type="string" isRequired={false}>
+    Segundo apellido del tarjetahabiente. Máximo 60 caracteres.
+  </Property>
+  <Property name="montoMaximo" type="number" isRequired={false}>
+    Monto máximo que el autopago podrá cobrar. Debe ser mayor o igual a cero.
+  </Property>
+  <Property name="telefonoCelular" type="string" isRequired={false}>
+    Teléfono celular del tarjetahabiente. Máximo 50 caracteres. Si no es un número de teléfono válido, PAR lo ignora.
+  </Property>
+  <Property name="telefonoFijo" type="string" isRequired={false}>
+    Teléfono fijo del tarjetahabiente. Máximo 50 caracteres. Si no es un número de teléfono válido, PAR lo ignora.
+  </Property>
+  <Property name="nombrePatPass" type="string" isRequired={false}>
+    Nombre con el que el tarjetahabiente reconocerá el autopago. Máximo 100 caracteres.
+  </Property>
+  <Property name="correoComercio" type="string" isRequired={false}>
+    Correo de contacto del comercio. Máximo 100 caracteres.
+  </Property>
+  <Property name="direccion" type="string" isRequired={false}>
+    Dirección asociada a la inscripción. Máximo 100 caracteres.
+  </Property>
+  <Property name="ciudad" type="string" isRequired={false}>
+    Ciudad asociada a la inscripción. Máximo 100 caracteres.
+  </Property>
+</Properties>
+
+### Ejemplo
+
+<CodeGroup title="Solicitud" tag="POST" label="/restpatpass/v1/services/patInscription">
+
+```bash {{ title: 'cURL' }}
+curl --request POST \
+  --url '{URL_BASE}/restpatpass/v1/services/patInscription' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: {TU_LLAVE_SECRETA}' \
+  --header 'Commercecode: 1234567890' \
+  --data '{
+    "commerceCode": "1234567890",
+    "url": "https://www.example.com/par/return",
+    "finalUrl": "https://www.example.com/par/final",
+    "correoPersona": "john.doe@example.com",
+    "serviceId": "CONTRACT-0001",
+    "rut": "11111111-1",
+    "nombre": "John",
+    "pApellido": "Doe",
+    "montoMaximo": 50000,
+    "telefonoCelular": "+56912345678",
+    "nombrePatPass": "Plan mensual"
+  }'
+```
+
+```php {{ title: 'PHP' }}
+$response = Http::acceptJson()
+    ->withHeaders([
+        'Authorization' => $secretKey,
+        'Commercecode' => '1234567890',
+    ])
+    ->post("{$urlBase}/restpatpass/v1/services/patInscription", [
+        'commerceCode' => '1234567890',
+        'url' => 'https://www.example.com/par/return',
+        'finalUrl' => 'https://www.example.com/par/final',
+        'correoPersona' => 'john.doe@example.com',
+        'serviceId' => 'CONTRACT-0001',
+        'rut' => '11111111-1',
+        'nombre' => 'John',
+        'pApellido' => 'Doe',
+        'montoMaximo' => 50000,
+        'telefonoCelular' => '+56912345678',
+        'nombrePatPass' => 'Plan mensual',
+    ]);
+```
+
+```js {{ title: 'Node' }}
+const response = await fetch(`${urlBase}/restpatpass/v1/services/patInscription`, {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'Authorization': secretKey,
+    'Commercecode': '1234567890',
+  },
+  body: JSON.stringify({
+    commerceCode: '1234567890',
+    url: 'https://www.example.com/par/return',
+    finalUrl: 'https://www.example.com/par/final',
+    correoPersona: 'john.doe@example.com',
+    serviceId: 'CONTRACT-0001',
+    rut: '11111111-1',
+    nombre: 'John',
+    pApellido: 'Doe',
+    montoMaximo: 50000,
+    telefonoCelular: '+56912345678',
+    nombrePatPass: 'Plan mensual',
+  }),
+});
+```
+
+</CodeGroup>
+
+### Respuesta
+
+Si la solicitud es válida, PAR responde `200` con el token y la URL de inicio de sesión:
+
+```json {{ title: 'Respuesta' }}
+{
+  "token": "{TOKEN}",
+  "url": "{URL_BASE}/restpatpass/login"
+}
+```
+
+<Properties>
+  <Property name="token" type="string">
+    Token de un solo uso con el que el tarjetahabiente iniciará la sesión. Consérvalo: lo necesitarás para la [consulta de estado](/par/merchants/status) y el [comprobante](/par/merchants/voucher).
+  </Property>
+  <Property name="url" type="string">
+    URL de inicio de sesión a la que debes enviar el token desde el navegador del tarjetahabiente.
+  </Property>
+</Properties>
+
+Si algún dato no es válido, PAR responde con un código de error que señala el campo, como se describe en [Errores](/par/merchants/errors). Cada respuesta informa un solo campo; corrígelo y vuelve a solicitar el token.
+
+## Iniciar la sesión {{ id: 'login' }}
+
+Con el token, envía al tarjetahabiente a la `url` de la respuesta mediante un formulario `POST` desde su navegador, con el token en el campo `tokenComercio`. Puedes hacerlo en una ventana completa o dentro de un `iframe`, si el origen de tu sitio está autorizado para tu comercio.
+
+```html {{ title: 'Formulario' }}
+<form method="post" action="{URL_BASE}/restpatpass/login">
+  <input type="hidden" name="tokenComercio" value="{TOKEN}" />
+  <button type="submit">Inscribir autopago</button>
+</form>
+```
+
+PAR consume el token y lleva al tarjetahabiente a inscribir el autopago, con los datos que enviaste ya cargados. Si la persona ya tiene una cuenta en PAR, inscribe el autopago desde ella; si no, puede inscribirlo sin crear una cuenta.
+
+<Note type="warning">
+  El token es de un solo uso y vence pronto. Si el inicio de sesión se rechaza porque el token ya se usó o venció, solicita uno nuevo.
+</Note>
+
+Si el token no es válido, PAR responde `403`. Si el inicio de sesión falla por otra causa, PAR muestra al tarjetahabiente una página de error.
+
+## Recibir el retorno {{ id: 'return' }}
+
+Cuando el tarjetahabiente termina, PAR envía un formulario `POST` a tu `url` de retorno con el token en el campo `j_token`:
+
+```text
+POST https://www.example.com/par/return
+Content-Type: application/x-www-form-urlencoded
+
+j_token={TOKEN}
+```
+
+El retorno solo indica que el tarjetahabiente volvió a tu sitio. Para saber si el autopago quedó inscrito, consulta el estado con ese token desde tu servidor, como se explica en [Consultar el estado](/par/merchants/status).

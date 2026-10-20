@@ -3328,6 +3328,16 @@ export const TAB_NAVIGATION = {
               { title: 'Cómo funciona', href: '/par/how-par-works' },
             ],
           },
+          {
+            title: 'Comercios',
+            links: [
+              { title: 'Autenticación', href: '/par/merchants/authentication' },
+              { title: 'Inscribir un autopago', href: '/par/merchants/enrollment' },
+              { title: 'Consultar el estado', href: '/par/merchants/status' },
+              { title: 'Comprobante', href: '/par/merchants/voucher' },
+              { title: 'Errores', href: '/par/merchants/errors' },
+            ],
+          },
         ],
       },
     ],
@@ -3343,6 +3353,16 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Introduction', href: '/en/par' },
               { title: 'How it works', href: '/en/par/how-par-works' },
+            ],
+          },
+          {
+            title: 'Merchants',
+            links: [
+              { title: 'Authentication', href: '/en/par/merchants/authentication' },
+              { title: 'Enroll an autopay', href: '/en/par/merchants/enrollment' },
+              { title: 'Check the status', href: '/en/par/merchants/status' },
+              { title: 'Voucher', href: '/en/par/merchants/voucher' },
+              { title: 'Errors', href: '/en/par/merchants/errors' },
             ],
           },
         ],
