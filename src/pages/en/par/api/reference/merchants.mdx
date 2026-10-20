@@ -1,0 +1,253 @@
+export const sectionMode = 'nav';
+export const description =
+  'Reference of the endpoints a merchant uses to enroll autopays in PAR, check their status and show the voucher.'
+
+export const apiRefs = [
+  '/restpatpass/v1/services/patInscription',
+  '/restpatpass/v1/services/status',
+  '/restpatpass/login',
+  '/nuevo-ic-rest/tokenVoucherLogin',
+];
+
+# Merchants
+
+<Row>
+  <Col>
+    Request the enrollment token for an autopay, send the cardholder to complete it, confirm whether it was authorized and show them the voucher. The full flow is explained in [Enroll an autopay](/en/par/merchants/enrollment). {{ className: 'lead' }}
+  </Col>
+  <Col>
+    <EndpointsOverview />
+  </Col>
+</Row>
+
+<ApiDownloads />
+
+## Request the enrollment token {{ id: 'request-enrollment-token', tag: 'POST', label: '/restpatpass/v1/services/patInscription' }}
+
+<Row>
+  <Col>
+    Validates the service and cardholder data and returns a single-use token, together with the login URL where the cardholder's browser must send it. It is called from your server, authenticated as explained in [Authentication](/en/par/merchants/authentication).
+
+    <ApiReader
+      path="/restpatpass/v1/services/patInscription"
+      method="post"
+      type="header"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/restpatpass/v1/services/patInscription"
+      method="post"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Request" tag="POST" label="/restpatpass/v1/services/patInscription">
+```bash {{ title: 'Minimum data' }}
+curl --request POST \
+  --url '{BASE_URL}/restpatpass/v1/services/patInscription' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: {YOUR_SECRET_KEY}' \
+  --header 'Commercecode: 1234567890' \
+  --data '{
+    "commerceCode": "1234567890",
+    "url": "https://www.example.com/par/return",
+    "finalUrl": "https://www.example.com/par/final",
+    "correoPersona": "john.doe@example.com",
+    "serviceId": "CONTRACT-0001"
+  }'
+```
+
+```bash {{ title: 'With prefill data' }}
+curl --request POST \
+  --url '{BASE_URL}/restpatpass/v1/services/patInscription' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: {YOUR_SECRET_KEY}' \
+  --header 'Commercecode: 1234567890' \
+  --data '{
+    "commerceCode": "1234567890",
+    "url": "https://www.example.com/par/return",
+    "finalUrl": "https://www.example.com/par/final",
+    "correoPersona": "john.doe@example.com",
+    "serviceId": "CONTRACT-0001",
+    "rut": "11111111-1",
+    "nombre": "John",
+    "pApellido": "Doe",
+    "sApellido": "Smith",
+    "montoMaximo": 50000,
+    "telefonoCelular": "+56912345678",
+    "nombrePatPass": "Monthly plan"
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/restpatpass/v1/services/patInscription"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Response">
+
+    ```json {{ title: '200' }}
+    {
+      "token": "{TOKEN}",
+      "url": "{BASE_URL}/restpatpass/login"
+    }
+    ```
+
+    ```json {{ title: '401' }}
+    {
+      "code": -111,
+      "description": "Invalid authentication headers"
+    }
+    ```
+
+    ```json {{ title: '422' }}
+    {
+      "code": -107,
+      "description": "Invalid service ID"
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Check the enrollment status {{ id: 'check-enrollment-status', tag: 'POST', label: '/restpatpass/v1/services/status' }}
+
+<Row>
+  <Col>
+    Tells whether the cardholder started the session with the token and completed the enrollment on your site. Check it every time you receive a return: coming back to your site does not mean the enrollment was completed. More details in [Check the status](/en/par/merchants/status).
+
+    <ApiReader
+      path="/restpatpass/v1/services/status"
+      method="post"
+      type="header"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/restpatpass/v1/services/status"
+      method="post"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Request" tag="POST" label="/restpatpass/v1/services/status">
+```bash {{ title: 'Check the status' }}
+curl --request POST \
+  --url '{BASE_URL}/restpatpass/v1/services/status' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: {YOUR_SECRET_KEY}' \
+  --header 'Commercecode: 1234567890' \
+  --data '{"token": "{TOKEN}"}'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/restpatpass/v1/services/status"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Response">
+
+    ```json {{ title: 'Authorized' }}
+    {
+      "authorized": true,
+      "voucherUrl": "{BASE_URL}/nuevo-ic-rest/tokenVoucherLogin"
+    }
+    ```
+
+    ```json {{ title: 'Not authorized' }}
+    {
+      "authorized": false,
+      "voucherUrl": null
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Start the cardholder session {{ id: 'start-cardholder-session', tag: 'POST', label: '/restpatpass/login' }}
+
+<Row>
+  <Col>
+    Called by the **cardholder's browser** with a `POST` form, never by your server. PAR consumes the token, opens the session and takes the cardholder to enroll the autopay with the data you sent. It can be submitted in a full window or inside an `iframe`, if your site's origin is authorized.
+
+    <ApiReader
+      path="/restpatpass/login"
+      method="post"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/restpatpass/login"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Request" tag="POST" label="/restpatpass/login">
+```html {{ title: 'Form' }}
+<form method="post" action="{BASE_URL}/restpatpass/login">
+  <input type="hidden" name="tokenComercio" value="{TOKEN}" />
+  <button type="submit">Enroll autopay</button>
+</form>
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Show the autopay voucher {{ id: 'show-autopay-voucher', tag: 'POST', label: '/nuevo-ic-rest/tokenVoucherLogin' }}
+
+<Row>
+  <Col>
+    Called by the **cardholder's browser** with a `POST` form, to the `voucherUrl` of the status check. It shows the autopay voucher and can be opened more than once as long as the enrollment remains authorized. More details in [Autopay voucher](/en/par/merchants/voucher).
+
+    <ApiReader
+      path="/nuevo-ic-rest/tokenVoucherLogin"
+      method="post"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/nuevo-ic-rest/tokenVoucherLogin"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Request" tag="POST" label="/nuevo-ic-rest/tokenVoucherLogin">
+```html {{ title: 'Form' }}
+<form method="post" action="{BASE_URL}/nuevo-ic-rest/tokenVoucherLogin">
+  <input type="hidden" name="tokenComercio" value="{TOKEN}" />
+  <button type="submit">View voucher</button>
+</form>
+```
+    </CodeGroup>
+  </Col>
+</Row>

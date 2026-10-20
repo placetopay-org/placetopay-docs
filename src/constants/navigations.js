@@ -3340,6 +3340,20 @@ export const TAB_NAVIGATION = {
           },
         ],
       },
+      {
+        title: 'API',
+        identifier: 'par/api',
+        href: '/par/api/reference/merchants',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              { title: 'Comercios', href: '/par/api/reference/merchants' },
+            ],
+          },
+        ],
+      },
     ],
     [LANGUAGES_CODES.EN]: [
       {
@@ -3363,6 +3377,20 @@ export const TAB_NAVIGATION = {
               { title: 'Check the status', href: '/en/par/merchants/status' },
               { title: 'Voucher', href: '/en/par/merchants/voucher' },
               { title: 'Errors', href: '/en/par/merchants/errors' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'par/api',
+        href: '/en/par/api/reference/merchants',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              { title: 'Merchants', href: '/en/par/api/reference/merchants' },
             ],
           },
         ],

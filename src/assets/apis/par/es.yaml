@@ -1,0 +1,414 @@
+openapi: 3.1.0
+info:
+  title: Placetopay PAR API
+  description: |
+    API para integrar a comercios y emisores con PAR, el portal en el que los tarjetahabientes inscriben
+    sus tarjetas y gestionan sus autopagos.
+
+    Tu servidor solicita un token de un solo uso y el navegador del tarjetahabiente lo presenta a PAR
+    para iniciar la sesión en la que inscribe el autopago.
+  version: 1.0.0
+
+servers:
+  - url: '{urlBase}'
+    description: Ambiente de trabajo
+    variables:
+      urlBase:
+        default: https://par.example.com
+        description: |
+          URL base del ambiente. Se entrega junto con las credenciales, y una credencial de un ambiente
+          no funciona en otro.
+
+tags:
+  - name: Comercios
+    description: Inscripción de autopagos desde un comercio.
+
+paths:
+  /restpatpass/v1/services/patInscription:
+    post:
+      tags:
+        - Comercios
+      summary: Solicitar el token de inscripción
+      operationId: merchant-inscription
+      description: |
+        Valida los datos del servicio y del tarjetahabiente y devuelve un token de un solo uso con la URL
+        de inicio de sesión a la que el navegador del tarjetahabiente debe enviarlo.
+      parameters:
+        - $ref: '#/components/parameters/MerchantAuthorization'
+        - $ref: '#/components/parameters/MerchantCommerceCode'
+        - $ref: '#/components/parameters/ContentType'
+        - $ref: '#/components/parameters/Accept'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantInscriptionRequest'
+            example:
+              commerceCode: '1234567890'
+              url: https://www.example.com/par/return
+              finalUrl: https://www.example.com/par/final
+              correoPersona: john.doe@example.com
+              serviceId: CONTRACT-0001
+      responses:
+        '200':
+          description: El token se emitió.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantInscriptionResponse'
+        '401':
+          description: Faltan los headers de autenticación (`-110`) o la llave secreta no es válida (`-111`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+        '422':
+          description: Algún dato no es válido. El `code` señala el campo.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+        '429':
+          description: Superaste el límite de peticiones. Responde con el código `-1`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+        '500':
+          description: Error inesperado en PAR. Responde con el código `-1`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+
+  /restpatpass/v1/services/status:
+    post:
+      tags:
+        - Comercios
+      summary: Consultar el estado de la inscripción
+      operationId: merchant-inscription-status
+      description: |
+        Indica si el tarjetahabiente inició la sesión con el token y completó la inscripción de un
+        autopago en el sitio del código de comercio.
+      parameters:
+        - $ref: '#/components/parameters/MerchantAuthorization'
+        - $ref: '#/components/parameters/MerchantCommerceCode'
+        - $ref: '#/components/parameters/ContentType'
+        - $ref: '#/components/parameters/Accept'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantStatusRequest'
+            example:
+              token: '{TOKEN}'
+      responses:
+        '200':
+          description: |
+            Resultado de la consulta. Responde `200` tanto si la inscripción quedó autorizada como si no.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantStatusResponse'
+        '401':
+          description: Faltan los headers de autenticación (`-110`) o la llave secreta no es válida (`-111`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+        '422':
+          description: El código de comercio no pertenece a un sitio activo de tu comercio (`-108`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+        '429':
+          description: Superaste el límite de peticiones. Responde con el código `-1`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+        '500':
+          description: Error inesperado en PAR. Responde con el código `-1`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+
+  /restpatpass/login:
+    post:
+      tags:
+        - Comercios
+      summary: Iniciar la sesión del tarjetahabiente
+      operationId: merchant-login
+      description: |
+        La llama el **navegador del tarjetahabiente** con un formulario `POST`, nunca tu servidor. PAR
+        consume el token, abre la sesión y lleva al tarjetahabiente a inscribir el autopago.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MerchantTokenForm'
+      responses:
+        '200':
+          description: |
+            Página de PAR que entrega la sesión al navegador y continúa con la inscripción. Si el inicio
+            de sesión falla, la página informa al tarjetahabiente que no se pudo iniciar.
+        '403':
+          description: El token falta, no existe, ya se usó, venció o fue revocado.
+        '429':
+          description: Se superó el límite de intentos de inicio de sesión.
+
+  /nuevo-ic-rest/tokenVoucherLogin:
+    post:
+      tags:
+        - Comercios
+      summary: Mostrar el comprobante del autopago
+      operationId: merchant-voucher
+      description: |
+        La llama el **navegador del tarjetahabiente** con un formulario `POST`. Muestra el comprobante del
+        autopago inscrito con el token y se puede abrir más de una vez mientras la inscripción siga
+        autorizada.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MerchantTokenForm'
+      responses:
+        '200':
+          description: Página de PAR con el comprobante del autopago.
+        '403':
+          description: El token falta o no corresponde a una inscripción autorizada de un comercio.
+        '429':
+          description: Se superó el límite de consultas del comprobante.
+
+components:
+  parameters:
+    MerchantAuthorization:
+      name: Authorization
+      in: header
+      required: true
+      description: Llave secreta de tu comercio, tal como la recibiste y sin ningún prefijo.
+      schema:
+        type: string
+        example: '{TU_LLAVE_SECRETA}'
+    MerchantCommerceCode:
+      name: Commercecode
+      in: header
+      required: true
+      description: Código de comercio del sitio con el que se inscriben los autopagos.
+      schema:
+        type: string
+        example: '1234567890'
+    ContentType:
+      name: Content-Type
+      in: header
+      required: true
+      schema:
+        type: string
+        example: application/json
+    Accept:
+      name: Accept
+      in: header
+      required: false
+      schema:
+        type: string
+        example: application/json
+
+  schemas:
+    MerchantInscriptionRequest:
+      type: object
+      required:
+        - commerceCode
+        - url
+        - finalUrl
+        - correoPersona
+        - serviceId
+      properties:
+        commerceCode:
+          type: string
+          description: Código de comercio de tu sitio. Debe ser idéntico al header `Commercecode`.
+          example: '1234567890'
+        url:
+          type: string
+          format: uri
+          description: |
+            URL de retorno. Al terminar la inscripción, PAR envía a esta dirección un formulario `POST` con
+            el token en el campo `j_token`. Debe ser una URL pública.
+          example: https://www.example.com/par/return
+        finalUrl:
+          type: string
+          format: uri
+          description: |
+            URL final. Al salir del comprobante, PAR envía a esta dirección un formulario `POST` con el
+            token en el campo `j_token`. Debe ser una URL pública.
+          example: https://www.example.com/par/final
+        correoPersona:
+          type: string
+          format: email
+          description: |
+            Correo electrónico del tarjetahabiente. Si ya tiene una cuenta en PAR con ese correo, la sesión
+            se abre con su cuenta.
+          example: john.doe@example.com
+        serviceId:
+          type: string
+          maxLength: 32
+          description: |
+            Identificador del servicio que se cobrará. La persona no puede tener otro autopago activo con
+            el mismo identificador en tu sitio.
+          example: CONTRACT-0001
+        rut:
+          type: string
+          maxLength: 10
+          description: Documento de identidad del tarjetahabiente. Prellena el formulario.
+          example: 11111111-1
+        nombre:
+          type: string
+          maxLength: 60
+          description: Nombre del tarjetahabiente. Prellena el formulario.
+          example: John
+        pApellido:
+          type: string
+          maxLength: 60
+          description: Primer apellido del tarjetahabiente. Prellena el formulario.
+          example: Doe
+        sApellido:
+          type: string
+          maxLength: 60
+          description: Segundo apellido del tarjetahabiente. Prellena el formulario.
+          example: Smith
+        montoMaximo:
+          type: number
+          minimum: 0
+          description: Monto máximo que el autopago podrá cobrar. Prellena el formulario.
+          example: 50000
+        telefonoCelular:
+          type: string
+          maxLength: 50
+          description: |
+            Teléfono celular del tarjetahabiente. Prellena el formulario. Si no es un número válido, PAR lo
+            ignora.
+          example: '+56912345678'
+        telefonoFijo:
+          type: string
+          maxLength: 50
+          description: Teléfono fijo del tarjetahabiente. Si no es un número válido, PAR lo ignora.
+          example: '+56221234567'
+        nombrePatPass:
+          type: string
+          maxLength: 100
+          description: Nombre con el que el tarjetahabiente reconocerá el autopago. Prellena el formulario.
+          example: Plan mensual
+        correoComercio:
+          type: string
+          maxLength: 100
+          description: Correo de contacto del comercio.
+          example: billing@example.com
+        direccion:
+          type: string
+          maxLength: 100
+          description: Dirección asociada a la inscripción.
+          example: 123 Main Street
+        ciudad:
+          type: string
+          maxLength: 100
+          description: Ciudad asociada a la inscripción.
+          example: Santiago
+
+    MerchantInscriptionResponse:
+      type: object
+      required:
+        - token
+        - url
+      properties:
+        token:
+          type: string
+          description: |
+            Token de un solo uso. Consérvalo: lo necesitas para la consulta de estado y el comprobante.
+          example: '{TOKEN}'
+        url:
+          type: string
+          format: uri
+          description: URL de inicio de sesión a la que el navegador del tarjetahabiente debe enviar el token.
+          example: https://par.example.com/restpatpass/login
+
+    MerchantStatusRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: El token que recibiste al solicitar la inscripción y que PAR te devolvió en `j_token`.
+          example: '{TOKEN}'
+
+    MerchantStatusResponse:
+      type: object
+      required:
+        - authorized
+        - voucherUrl
+      properties:
+        authorized:
+          type: boolean
+          description: |
+            `true` si el tarjetahabiente completó la inscripción con ese token en tu sitio. Confirma que el
+            autopago se inscribió, no su estado actual.
+          example: true
+        voucherUrl:
+          type:
+            - string
+            - 'null'
+          format: uri
+          description: URL del comprobante del autopago. Solo viene cuando `authorized` es `true`.
+          example: https://par.example.com/nuevo-ic-rest/tokenVoucherLogin
+
+    MerchantTokenForm:
+      type: object
+      required:
+        - tokenComercio
+      properties:
+        tokenComercio:
+          type: string
+          description: El token que recibiste al solicitar la inscripción.
+          example: '{TOKEN}'
+
+    MerchantError:
+      type: object
+      required:
+        - code
+        - description
+      properties:
+        code:
+          type: integer
+          description: |
+            Código del error. Es el valor que debes usar para decidir qué hacer; el catálogo completo está
+            en la guía de errores para comercios.
+          enum:
+            - -1
+            - -101
+            - -102
+            - -103
+            - -104
+            - -105
+            - -106
+            - -107
+            - -108
+            - -109
+            - -110
+            - -111
+            - -112
+            - -113
+            - -114
+            - -115
+            - -116
+            - -117
+            - -900
+          example: -107
+        description:
+          type: string
+          description: Texto informativo que acompaña al código. Puede cambiar; no lo uses para tomar decisiones.
+          example: Id de Servicio incorrecto

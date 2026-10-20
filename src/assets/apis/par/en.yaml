@@ -1,0 +1,413 @@
+openapi: 3.1.0
+info:
+  title: Placetopay PAR API
+  description: |
+    API to integrate merchants and issuers with PAR, the portal where cardholders enroll their cards
+    and manage their autopays.
+
+    Your server requests a single-use token and the cardholder's browser presents it to PAR to start
+    the session in which they enroll the autopay.
+  version: 1.0.0
+
+servers:
+  - url: '{urlBase}'
+    description: Working environment
+    variables:
+      urlBase:
+        default: https://par.example.com
+        description: |
+          Base URL of the environment. It is delivered with the credentials, and a credential from one
+          environment does not work in another.
+
+tags:
+  - name: Merchants
+    description: Autopay enrollment from a merchant.
+
+paths:
+  /restpatpass/v1/services/patInscription:
+    post:
+      tags:
+        - Merchants
+      summary: Request the enrollment token
+      operationId: merchant-inscription
+      description: |
+        Validates the service and cardholder data and returns a single-use token with the login URL where
+        the cardholder's browser must send it.
+      parameters:
+        - $ref: '#/components/parameters/MerchantAuthorization'
+        - $ref: '#/components/parameters/MerchantCommerceCode'
+        - $ref: '#/components/parameters/ContentType'
+        - $ref: '#/components/parameters/Accept'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantInscriptionRequest'
+            example:
+              commerceCode: '1234567890'
+              url: https://www.example.com/par/return
+              finalUrl: https://www.example.com/par/final
+              correoPersona: john.doe@example.com
+              serviceId: CONTRACT-0001
+      responses:
+        '200':
+          description: The token was issued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantInscriptionResponse'
+        '401':
+          description: The authentication headers are missing (`-110`) or the secret key is invalid (`-111`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+        '422':
+          description: Some data is invalid. The `code` points to the field.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+        '429':
+          description: You exceeded the request limit. It answers with code `-1`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+        '500':
+          description: Unexpected error in PAR. It answers with code `-1`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+
+  /restpatpass/v1/services/status:
+    post:
+      tags:
+        - Merchants
+      summary: Check the enrollment status
+      operationId: merchant-inscription-status
+      description: |
+        Tells whether the cardholder started the session with the token and completed the enrollment of
+        an autopay on the site of the commerce code.
+      parameters:
+        - $ref: '#/components/parameters/MerchantAuthorization'
+        - $ref: '#/components/parameters/MerchantCommerceCode'
+        - $ref: '#/components/parameters/ContentType'
+        - $ref: '#/components/parameters/Accept'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantStatusRequest'
+            example:
+              token: '{TOKEN}'
+      responses:
+        '200':
+          description: |
+            Result of the check. It answers `200` whether the enrollment was authorized or not.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantStatusResponse'
+        '401':
+          description: The authentication headers are missing (`-110`) or the secret key is invalid (`-111`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+        '422':
+          description: The commerce code does not belong to an active site of your merchant (`-108`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+        '429':
+          description: You exceeded the request limit. It answers with code `-1`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+        '500':
+          description: Unexpected error in PAR. It answers with code `-1`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantError'
+
+  /restpatpass/login:
+    post:
+      tags:
+        - Merchants
+      summary: Start the cardholder session
+      operationId: merchant-login
+      description: |
+        Called by the **cardholder's browser** with a `POST` form, never by your server. PAR consumes the
+        token, opens the session and takes the cardholder to enroll the autopay.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MerchantTokenForm'
+      responses:
+        '200':
+          description: |
+            PAR page that hands the session over to the browser and continues with the enrollment. If the
+            login fails, the page tells the cardholder it could not be started.
+        '403':
+          description: The token is missing, does not exist, was already used, expired or was revoked.
+        '429':
+          description: The login attempt limit was exceeded.
+
+  /nuevo-ic-rest/tokenVoucherLogin:
+    post:
+      tags:
+        - Merchants
+      summary: Show the autopay voucher
+      operationId: merchant-voucher
+      description: |
+        Called by the **cardholder's browser** with a `POST` form. It shows the voucher of the autopay
+        enrolled with the token and can be opened more than once as long as the enrollment remains
+        authorized.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MerchantTokenForm'
+      responses:
+        '200':
+          description: PAR page with the autopay voucher.
+        '403':
+          description: The token is missing or does not match an authorized merchant enrollment.
+        '429':
+          description: The voucher request limit was exceeded.
+
+components:
+  parameters:
+    MerchantAuthorization:
+      name: Authorization
+      in: header
+      required: true
+      description: Your merchant's secret key, exactly as you received it and without any prefix.
+      schema:
+        type: string
+        example: '{YOUR_SECRET_KEY}'
+    MerchantCommerceCode:
+      name: Commercecode
+      in: header
+      required: true
+      description: Commerce code of the site where autopays are enrolled.
+      schema:
+        type: string
+        example: '1234567890'
+    ContentType:
+      name: Content-Type
+      in: header
+      required: true
+      schema:
+        type: string
+        example: application/json
+    Accept:
+      name: Accept
+      in: header
+      required: false
+      schema:
+        type: string
+        example: application/json
+
+  schemas:
+    MerchantInscriptionRequest:
+      type: object
+      required:
+        - commerceCode
+        - url
+        - finalUrl
+        - correoPersona
+        - serviceId
+      properties:
+        commerceCode:
+          type: string
+          description: Your site's commerce code. It must be identical to the `Commercecode` header.
+          example: '1234567890'
+        url:
+          type: string
+          format: uri
+          description: |
+            Return URL. When the enrollment finishes, PAR submits a `POST` form to this address with the
+            token in the `j_token` field. It must be a public URL.
+          example: https://www.example.com/par/return
+        finalUrl:
+          type: string
+          format: uri
+          description: |
+            Final URL. When the cardholder leaves the voucher, PAR submits a `POST` form to this address
+            with the token in the `j_token` field. It must be a public URL.
+          example: https://www.example.com/par/final
+        correoPersona:
+          type: string
+          format: email
+          description: |
+            The cardholder's email. If they already have a PAR account with that email, the session opens
+            with their account.
+          example: john.doe@example.com
+        serviceId:
+          type: string
+          maxLength: 32
+          description: |
+            Identifier of the service to be charged. The person cannot have another active autopay with the
+            same identifier on your site.
+          example: CONTRACT-0001
+        rut:
+          type: string
+          maxLength: 10
+          description: The cardholder's identity document. Prefills the form.
+          example: 11111111-1
+        nombre:
+          type: string
+          maxLength: 60
+          description: The cardholder's first name. Prefills the form.
+          example: John
+        pApellido:
+          type: string
+          maxLength: 60
+          description: The cardholder's first surname. Prefills the form.
+          example: Doe
+        sApellido:
+          type: string
+          maxLength: 60
+          description: The cardholder's second surname. Prefills the form.
+          example: Smith
+        montoMaximo:
+          type: number
+          minimum: 0
+          description: Maximum amount the autopay can charge. Prefills the form.
+          example: 50000
+        telefonoCelular:
+          type: string
+          maxLength: 50
+          description: |
+            The cardholder's mobile phone. Prefills the form. If it is not a valid number, PAR ignores it.
+          example: '+56912345678'
+        telefonoFijo:
+          type: string
+          maxLength: 50
+          description: The cardholder's landline phone. If it is not a valid number, PAR ignores it.
+          example: '+56221234567'
+        nombrePatPass:
+          type: string
+          maxLength: 100
+          description: Name the cardholder will recognize the autopay by. Prefills the form.
+          example: Monthly plan
+        correoComercio:
+          type: string
+          maxLength: 100
+          description: The merchant's contact email.
+          example: billing@example.com
+        direccion:
+          type: string
+          maxLength: 100
+          description: Address associated with the enrollment.
+          example: 123 Main Street
+        ciudad:
+          type: string
+          maxLength: 100
+          description: City associated with the enrollment.
+          example: Santiago
+
+    MerchantInscriptionResponse:
+      type: object
+      required:
+        - token
+        - url
+      properties:
+        token:
+          type: string
+          description: |
+            Single-use token. Keep it: you need it for the status check and the voucher.
+          example: '{TOKEN}'
+        url:
+          type: string
+          format: uri
+          description: Login URL where the cardholder's browser must send the token.
+          example: https://par.example.com/restpatpass/login
+
+    MerchantStatusRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: The token you received when requesting the enrollment and that PAR returned to you in `j_token`.
+          example: '{TOKEN}'
+
+    MerchantStatusResponse:
+      type: object
+      required:
+        - authorized
+        - voucherUrl
+      properties:
+        authorized:
+          type: boolean
+          description: |
+            `true` if the cardholder completed the enrollment with that token on your site. It confirms that
+            the autopay was enrolled, not its current status.
+          example: true
+        voucherUrl:
+          type:
+            - string
+            - 'null'
+          format: uri
+          description: URL of the autopay voucher. Only present when `authorized` is `true`.
+          example: https://par.example.com/nuevo-ic-rest/tokenVoucherLogin
+
+    MerchantTokenForm:
+      type: object
+      required:
+        - tokenComercio
+      properties:
+        tokenComercio:
+          type: string
+          description: The token you received when requesting the enrollment.
+          example: '{TOKEN}'
+
+    MerchantError:
+      type: object
+      required:
+        - code
+        - description
+      properties:
+        code:
+          type: integer
+          description: |
+            Error code. It is the value to use to decide what to do; the full catalog is in the merchant
+            errors guide.
+          enum:
+            - -1
+            - -101
+            - -102
+            - -103
+            - -104
+            - -105
+            - -106
+            - -107
+            - -108
+            - -109
+            - -110
+            - -111
+            - -112
+            - -113
+            - -114
+            - -115
+            - -116
+            - -117
+            - -900
+          example: -107
+        description:
+          type: string
+          description: Informative text that accompanies the code. It may change; do not use it to make decisions.
+          example: Invalid service ID
