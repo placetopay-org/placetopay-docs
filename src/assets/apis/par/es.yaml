@@ -22,6 +22,8 @@ servers:
 tags:
   - name: Comercios
     description: Inscripción de autopagos desde un comercio.
+  - name: Emisores
+    description: Sesiones de tarjetahabientes iniciadas desde un emisor.
 
 paths:
   /restpatpass/v1/services/patInscription:
@@ -141,7 +143,7 @@ paths:
     post:
       tags:
         - Comercios
-      summary: Iniciar la sesión del tarjetahabiente
+      summary: Iniciar la sesión de inscripción
       operationId: merchant-login
       description: |
         La llama el **navegador del tarjetahabiente** con un formulario `POST`, nunca tu servidor. PAR
@@ -185,6 +187,69 @@ paths:
           description: El token falta o no corresponde a una inscripción autorizada de un comercio.
         '429':
           description: Se superó el límite de consultas del comprobante.
+
+  /nuevopat/SolicitaTkn:
+    post:
+      tags:
+        - Emisores
+      summary: Solicitar el token del tarjetahabiente
+      operationId: issuer-create-token
+      description: |
+        Valida las credenciales del emisor, el documento del tarjetahabiente y sus tarjetas, y devuelve
+        un token de un solo uso en un mensaje XML.
+
+        Los errores también responden HTTP `200`: lee siempre `Coderror`. Solo el límite de peticiones
+        responde HTTP `429`.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IssuerTokenForm'
+            example:
+              TBKPatData: '<TBKPatData><Perfil><NombreUsuario>{USERNAME}</NombreUsuario><ContrasenaUsuario>{PASSWORD}</ContrasenaUsuario></Perfil><DatosUsuario><RutUsuario>11.111.111-1</RutUsuario></DatosUsuario><DatosTarjetas><NumeroTarjeta>4111111111111111</NumeroTarjeta></DatosTarjetas><IP>203.0.113.10</IP></TBKPatData>'
+      responses:
+        '200':
+          description: |
+            Resultado de la solicitud. `Coderror` vale `0` y trae `Token` si se emitió; cualquier otro valor
+            es un error.
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/IssuerTokenResponse'
+        '429':
+          description: Superaste el límite de peticiones. Responde con `Coderror` `1000`.
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/IssuerTokenResponse'
+
+  /nuevopat/tokenLogin:
+    post:
+      tags:
+        - Emisores
+      summary: Iniciar la sesión del tarjetahabiente
+      operationId: issuer-login
+      description: |
+        La llama el **navegador del tarjetahabiente** con un formulario `POST`, nunca tu servidor. PAR
+        consume el token y abre una sesión limitada a las tarjetas que el emisor envió.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IssuerLoginForm'
+      responses:
+        '200':
+          description: |
+            Página de PAR que entrega la sesión al navegador. Si el inicio de sesión falla y no se envió una
+            `direccionError` válida, la página informa al tarjetahabiente que no se pudo iniciar.
+        '302':
+          description: El inicio de sesión falló y PAR redirige al tarjetahabiente a la `direccionError`.
+        '403':
+          description: El token falta, no existe, ya se usó, venció o fue revocado.
+        '429':
+          description: Se superó el límite de intentos de inicio de sesión.
 
 components:
   parameters:
@@ -412,3 +477,76 @@ components:
           type: string
           description: Texto informativo que acompaña al código. Puede cambiar; no lo uses para tomar decisiones.
           example: Id de Servicio incorrecto
+
+    IssuerTokenForm:
+      type: object
+      required:
+        - TBKPatData
+      properties:
+        TBKPatData:
+          type: string
+          description: |
+            Mensaje XML con el elemento raíz `TBKPatData`. Incluye `Perfil` (`NombreUsuario` y
+            `ContrasenaUsuario`), `DatosUsuario.RutUsuario`, `DatosTarjetas` con hasta 5 `NumeroTarjeta`,
+            `IP` y, opcionalmente, `DuracionToken` y `DataAuditoriaUsuario`. El detalle de cada campo está
+            en la guía para solicitar el token.
+          example: '<TBKPatData><Perfil><NombreUsuario>{USERNAME}</NombreUsuario><ContrasenaUsuario>{PASSWORD}</ContrasenaUsuario></Perfil><DatosUsuario><RutUsuario>11.111.111-1</RutUsuario></DatosUsuario><DatosTarjetas><NumeroTarjeta>4111111111111111</NumeroTarjeta></DatosTarjetas><IP>203.0.113.10</IP></TBKPatData>'
+
+    IssuerTokenResponse:
+      type: object
+      xml:
+        name: Mensaje
+      required:
+        - Coderror
+        - Descerror
+      properties:
+        Coderror:
+          type: string
+          description: Código del resultado. `0` indica éxito.
+          enum:
+            - '0'
+            - '1'
+            - '100'
+            - '1000'
+            - '1001'
+            - '1007'
+          example: '0'
+        Descerror:
+          type: string
+          maxLength: 80
+          description: Texto informativo que acompaña al código, de hasta 80 caracteres. Puede cambiar.
+          example: EXITO
+        Token:
+          type: string
+          description: Token de un solo uso. Solo viene cuando `Coderror` es `0`.
+          example: '{TOKEN}'
+
+    IssuerLoginForm:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: El token de un solo uso que PAR devolvió en `Token`.
+          example: '{TOKEN}'
+        direccionRegreso:
+          type: string
+          format: uri
+          description: URL de retorno que PAR ofrece al tarjetahabiente. Debe pertenecer a un origen autorizado para el emisor.
+          example: https://www.example.com/par/return
+        direccionError:
+          type: string
+          format: uri
+          description: URL a la que PAR envía al tarjetahabiente si el inicio de sesión falla. Debe pertenecer a un origen autorizado para el emisor.
+          example: https://www.example.com/par/error
+        style:
+          type: string
+          format: uri
+          description: URL de una hoja de estilos del emisor.
+          example: https://www.example.com/par/styles.css
+        imagen:
+          type: string
+          format: uri
+          description: URL de una imagen del emisor.
+          example: https://www.example.com/par/logo.png

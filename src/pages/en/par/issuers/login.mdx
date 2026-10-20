@@ -1,0 +1,64 @@
+export const description =
+  'Send the cardholder to PAR with your issuer token so they can enroll and manage their autopays with the cards you issued to them.'
+
+# Start the session
+
+With the token you got when [requesting it](/en/par/issuers/request-token), the cardholder's browser starts the session in PAR. From that session, the cardholder enrolls and manages autopays with the cards you sent.
+
+## Send the cardholder {{ id: 'send-cardholder' }}
+
+`POST {BASE_URL}/nuevopat/tokenLogin`
+
+Send the cardholder through a `POST` form from their browser, with the token in the `token` field. You can do it in a full window or inside an `iframe`, if your site's origin is authorized for your issuer.
+
+```html {{ title: 'Form' }}
+<form method="post" action="{BASE_URL}/nuevopat/tokenLogin">
+  <input type="hidden" name="token" value="{TOKEN}" />
+  <input type="hidden" name="direccionRegreso" value="https://www.example.com/par/return" />
+  <input type="hidden" name="direccionError" value="https://www.example.com/par/error" />
+  <button type="submit">Go to my autopays</button>
+</form>
+```
+
+### Form fields
+
+<Properties>
+  <Property name="token" type="string" isRequired={true}>
+    The single-use token PAR returned to you in `Token`.
+  </Property>
+  <Property name="direccionRegreso" type="string" isRequired={false}>
+    Return URL. PAR offers it to the cardholder to go back to your site. It must belong to an origin authorized for your issuer.
+  </Property>
+  <Property name="direccionError" type="string" isRequired={false}>
+    Error URL. If the login fails, PAR sends the cardholder to this address. It must belong to an origin authorized for your issuer.
+  </Property>
+  <Property name="style" type="string" isRequired={false}>
+    URL of a stylesheet of your issuer.
+  </Property>
+  <Property name="imagen" type="string" isRequired={false}>
+    URL of an image of your issuer.
+  </Property>
+</Properties>
+
+All URLs must use `http` or `https`.
+
+## What the cardholder sees {{ id: 'cardholder-session' }}
+
+PAR consumes the token and opens the session. What the cardholder sees depends on whether they already have a PAR account with the document you sent:
+
+- **If they have an account**, they go to their autopays and can enroll new ones.
+- **If they do not have an account**, they go straight to enrolling an autopay, without creating an account first.
+
+In both cases, the session is **limited to the cards you sent** in the token request: PAR offers them to enroll autopays without the cardholder having to type them, and only shows what belongs to those cards.
+
+<Note>
+  The token is single-use and expires quickly. Request it right before sending the cardholder, and a new one every time you send them.
+</Note>
+
+## Return and errors {{ id: 'return-and-errors' }}
+
+- **Return**: if you sent `direccionRegreso`, PAR offers the cardholder to go back to that address when they finish.
+- **Login error**: if the login fails and you sent a valid `direccionError`, PAR sends the cardholder to that address. If you did not send it, it shows them a page telling them the session could not be started.
+- **Invalid token**: if the token is missing, does not exist, was already used, expired or was revoked, PAR answers `403` and shows an error page.
+
+All errors are detailed in [Errors](/en/par/issuers/errors).

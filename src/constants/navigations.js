@@ -3338,6 +3338,14 @@ export const TAB_NAVIGATION = {
               { title: 'Errores', href: '/par/merchants/errors' },
             ],
           },
+          {
+            title: 'Emisores',
+            links: [
+              { title: 'Solicitar el token', href: '/par/issuers/request-token' },
+              { title: 'Iniciar la sesión', href: '/par/issuers/login' },
+              { title: 'Errores', href: '/par/issuers/errors' },
+            ],
+          },
         ],
       },
       {
@@ -3350,6 +3358,7 @@ export const TAB_NAVIGATION = {
             title: 'API',
             links: [
               { title: 'Comercios', href: '/par/api/reference/merchants' },
+              { title: 'Emisores', href: '/par/api/reference/issuers' },
             ],
           },
         ],
@@ -3379,6 +3388,14 @@ export const TAB_NAVIGATION = {
               { title: 'Errors', href: '/en/par/merchants/errors' },
             ],
           },
+          {
+            title: 'Issuers',
+            links: [
+              { title: 'Request the token', href: '/en/par/issuers/request-token' },
+              { title: 'Start the session', href: '/en/par/issuers/login' },
+              { title: 'Errors', href: '/en/par/issuers/errors' },
+            ],
+          },
         ],
       },
       {
@@ -3391,6 +3408,7 @@ export const TAB_NAVIGATION = {
             title: 'API',
             links: [
               { title: 'Merchants', href: '/en/par/api/reference/merchants' },
+              { title: 'Issuers', href: '/en/par/api/reference/issuers' },
             ],
           },
         ],

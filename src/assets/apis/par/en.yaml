@@ -22,6 +22,8 @@ servers:
 tags:
   - name: Merchants
     description: Autopay enrollment from a merchant.
+  - name: Issuers
+    description: Cardholder sessions started from an issuer.
 
 paths:
   /restpatpass/v1/services/patInscription:
@@ -141,7 +143,7 @@ paths:
     post:
       tags:
         - Merchants
-      summary: Start the cardholder session
+      summary: Start the enrollment session
       operationId: merchant-login
       description: |
         Called by the **cardholder's browser** with a `POST` form, never by your server. PAR consumes the
@@ -185,6 +187,69 @@ paths:
           description: The token is missing or does not match an authorized merchant enrollment.
         '429':
           description: The voucher request limit was exceeded.
+
+  /nuevopat/SolicitaTkn:
+    post:
+      tags:
+        - Issuers
+      summary: Request the cardholder token
+      operationId: issuer-create-token
+      description: |
+        Validates the issuer credentials, the cardholder's document and their cards, and returns a
+        single-use token in an XML message.
+
+        Errors also answer HTTP `200`: always read `Coderror`. Only the request limit answers HTTP
+        `429`.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IssuerTokenForm'
+            example:
+              TBKPatData: '<TBKPatData><Perfil><NombreUsuario>{USERNAME}</NombreUsuario><ContrasenaUsuario>{PASSWORD}</ContrasenaUsuario></Perfil><DatosUsuario><RutUsuario>11.111.111-1</RutUsuario></DatosUsuario><DatosTarjetas><NumeroTarjeta>4111111111111111</NumeroTarjeta></DatosTarjetas><IP>203.0.113.10</IP></TBKPatData>'
+      responses:
+        '200':
+          description: |
+            Result of the request. `Coderror` is `0` and includes `Token` if it was issued; any other value
+            is an error.
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/IssuerTokenResponse'
+        '429':
+          description: You exceeded the request limit. It answers with `Coderror` `1000`.
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/IssuerTokenResponse'
+
+  /nuevopat/tokenLogin:
+    post:
+      tags:
+        - Issuers
+      summary: Start the cardholder session
+      operationId: issuer-login
+      description: |
+        Called by the **cardholder's browser** with a `POST` form, never by your server. PAR consumes the
+        token and opens a session limited to the cards the issuer sent.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IssuerLoginForm'
+      responses:
+        '200':
+          description: |
+            PAR page that hands the session over to the browser. If the login fails and no valid
+            `direccionError` was sent, the page tells the cardholder it could not be started.
+        '302':
+          description: The login failed and PAR redirects the cardholder to the `direccionError`.
+        '403':
+          description: The token is missing, does not exist, was already used, expired or was revoked.
+        '429':
+          description: The login attempt limit was exceeded.
 
 components:
   parameters:
@@ -411,3 +476,76 @@ components:
           type: string
           description: Informative text that accompanies the code. It may change; do not use it to make decisions.
           example: Invalid service ID
+
+    IssuerTokenForm:
+      type: object
+      required:
+        - TBKPatData
+      properties:
+        TBKPatData:
+          type: string
+          description: |
+            XML message with the `TBKPatData` root element. It includes `Perfil` (`NombreUsuario` and
+            `ContrasenaUsuario`), `DatosUsuario.RutUsuario`, `DatosTarjetas` with up to 5 `NumeroTarjeta`,
+            `IP` and, optionally, `DuracionToken` and `DataAuditoriaUsuario`. Each field is detailed in the
+            guide to request the token.
+          example: '<TBKPatData><Perfil><NombreUsuario>{USERNAME}</NombreUsuario><ContrasenaUsuario>{PASSWORD}</ContrasenaUsuario></Perfil><DatosUsuario><RutUsuario>11.111.111-1</RutUsuario></DatosUsuario><DatosTarjetas><NumeroTarjeta>4111111111111111</NumeroTarjeta></DatosTarjetas><IP>203.0.113.10</IP></TBKPatData>'
+
+    IssuerTokenResponse:
+      type: object
+      xml:
+        name: Mensaje
+      required:
+        - Coderror
+        - Descerror
+      properties:
+        Coderror:
+          type: string
+          description: Result code. `0` means success.
+          enum:
+            - '0'
+            - '1'
+            - '100'
+            - '1000'
+            - '1001'
+            - '1007'
+          example: '0'
+        Descerror:
+          type: string
+          maxLength: 80
+          description: Informative text that accompanies the code, up to 80 characters. It may change.
+          example: SUCCESS
+        Token:
+          type: string
+          description: Single-use token. Only present when `Coderror` is `0`.
+          example: '{TOKEN}'
+
+    IssuerLoginForm:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: The single-use token PAR returned in `Token`.
+          example: '{TOKEN}'
+        direccionRegreso:
+          type: string
+          format: uri
+          description: Return URL PAR offers to the cardholder. It must belong to an origin authorized for the issuer.
+          example: https://www.example.com/par/return
+        direccionError:
+          type: string
+          format: uri
+          description: URL PAR sends the cardholder to if the login fails. It must belong to an origin authorized for the issuer.
+          example: https://www.example.com/par/error
+        style:
+          type: string
+          format: uri
+          description: URL of a stylesheet of the issuer.
+          example: https://www.example.com/par/styles.css
+        imagen:
+          type: string
+          format: uri
+          description: URL of an image of the issuer.
+          example: https://www.example.com/par/logo.png
