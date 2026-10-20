@@ -1,0 +1,85 @@
+import PartnerSessionSequence from "@/components/react-flow/SequenceDiagram/Diagrams/Par/PartnerSessionSequence"
+
+export const description =
+  'Conoce el ciclo de vida de una sesión de socio en PAR: la solicitud del token, el inicio de sesión del tarjetahabiente, la inscripción y el retorno.'
+
+# Cómo funciona PAR
+
+Toda integración con PAR, sea de un comercio o de un emisor, sigue el mismo recorrido: tu servidor obtiene un **token de un solo uso**, el navegador del tarjetahabiente lo presenta a PAR para abrir una **sesión de socio** y, al terminar, PAR lo devuelve a tu sitio.
+
+## Ciclo de vida {{ id: 'partner-session-lifecycle' }}
+
+1. Tu servidor solicita un token a PAR, autenticándose con las credenciales de tu socio y enviando los datos del tarjetahabiente.
+2. PAR valida las credenciales y los datos. Si algo está mal, responde con un código de error y no emite ningún token.
+3. Si todo es válido, PAR responde con el token. Desde ese momento tienes un tiempo limitado para usarlo.
+4. Tu sitio envía el token a la URL de inicio de sesión de PAR mediante un formulario `POST` desde el navegador del tarjetahabiente, en una ventana completa o dentro de un `iframe`.
+5. PAR consume el token, abre la sesión y lleva al tarjetahabiente a inscribir su autopago.
+6. Al terminar, PAR devuelve al tarjetahabiente a la URL de retorno que indicaste. Los comercios pueden además consultar desde su servidor si la inscripción quedó autorizada.
+
+## Integración {{ id: 'par-integration' }}
+
+El siguiente diagrama describe el ciclo completo, desde la solicitud del token hasta el retorno.
+
+<PartnerSessionSequence />
+
+### Solicitud del token
+
+La solicitud se hace siempre **de servidor a servidor**, porque viaja con las credenciales de tu socio. Su formato depende del canal:
+
+- **Comercios**: `POST /restpatpass/v1/services/patInscription`, con JSON y las credenciales en los headers. La respuesta trae el token y la URL de inicio de sesión.
+- **Emisores**: `POST /nuevopat/SolicitaTkn`, con un mensaje XML que incluye las credenciales, el documento del tarjetahabiente y sus tarjetas. La respuesta, también en XML, trae el token.
+
+PAR valida la solicitud por completo antes de emitir el token: tus credenciales, que tu socio esté activo y los datos que envías del tarjetahabiente. Si el documento enviado corresponde a una persona ya registrada en PAR, la sesión queda asociada a su cuenta; si no, el tarjetahabiente podrá inscribir el autopago sin una cuenta previa.
+
+### Inicio de sesión
+
+Con el token en la mano, tu sitio debe enviar al tarjetahabiente a PAR. Lo haces con un formulario `POST` desde su navegador hacia la URL de inicio de sesión, con el token en el campo `token`:
+
+- **Comercios**: `POST /restpatpass/login`, la URL que viene en la respuesta del token.
+- **Emisores**: `POST /nuevopat/tokenLogin`, donde además puedes indicar las URL de retorno y de error.
+
+PAR consume el token en ese momento y abre la sesión del tarjetahabiente. A continuación, el propio navegador recibe la sesión mediante un intercambio automático que no requiere nada de tu parte; el detalle está en la sesión embebida.
+
+<Note>
+  El token **no se envía por la URL** ni se consume desde tu servidor: lo presenta el navegador del tarjetahabiente, porque la sesión que se abre es la suya.
+</Note>
+
+### Inscripción
+
+Dentro de PAR, el tarjetahabiente se identifica si hace falta, elige una tarjeta o vincula una nueva y autoriza el autopago. Si llegó desde un emisor, PAR le ofrece las tarjetas que el emisor envió en la solicitud del token, sin que tenga que volver a digitarlas. Si llegó desde un comercio, el autopago queda asociado al servicio que el comercio indicó.
+
+### Retorno
+
+Al terminar, PAR devuelve al tarjetahabiente a tu sitio:
+
+- **Comercios**: PAR envía un formulario `POST` a la URL de retorno que indicaste al solicitar el token, con el token en el campo `j_token`. Con ese mismo token tu servidor consulta `POST /restpatpass/v1/services/status` para confirmar si la inscripción quedó **autorizada**.
+- **Emisores**: PAR lleva al tarjetahabiente a la `direccionRegreso` que indicaste al iniciar la sesión. Si el inicio de sesión falla, lo lleva a la `direccionError`.
+
+<Note type="warning">
+  Que el tarjetahabiente vuelva a tu URL de retorno **no significa que el autopago quedó inscrito**: pudo haber abandonado el proceso. Los comercios deben confirmar el resultado con la consulta de estado.
+</Note>
+
+## El token {{ id: 'token' }}
+
+El token es la llave que abre una sesión de socio. Conviene tratarlo como una credencial:
+
+- **Es de un solo uso.** Al iniciar sesión, PAR lo marca como consumido. Un segundo intento con el mismo token es rechazado.
+- **Vence pronto.** Tiene una vigencia corta. Los emisores pueden pedir una vigencia distinta con `DuracionToken`, dentro del máximo que permite PAR. Si vence antes de usarse, debes solicitar uno nuevo.
+- **Solo lo emite PAR.** Se entrega una sola vez, en la respuesta a tu solicitud, y PAR no lo guarda en claro.
+- **Puede revocarse.** Si Placetopay desactiva tu socio, los tokens pendientes y las sesiones abiertas dejan de ser válidos.
+
+Después de consumido, el token sigue identificando la inscripción: es el que PAR te devuelve en `j_token` y el que usas en la consulta de estado y en el comprobante del autopago.
+
+## La sesión de socio {{ id: 'partner-session' }}
+
+Una vez abierta, la sesión del tarjetahabiente tiene sus propias reglas de seguridad:
+
+- **Tiene una duración máxima.** Al cumplirse, PAR la cierra aunque el tarjetahabiente siga activo y le muestra que la sesión terminó.
+- **Queda ligada al navegador que la inició.** Si la sesión se intenta usar desde otro navegador, PAR la cierra.
+- **Depende de tu socio.** Si tu socio se desactiva mientras la sesión está abierta, PAR la cierra en la siguiente acción del tarjetahabiente.
+
+## PAR dentro de un iframe {{ id: 'iframe' }}
+
+Puedes mostrar PAR dentro de un `iframe` en tu sitio en lugar de abrirlo en una ventana completa. Para eso, el origen de tu sitio (por ejemplo, `https://www.example.com`) debe estar autorizado para tu socio; PAR solo permite que lo embeban los orígenes autorizados y rechaza a cualquier otro.
+
+Ese mismo listado de orígenes se usa para validar las URL de retorno y de error de los emisores, que deben pertenecer a un origen autorizado. Pide a tu contacto en Placetopay que registre los orígenes de tu sitio.

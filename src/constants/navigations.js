@@ -3323,7 +3323,10 @@ export const TAB_NAVIGATION = {
         links: [
           {
             title: 'PAR',
-            links: [{ title: 'Introducción', href: '/par' }],
+            links: [
+              { title: 'Introducción', href: '/par' },
+              { title: 'Cómo funciona', href: '/par/how-par-works' },
+            ],
           },
         ],
       },
@@ -3337,7 +3340,10 @@ export const TAB_NAVIGATION = {
         links: [
           {
             title: 'PAR',
-            links: [{ title: 'Introduction', href: '/en/par' }],
+            links: [
+              { title: 'Introduction', href: '/en/par' },
+              { title: 'How it works', href: '/en/par/how-par-works' },
+            ],
           },
         ],
       },
