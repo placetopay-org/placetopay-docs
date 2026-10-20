@@ -3,6 +3,7 @@ import {
   Activity,
   Book,
   Calendar,
+  CardTick,
   Courthouse,
   DocumentCode,
   Link,
@@ -126,6 +127,12 @@ export const NAMESPACES_SELECTOR = {
       icon: Shop,
     },
     {
+      title: 'PAR',
+      description: 'Inscripción de autopagos',
+      href: '/par',
+      icon: CardTick,
+    },
+    {
       title: 'MSV Service',
       description: 'Servicio de notificaciones',
       href: '/msv-service/api',
@@ -236,6 +243,12 @@ export const NAMESPACES_SELECTOR = {
       icon: Shop,
     },
     {
+      title: 'PAR',
+      description: 'Autopay enrollment',
+      href: '/en/par',
+      icon: CardTick,
+    },
+    {
       title: 'MSV Service',
       description: 'Notification service',
       href: '/en/msv-service/api',
@@ -271,6 +284,7 @@ export const NAMESPACE_ROUTES = {
   'autopay': 'autopay',
   'search': 'search',
   'onboarding': 'onboarding',
+  par: 'par',
   'msv-service': 'msvService',
 }
 
@@ -3294,6 +3308,36 @@ export const TAB_NAVIGATION = {
               { title: 'Processes', href: '/en/onboarding/api/reference/processes' },
               { title: 'Consumer', href: '/en/onboarding/api/reference/user' },
             ],
+          },
+        ],
+      },
+    ],
+  },
+  par: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'par',
+        href: '/par',
+        icon: Book,
+        links: [
+          {
+            title: 'PAR',
+            links: [{ title: 'Introducción', href: '/par' }],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentation',
+        identifier: 'par',
+        href: '/en/par',
+        icon: Book,
+        links: [
+          {
+            title: 'PAR',
+            links: [{ title: 'Introduction', href: '/en/par' }],
           },
         ],
       },
