@@ -3,15 +3,35 @@
 Un webhook es una notificación enviada a una URL mediante una solicitud HTTPS. En Placetopay, los webhooks permiten a los sistemas externos recibir información en tiempo real sobre el estado de alguna transacción. {{ className: 'lead' }}
 
 Webhooks es una nueva funcionalidad que pretende complementar los casos cubiertos por la funcionalidad de [Notificación de transacción](/gateway/notification). Actualmente sólo se cubre el caso de uso para _Webhook devoluciones ACH_
- 
-## Webhook para devoluciones ACH
 
-El webhook para devoluciones ACH permite a los comercios recibir notificaciones en tiempo real sobre devoluciones en su sitio.
+## Funcionamiento {{ id: 'how-it-works' }}
 
-- **Propósito**: Notificar al comercio cuando ocurre una devolución ACH.
-- **Configuración**: Se configura en el panel administrativo de Placetopay, a través del equipo de operaciones, proporcionando la URL deseada.
-- **Evento**: Envío de notificación HTTPS cuando se genera una devolución ACH.
-- **Información enviada**: Toda información directa de una sesión.
+Todos los webhooks comparten el mismo formato, la misma firma y el mismo comportamiento de entrega. Lo descrito en esta sección aplica a cualquier evento; lo propio de cada uno se detalla más abajo.
+
+### Eventos disponibles {{ id: 'events' }}
+
+| Evento | Descripción |
+| --- | --- |
+| `chargeback.created` | Se generó una devolución ACH sobre una transacción del sitio. |
+
+### Campos de la notificación {{ id: 'fields' }}
+
+<Properties>
+  <Property name="id" type="string">
+    Identificador único del envío, en formato UUID. Es distinto por cada URL configurada, aunque se trate del mismo evento.
+  </Property>
+  <Property name="time" type="string">
+    Fecha y hora del envío, en formato ISO 8601. La fecha del hecho notificado viaja dentro de `data`.
+  </Property>
+  <Property name="type" type="string">
+    Evento que originó la notificación.
+  </Property>
+  <Property name="data" type="object">
+    Información de la sesión asociada, con la misma estructura de la [consulta de transacción](/gateway/api/reference/transaction#query-request).
+  </Property>
+</Properties>
+
+### Encabezados {{ id: 'headers' }}
 
 ```plaintext {{ title: 'Headers' }}
 X-Signature: [firma para validar la autenticidad]
@@ -19,8 +39,55 @@ Content-Type: application/json
 Accept: application/json
 ```
 
+### Validación de la firma {{ id: 'signature' }}
+
+Para garantizar la autenticidad de la notificación, cada webhook de Placetopay incluye una firma en el encabezado `X-Signature`. Puedes validar esta firma con un hash HMAC SHA-256 utilizando el cuerpo crudo de la notificación (`body`) y la llave de transacción (`tranKey`) de tu sitio.
+
+<Note>
+  Firma el cuerpo **tal como lo recibes**, sin deserializarlo y volver a serializarlo: cada lenguaje escapa distinto los acentos (`ó` → `\u00f3`) y las barras (`/` → `\/`), y cualquier diferencia cambia la firma por completo.
+</Note>
+
+```javascript {{ title: 'Validación en JavaScript' }}
+const crypto = require('crypto');
+
+// Cuerpo crudo de la solicitud, sin parsear.
+// En Express: express.raw({ type: 'application/json' })
+const body = req.body;
+const receivedSignature = headers['X-Signature'];
+
+const tranKey = 'YOUR_SITE_TRANKEY';
+
+// Generar la firma localmente
+const generatedSignature = crypto
+  .createHmac('sha256', tranKey)
+  .update(body)
+  .digest('hex');
+
+// Validar la firma
+if (generatedSignature === receivedSignature) {
+  console.log("La notificación es auténtica.");
+} else {
+  console.log("Firma inválida: la notificación no es auténtica.");
+}
+```
+
+### Entrega {{ id: 'delivery' }}
+
+- **Configuración**: Se configura en el panel administrativo de Placetopay, a través del equipo de operaciones, proporcionando la URL deseada.
+- **Respuesta esperada**: Un código `2xx` dentro de **1 segundo**. Valida la firma, encola la notificación y responde de inmediato.
+- **Reintentos**: Un envío fallido no se reintenta. Concilia con la [consulta de transacción](/gateway/api/reference/transaction#query-request) lo que no haya llegado.
+
+## Webhook para devoluciones ACH
+
+El webhook para devoluciones ACH permite a los comercios recibir notificaciones en tiempo real sobre devoluciones en su sitio.
+
+- **Propósito**: Notificar al comercio cuando ocurre una devolución ACH.
+- **Evento**: `chargeback.created`, cuando se genera una devolución ACH sobre una transacción del sitio.
+- **Información enviada**: Toda información directa de una sesión.
+
 ```json {{ title: 'body' }}
 {
+  "id": "9d7f1b2c-8a4e-4f3d-9c61-2b7e5a0d4f88",
   "time": "2024-11-14T05:50:15-05:00",
   "type": "chargeback.created",
   "data": {
@@ -81,33 +148,6 @@ Accept: application/json
 }
 ```
 
-### Validación de la Firma
-
-Para garantizar la autenticidad de la notificación, cada webhook de Placetopay incluye una firma en el encabezado `X-Signature`. Puedes validar esta firma con un hash HMAC SHA-256 utilizando el contenido del cuerpo de la notificación (`body`) y la llave de transacción (`tranKey`) de tu sitio.
-
-```javascript {{ title: 'Validación en JavaScript' }}
-const crypto = require('crypto');
-
-// Body de la solicitud y firma recibida
-const body = JSON.stringify(notificationBody);
-const receivedSignature = headers['X-Signature'];
-
-const tranKey = 'YOUR_SITE_TRANKEY';
-
-// Generar la firma localmente
-const generatedSignature = crypto
-  .createHmac('sha256', tranKey)
-  .update(body)
-  .digest('hex');
-
-// Validar la firma
-if (generatedSignature === receivedSignature) {
-  console.log("La notificación es auténtica.");
-} else {
-  console.log("Firma inválida: la notificación no es auténtica.");
-}
-```
-
 ## FAQs
 
 <details>
@@ -128,4 +168,9 @@ if (generatedSignature === receivedSignature) {
 <details>
 <summary>¿Cómo valido la autenticidad de un webhook?</summary>
 <p>Valida la firma en el encabezado <code>X-Signature</code> utilizando HMAC SHA-256 con el <code>tranKey</code> de tu sitio. Consulta la documentación principal para ejemplos.</p>
+</details>
+
+<details>
+<summary>¿Por qué la firma que calculo no coincide con la que recibo?</summary>
+<p>Casi siempre es porque se está firmando una versión re-serializada del JSON en vez del cuerpo original. El HMAC debe calcularse sobre los bytes exactos recibidos en la petición.</p>
 </details>

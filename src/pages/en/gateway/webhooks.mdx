@@ -4,14 +4,34 @@ A webhook is a notification sent to a URL using an HTTPS request. At Placetopay,
 
 Webhooks is a new feature that is intended to complement the cases covered by the [Transaction Notification](/en/gateway/notification) feature. Currently only the use case for _Webhook ACH returns_ is covered.
 
-## Webhook for ACH returns
+## How it works {{ id: 'how-it-works' }}
 
-The webhook for ACH returns allows merchants to receive real-time notifications about returns on their site.
+Every webhook shares the same format, the same signature and the same delivery behavior. This section applies to any event; what is specific to each one is detailed further below.
 
-- **Purpose**: Notify the merchant when an ACH return occurs.
-- **Configuration**: Configured in the Placetopay administrative panel through the operations team, providing the desired URL.
-- **Event**: HTTPS notification sent when an ACH return is generated.
-- **Information sent**: All direct session-related information.
+### Available events {{ id: 'events' }}
+
+| Event | Description |
+| --- | --- |
+| `chargeback.created` | An ACH return was generated for a transaction on the site. |
+
+### Notification fields {{ id: 'fields' }}
+
+<Properties>
+  <Property name="id" type="string">
+    Unique identifier of the delivery, in UUID format. It differs for each configured URL, even for the same event.
+  </Property>
+  <Property name="time" type="string">
+    Delivery date and time, in ISO 8601 format. The date of the notified fact travels inside `data`.
+  </Property>
+  <Property name="type" type="string">
+    Event that triggered the notification.
+  </Property>
+  <Property name="data" type="object">
+    Information of the associated session, with the same structure as the [transaction query](/en/gateway/api/reference/transaction#query-request).
+  </Property>
+</Properties>
+
+### Headers {{ id: 'headers' }}
 
 ```plaintext {{ title: 'Headers' }}
 X-Signature: [signature for authenticity validation]
@@ -19,8 +39,55 @@ Content-Type: application/json
 Accept: application/json
 ```
 
+### Signature validation {{ id: 'signature' }}
+
+To ensure the authenticity of the notification, each webhook from Placetopay includes a signature in the `X-Signature` header. You can validate this signature using an HMAC SHA-256 hash generated with the raw notification body (`body`) and the transaction key (`tranKey`) of your site.
+
+<Note>
+  Sign the body **exactly as you receive it**, without deserializing and serializing it again: every language escapes accents (`ó` → `\u00f3`) and slashes (`/` → `\/`) differently, and any difference changes the signature completely.
+</Note>
+
+```javascript {{ title: 'Validation in JavaScript' }}
+const crypto = require('crypto');
+
+// Raw request body, unparsed.
+// In Express: express.raw({ type: 'application/json' })
+const body = req.body;
+const receivedSignature = headers['X-Signature'];
+
+const tranKey = 'YOUR_SITE_TRANKEY';
+
+// Generate the signature locally
+const generatedSignature = crypto
+  .createHmac('sha256', tranKey)
+  .update(body)
+  .digest('hex');
+
+// Validate the signature
+if (generatedSignature === receivedSignature) {
+  console.log("The notification is authentic.");
+} else {
+  console.log("Invalid signature: the notification is not authentic.");
+}
+```
+
+### Delivery {{ id: 'delivery' }}
+
+- **Configuration**: Configured in the Placetopay administrative panel through the operations team, providing the desired URL.
+- **Expected response**: A `2xx` status within **1 second**. Validate the signature, queue the notification and respond immediately.
+- **Retries**: A failed delivery is not retried. Reconcile anything that did not arrive with the [transaction query](/en/gateway/api/reference/transaction#query-request).
+
+## Webhook for ACH returns
+
+The webhook for ACH returns allows merchants to receive real-time notifications about returns on their site.
+
+- **Purpose**: Notify the merchant when an ACH return occurs.
+- **Event**: `chargeback.created`, when an ACH return is generated for a transaction on the site.
+- **Information sent**: All direct session-related information.
+
 ```json {{ title: 'Body' }}
 {
+  "id": "9d7f1b2c-8a4e-4f3d-9c61-2b7e5a0d4f88",
   "time": "2024-11-14T05:50:15-05:00",
   "type": "chargeback.created",
   "data": {
@@ -81,33 +148,6 @@ Accept: application/json
 }
 ```
 
-### Signature validation
-
-To ensure the authenticity of the notification, each webhook from Placetopay includes a signature in the `X-Signature` header. You can validate this signature using an HMAC SHA-256 hash generated with the content of the notification body (`body`) and the transaction key (`tranKey`) of your site.
-
-```javascript {{ title: 'Validation in JavaScript' }}
-const crypto = require('crypto');
-
-// Body of the request and received signature
-const body = JSON.stringify(notificationBody);
-const receivedSignature = headers['X-Signature'];
-
-const tranKey = 'YOUR_SITE_TRANKEY';
-
-// Generate the signature locally
-const generatedSignature = crypto
-  .createHmac('sha256', tranKey)
-  .update(body)
-  .digest('hex');
-
-// Validate the signature
-if (generatedSignature === receivedSignature) {
-  console.log("The notification is authentic.");
-} else {
-  console.log("Invalid signature: the notification is not authentic.");
-}
-```
-
 ## FAQs
 
 <details>
@@ -128,4 +168,9 @@ if (generatedSignature === receivedSignature) {
 <details>
 <summary>How do I validate the authenticity of a webhook?</summary>
 <p>Validate the signature in the <code>X-Signature</code> header using HMAC SHA-256 with your site's <code>tranKey</code>. Refer to the main documentation for examples.</p>
+</details>
+
+<details>
+<summary>Why does the signature I compute not match the one I receive?</summary>
+<p>Almost always because a re-serialized version of the JSON is being signed instead of the original body. The HMAC must be computed over the exact bytes received in the request.</p>
 </details>
