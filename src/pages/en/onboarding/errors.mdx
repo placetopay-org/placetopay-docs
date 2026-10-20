@@ -37,6 +37,7 @@ En estas respuestas `status.reason` contiene el código HTTP como número.
 | `401` | `The access token is missing or invalid.` | Token ausente, inválido, revocado o de otro ambiente |
 | `403` | `The access token does not grant the required scope.` | El token no incluye el permiso que la operación exige |
 | `404` | `The requested resource does not exist.` | El proceso o el comercio no existe, o el proceso pertenece a otro consumidor |
+| `405` | Texto que nombra los métodos admitidos | Método no admitido en esa URL: por ejemplo, `PUT` sobre `/api/merchants/{merchantId}`, que se actualiza con `PATCH` |
 | `409` | `The idempotency key was already used with a different payload.` | Clave de idempotencia reutilizada con otro contenido |
 | `422` | Mensaje de validación | El contenido no pasó la validación |
 | `500` | `An unexpected error occurred while processing the request.` | Error inesperado. Reintenta con la **misma** clave de idempotencia |
@@ -56,8 +57,8 @@ Un `422` incluye un objeto `errors` **hermano de `status`**, nunca dentro de él
   "status": {
     "status": "FAILED",
     "reason": 422,
-    "message": "The given data was invalid.",
-    "date": "2026-08-17T10:14:03-05:00"
+    "message": "The name field is required. (and 2 more errors)",
+    "date": "2026-08-17T15:14:03+00:00"
   },
   "errors": {
     "name": ["The name field is required."],
@@ -86,7 +87,7 @@ Hay una única clave de `errors` que **no** es una ruta del payload: `body`. Apa
     "status": "FAILED",
     "reason": 422,
     "message": "The request body must name at least one field to update.",
-    "date": "2026-08-17T10:20:41-05:00"
+    "date": "2026-08-17T15:20:41+00:00"
   },
   "errors": {
     "body": ["The request body must name at least one field to update."]
@@ -114,7 +115,7 @@ Cuando un proceso termina en `FAILED`, `status.reason` contiene un código que i
 | `INTERRUPTED` | El proceso se detuvo antes de completarse | No | Reenvía la operación con una clave de idempotencia nueva |
 
 <Note>
-  Existen dos códigos más, `DEPENDENCY_UNAVAILABLE` e `INTERNAL_ERROR`, que hoy no se emiten pero forman parte del contrato. **Deja siempre un caso por defecto** al interpretar `status.reason`: pueden aparecer códigos nuevos sin que eso se considere un cambio incompatible.
+  Existen dos códigos más: `DEPENDENCY_UNAVAILABLE`, que se emite cuando no se completa el registro de un sitio en Seglan al crear el comercio, e `INTERNAL_ERROR`, que hoy no se emite pero forma parte del contrato. **Deja siempre un caso por defecto** al interpretar `status.reason`: pueden aparecer códigos nuevos sin que eso se considere un cambio incompatible.
 </Note>
 
 Cuando el fallo puede atribuirse a campos concretos, la respuesta incluye `errors` con la misma forma que el `422`:
@@ -127,7 +128,7 @@ Cuando el fallo puede atribuirse a campos concretos, la respuesta incluye `error
     "status": "FAILED",
     "reason": "REQUIRED_FIELD_MISSING",
     "message": "One or more submitted fields were rejected by the registry.",
-    "date": "2026-08-17T10:14:09-05:00"
+    "date": "2026-08-17T15:14:09+00:00"
   },
   "processId": "01kz0609xy2hd666mnx6b0jxpc",
   "action": "merchant.create",
@@ -152,6 +153,8 @@ Reenviar con la misma clave devuelve el proceso fallido tal cual —es precisame
 ## Sobre los mensajes {{ id: 'error-messages' }}
 
 `status.message` es un texto genérico pensado para diagnóstico humano, y **puede cambiar sin previo aviso**. No lo uses para tomar decisiones en tu código.
+
+En un `422`, repite el primer error de `errors` y dice cuántos más hay, como `(and 2 more errors)`. La lista completa está siempre en `errors`.
 
 Para eso está `status.reason`, que es estable: contiene el código HTTP en los errores de la llamada, y el código de fallo en los procesos.
 

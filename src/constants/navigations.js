@@ -524,6 +524,10 @@ export const TAB_NAVIGATION = {
                 title: 'Billeteras',
                 links: [
                   {
+                    title: 'Apple Pay',
+                    href: '/payments/wallets/applepay',
+                  },
+                  {
                     title: 'Click to Pay',
                     href: '/payments/wallets/clicktopay',
                   },
@@ -693,6 +697,7 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Wallets',
                 links: [
+                  { title: 'Apple Pay', href: '/en/payments/wallets/applepay' },
                   { title: 'Click to Pay', href: '/en/payments/wallets/clicktopay' },
                   { title: 'Google Pay', href: '/en/payments/wallets/googlepay' },
                 ],
@@ -3178,6 +3183,7 @@ export const TAB_NAVIGATION = {
               { title: 'Crear un comercio', href: '/onboarding/create-merchant' },
               { title: 'Consultar el proceso', href: '/onboarding/process-status' },
               { title: 'Notificación', href: '/onboarding/notification' },
+              { title: 'Consultar un comercio', href: '/onboarding/show-merchant' },
               { title: 'Actualizar un comercio', href: '/onboarding/update-merchant' },
               { title: 'Errores', href: '/onboarding/errors' },
             ],
@@ -3246,6 +3252,7 @@ export const TAB_NAVIGATION = {
               { title: 'Create a merchant', href: '/en/onboarding/create-merchant' },
               { title: 'Check the process', href: '/en/onboarding/process-status' },
               { title: 'Notification', href: '/en/onboarding/notification' },
+              { title: 'Get a merchant', href: '/en/onboarding/show-merchant' },
               { title: 'Update a merchant', href: '/en/onboarding/update-merchant' },
               { title: 'Errors', href: '/en/onboarding/errors' },
             ],

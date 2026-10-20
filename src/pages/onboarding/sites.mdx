@@ -38,7 +38,7 @@ Cada sitio tiene sus propias credenciales, con las que se identifica ante la pla
 **Si no las envías, Onboarding las genera.** Esa es la razón por la que son opcionales incluso al crear un sitio.
 
 <Note type="warning">
-  Una credencial generada se publica **una sola vez**, en `result.sites[]` del proceso. No hay forma de recuperarla después. Guarda el resultado del proceso en cuanto lo recibas.
+  Una credencial generada se publica en `result.sites[]` del proceso. Guarda el resultado en cuanto lo recibas: después solo puede volver a leerse con [Consultar un comercio](/onboarding/show-merchant), que exige el permiso `onboarding:read`.
 </Note>
 
 Como el `login` no distingue mayúsculas, `ACME` y `acme` son el mismo identificador y no pueden coexistir. Sigue estando disponible en dos casos, además de cuando está libre: cuando lo tiene el propio sitio que estás modificando, y cuando pertenece a un sitio que **esta misma clave de idempotencia ya creó** —sin lo cual un reintento colisionaría con su propio primer intento—.
@@ -90,7 +90,7 @@ Como el `login` no distingue mayúsculas, `ACME` y `acme` son el mismo identific
           "category": "ECOMMERCE",
           "email": "ops@acme.example.com",
           "currency": "COP",
-          "language": "es",
+          "language": "ES",
           "onTest": true,
           "integration": {
             "allowPartial": false,
@@ -147,6 +147,9 @@ Define cómo se conecta el sitio con la plataforma de pagos.
   <Property name="integration.allowWallet" type="boolean" isRequired={false}>
     Si se admite el uso de billetera.
   </Property>
+  <Property name="integration.allowConfirmationFlow" type="boolean" isRequired={false}>
+    Si el sitio admite el flujo de confirmación manual: con `true`, un pago creado con `requiresConfirmation` queda a la espera de que el comercio lo confirme o lo cancele antes de autorizarse. Ver [Sesiones con confirmación](/checkout/confirmation-flow). Un sitio creado sin esta clave se lee como `false`, y la clave no admite `null`: para desactivarlo, envía `false`.
+  </Property>
 </Properties>
 
 <Note type="warning">
@@ -188,7 +191,7 @@ Restringe cuándo y con qué montos puede operar el sitio.
 
 | Bloque | Para qué |
 |---|---|
-| `threeDS` | Configuración de autenticación 3-D Secure: nivel de exigencia y monto a partir del cual se aplica |
+| `threeDS` | Configuración de autenticación 3-D Secure: nivel de exigencia y monto a partir del cual se aplica. Al crear el comercio admite además `seglan`, que registra el sitio en Seglan. Ver la [referencia de la API](/onboarding/api/reference/merchants#create-a-merchant) |
 | `securityFilters` | Límites antifraude por número de intentos y de tarjetas, por día, semana y mes |
 | `operation` | Parámetros operativos: porcentaje de impuesto, correos al comprador, comprobantes |
 | `subscriptionValidation` | Configuración de la validación al registrar un medio de pago |
@@ -202,7 +205,7 @@ Varios límites son **más estrechos que lo que el registro admitiría**, porque
   <Col>
     El bloque `metadata` guarda información **propia del comercio**, destinada a un proceso pactado con Placetopay aparte de este contrato. Es opcional y lo aceptan tanto la creación como la actualización.
 
-    Es el único bloque de un sitio **sin vocabulario cerrado**: los nombres los eliges tú, no el catálogo.
+    Es el único bloque de un sitio **sin vocabulario cerrado**: los nombres los eliges tú, no el catálogo. La excepción es `copper`, un nombre reservado para los [sitios migrados desde Copper](#copper-migrated-sites), con reglas propias.
 
     El valor de un nombre puede ser un **dato simple** —un texto, un número, un booleano— o una **estructura**: un objeto o una lista. Un dato simple conserva el tipo con el que lo envías: un número sigue siendo número y un booleano, booleano.
   </Col>
@@ -309,21 +312,125 @@ Ten en cuenta también que el bloque se valida en cadena y se detiene en el prim
 
 Los límites exactos están en la [referencia de la API](/onboarding/api/reference/merchants#update-a-merchant), junto con la longitud máxima de un nombre y de un valor.
 
-### No se puede leer de vuelta {{ id: 'metadata-not-readable' }}
+### Dónde se lee {{ id: 'metadata-reading' }}
 
 <Note type="warning">
-  `metadata` **no viaja en `result`**, y por tanto tampoco en la notificación ni en `GET /api/processes/{processId}`. Tampoco hay ningún endpoint que lo devuelva. Conserva tu propia copia: esta API no te la puede restituir.
+  `metadata` **no viaja en `result`**, y por tanto tampoco en la notificación ni en `GET /api/processes/{processId}`. El documento guardado, ya fusionado, solo se lee con [Consultar un comercio](/onboarding/show-merchant), en `sites[].metadata`.
 </Note>
 
 Un cuerpo que no envía `metadata` deja el `result` exactamente igual que antes de que este bloque existiera.
 
-### Qué no poner aquí {{ id: 'metadata-not-for' }}
+El back office **todavía no muestra estos datos**. Quedan guardados y auditados, pero verlos desde la ficha del sitio requiere un desarrollo pendiente del lado del back office.
+
+## Sitios migrados desde Copper {{ id: 'copper-migrated-sites' }}
+
+<Row>
+  <Col>
+    Un sitio que llega desde Copper se marca con el nombre reservado **`copper`** dentro de `metadata`, que guarda los datos de su integración de origen. Con `is_migrated: true`, el sitio queda **migrado**.
+
+    `copper` es el único nombre de `metadata` con **vocabulario cerrado**: diez claves, cada una con su tipo. Los demás nombres siguen siendo libres, y un sitio que no es migrado no necesita enviarlo.
+
+    Las claves se guardan y se devuelven tal como llegaron. La API valida su forma, pero no cambian cómo procesa Placetopay los pagos del sitio: `requires_cvv: true`, por ejemplo, no hace que se pida el código de seguridad.
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'Un sitio migrado' }}
+    {
+      "sites": [
+        {
+          "name": "Tienda principal",
+          "metadata": {
+            "copper": {
+              "is_migrated": true,
+              "id": "cu_8f2a91",
+              "parent_id": "cu_1d77e0",
+              "integration_type": "TC",
+              "secret": "exampleCopperSecret",
+              "error_code_level": 2,
+              "card_data_return": "bin_last4",
+              "allow_preauth": false,
+              "requires_cvv": true,
+              "assigned_version": "1.0"
+            }
+          }
+        }
+      ]
+    }
+    ```
+  </Col>
+</Row>
+
+### Las diez claves {{ id: 'copper-keys' }}
+
+| Clave | Tipo | Obligatoria con `is_migrated: true` | Valores admitidos |
+|---|---|---|---|
+| `is_migrated` | booleano | Es la marca | `true`, `false` |
+| `id` | texto | Sí | Cualquier texto |
+| `integration_type` | texto | Sí | `TC` (Transacción Completa) o `WP` (Webpay) |
+| `error_code_level` | entero | Sí | Del `0` al `9` |
+| `allow_preauth` | booleano | Sí | `true`, `false` |
+| `requires_cvv` | booleano | Sí | `true`, `false` |
+| `assigned_version` | texto | Sí | `1.0`, `1.1`, `1.2`, `1.3` |
+| `parent_id` | texto | No | Cualquier texto |
+| `secret` | texto | No | Cualquier texto |
+| `card_data_return` | texto | No | `none`, `last4`, `bin_last4`, `bin_only` |
+
+`id` es el identificador del sitio en Copper, y `parent_id`, el identificador en Copper del comercio padre. `secret` es el secreto de la integración en Copper, y `assigned_version`, la versión de la integración que Copper le asignó al sitio.
+
+### Cómo se valida {{ id: 'copper-validation' }}
+
+- **Solo `is_migrated: true` marca el sitio como migrado**, y entonces exige las seis claves obligatorias. Con `false`, o sin la clave, no se exige ninguna, pero las que envíes se validan igual: tipo y valores admitidos.
+- **Los tipos son estrictos.** Un booleano es `true` o `false` de JSON: `"true"`, `"1"` y `1` responden `422`. Un entero es un número de JSON: `"2"` responde `422`. Una versión es una cadena de JSON con uno de los cuatro valores exactos: `1.1` como número, `"1"` y `"1.10"` responden `422`.
+- **Ninguna clave admite `null` ni texto vacío**, tampoco `is_migrated`. Una clave sin valor simplemente no se envía.
+- **`copper` es un objeto con al menos una clave.** `{}`, una lista o un valor suelto responden `422`.
+- **Una clave fuera de las diez responde `422`**, y el error la nombra. Así, una errata como `is_migrate` no deja el sitio sin marcar en silencio.
+- **El `id` de Copper no tiene que ser único**: dos sitios pueden compartirlo, en la misma petición o en comercios distintos.
+- Siguen rigiendo los [límites de `metadata`](#metadata-shape): 1024 caracteres por texto, tres niveles de anidamiento y el [tope de tamaño](#metadata-size) del documento.
 
 <Note type="warning">
-  **No es sitio para un secreto ni para un dato personal.** El documento se guarda en claro, se copia entero al registro de auditoría del back office —cuya retención no controla esta API— y se conserva en el contenido del proceso, donde nada lo oculta.
+  En el resto de `metadata`, `null` borra un nombre. **Dentro de `copper`, no**: una clave con `null` responde `422`. Para quitar una clave del bloque, reenvía el bloque sin ella.
 </Note>
 
-Ten en cuenta además que el back office **todavía no muestra estos datos**. Quedan guardados y auditados, pero verlos desde la ficha del sitio requiere un desarrollo pendiente del lado del back office.
+### En una actualización {{ id: 'copper-update' }}
+
+<Row>
+  <Col>
+    `copper` se **reemplaza entero**, como cualquier valor de primer nivel de `metadata`: las claves que no reenvíes desaparecen. Por eso las obligatorias se exigen sobre lo que envías y no sobre lo guardado, y para cambiar una sola clave de un sitio migrado hay que reenviar el bloque completo.
+
+    Para que un sitio deje de ser migrado, envía `"copper": null` o la cadena vacía, como con cualquier nombre de `metadata`: el bloque desaparece y los demás nombres no se tocan. También deja de serlo si reenvías el bloque con `"is_migrated": false`.
+
+    En una creación, tanto `null` como la cadena vacía responden `422`, igual que en el resto de `metadata`.
+  </Col>
+  <Col sticky>
+    ```json {{ title: 'Quitar la marca' }}
+    {
+      "sites": [
+        {
+          "id": 214,
+          "metadata": {
+            "copper": null
+          }
+        }
+      ]
+    }
+    ```
+  </Col>
+</Row>
+
+### Los errores {{ id: 'copper-errors' }}
+
+Cada problema llega en `errors` bajo la ruta de la clave, como cualquier otro [error de validación](/onboarding/errors#validation-errors). Estos son los mensajes propios del bloque, tomando como ejemplo el primer sitio del cuerpo:
+
+| Qué ocurre | Mensaje |
+|---|---|
+| Falta una clave obligatoria con `is_migrated: true` | `The sites.0.metadata.copper.id field is required when sites.0.metadata.copper.is_migrated is true.` |
+| Una clave fuera de las diez | `The sites.0.metadata.copper field contains keys that are not part of this contract: is_migrate.` |
+| Un booleano que no es `true` ni `false` | `The sites.0.metadata.copper.requires_cvv field must be true or false.` |
+| Un entero que no es un número de JSON | `The sites.0.metadata.copper.error_code_level field must be an integer.` |
+| Un texto que no es una cadena | `The sites.0.metadata.copper.id field must be a string.` |
+| Una clave con `null` o texto vacío | `The sites.0.metadata.copper.secret field must have a value.` |
+| Un valor fuera de los admitidos | `The selected sites.0.metadata.copper.integration_type is invalid.` |
+| `error_code_level` fuera de rango | `The sites.0.metadata.copper.error_code_level field must be between 0 and 9.` |
+| `"copper": {}` en una actualización | `The sites.0.metadata.copper field must have at least 1 items.` |
 
 ## Comportamiento en una actualización {{ id: 'update-behaviour' }}
 
@@ -373,7 +480,9 @@ Más concretamente, en una actualización el valor vuelve **solo si cambió**. R
 
 ### Si pierdes las credenciales {{ id: 'lost-credentials' }}
 
-No hay forma de volver a leerlas: ningún endpoint las devuelve. Lo que sí puedes hacer es **fijar unas nuevas**. Envía un `tranKey` distinto en una actualización del sitio: al cambiar de valor se escribe, y viaja en el `result` de ese proceso.
+Puedes volver a leerlas con [Consultar un comercio](/onboarding/show-merchant), que devuelve las credenciales de cada sitio en claro.
+
+Si lo que necesitas es reemplazarlas —porque quedaron expuestas, por ejemplo—, **fija unas nuevas**. Envía un `tranKey` distinto en una actualización del sitio: al cambiar de valor se escribe, y viaja en el `result` de ese proceso.
 
 <Note>
   El valor anterior **deja de estar almacenado**, y Onboarding no lo conserva en ningún otro registro: en el historial de cambios las credenciales quedan enmascaradas, tanto la nueva como la que se reemplazó. Tampoco se emite ninguna notificación por el cambio.
