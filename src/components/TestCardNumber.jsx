@@ -67,7 +67,14 @@ const groupsByFranchise = [
           es: 'Deja la transacción en estado pendiente y se resuelve a aprobado', 
           en: 'Leave the transaction in pending status and it is resolved to approved' 
         },
-      }
+      },
+      {
+        number : '36545407032814',
+        behavior: {
+          es: 'Arroja una excepción en el proceso',
+          en: 'Throws an exception in the process'
+        },
+      },
     ],
   },
   {
@@ -121,10 +128,6 @@ const groupsByFranchise = [
       },
       {
         number : '4381080000000011',
-        behavior: { es: 'Rechaza', en: 'Denies' },
-      },
-      {
-        number : '4716375184092180',
         behavior: { es: 'Rechaza', en: 'Denies' },
       },
       {
@@ -232,6 +235,34 @@ const groupsByFranchise = [
            en: 'It takes 180 seconds to respond and is in approved status',
           },
       },
+      {
+        number : '4212121212121214',
+        behavior: {
+          es: 'Deja la transacción en procesamiento manual y si se procesa queda en estado aprobado',
+          en: 'Leave the transaction in manual processing and if it is processed it remains in approved status'
+        },
+      },
+      {
+        number : '4556737586899855',
+        behavior: {
+          es: 'Aprueba si el monto es inferior a 200USD, de lo contrario queda en estado pendiente',
+          en: 'Approve if the amount is less than 200 USD, otherwise it stays in pending status'
+        },
+      },
+      {
+        number : '4622943127011030',
+        behavior: {
+          es: 'Aprueba',
+          en: 'Approve'
+        },
+      },
+      {
+        number : '4931119220729333',
+        behavior: {
+          es: 'Aprueba',
+          en: 'Approve'
+        },
+      },
     ]
   },
   {
@@ -278,7 +309,28 @@ const groupsByFranchise = [
           es: 'Deja la transacción en estado pendiente y se resuelve a rechazado **3DS-A**', 
           en: 'Leaves the transaction in pending status and resolves to rejected 3DS-A'
         },
-      }
+      },
+      {
+        number : '5120350100064545',
+        behavior: {
+          es: 'Aprueba',
+          en: 'Approve'
+        },
+      },
+      {
+        number : '5186001700009726',
+        behavior: {
+          es: 'Aprueba',
+          en: 'Approve'
+        },
+      },
+      {
+        number : '5186001700009908',
+        behavior: {
+          es: 'Aprueba',
+          en: 'Approve'
+        },
+      },
     ]
   },
   {
@@ -408,7 +460,14 @@ const groupsByFranchise = [
           es: 'Deja la transacción en estado pendiente y se resuelve a aprobado 3DS-D',
           en: 'Leaves the transaction in pending status and resolves to approved 3DS-D'
         }
-      }
+      },
+      {
+        number : '6011208893321714',
+        behavior: {
+          es: 'Aprueba',
+          en: 'Approve'
+        },
+      },
     ],
   },
   {
@@ -419,6 +478,41 @@ const groupsByFranchise = [
       {
         number : '6759649826438453',
         behavior: { es: 'Aprueba', en: 'Approve' }
+      },
+      {
+        number : '5610743664705809',
+        behavior: {
+          es: 'Aprueba si se proporciona la expiración 12/29 y el cvv 123 de lo contrario rechaza',
+          en: 'Approves if expiration 12/29 and cvv 123 are given, otherwise rejects'
+        },
+      },
+      {
+        number : '6016607337608278',
+        behavior: {
+          es: 'Aprueba',
+          en: 'Approve'
+        },
+      },
+      {
+        number : '6304497818313734',
+        behavior: {
+          es: 'Rechaza',
+          en: 'Denies'
+        },
+      },
+      {
+        number : '6334568325080091',
+        behavior: {
+          es: 'Deja la transacción en procesamiento manual y si se procesa queda en estado aprobado',
+          en: 'Leave the transaction in manual processing and if it is processed it remains in approved status'
+        },
+      },
+      {
+        number : '6378712527010392',
+        behavior: {
+          es: 'Deja la transacción en estado pendiente y se resuelve a aprobado',
+          en: 'Leave the transaction in pending status and it is resolved to approved'
+        },
       },
     ],
   },
