@@ -3326,6 +3326,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Introducción', href: '/par' },
               { title: 'Cómo funciona', href: '/par/how-par-works' },
+              { title: 'Sesión embebida', href: '/par/embedded-session' },
             ],
           },
           {
@@ -3376,6 +3377,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Introduction', href: '/en/par' },
               { title: 'How it works', href: '/en/par/how-par-works' },
+              { title: 'Embedded session', href: '/en/par/embedded-session' },
             ],
           },
           {
