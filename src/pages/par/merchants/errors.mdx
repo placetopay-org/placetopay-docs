@@ -1,0 +1,58 @@
+export const description =
+  'Conoce el formato de los errores que PAR devuelve a los comercios y el catálogo completo de códigos.'
+
+# Errores para comercios
+
+La inscripción y la consulta de estado responden los errores en JSON, con un código propio de PAR y un código HTTP que indica el tipo de fallo.
+
+## Formato {{ id: 'format' }}
+
+```json {{ title: 'Respuesta de error' }}
+{
+  "code": -107,
+  "description": "Id de Servicio incorrecto"
+}
+```
+
+<Properties>
+  <Property name="code" type="integer">
+    Código del error. Es el valor que debes usar en tu integración para decidir qué hacer.
+  </Property>
+  <Property name="description" type="string">
+    Texto informativo que acompaña al código. Puede cambiar, así que no lo uses para tomar decisiones.
+  </Property>
+</Properties>
+
+## Catálogo {{ id: 'codes' }}
+
+| Código | HTTP | Descripción | Causa |
+|---|---|---|---|
+| `-110` | `401` | Headers de autentificación requeridos | Falta el header `Authorization` o `Commercecode` |
+| `-111` | `401` | Headers de autentificación erróneos | La llave secreta no corresponde a un comercio activo |
+| `-108` | `422` | Código de comercio inválido | El código no pertenece a un sitio activo de tu comercio, o `commerceCode` no coincide con el header `Commercecode` |
+| `-102` | `422` | URL retorno incorrecta | `url` falta o no es una URL pública válida |
+| `-101` | `422` | URL final incorrecta | `finalUrl` falta o no es una URL pública válida |
+| `-900` | `422` | Correo inválido | `correoPersona` falta o no es un correo válido |
+| `-107` | `422` | Id de Servicio incorrecto | `serviceId` falta, supera 32 caracteres o la persona ya tiene un autopago activo con ese identificador en tu sitio |
+| `-106` | `422` | Rut inválido | `rut` supera 10 caracteres |
+| `-103` | `422` | Nombre Incorrecto | `nombre` supera 60 caracteres |
+| `-104` | `422` | Apellido Paterno incorrecto | `pApellido` supera 60 caracteres |
+| `-105` | `422` | Apellido Materno incorrecto | `sApellido` supera 60 caracteres |
+| `-109` | `422` | Monto tope inválido | `montoMaximo` no es un número o es negativo |
+| `-112` | `422` | Teléfono fijo incorrecto | `telefonoFijo` supera 50 caracteres |
+| `-113` | `422` | Teléfono celular incorrecto | `telefonoCelular` supera 50 caracteres |
+| `-114` | `422` | Nombre PatPass incorrecto | `nombrePatPass` supera 100 caracteres |
+| `-115` | `422` | Correo comercio incorrecto | `correoComercio` supera 100 caracteres |
+| `-116` | `422` | Dirección incorrecta | `direccion` supera 100 caracteres |
+| `-117` | `422` | Ciudad incorrecta | `ciudad` supera 100 caracteres |
+| `-1` | `429` | Error interno | Superaste el límite de peticiones. |
+| `-1` | `500` | Error interno | Error inesperado en PAR. Reintenta más tarde |
+
+## Errores del navegador {{ id: 'browser-errors' }}
+
+El inicio de sesión y el comprobante no los llama tu servidor, sino el navegador del tarjetahabiente, así que no responden JSON:
+
+- Si el token falta, no existe, ya se usó, venció o fue revocado, PAR responde `403` y muestra una página de error.
+- Si el inicio de sesión falla por otra causa, PAR muestra al tarjetahabiente una página que le indica que no se pudo iniciar la sesión.
+
+En ambos casos, solicita un token nuevo y vuelve a enviar al tarjetahabiente.

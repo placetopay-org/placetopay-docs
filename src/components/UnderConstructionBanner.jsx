@@ -12,7 +12,7 @@ import { useLocale } from '@/components/LocaleProvider'
  *
  * Para retirar el aviso de una sección basta con quitarla de esta lista.
  */
-export const UNDER_CONSTRUCTION_ROUTES = ['/onboarding']
+export const UNDER_CONSTRUCTION_ROUTES = ['/onboarding', '/par']
 
 const UNDER_CONSTRUCTION_TEXTS = {
   es: {

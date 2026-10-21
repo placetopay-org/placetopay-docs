@@ -1,0 +1,191 @@
+export const description =
+  'Request from PAR the token a cardholder of your issuer uses to start the session, sending their cards in an XML message.'
+
+# Request the token
+
+To bring a cardholder to PAR, your server requests a token with an **XML message** that includes your credentials, the cardholder's document and the cards you issued to them. PAR answers, also in XML, with the single-use token.
+
+## Credentials {{ id: 'credentials' }}
+
+Placetopay gives you the credentials when it registers you as a PAR issuer partner, and records your issuer's configuration with them:
+
+<Properties>
+  <Property name="Username" type="string" isRequired={true}>
+    Identifies your issuer. It travels in the message, in `Perfil.NombreUsuario`.
+  </Property>
+  <Property name="Password" type="string" isRequired={true}>
+    Authenticates your request. It travels in the message, in `Perfil.ContrasenaUsuario`.
+  </Property>
+  <Property name="Authorized IPs" type="list">
+    The list of your servers' IP addresses that Placetopay registers for your issuer. In each request you declare a single one, in the message `IP` field, and it must be on that list.
+  </Property>
+  <Property name="Document type" type="string">
+    The identity document type of your cardholders. PAR validates the document you send against the format of that type.
+  </Property>
+</Properties>
+
+PAR runs in separate environments, and each one has its own base URL and its own credentials. In this documentation, `{BASE_URL}` stands for the URL of the environment you are working in.
+
+## Send the request {{ id: 'send-request' }}
+
+`POST {BASE_URL}/nuevopat/SolicitaTkn`
+
+The XML message travels as a form field named `TBKPatData`, with the `application/x-www-form-urlencoded` content type. Its root element is also named `TBKPatData`:
+
+```xml {{ title: 'TBKPatData' }}
+<TBKPatData>
+  <Perfil>
+    <NombreUsuario>{YOUR_USERNAME}</NombreUsuario>
+    <ContrasenaUsuario>{YOUR_PASSWORD}</ContrasenaUsuario>
+  </Perfil>
+  <DuracionToken>300</DuracionToken>
+  <DatosUsuario>
+    <RutUsuario>11.111.111-1</RutUsuario>
+  </DatosUsuario>
+  <DataAuditoriaUsuario>session-0001</DataAuditoriaUsuario>
+  <DatosTarjetas>
+    <NumeroTarjeta>4111111111111111</NumeroTarjeta>
+    <NumeroTarjeta>5180300000000005</NumeroTarjeta>
+  </DatosTarjetas>
+  <IP>203.0.113.10</IP>
+</TBKPatData>
+```
+
+### Message fields
+
+<Properties>
+  <Property name="Perfil.NombreUsuario" type="string" isRequired={true}>
+    Your issuer's username. Up to 20 characters.
+  </Property>
+  <Property name="Perfil.ContrasenaUsuario" type="string" isRequired={true}>
+    Your issuer's password. Up to 15 characters.
+  </Property>
+  <Property name="DatosUsuario.RutUsuario" type="string" isRequired={true}>
+    The cardholder's identity document, in the format of your issuer's document type. Up to 15 characters. If it belongs to a person already registered in PAR, the session opens with their account.
+  </Property>
+  <Property name="DatosTarjetas.NumeroTarjeta" type="string" isRequired={true}>
+    A card number of the cardholder, digits only and up to 20. Repeat the element for each card, up to a maximum of 5. Each number must be a valid card number.
+  </Property>
+  <Property name="IP" type="string" isRequired={true}>
+    Your server's IP address. It must be one of the IPs authorized for your issuer. Up to 20 characters.
+  </Property>
+  <Property name="DuracionToken" type="integer" isRequired={false}>
+    Token validity, in seconds. If you do not send it, PAR applies its default validity. It cannot exceed the maximum PAR allows.
+  </Property>
+  <Property name="DataAuditoriaUsuario" type="string" isRequired={false}>
+    Audit data of your own issuer, for example the session identifier on your site. PAR keeps it with the session. Up to 40 characters.
+  </Property>
+</Properties>
+
+### Example
+
+<CodeGroup title="Request" tag="POST" label="/nuevopat/SolicitaTkn">
+
+```bash {{ title: 'cURL' }}
+curl --request POST \
+  --url '{BASE_URL}/nuevopat/SolicitaTkn' \
+  --data-urlencode 'TBKPatData=<TBKPatData><Perfil><NombreUsuario>{YOUR_USERNAME}</NombreUsuario><ContrasenaUsuario>{YOUR_PASSWORD}</ContrasenaUsuario></Perfil><DatosUsuario><RutUsuario>11.111.111-1</RutUsuario></DatosUsuario><DatosTarjetas><NumeroTarjeta>4111111111111111</NumeroTarjeta></DatosTarjetas><IP>203.0.113.10</IP></TBKPatData>'
+```
+
+```php {{ title: 'PHP' }}
+$xml = <<<XML
+<TBKPatData>
+  <Perfil>
+    <NombreUsuario>{$username}</NombreUsuario>
+    <ContrasenaUsuario>{$password}</ContrasenaUsuario>
+  </Perfil>
+  <DatosUsuario>
+    <RutUsuario>11.111.111-1</RutUsuario>
+  </DatosUsuario>
+  <DatosTarjetas>
+    <NumeroTarjeta>4111111111111111</NumeroTarjeta>
+  </DatosTarjetas>
+  <IP>203.0.113.10</IP>
+</TBKPatData>
+XML;
+
+$response = Http::asForm()->post("{$baseUrl}/nuevopat/SolicitaTkn", [
+    'TBKPatData' => $xml,
+]);
+
+$message = simplexml_load_string($response->body());
+```
+
+```js {{ title: 'Node' }}
+const xml = `
+<TBKPatData>
+  <Perfil>
+    <NombreUsuario>${username}</NombreUsuario>
+    <ContrasenaUsuario>${password}</ContrasenaUsuario>
+  </Perfil>
+  <DatosUsuario>
+    <RutUsuario>11.111.111-1</RutUsuario>
+  </DatosUsuario>
+  <DatosTarjetas>
+    <NumeroTarjeta>4111111111111111</NumeroTarjeta>
+  </DatosTarjetas>
+  <IP>203.0.113.10</IP>
+</TBKPatData>`
+
+const response = await fetch(`${baseUrl}/nuevopat/SolicitaTkn`, {
+  method: 'POST',
+  body: new URLSearchParams({ TBKPatData: xml }),
+})
+
+const message = await response.text()
+```
+
+</CodeGroup>
+
+## Response {{ id: 'response' }}
+
+PAR always answers with an XML message whose root element is `Mensaje`. If the request is valid, `Coderror` is `0` and the message includes the token:
+
+<CodeGroup title="Response">
+
+```xml {{ title: 'Success' }}
+<?xml version="1.0" encoding="UTF-8"?>
+<Mensaje>
+  <Coderror>0</Coderror>
+  <Descerror>SUCCESS</Descerror>
+  <Token>{TOKEN}</Token>
+</Mensaje>
+```
+
+```xml {{ title: 'Error' }}
+<?xml version="1.0" encoding="UTF-8"?>
+<Mensaje>
+  <Coderror>100</Coderror>
+  <Descerror>The DatosUsuario.RutUsuario field is required</Descerror>
+</Mensaje>
+```
+
+</CodeGroup>
+
+<Properties>
+  <Property name="Coderror" type="string">
+    Result code. `0` means success; any other value, an error. The catalog is in [Errors](/en/par/issuers/errors).
+  </Property>
+  <Property name="Descerror" type="string">
+    Informative text that accompanies the code, up to 80 characters. It may change, so do not use it to make decisions.
+  </Property>
+  <Property name="Token" type="string">
+    Single-use token the cardholder will start the session with. Only present when `Coderror` is `0`.
+  </Property>
+</Properties>
+
+<Note type="warning">
+  Errors also answer with HTTP `200`. Always read `Coderror` to know whether you got a token.
+</Note>
+
+## What PAR validates {{ id: 'validation' }}
+
+Before issuing the token, PAR checks:
+
+1. That `TBKPatData` is present and is valid XML.
+2. That all required fields are present, with their formats and lengths.
+3. That the username and password belong to an active issuer.
+4. That the declared `IP` is one of the IPs authorized for your issuer.
+5. That the document has the format of your issuer's document type.
+
+With the token in hand, the next step is to [start the session](/en/par/issuers/login) of the cardholder.
