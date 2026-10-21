@@ -1,0 +1,65 @@
+export const description =
+  'Authenticate requests to the PAR administration API with an access token and learn the errors it returns if it is not valid.'
+
+# Administration API authentication
+
+The PAR administration endpoints are authenticated with an **access token** that Placetopay issues for your application and that travels in the `Authorization` header.
+
+## Credentials {{ id: 'credentials' }}
+
+Placetopay hands you an access token. With that token you make requests to all the administration endpoints.
+
+<Note type="warning">
+  The token is delivered **only once** and cannot be recovered afterwards. Store it in a secrets manager before continuing. If you lose it, a new one has to be issued.
+</Note>
+
+Treat it like any other production secret: never include it in source code, in a repository or in code that runs in the browser.
+
+## Environments and base URL {{ id: 'environments' }}
+
+PAR operates in separate environments. Each one has its own base URL and issues its own tokens, which are not interchangeable.
+
+In this documentation, `{URL_BASE}` stands for the URL of the environment you are working in:
+
+```text
+{URL_BASE}/api/partners
+```
+
+## Authorize a request {{ id: 'authorization-header' }}
+
+The token travels as a _bearer token_.
+
+<CodeGroup title="Headers">
+
+```bash {{ title: 'cURL' }}
+curl --request GET \
+  --url '{URL_BASE}/api/partners/7' \
+  --header 'Accept: application/json' \
+  --header 'Authorization: Bearer {YOUR_TOKEN}'
+```
+
+```php {{ title: 'PHP' }}
+$response = Http::withToken($token)
+    ->acceptJson()
+    ->get("{$urlBase}/api/partners/7");
+```
+
+```js {{ title: 'Node' }}
+const response = await fetch(`${urlBase}/api/partners/7`, {
+  headers: {
+    'Accept': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  },
+});
+```
+
+</CodeGroup>
+
+## What PAR validates {{ id: 'validation' }}
+
+On every request, PAR checks in this order:
+
+1. That the token exists and is valid. If not, it responds `401`.
+2. That the token has access to the operation. If not, it responds `403`.
+
+The format of these responses is in [Errors](/en/par/administration/errors).
