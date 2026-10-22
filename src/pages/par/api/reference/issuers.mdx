@@ -1,0 +1,140 @@
+export const sectionMode = 'nav';
+export const description =
+  'Referencia de los endpoints con los que un emisor solicita el token de un tarjetahabiente e inicia su sesión en PAR.'
+
+export const apiRefs = ['/nuevopat/SolicitaTkn', '/nuevopat/tokenLogin'];
+
+# Emisores
+
+<Row>
+  <Col>
+    Solicita el token de un tarjetahabiente con un mensaje XML y envíalo a PAR para que inscriba y gestione sus autopagos con las tarjetas que le emitiste. El flujo completo está explicado en [Solicitar el token](/par/issuers/request-token) e [Iniciar la sesión](/par/issuers/login). {{ className: 'lead' }}
+  </Col>
+  <Col>
+    <EndpointsOverview />
+  </Col>
+</Row>
+
+<ApiDownloads />
+
+## Solicitar el token del tarjetahabiente {{ id: 'request-cardholder-token', tag: 'POST', label: '/nuevopat/SolicitaTkn' }}
+
+<Row>
+  <Col>
+    Valida tus credenciales, el documento del tarjetahabiente y sus tarjetas, y devuelve un token de un solo uso. El mensaje XML viaja en el campo de formulario `TBKPatData`, y la respuesta es también un mensaje XML.
+
+    <Note type="warning">
+      Los errores también responden HTTP `200`. Lee siempre `Coderror`: solo `0` significa que obtuviste un token.
+    </Note>
+
+    <ApiReader
+      path="/nuevopat/SolicitaTkn"
+      method="post"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/nuevopat/SolicitaTkn">
+```bash {{ title: 'Datos mínimos' }}
+curl --request POST \
+  --url '{URL_BASE}/nuevopat/SolicitaTkn' \
+  --data-urlencode 'TBKPatData=<TBKPatData><Perfil><NombreUsuario>{TU_USUARIO}</NombreUsuario><ContrasenaUsuario>{TU_CONTRASENA}</ContrasenaUsuario></Perfil><DatosUsuario><RutUsuario>11.111.111-1</RutUsuario></DatosUsuario><DatosTarjetas><NumeroTarjeta>4111111111111111</NumeroTarjeta></DatosTarjetas><IP>203.0.113.10</IP></TBKPatData>'
+```
+
+```xml {{ title: 'TBKPatData completo' }}
+<TBKPatData>
+  <Perfil>
+    <NombreUsuario>{TU_USUARIO}</NombreUsuario>
+    <ContrasenaUsuario>{TU_CONTRASENA}</ContrasenaUsuario>
+  </Perfil>
+  <DuracionToken>300</DuracionToken>
+  <DatosUsuario>
+    <RutUsuario>11.111.111-1</RutUsuario>
+  </DatosUsuario>
+  <DataAuditoriaUsuario>session-0001</DataAuditoriaUsuario>
+  <DatosTarjetas>
+    <NumeroTarjeta>4111111111111111</NumeroTarjeta>
+    <NumeroTarjeta>5180300000000005</NumeroTarjeta>
+  </DatosTarjetas>
+  <IP>203.0.113.10</IP>
+</TBKPatData>
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/nuevopat/SolicitaTkn"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+
+    ```xml {{ title: 'Éxito' }}
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Mensaje>
+      <Coderror>0</Coderror>
+      <Descerror>EXITO</Descerror>
+      <Token>{TOKEN}</Token>
+    </Mensaje>
+    ```
+
+    ```xml {{ title: 'Credenciales inválidas' }}
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Mensaje>
+      <Coderror>1</Coderror>
+      <Descerror>Usuario o Pasword Incorrecto.</Descerror>
+    </Mensaje>
+    ```
+
+    ```xml {{ title: 'Validación' }}
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Mensaje>
+      <Coderror>100</Coderror>
+      <Descerror>El campo DatosUsuario.RutUsuario es requerido</Descerror>
+    </Mensaje>
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Iniciar la sesión del tarjetahabiente {{ id: 'start-cardholder-session', tag: 'POST', label: '/nuevopat/tokenLogin' }}
+
+<Row>
+  <Col>
+    La llama el **navegador del tarjetahabiente** con un formulario `POST`, nunca tu servidor. PAR consume el token y abre una sesión limitada a las tarjetas que enviaste. Se puede enviar en una ventana completa o dentro de un `iframe`, si el origen de tu sitio está autorizado.
+
+    <ApiReader
+      path="/nuevopat/tokenLogin"
+      method="post"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/nuevopat/tokenLogin"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/nuevopat/tokenLogin">
+```html {{ title: 'Formulario' }}
+<form method="post" action="{URL_BASE}/nuevopat/tokenLogin">
+  <input type="hidden" name="token" value="{TOKEN}" />
+  <input type="hidden" name="direccionRegreso" value="https://www.example.com/par/return" />
+  <input type="hidden" name="direccionError" value="https://www.example.com/par/error" />
+  <button type="submit">Ir a mis autopagos</button>
+</form>
+```
+    </CodeGroup>
+  </Col>
+</Row>
