@@ -1,0 +1,59 @@
+export const description =
+  'Manage the PAR issuer partners: create them, get them, update them, rotate their secret key and delete them.'
+
+# Issuer partners
+
+A **partner** is the identity with which an integrator authenticates with PAR. There are two types, managed in different ways:
+
+| Type | How it is managed |
+|---|---|
+| `merchant` | It is born and updated when you [sync the merchant](/en/par/api/reference/administration#sync-merchant). It cannot be created or updated with the partner endpoints |
+| `issuer` | Managed with the partner endpoints: [create](/en/par/api/reference/administration#create-partner), [get](/en/par/api/reference/administration#show-partner), [update](/en/par/api/reference/administration#update-partner) and [delete](/en/par/api/reference/administration#delete-partner) |
+
+The [list](/en/par/api/reference/administration#list-partners) and get endpoints work with both types.
+
+## Partner credentials {{ id: 'credentials' }}
+
+When you create an issuer, PAR assigns it two values, which it returns in the response:
+
+<Properties>
+  <Property name="code" type="string">
+    Unique code of the partner, up to 20 characters.
+  </Property>
+  <Property name="secretKey" type="string">
+    Unique secret key of the partner, of exactly 15 letters and digits.
+  </Property>
+</Properties>
+
+If you prefer to define them yourself, send `code` and `secretKey` on creation. Neither of them can be in use by another partner.
+
+## What an issuer configures {{ id: 'issuer-configuration' }}
+
+<Properties>
+  <Property name="userDocumentType" type="string" isRequired={true}>
+    Document type of the issuer's cardholders, such as `CLRUT`.
+  </Property>
+  <Property name="allowedIps" type="array" isRequired={true}>
+    IP addresses from which the issuer can request tokens. It must include at least one.
+  </Property>
+  <Property name="allowedFrameOrigins" type="array" isRequired={false}>
+    Origins of the issuer authorized to display PAR in an `iframe`. Each origin carries only scheme, host and optional port: no path, query or fragment. See [Embedded session](/en/par/embedded-session).
+  </Property>
+  <Property name="enabled" type="boolean" isRequired={true}>
+    An inactive partner cannot request tokens.
+  </Property>
+</Properties>
+
+## Update and rotate the key {{ id: 'update-and-rotate' }}
+
+The update **replaces** the configuration: always send all the required fields, not just the ones that change.
+
+To **rotate the secret key**, send the new one in `secretKey` and hand it to the issuer. To **deactivate** the issuer, send `enabled: false`.
+
+<Note type="warning">
+  Changing the `secretKey` or deactivating the partner revokes its open sessions. Deleting it also revokes them, and its credentials stop working.
+</Note>
+
+## List with filters {{ id: 'list-with-filters' }}
+
+The list is a `POST` because the filters travel in the body, but it does not modify anything. All filters are optional and can be combined: `status`, `type`, `name` (text contained in the name) and `code` (exact code). The response carries `meta` with `page`, `perPage` and `total`; `perPage` allows up to 100.
