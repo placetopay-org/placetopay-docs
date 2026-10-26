@@ -1753,6 +1753,8 @@ components:
           $ref: '#/components/schemas/SiteSubscriptionValidationBlock'
         branding:
           $ref: '#/components/schemas/SiteBrandingBlock'
+        dispersion:
+          $ref: '#/components/schemas/SiteDispersionBlock'
         metadata:
           $ref: '#/components/schemas/Site-Metadata'
         integrations:
@@ -2117,6 +2119,55 @@ components:
           type: [string, 'null']
           pattern: '^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$'
 
+    SiteDispersionBlock:
+      title: dispersion
+      type: object
+      description: |
+        Configuración de dispersión del sitio. Todos los campos son opcionales, una clave distinta de
+        estas cinco responde `422` y el bloque no admite `null`.
+
+        En una actualización solo cambian los campos que se envían: `{"enabled": false}` apaga la
+        dispersión y conserva el resto de la configuración.
+      additionalProperties: false
+      properties:
+        enabled:
+          type: boolean
+          description: Si el sitio permite dispersiones.
+          example: true
+        maxDispersions:
+          type: [integer, 'null']
+          minimum: 1
+          description: |
+            Máximo de dispersiones por transacción. Con `null` se aplica el máximo por defecto de la
+            plataforma.
+          example: 20
+        errorPolicy:
+          type: string
+          enum: [CONTINUE, STOP, REVERSE]
+          description: |
+            Qué hace el sitio cuando una dispersión falla: `CONTINUE` sigue procesando las que faltan y
+            `STOP` se detiene y rechaza las que no se procesaron. Con `REVERSE`, si la dispersión queda
+            aprobada parcialmente, se reversan las partes ya aprobadas. Si no se envía, se conserva el
+            valor configurado, o `STOP` si no hay ninguno. No admite `null`.
+          example: CONTINUE
+        allowedSites:
+          type: [array, 'null']
+          maxItems: 1000
+          description: |
+            Sitios a los que se puede dispersar, por su `id`: hasta 1.000 sitios existentes, de
+            cualquier comercio. Con `null` o `[]` se puede dispersar a cualquier sitio. Una transacción
+            que dispersa a un sitio fuera de la lista falla completa.
+          items:
+            type: integer
+            minimum: 1
+          example: [3, 2]
+        forwardChildThreeDS:
+          type: boolean
+          description: |
+            Si 3-D Secure se procesa con las credenciales del sitio al que se dispersa. En una
+            dispersión de comercio, solo cubre la dispersión de mayor valor.
+          example: true
+
     MerchantRead:
       title: MerchantRead
       type: object
@@ -2441,6 +2492,7 @@ components:
         - subscriptionValidation
         - branding
         - promotions
+        - dispersion
         - metadata
         - paymentMethods
         - integrations
@@ -2845,6 +2897,26 @@ components:
               franchise:
                 type: [string, 'null']
                 description: '`null` en las promociones generales.'
+        dispersion:
+          type: [object, 'null']
+          description: Configuración de dispersión del sitio. `null` si el sitio nunca se configuró.
+          required: [enabled, maxDispersions, errorPolicy, allowedSites, forwardChildThreeDS]
+          properties:
+            enabled:
+              type: boolean
+            maxDispersions:
+              type: [integer, 'null']
+              description: '`null` si se aplica el máximo por defecto de la plataforma.'
+            errorPolicy:
+              type: string
+              enum: [CONTINUE, STOP, REVERSE]
+            allowedSites:
+              type: [array, 'null']
+              description: '`null` si se puede dispersar a cualquier sitio.'
+              items:
+                type: integer
+            forwardChildThreeDS:
+              type: boolean
         metadata:
           type: [object, array, 'null']
           description: |
