@@ -55,6 +55,8 @@ Al crear una sesión de Webcheckout, puedes enviar [`metadata.athMovilConfirmati
 
 Este tiempo es independiente de `CreateSessionRequest.expiration`, que controla la vigencia general de la sesión de Webcheckout.
 
+Si el pagador no confirma el pago dentro de este tiempo, la transacción finaliza en `REJECTED` con razón `?5`.
+
 ## Integración por Gateway {{ id: 'gateway-integration' }}
 
 La integración por [Gateway](/gateway) es un flujo asíncrono en el que el comercio controla la interfaz y consulta el estado por API hasta obtener el resultado final.
@@ -532,7 +534,7 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
 
 <Row>
   <Col>
-    Mientras el estado sea `PENDING`, repite la consulta con un intervalo controlado. Detén las consultas cuando recibas `APPROVED`, `REJECTED` o `FAILED`.
+    Mientras el estado sea `PENDING`, repite la consulta con un intervalo controlado. Detén las consultas cuando recibas `APPROVED`, `REJECTED` o `FAILED`. Cuando la transacción es rechazada, `status.reason` indica la causa; consulta [Razones de rechazo](#rejection-reasons).
 
     La expiración informada es el límite para confirmar el pago, pero no representa por sí sola un estado final. Después de alcanzarla, realiza una consulta final hasta que Gateway resuelva la transacción.
 
@@ -635,9 +637,22 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
 
 Mientras el pago ATH Móvil se encuentre en estado `PENDING`, el comercio puede solicitar su cancelación mediante [Operaciones sobre una transacción](/gateway/api/reference/transaction#transaction-request). La cancelación debe estar habilitada para el servicio y utiliza el `internalReference` original recibido al procesar el pago.
 
-Cuando ATH Móvil aprueba la cancelación, la transacción original pasa a `REJECTED` con razón `MC`. Si la cancelación devuelve `REJECTED` o `FAILED`, la transacción original permanece `PENDING` y todavía puede recibir un resultado desde ATH Móvil.
+Cuando ATH Móvil aprueba la cancelación, la transacción original pasa a `REJECTED` con razón `?C`. Si la cancelación devuelve `REJECTED` o `FAILED`, la transacción original permanece `PENDING` y todavía puede recibir un resultado desde ATH Móvil.
 
 Consulta nuevamente el `internalReference` original antes de reintentar o iniciar otra operación. Si el pago ya fue aprobado, utiliza un reverso o un reembolso según corresponda.
+
+### Razones de rechazo {{ id: 'rejection-reasons' }}
+
+Cuando una transacción de ATH Móvil finaliza en `REJECTED`, el campo `status.reason` permite identificar la causa:
+
+| Escenario | `status.status` | `status.reason` | Mensaje |
+| --- | --- | --- | --- |
+| El comercio cancela el pago pendiente por API o el usuario lo cancela desde Webcheckout. | `REJECTED` | `?C` | Pago abortado por el usuario |
+| El usuario rechaza el pago desde la aplicación ATH Móvil. | `REJECTED` | `VR` | Pago rechazado por el usuario |
+| El usuario no confirma el pago dentro del tiempo de confirmación. | `REJECTED` | `?5` | El tiempo para confirmar el pago ha expirado |
+| El número de teléfono no está registrado en ATH Móvil. | `REJECTED` | `56` | El usuario no se encuentra registrado |
+
+El texto de `status.message` puede variar según el idioma de la solicitud y la configuración del sitio; utiliza `status.reason` para tomar decisiones en tu integración.
 
 ### Operaciones posteriores {{ id: 'post-transaction-operations' }}
 
@@ -663,7 +678,7 @@ En sitios de prueba, el simulador determina el comportamiento a partir de `payer
 | Teléfono | Resultado esperado |
 | --- | --- |
 | `+19391111111` | La transacción permanece en `PENDING` antes de expirar y posteriormente finaliza en `REJECTED`. |
-| `+19391111112` | La consulta finaliza en `REJECTED` por cancelación. |
+| `+19391111112` | La consulta finaliza en `REJECTED` porque el usuario rechaza el pago desde la aplicación. |
 | `+19391111113` | La consulta finaliza en `FAILED`. |
 | `+19391111114` | La consulta finaliza en `APPROVED`. |
 | `+19391111115` | El simulador retorna `REFUNDED` y Gateway normaliza el resultado a `APPROVED`. |
@@ -677,6 +692,7 @@ En sitios de prueba, el simulador determina el comportamiento a partir de `payer
 | `+19391111123` | La autorización simula un timeout. |
 | `+19391111169` | El procesamiento falla inmediatamente por un error de conexión. |
 | `+19391111178` | El procesamiento falla inmediatamente por token expirado. |
+| `+19391111180` | El procesamiento finaliza en `REJECTED` porque el teléfono no está registrado en ATH Móvil. |
 | `+19391111190` | El procesamiento falla inmediatamente por timeout. |
 | Cualquier otro número | La transacción sigue el flujo aprobado por defecto. |
 

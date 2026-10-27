@@ -55,6 +55,8 @@ When creating a Webcheckout session, you can send [`metadata.athMovilConfirmatio
 
 This timeout is independent of `CreateSessionRequest.expiration`, which controls the overall lifetime of the Webcheckout session.
 
+If the payer does not confirm the payment within this time, the transaction ends in `REJECTED` with reason `?5`.
+
 ## Gateway Integration {{ id: 'gateway-integration' }}
 
 The [Gateway](/en/gateway) integration is an asynchronous flow in which the merchant controls the interface and queries the status through the API until a final result is obtained.
@@ -532,7 +534,7 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
 
 <Row>
   <Col>
-    While the status is `PENDING`, repeat the query at a controlled interval. Stop querying when you receive `APPROVED`, `REJECTED`, or `FAILED`.
+    While the status is `PENDING`, repeat the query at a controlled interval. Stop querying when you receive `APPROVED`, `REJECTED`, or `FAILED`. When the transaction is rejected, `status.reason` indicates the cause; see [Rejection reasons](#rejection-reasons).
 
     The reported expiration is the payment confirmation deadline, but it is not a final status by itself. After it is reached, perform a final query until Gateway resolves the transaction.
 
@@ -635,9 +637,22 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
 
 While an ATH Móvil payment remains `PENDING`, the merchant can request its cancellation through [Operations on a transaction](/en/gateway/api/reference/transaction#transaction-request). Cancellation must be enabled for the service and uses the original `internalReference` returned when the payment was processed.
 
-When ATH Móvil approves the cancellation, the original transaction changes to `REJECTED` with reason `MC`. If cancellation returns `REJECTED` or `FAILED`, the original transaction remains `PENDING` and can still receive a result from ATH Móvil.
+When ATH Móvil approves the cancellation, the original transaction changes to `REJECTED` with reason `?C`. If cancellation returns `REJECTED` or `FAILED`, the original transaction remains `PENDING` and can still receive a result from ATH Móvil.
 
 Query the original `internalReference` again before retrying or starting another operation. If the payment has already been approved, use a reversal or refund as appropriate.
+
+### Rejection reasons {{ id: 'rejection-reasons' }}
+
+When an ATH Móvil transaction ends in `REJECTED`, the `status.reason` field identifies the cause:
+
+| Scenario | `status.status` | `status.reason` | Message |
+| --- | --- | --- | --- |
+| The merchant cancels the pending payment through the API, or the user cancels it from Webcheckout. | `REJECTED` | `?C` | Payment aborted by the user |
+| The user rejects the payment in the ATH Móvil application. | `REJECTED` | `VR` | Payment rejected by the user |
+| The user does not confirm the payment within the confirmation timeout. | `REJECTED` | `?5` | The time to confirm the payment has expired |
+| The phone number is not registered in ATH Móvil. | `REJECTED` | `56` | The user is not registered |
+
+The `status.message` text may vary depending on the request language and the site configuration; use `status.reason` to make decisions in your integration.
 
 ### Post-transaction operations {{ id: 'post-transaction-operations' }}
 
@@ -663,7 +678,7 @@ For test sites, the simulator determines its behavior from `payer.mobile`. Inter
 | Phone | Expected result |
 | --- | --- |
 | `+19391111111` | The transaction remains `PENDING` before expiration and later ends in `REJECTED`. |
-| `+19391111112` | The query ends in `REJECTED` due to cancellation. |
+| `+19391111112` | The query ends in `REJECTED` because the user rejects the payment in the application. |
 | `+19391111113` | The query ends in `FAILED`. |
 | `+19391111114` | The query ends in `APPROVED`. |
 | `+19391111115` | The simulator returns `REFUNDED`, and Gateway normalizes the result to `APPROVED`. |
@@ -677,6 +692,7 @@ For test sites, the simulator determines its behavior from `payer.mobile`. Inter
 | `+19391111123` | Authorization simulates a timeout. |
 | `+19391111169` | Processing fails immediately due to a connection error. |
 | `+19391111178` | Processing fails immediately due to an expired token. |
+| `+19391111180` | Processing ends in `REJECTED` because the phone number is not registered in ATH Móvil. |
 | `+19391111190` | Processing fails immediately due to a timeout. |
 | Any other phone number | The transaction follows the default approved flow. |
 
