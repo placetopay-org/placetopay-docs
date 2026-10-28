@@ -34,7 +34,7 @@ ATH Móvil puede operar mediante Webcheckout o una integración directa por Gate
 
 1. El usuario selecciona **ATH Móvil** como medio de pago.
 2. El usuario completa su información y confirma el pago.
-3. El pago queda en estado pendiente mientras el usuario aprueba desde su teléfono.
+3. El pago queda en estado pendiente mientras el usuario aprueba desde su teléfono; durante ese tiempo puede cancelar la solicitud desde la misma pantalla de espera.
 4. Webcheckout consulta periódicamente el estado de la transacción.
 5. Cuando cambia el estado, la sesión se actualiza y muestra el resultado final al usuario.
 
@@ -58,6 +58,24 @@ El tiempo de confirmación por defecto es de `5` minutos.
 ```
 
 Este tiempo es independiente de `CreateSessionRequest.expiration`, que controla la vigencia general de la sesión de Webcheckout.
+
+### Cancelar una transacción pendiente por el cliente {{ id: 'webcheckout-cancel' }}
+
+Mientras el pago siga `PENDING`, el usuario puede cancelarlo desde la pantalla de espera de Webcheckout con el botón **Cancelar solicitud**. El botón aparece cuando el pago ya fue enviado a ATH Móvil y se mantiene visible junto con el tiempo disponible para cancelar.
+
+La cancelación solo aplica a transacciones ATH Móvil `PENDING`. Si el pago ya fue aprobado o la sesión finalizó, la cancelación se rechaza y se conserva el estado actual.
+
+Al confirmarse la cancelación:
+
+- La transacción pasa a `REJECTED` con código de respuesta `?C` (cancelación solicitada por el usuario).
+- Se actualiza la **misma sesión**; no se crea una sesión nueva.
+- Si a la sesión le quedan intentos disponibles, continúa activa y el usuario puede reintentar el pago sin salir de ella.
+- Si la cancelación consume el último intento, la sesión termina en `REJECTED` y se aplica el cierre o la notificación habitual al comercio.
+
+La operación es idempotente: si la transacción ya fue cancelada, se devuelve su estado actual sin volver a cancelarla. Si ATH Móvil no confirma la cancelación, la sesión conserva su estado y el intento puede repetirse.
+
+Esta cancelación la inicia el cliente desde Webcheckout. La cancelación solicitada por el comercio mediante Gateway se describe en [Cancelar un pago pendiente](#gateway-cancel).
+![Flujo de pago ATH Cancel](/payments/ath-movil/ath-cancel.jpg)
 
 ## Integración por Gateway {{ id: 'gateway-integration' }}
 
@@ -668,6 +686,7 @@ La cancelación aplica únicamente mientras el pago continúa `PENDING`. Si el p
 - **Flujo asíncrono en Gateway**: El comercio debe implementar la consulta de estado por API hasta obtener un resultado final.
 - **Estado pendiente durante la aprobación**: La transacción permanece pendiente mientras el usuario confirma el pago en su teléfono.
 - **Cancelación de pagos pendientes**: Una respuesta fallida o rechazada de cancelación no cambia el estado de la transacción original; vuelve a consultarla antes de reintentar.
+- **Cancelación desde Webcheckout**: Solo está disponible mientras la transacción ATH Móvil siga `PENDING`; si el pago ya fue aprobado, no se puede cancelar y se conserva el estado actual.
 - **Disponibilidad por región**: ATH Móvil aplica para operaciones en Puerto Rico.
 
 La petición de procesamiento admite montos decimales, los impuestos `stateTax`, `municipalTax` y `reducedStateTax` en `payment.amount.taxes`, y propinas mediante `payment.amount.details` con `kind: "tip"`. El monto base resultante después de restar estos impuestos y la propina debe ser mayor que cero.
