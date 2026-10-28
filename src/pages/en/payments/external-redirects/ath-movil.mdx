@@ -34,7 +34,7 @@ ATH Móvil can operate through Webcheckout or direct Gateway integration. In bot
 
 1. The user selects **ATH Móvil** as the payment method.
 2. The user completes their payment information and confirms the payment.
-3. The payment remains pending while the user approves from their phone.
+3. The payment remains pending while the user approves from their phone; during that time, they can cancel the request from the same waiting screen.
 4. Webcheckout periodically checks the transaction status.
 5. When the status changes, the session updates and shows the final result.
 
@@ -58,6 +58,25 @@ The default confirmation timeout is `5` minutes.
 ```
 
 This timeout is independent of `CreateSessionRequest.expiration`, which controls the overall lifetime of the Webcheckout session.
+
+### Cancel a pending transaction by the customer {{ id: 'webcheckout-cancel' }}
+
+While the payment remains `PENDING`, the user can cancel it from the Webcheckout waiting screen with the **Cancel request** button. The button appears once the payment has been sent to ATH Móvil and stays visible along with the time available to cancel.
+
+Cancellation applies only to `PENDING` ATH Móvil transactions. If the payment has already been approved or the session has ended, the cancellation is rejected and the current status is preserved.
+
+When the cancellation is confirmed:
+
+- The transaction moves to `REJECTED` with response code `?C` (cancelled by the user).
+- The **same session** is updated; no new session is created.
+- If the session still has attempts available, it remains active and the user can retry the payment without leaving it.
+- If the cancellation uses the last attempt, the session ends in `REJECTED` and the usual closure or merchant notification applies.
+
+The operation is idempotent: if the transaction has already been cancelled, its current status is returned without cancelling it again. If ATH Móvil does not confirm the cancellation, the session keeps its status and the attempt can be repeated.
+
+This cancellation is initiated by the customer from Webcheckout. Merchant-requested cancellation through Gateway is described in [Cancel a pending payment](#gateway-cancel).
+
+![ATH Móvil cancellation flow](/payments/ath-movil/ath-cancel.jpg)
 
 ## Gateway Integration {{ id: 'gateway-integration' }}
 
@@ -668,6 +687,7 @@ Cancellation applies only while the payment remains `PENDING`. If the payment ha
 - **Asynchronous Gateway flow**: The merchant must implement API status polling until a final result is available.
 - **Pending state during approval**: The transaction remains pending while the user confirms the payment on their phone.
 - **Pending payment cancellation**: A failed or rejected cancellation response does not change the original transaction status; query it again before retrying.
+- **Cancellation from Webcheckout**: Available only while the ATH Móvil transaction remains `PENDING`; if the payment has already been approved, it cannot be cancelled and the current status is preserved.
 - **Regional availability**: ATH Móvil applies to operations in Puerto Rico.
 
 The processing request supports decimal amounts; `stateTax`, `municipalTax`, and `reducedStateTax` in `payment.amount.taxes`; and tips through `payment.amount.details` with `kind: "tip"`. The base amount remaining after subtracting these taxes and the tip must be greater than zero.
