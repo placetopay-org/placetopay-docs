@@ -199,7 +199,7 @@ paths:
       operationId: postapi-request
       responses:
         '201':
-          description: La solicitud de validación se creó y los mensajes se enviaron.
+          description: La solicitud se creó y al menos un canal entregó el mensaje.
           content:
             application/json:
               schema:
@@ -250,6 +250,8 @@ paths:
                     type: string
                     description: Clasificación de la solicitud
                     example: horus
+                  channels:
+                    $ref: '#/components/schemas/ChannelResults'
         '401':
           description: La solicitud no está autenticada, falta el token Bearer o es inválido/expirado.
           content:
@@ -295,7 +297,7 @@ paths:
                       message: Unauthenticated.
                       date: '2026-08-13T15:10:55+00:00'
         '400':
-          description: No fue posible entregar el mensaje por alguno de los canales indicados
+          description: Ningún canal logró entregar el mensaje; la solicitud queda en FAILED.
           content:
             application/json:
               schema:
@@ -304,7 +306,7 @@ paths:
                   example-1:
                     status:
                       status: FAILED
-                      reason: null
+                      reason: 0
                       message: 'El mensaje no se ha podido enviar por el canal: SMS'
                       date: '2022-08-08T17:23:49+00:00'
                 properties:
@@ -330,6 +332,8 @@ paths:
                         description: Fecha y hora de respuesta
                         format: date-time
                         example: '2022-08-08T17:23:49+00:00'
+                  channels:
+                    $ref: '#/components/schemas/ChannelResults'
         '422':
           description: Los datos de la solicitud no superaron la validación.
           content:
@@ -599,6 +603,7 @@ paths:
                           - APPROVED
                           - REJECTED
                           - PARTIAL_EXPIRED
+                          - FAILED
                         example: PENDING
                       reason:
                         type:
@@ -826,6 +831,8 @@ paths:
                         description: Fecha y hora de respuesta
                         format: date-time
                         example: '2022-08-12T15:44:17+00:00'
+                  channels:
+                    $ref: '#/components/schemas/ChannelResults'
               examples:
                 OK:
                   value:
@@ -879,7 +886,7 @@ paths:
                       message: Unauthenticated.
                       date: '2026-08-13T15:10:55+00:00'
         '400':
-          description: No fue posible entregar el mensaje por alguno de los canales indicados
+          description: Ningún canal logró entregar el mensaje; la solicitud queda en FAILED.
           content:
             application/json:
               schema:
@@ -888,7 +895,7 @@ paths:
                   example-1:
                     status:
                       status: FAILED
-                      reason: null
+                      reason: 0
                       message: 'El mensaje no se ha podido enviar por el canal: SMS'
                       date: '2022-08-12T14:50:01+00:00'
                 properties:
@@ -914,6 +921,8 @@ paths:
                         format: date-time
                         description: Fecha y hora de respuesta
                         example: '2022-08-12T14:50:01+00:00'
+                  channels:
+                    $ref: '#/components/schemas/ChannelResults'
         '422 - Consulta del site_id falla':
           description: La consulta del site_id falla.
           content:
@@ -1210,6 +1219,39 @@ components:
               type: string
               description: Asunto del correo electrónico
               example: Asunto correo
+    ChannelResults:
+      type: array
+      description: Resultado de envío por canal, en el mismo orden en que se indicaron en la solicitud.
+      items:
+        type: object
+        required:
+          - channel
+          - delivered
+        properties:
+          channel:
+            type: string
+            description: Canal utilizado
+            enum:
+              - sms
+              - whatsapp
+              - email
+          delivered:
+            type: boolean
+            description: true si el proveedor aceptó el mensaje
+          reason:
+            type: string
+            description: Motivo de la falla. Solo aparece si delivered es false.
+            enum:
+              - invalid_destination
+              - template_rejected
+              - provider_unavailable
+              - rate_limited
+              - authentication_error
+              - delivery_unconfirmed
+              - unknown
+          message:
+            type: string
+            description: Descripción del motivo en el idioma de la solicitud. Solo aparece si delivered es false.
   responses: {}
   securitySchemes:
     Bearer:

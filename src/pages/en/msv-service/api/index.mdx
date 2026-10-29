@@ -29,7 +29,7 @@ All requests must be sent to the following base URL, depending on your environme
 
 ## Validation lifecycle
 
-1. You create the request with `POST /api/validations`. The service responds `201` with a `token` and sends the message through the channels you indicated. At this point, the validation is created with status `PENDING`.
+1. You create the request with `POST /api/validations`. The service sends the message through the channels you indicated. If at least one channel delivers it, it responds `201` with a `token` and the validation is created with status `PENDING`. If no channel delivers it, it responds `400` and the validation is set to `FAILED`.
 2. The message takes the user to a confirmation page hosted by msv-service, where they approve or reject. In SMS and email, the link is added automatically; in WhatsApp, it only appears if you include `[URL_VALIDATION]` among the template parameters.
 3. As soon as they respond, the request changes to `APPROVED` or `REJECTED` and the webhook is sent.
 4. If they do not respond within `minutes_by_expire` (30 minutes by default, maximum 60), the request changes to `PARTIAL_EXPIRED` and the webhook is also sent.
@@ -40,12 +40,42 @@ All requests must be sent to the following base URL, depending on your environme
 | `APPROVED` | The user approved. |
 | `REJECTED` | The user rejected. |
 | `PARTIAL_EXPIRED` | The time limit expired without a response. |
+| `FAILED` | No channel confirmed delivery of the message. No webhook is sent. |
 
 ### Visual flow
 
 <ValidationLifecycle />
 
 You can check the status at any time with [Validation Query](/en/msv-service/api/validation-query).
+
+## Channel results {{ id: 'channel-results' }}
+
+The responses of `POST /api/validations` and `POST /api/notifications` include a `channels` array with the result of each channel, in the same order you sent them. A channel can fail even if another one delivered the message; in that case the response is still successful.
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `channel` | string | Channel: `sms`, `whatsapp` or `email`. |
+| `delivered` | boolean | `true` if the provider accepted the message. |
+| `reason` | string | Failure reason. Only present when `delivered` is `false`. |
+| `message` | string | Description of the reason in the request language. Only present when `delivered` is `false`. |
+
+If the `locale` you send is not supported, the service default language (`en`) is used.
+
+### Failure reasons
+
+| `reason` | Meaning |
+| :--- | :--- |
+| `invalid_destination` | The destination number or email is invalid or cannot receive messages. |
+| `template_rejected` | WhatsApp rejected the message template. |
+| `provider_unavailable` | The messaging service is not available at this time. |
+| `rate_limited` | The provider's sending limit was exceeded. Try again later. |
+| `authentication_error` | Authentication error with the messaging provider. It does not depend on the data you sent. |
+| `delivery_unconfirmed` | The provider did not respond in time. The message may or may not have arrived. |
+| `unknown` | Unexpected error when sending through the channel. |
+
+<Note>
+  msv-service does not retry deliveries. If a provider does not respond within the time limit, the channel is reported as `delivery_unconfirmed`.
+</Note>
 
 ## Webhook {{ id: 'validation-webhook' }}
 
@@ -138,8 +168,8 @@ http_response_code(200);
 
 | Code | When it occurs |
 | :--- | :--- |
-| `200` / `201` | The request was processed successfully. |
-| `400` | It was not possible to deliver the message through one of the channels. |
+| `200` / `201` | The request was processed and at least one channel delivered the message. |
+| `400` | No channel was able to deliver the message. The per-channel detail is in `channels`. |
 | `401` | The token is missing, invalid, or expired. |
 | `404` | The queried token does not exist (only in validation query). |
 | `422` | The data did not pass validation; the details are in `errors`. |
@@ -152,6 +182,6 @@ http_response_code(200);
 Explore the available endpoints:
 
 * [**Login**](/en/msv-service/api/login): Allows you to obtain a token to make API requests.
-* [**Validation**](/en/msv-service/api/validation): Creates a validation request (synchronous response: `HTTP 201`).
+* [**Validation**](/en/msv-service/api/validation): Creates a validation request (synchronous response: `HTTP 201` or `400`).
 * [**Validation query**](/en/msv-service/api/validation-query): Checks the current status of a previously created validation.
 * [**Notification**](/en/msv-service/api/notification): Creates a notification request.

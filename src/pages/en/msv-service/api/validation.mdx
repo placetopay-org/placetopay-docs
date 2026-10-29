@@ -12,7 +12,7 @@ export const description = 'Create a validation request in MSV Service to get us
 
 Create a validation request: **msv-service** sends the user a message through the channels you specify, with a link to approve or reject.
 
-The `201` response only confirms that the request was created and the messages were sent; the status is always `PENDING`. The user's response arrives later via [webhook](/en/msv-service/api#validation-webhook), or you can check it with the `token` in [Validation Query](/en/msv-service/api/validation-query).
+The `201` response confirms that the request was created and at least one channel delivered the message; the status is `PENDING`. If no channel delivered it, the response is `400` and the request is set to `FAILED`. In both cases, `channels` shows the result of each channel (see [Channel results](/en/msv-service/api#channel-results)). The user's response arrives later via [webhook](/en/msv-service/api#validation-webhook), or you can check it with the `token` in [Validation Query](/en/msv-service/api/validation-query).
 
 <Row>
   <Col>
@@ -89,7 +89,23 @@ curl -X "POST" {{baseURl}}/api/validations \
   },
   "reference": "ref-12548",
   "token": "d5d67dcb",
-  "kind": "Horus"
+  "kind": "Horus",
+  "channels": [
+    {
+      "channel": "sms",
+      "delivered": true
+    },
+    {
+      "channel": "whatsapp",
+      "delivered": false,
+      "reason": "template_rejected",
+      "message": "The message template was rejected"
+    },
+    {
+      "channel": "email",
+      "delivered": true
+    }
+  ]
 }
 ```
 ```json {{ title: '401' }}
@@ -106,10 +122,30 @@ curl -X "POST" {{baseURl}}/api/validations \
 {
   "status": {
     "status": "FAILED",
-    "reason": null,
-    "message": "El mensaje no se ha podido enviar por el canal: SMS",
+    "reason": 0,
+    "message": "The message could not be sent via the channel: SMS",
     "date": "2022-08-08T17:23:49+00:00"
-  }
+  },
+  "channels": [
+    {
+      "channel": "sms",
+      "delivered": false,
+      "reason": "invalid_destination",
+      "message": "The destination number is invalid or cannot receive messages"
+    },
+    {
+      "channel": "whatsapp",
+      "delivered": false,
+      "reason": "provider_unavailable",
+      "message": "The messaging service is not available at this time"
+    },
+    {
+      "channel": "email",
+      "delivered": false,
+      "reason": "delivery_unconfirmed",
+      "message": "The delivery could not be confirmed: the provider did not respond in time"
+    }
+  ]
 }
 ```
 ```json {{ title: '422' }}
@@ -132,7 +168,7 @@ curl -X "POST" {{baseURl}}/api/validations \
 </Row>
 
 <Note type="warning">
-Important: a `400` response on `/api/validations` does not roll back an already created request. Channels that were already sent remain active, and the user may still approve or reject the request.
+A `400` response on `/api/validations` means no channel confirmed delivery: the request is set to `FAILED` and no webhook is sent. If any channel returned `delivery_unconfirmed`, the message may still have reached the user, so check with [Validation Query](/en/msv-service/api/validation-query) before taking any action.
 </Note>
 
 
