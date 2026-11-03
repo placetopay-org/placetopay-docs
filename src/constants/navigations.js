@@ -2349,6 +2349,10 @@ export const TAB_NAVIGATION = {
                 title: 'Acciones sobre anuncios',
                 href: '/core/reference/ads'
               },
+              {
+                title: 'Acciones sobre autopay',
+                href: '/core/reference/autopay',
+              },
             ]
           },
         ],
@@ -2415,6 +2419,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Actions on Ads',
                 href: '/en/core/reference/ads'
+              },
+              {
+                title: 'Actions on autopay',
+                href: '/en/core/reference/autopay',
               },
             ]
           },
