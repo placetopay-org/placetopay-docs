@@ -25,6 +25,27 @@ Google Pay es una billetera digital que permite a los consumidores pagar de form
    - Si el emisor no soporta tokenización, se puede procesar con el PAN provisto por Google Pay bajo las políticas correspondientes.
 4. **Beneficio adicional**: Si tus clientes ya tienen tarjetas guardadas en Google Pay, podrán pagar sin volver a ingresar datos, mejorando la conversión.
 
+## Google Pay en iframes y WebViews {{ id: 'embedded-and-webview' }}
+
+Si Webcheckout se abre dentro de un iframe o de un WebView, ese contexto debe cumplir condiciones adicionales que dependen de tu integración:
+
+| Entorno | Qué debe configurar el comercio |
+| :--- | :--- |
+| iframe en tu sitio web | Agrega el atributo `allow="payment"` al iframe que carga Webcheckout. Si hay iframes anidados, cada uno debe incluirlo, y si el iframe no define `src` (contenido creado dinámicamente), usa `allow="payment *"`. Consulta también [Billeteras digitales en iframes](/checkout/lightbox#wallets-in-iframes). |
+| WebView en Android | Habilita la Payment Request API en el WebView y declara las consultas de Google Pay en tu app. El dispositivo debe tener Google Play services 25.18.30 o superior y Android System WebView 137 o superior. Consulta la [configuración paso a paso](/checkout/integration/mobile#google-pay-android-webview). |
+| WebView en iOS (`WKWebView`) | Google documenta una configuración para `WKWebView`, pero en sus preguntas frecuentes indica que la comprobación de disponibilidad siempre responde `false` en WebViews de iOS. Consulta las [consideraciones para iOS](/checkout/integration/mobile#wallets-ios-webview). |
+
+### Disponibilidad y errores durante el pago {{ id: 'availability-and-payment-errors' }}
+
+La comprobación de disponibilidad y el flujo de pago son etapas distintas:
+
+- **Comprobación de disponibilidad**: Webcheckout consulta a Google con `isReadyToPay` y muestra el botón solo si la respuesta es positiva. Google documenta que esta consulta responde `false` cuando el dispositivo Android no cumple los requisitos de versión de Google Play services y Android System WebView, y que siempre responde `false` en WebViews de iOS.
+- **Errores durante el pago**: una respuesta positiva de `isReadyToPay` no garantiza que el pago se complete. En nuestras pruebas con una app Android sin la configuración de WebView, el botón de Google Pay se mostraba y el flujo fallaba al iniciarse; funcionó después de aplicar la [configuración para Android](/checkout/integration/mobile#google-pay-android-webview). Cuando el flujo falla, el pago con Google Pay no se completa y el pagador puede elegir otro medio habilitado en la sesión.
+
+<Note>
+Para aplicaciones móviles, la opción recomendada es abrir Webcheckout en un browser in-app (Chrome Custom Tabs o `SFSafariViewController`) en lugar de un WebView. Conoce más en [Integración con aplicación móvil](/checkout/integration/mobile).
+</Note>
+
 ## Casos de uso
 
 Google Pay es ideal para:

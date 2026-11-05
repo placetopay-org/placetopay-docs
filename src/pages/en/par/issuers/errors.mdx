@@ -1,0 +1,50 @@
+export const description =
+  'Learn the codes PAR answers an issuer token request with and the login errors.'
+
+# Issuer errors
+
+The token request returns errors in the same XML message as success, with a code in `Coderror` and a text in `Descerror`.
+
+## Format {{ id: 'format' }}
+
+```xml {{ title: 'Error response' }}
+<?xml version="1.0" encoding="UTF-8"?>
+<Mensaje>
+  <Coderror>1</Coderror>
+  <Descerror>Wrong user or password.</Descerror>
+</Mensaje>
+```
+
+<Properties>
+  <Property name="Coderror" type="string">
+    Result code. It is the value your integration should use to decide what to do.
+  </Property>
+  <Property name="Descerror" type="string">
+    Informative text that accompanies the code, up to 80 characters. In validation errors it names the field that failed. It may change, so do not use it to make decisions.
+  </Property>
+</Properties>
+
+Error responses use HTTP `200`, except when the request limit is exceeded, which answers HTTP `429`.
+
+## Catalog {{ id: 'codes' }}
+
+| Code | Description | Cause |
+|---|---|---|
+| `0` | SUCCESS | The token was issued |
+| `1` | Wrong user or password. | The username or password is invalid, does not belong to an issuer or the issuer is not active |
+| `100` | Business validation error | A required field is missing, a field is malformed or exceeds its length, there are more than 5 cards or one is invalid, `DuracionToken` is invalid, the `IP` is invalid or not authorized, or the document does not have your issuer's format |
+| `1000` | General error | Unexpected error in PAR, or the request limit was exceeded (HTTP `429`). Retry later |
+| `1001` | General database error | Database error in PAR. Retry later |
+| `1007` | Invalid XML | The `TBKPatData` field was not sent or its content is not valid XML |
+
+In validation errors (`100` and `1007`), `Descerror` describes the specific problem, for example `The DatosUsuario.RutUsuario field is required`. Each response reports a single problem; fix it and send the request again.
+
+## Login errors {{ id: 'login-errors' }}
+
+The login is done by the cardholder's browser, so its errors do not answer XML:
+
+- If the token is missing, does not exist, was already used, expired or was revoked, PAR answers `403` and shows an error page.
+- If a form URL is invalid or does not belong to an authorized origin, the login is rejected.
+- If the login fails, PAR sends the cardholder to your `direccionError`, when you sent it and it is valid. Otherwise, it shows them a page telling them the session could not be started.
+
+In all cases, request a new token and send the cardholder again.

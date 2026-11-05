@@ -1,0 +1,191 @@
+export const description =
+  'Solicita a PAR el token con el que un tarjetahabiente de tu emisor inicia la sesión, enviando sus tarjetas en un mensaje XML.'
+
+# Solicitar el token
+
+Para llevar a un tarjetahabiente a PAR, tu servidor solicita un token con un **mensaje XML** que incluye tus credenciales, el documento del tarjetahabiente y las tarjetas que le emitiste. PAR responde, también en XML, con el token de un solo uso.
+
+## Credenciales {{ id: 'credentials' }}
+
+Placetopay te entrega las credenciales al darte de alta como socio emisor de PAR, y registra con ellas la configuración de tu emisor:
+
+<Properties>
+  <Property name="Usuario" type="string" isRequired={true}>
+    Identifica a tu emisor. Viaja en el mensaje, en `Perfil.NombreUsuario`.
+  </Property>
+  <Property name="Contraseña" type="string" isRequired={true}>
+    Autentica tu solicitud. Viaja en el mensaje, en `Perfil.ContrasenaUsuario`.
+  </Property>
+  <Property name="IP autorizadas" type="list">
+    La lista de direcciones IP de tus servidores que Placetopay registra para tu emisor. En cada solicitud declaras una sola, en el campo `IP` del mensaje, y debe estar en esa lista.
+  </Property>
+  <Property name="Tipo de documento" type="string">
+    El tipo de documento de identidad de tus tarjetahabientes. PAR valida el documento que envías contra el formato de ese tipo.
+  </Property>
+</Properties>
+
+PAR opera en ambientes separados, y cada uno tiene su propia URL base y sus propias credenciales. En esta documentación, `{URL_BASE}` representa la URL del ambiente en el que estés trabajando.
+
+## Enviar la solicitud {{ id: 'send-request' }}
+
+`POST {URL_BASE}/nuevopat/SolicitaTkn`
+
+El mensaje XML viaja como un campo de formulario llamado `TBKPatData`, con el tipo de contenido `application/x-www-form-urlencoded`. Su elemento raíz también se llama `TBKPatData`:
+
+```xml {{ title: 'TBKPatData' }}
+<TBKPatData>
+  <Perfil>
+    <NombreUsuario>{TU_USUARIO}</NombreUsuario>
+    <ContrasenaUsuario>{TU_CONTRASENA}</ContrasenaUsuario>
+  </Perfil>
+  <DuracionToken>300</DuracionToken>
+  <DatosUsuario>
+    <RutUsuario>11.111.111-1</RutUsuario>
+  </DatosUsuario>
+  <DataAuditoriaUsuario>session-0001</DataAuditoriaUsuario>
+  <DatosTarjetas>
+    <NumeroTarjeta>4111111111111111</NumeroTarjeta>
+    <NumeroTarjeta>5180300000000005</NumeroTarjeta>
+  </DatosTarjetas>
+  <IP>203.0.113.10</IP>
+</TBKPatData>
+```
+
+### Campos del mensaje
+
+<Properties>
+  <Property name="Perfil.NombreUsuario" type="string" isRequired={true}>
+    Usuario de tu emisor. Máximo 20 caracteres.
+  </Property>
+  <Property name="Perfil.ContrasenaUsuario" type="string" isRequired={true}>
+    Contraseña de tu emisor. Máximo 15 caracteres.
+  </Property>
+  <Property name="DatosUsuario.RutUsuario" type="string" isRequired={true}>
+    Documento de identidad del tarjetahabiente, en el formato del tipo de documento de tu emisor. Máximo 15 caracteres. Si corresponde a una persona ya registrada en PAR, la sesión se abre con su cuenta.
+  </Property>
+  <Property name="DatosTarjetas.NumeroTarjeta" type="string" isRequired={true}>
+    Número de una tarjeta del tarjetahabiente, solo con dígitos y máximo 20. Repite el elemento por cada tarjeta, hasta un máximo de 5. Cada número debe ser un número de tarjeta válido.
+  </Property>
+  <Property name="IP" type="string" isRequired={true}>
+    Dirección IP de tu servidor. Debe ser una de las IP autorizadas para tu emisor. Máximo 20 caracteres.
+  </Property>
+  <Property name="DuracionToken" type="integer" isRequired={false}>
+    Vigencia del token, en segundos. Si no lo envías, PAR aplica su vigencia por defecto. No puede superar el máximo que permite PAR.
+  </Property>
+  <Property name="DataAuditoriaUsuario" type="string" isRequired={false}>
+    Dato de auditoría propio de tu emisor, por ejemplo el identificador de la sesión en tu sitio. PAR lo conserva con la sesión. Máximo 40 caracteres.
+  </Property>
+</Properties>
+
+### Ejemplo
+
+<CodeGroup title="Solicitud" tag="POST" label="/nuevopat/SolicitaTkn">
+
+```bash {{ title: 'cURL' }}
+curl --request POST \
+  --url '{URL_BASE}/nuevopat/SolicitaTkn' \
+  --data-urlencode 'TBKPatData=<TBKPatData><Perfil><NombreUsuario>{TU_USUARIO}</NombreUsuario><ContrasenaUsuario>{TU_CONTRASENA}</ContrasenaUsuario></Perfil><DatosUsuario><RutUsuario>11.111.111-1</RutUsuario></DatosUsuario><DatosTarjetas><NumeroTarjeta>4111111111111111</NumeroTarjeta></DatosTarjetas><IP>203.0.113.10</IP></TBKPatData>'
+```
+
+```php {{ title: 'PHP' }}
+$xml = <<<XML
+<TBKPatData>
+  <Perfil>
+    <NombreUsuario>{$username}</NombreUsuario>
+    <ContrasenaUsuario>{$password}</ContrasenaUsuario>
+  </Perfil>
+  <DatosUsuario>
+    <RutUsuario>11.111.111-1</RutUsuario>
+  </DatosUsuario>
+  <DatosTarjetas>
+    <NumeroTarjeta>4111111111111111</NumeroTarjeta>
+  </DatosTarjetas>
+  <IP>203.0.113.10</IP>
+</TBKPatData>
+XML;
+
+$response = Http::asForm()->post("{$urlBase}/nuevopat/SolicitaTkn", [
+    'TBKPatData' => $xml,
+]);
+
+$message = simplexml_load_string($response->body());
+```
+
+```js {{ title: 'Node' }}
+const xml = `
+<TBKPatData>
+  <Perfil>
+    <NombreUsuario>${username}</NombreUsuario>
+    <ContrasenaUsuario>${password}</ContrasenaUsuario>
+  </Perfil>
+  <DatosUsuario>
+    <RutUsuario>11.111.111-1</RutUsuario>
+  </DatosUsuario>
+  <DatosTarjetas>
+    <NumeroTarjeta>4111111111111111</NumeroTarjeta>
+  </DatosTarjetas>
+  <IP>203.0.113.10</IP>
+</TBKPatData>`
+
+const response = await fetch(`${urlBase}/nuevopat/SolicitaTkn`, {
+  method: 'POST',
+  body: new URLSearchParams({ TBKPatData: xml }),
+})
+
+const message = await response.text()
+```
+
+</CodeGroup>
+
+## Respuesta {{ id: 'response' }}
+
+PAR responde siempre con un mensaje XML con el elemento raíz `Mensaje`. Si la solicitud es válida, `Coderror` vale `0` y el mensaje incluye el token:
+
+<CodeGroup title="Respuesta">
+
+```xml {{ title: 'Éxito' }}
+<?xml version="1.0" encoding="UTF-8"?>
+<Mensaje>
+  <Coderror>0</Coderror>
+  <Descerror>EXITO</Descerror>
+  <Token>{TOKEN}</Token>
+</Mensaje>
+```
+
+```xml {{ title: 'Error' }}
+<?xml version="1.0" encoding="UTF-8"?>
+<Mensaje>
+  <Coderror>100</Coderror>
+  <Descerror>El campo DatosUsuario.RutUsuario es requerido</Descerror>
+</Mensaje>
+```
+
+</CodeGroup>
+
+<Properties>
+  <Property name="Coderror" type="string">
+    Código del resultado. `0` indica éxito; cualquier otro valor, un error. El catálogo está en [Errores](/par/issuers/errors).
+  </Property>
+  <Property name="Descerror" type="string">
+    Texto informativo que acompaña al código, de hasta 80 caracteres. Puede cambiar, así que no lo uses para tomar decisiones.
+  </Property>
+  <Property name="Token" type="string">
+    Token de un solo uso con el que el tarjetahabiente iniciará la sesión. Solo viene cuando `Coderror` es `0`.
+  </Property>
+</Properties>
+
+<Note type="warning">
+  Los errores también responden con HTTP `200`. Lee siempre `Coderror` para saber si obtuviste un token.
+</Note>
+
+## Qué valida PAR {{ id: 'validation' }}
+
+Antes de emitir el token, PAR comprueba:
+
+1. Que `TBKPatData` llegue y sea un XML válido.
+2. Que estén todos los campos obligatorios, con sus formatos y longitudes.
+3. Que el usuario y la contraseña correspondan a un emisor activo.
+4. Que la `IP` declarada sea una de las IP autorizadas para tu emisor.
+5. Que el documento tenga el formato del tipo de documento de tu emisor.
+
+Con el token en la mano, el siguiente paso es [iniciar la sesión](/par/issuers/login) del tarjetahabiente.

@@ -3,6 +3,7 @@ import {
   Activity,
   Book,
   Calendar,
+  CardTick,
   Courthouse,
   DocumentCode,
   Link,
@@ -126,6 +127,12 @@ export const NAMESPACES_SELECTOR = {
       icon: Shop,
     },
     {
+      title: 'PAR',
+      description: 'Inscripción de autopagos',
+      href: '/par',
+      icon: CardTick,
+    },
+    {
       title: 'MSV Service',
       description: 'Servicio de notificaciones',
       href: '/msv-service/api',
@@ -236,6 +243,12 @@ export const NAMESPACES_SELECTOR = {
       icon: Shop,
     },
     {
+      title: 'PAR',
+      description: 'Autopay enrollment',
+      href: '/en/par',
+      icon: CardTick,
+    },
+    {
       title: 'MSV Service',
       description: 'Notification service',
       href: '/en/msv-service/api',
@@ -271,6 +284,7 @@ export const NAMESPACE_ROUTES = {
   'autopay': 'autopay',
   'search': 'search',
   'onboarding': 'onboarding',
+  par: 'par',
   'msv-service': 'msvService',
 }
 
@@ -524,6 +538,10 @@ export const TAB_NAVIGATION = {
                 title: 'Billeteras',
                 links: [
                   {
+                    title: 'Apple Pay',
+                    href: '/payments/wallets/applepay',
+                  },
+                  {
                     title: 'Click to Pay',
                     href: '/payments/wallets/clicktopay',
                   },
@@ -693,6 +711,7 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Wallets',
                 links: [
+                  { title: 'Apple Pay', href: '/en/payments/wallets/applepay' },
                   { title: 'Click to Pay', href: '/en/payments/wallets/clicktopay' },
                   { title: 'Google Pay', href: '/en/payments/wallets/googlepay' },
                 ],
@@ -2326,7 +2345,11 @@ export const TAB_NAVIGATION = {
                 title: 'Acciones sobre integraciones de sitios',
                 href: '/core/reference/site/integrations',
               },
-            ],
+              {
+                title: 'Acciones sobre anuncios',
+                href: '/core/reference/ads'
+              },
+            ]
           },
         ],
       },
@@ -2389,7 +2412,11 @@ export const TAB_NAVIGATION = {
                 title: 'Actions on site integrations',
                 href: '/en/core/reference/site/integrations',
               },
-            ],
+              {
+                title: 'Actions on Ads',
+                href: '/en/core/reference/ads'
+              },
+            ]
           },
         ],
       },
@@ -3170,6 +3197,7 @@ export const TAB_NAVIGATION = {
               { title: 'Crear un comercio', href: '/onboarding/create-merchant' },
               { title: 'Consultar el proceso', href: '/onboarding/process-status' },
               { title: 'Notificación', href: '/onboarding/notification' },
+              { title: 'Consultar un comercio', href: '/onboarding/show-merchant' },
               { title: 'Actualizar un comercio', href: '/onboarding/update-merchant' },
               { title: 'Errores', href: '/onboarding/errors' },
             ],
@@ -3238,6 +3266,7 @@ export const TAB_NAVIGATION = {
               { title: 'Create a merchant', href: '/en/onboarding/create-merchant' },
               { title: 'Check the process', href: '/en/onboarding/process-status' },
               { title: 'Notification', href: '/en/onboarding/notification' },
+              { title: 'Get a merchant', href: '/en/onboarding/show-merchant' },
               { title: 'Update a merchant', href: '/en/onboarding/update-merchant' },
               { title: 'Errors', href: '/en/onboarding/errors' },
             ],
@@ -3278,6 +3307,110 @@ export const TAB_NAVIGATION = {
               { title: 'Merchants', href: '/en/onboarding/api/reference/merchants' },
               { title: 'Processes', href: '/en/onboarding/api/reference/processes' },
               { title: 'Consumer', href: '/en/onboarding/api/reference/user' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  par: {
+    [LANGUAGES_CODES.ES]: [
+      {
+        title: 'Documentación',
+        identifier: 'par',
+        href: '/par',
+        icon: Book,
+        links: [
+          {
+            title: 'PAR',
+            links: [
+              { title: 'Introducción', href: '/par' },
+              { title: 'Cómo funciona', href: '/par/how-par-works' },
+              { title: 'Sesión embebida', href: '/par/embedded-session' },
+            ],
+          },
+          {
+            title: 'Comercios',
+            links: [
+              { title: 'Autenticación', href: '/par/merchants/authentication' },
+              { title: 'Inscribir un autopago', href: '/par/merchants/enrollment' },
+              { title: 'Consultar el estado', href: '/par/merchants/status' },
+              { title: 'Comprobante', href: '/par/merchants/voucher' },
+              { title: 'Errores', href: '/par/merchants/errors' },
+            ],
+          },
+          {
+            title: 'Emisores',
+            links: [
+              { title: 'Solicitar el token', href: '/par/issuers/request-token' },
+              { title: 'Iniciar la sesión', href: '/par/issuers/login' },
+              { title: 'Errores', href: '/par/issuers/errors' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'par/api',
+        href: '/par/api/reference/merchants',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              { title: 'Comercios', href: '/par/api/reference/merchants' },
+              { title: 'Emisores', href: '/par/api/reference/issuers' },
+            ],
+          },
+        ],
+      },
+    ],
+    [LANGUAGES_CODES.EN]: [
+      {
+        title: 'Documentation',
+        identifier: 'par',
+        href: '/en/par',
+        icon: Book,
+        links: [
+          {
+            title: 'PAR',
+            links: [
+              { title: 'Introduction', href: '/en/par' },
+              { title: 'How it works', href: '/en/par/how-par-works' },
+              { title: 'Embedded session', href: '/en/par/embedded-session' },
+            ],
+          },
+          {
+            title: 'Merchants',
+            links: [
+              { title: 'Authentication', href: '/en/par/merchants/authentication' },
+              { title: 'Enroll an autopay', href: '/en/par/merchants/enrollment' },
+              { title: 'Check the status', href: '/en/par/merchants/status' },
+              { title: 'Voucher', href: '/en/par/merchants/voucher' },
+              { title: 'Errors', href: '/en/par/merchants/errors' },
+            ],
+          },
+          {
+            title: 'Issuers',
+            links: [
+              { title: 'Request the token', href: '/en/par/issuers/request-token' },
+              { title: 'Start the session', href: '/en/par/issuers/login' },
+              { title: 'Errors', href: '/en/par/issuers/errors' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'API',
+        identifier: 'par/api',
+        href: '/en/par/api/reference/merchants',
+        icon: DocumentCode,
+        links: [
+          {
+            title: 'API',
+            links: [
+              { title: 'Merchants', href: '/en/par/api/reference/merchants' },
+              { title: 'Issuers', href: '/en/par/api/reference/issuers' },
             ],
           },
         ],

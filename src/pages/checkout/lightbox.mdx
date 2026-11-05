@@ -225,7 +225,7 @@ P.init(processUrl, {
 });
 ```
 
-### Uso embebido
+### Uso embebido {{ id: 'embedded-use' }}
 
 Si deseas usar el lightbox en un iframe, debes preparar tu aplicación para capturar el mensaje `placetopay-lightbox:redirect` y redirigir la ventana principal a la URL que está disponible en el payload. Esto para dar soporte en Safari y otros navegadores que por defecto no permiten cookies de terceros.
 
@@ -249,6 +249,46 @@ window.addEventListener('message', (event) => {
 	}
 })
 ```
+
+### Billeteras digitales en iframes {{ id: 'wallets-in-iframes' }}
+
+Si Webcheckout se carga dentro de un iframe que controlas, ya sea porque tu página que usa Lightbox está embebida o porque usas un iframe propio, las billeteras digitales requieren condiciones adicionales.
+
+**Google Pay**
+
+Consulta las condiciones en [Google Pay en iframes y WebViews](/payments/wallets/googlepay#embedded-and-webview).
+
+**Apple Pay**
+
+- **Registro de dominios**: el comercio es responsable de registrar los dominios donde ofrece Apple Pay.
+- **Navegador**: WebKit incorporó en Safari 17.0 el uso de Apple Pay en iframes de terceros. Safari 17.0 está disponible para iOS 17, iPadOS 17 y macOS.
+- **Atributo del iframe**: el iframe debe incluir el atributo `allow="payment"`, que habilita la Payment Request API dentro del iframe.
+- **Cookies de terceros**: Safari no permite cookies de terceros por defecto. Si la sesión no puede continuar dentro del iframe, redirige la ventana principal como se describe en [Uso embebido](#embedded-use).
+
+Fuente: [WebKit Features in Safari 17.0](https://webkit.org/blog/14445/webkit-features-in-safari-17-0/).
+
+### Configuración del atributo sandbox en iframes {{ id: 'sandboxed-iframes' }}
+
+Si incrustas Webcheckout dentro de un `<iframe>` propio y utilizas el atributo `sandbox`, es **indispensable** incluir las directivas `allow-top-navigation` y `allow-top-navigation-by-user-activation`.
+
+Muchos métodos de pago (como **PSE**, **Deuna** o pasarelas de autorización bancaria externa) requieren redirigir la ventana principal del navegador hacia la entidad financiera para completar el débito. Si el iframe omite estos permisos, el navegador bloqueará la navegación por políticas de seguridad (`SecurityError: The operation is insecure`) impidiendo que el cliente finalice el pago.
+
+```html
+<iframe
+  src="https://checkout.placetopay.com/spa/session/..."
+  sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-top-navigation allow-top-navigation-by-user-activation"
+  allow="payment"
+></iframe>
+```
+
+| Directiva Sandbox                         | Obligatoria     | Propósito                                                                                   |
+| :---------------------------------------- | :-------------- | :------------------------------------------------------------------------------------------ |
+| `allow-scripts`                           | Sí              | Permite la ejecución de JavaScript de la aplicación.                                        |
+| `allow-forms`                             | Sí              | Permite el envío de los formularios de pago.                                                |
+| `allow-same-origin`                       | Sí              | Permite gestionar el almacenamiento y cookies necesarias de la sesión.                      |
+| `allow-popups`                            | Sí              | Permite abrir ventanas emergentes para pasarelas y 3DS.                                     |
+| `allow-top-navigation`                    | **Crítica**     | Permite redirigir la página del comercio al portal bancario (ej. PSE).                      |
+| `allow-top-navigation-by-user-activation` | **Recomendada** | Asegura que la redirección tras el clic del usuario sea autorizada en navegadores modernos. |
 
 ## Ejemplo de integración {{ id: 'integration-example' }}
 

@@ -29,7 +29,7 @@ Todas las solicitudes deben enviarse a las siguientes URL base, dependiendo del 
 
 ## Ciclo de vida de una validación
 
-1. Creas la solicitud con `POST /api/validations`. El servicio responde `201` con un `token` y envía el mensaje por los canales que hayas indicado. En este punto la validación se crea con status `PENDING`.
+1. Creas la solicitud con `POST /api/validations`. El servicio envía el mensaje por los canales que indicaste. Si al menos un canal lo entrega, responde `201` con un `token` y la validación queda en `PENDING`. Si ningún canal lo entrega, responde `400` y la validación queda en `FAILED`.
 2. El mensaje lleva al usuario a una página de confirmación alojada por msv-service, donde aprueba o rechaza. En SMS y correo el enlace se agrega automáticamente; en WhatsApp solo aparece si incluyes `[URL_VALIDATION]` entre los parámetros de la plantilla.
 3. En cuanto responde, la solicitud pasa a `APPROVED` o `REJECTED` y se envía el webhook.
 4. Si no responde dentro de `minutes_by_expire` (30 minutos por defecto, máximo 60), la solicitud pasa a `PARTIAL_EXPIRED` y también se envía el webhook.
@@ -40,12 +40,42 @@ Todas las solicitudes deben enviarse a las siguientes URL base, dependiendo del 
 | `APPROVED` | El usuario aprobó. |
 | `REJECTED` | El usuario rechazó. |
 | `PARTIAL_EXPIRED` | Venció el plazo sin respuesta. |
+| `FAILED` | Ningún canal confirmó la entrega del mensaje. No se envía webhook. |
 
 ### Flujo visual
 
 <ValidationLifecycle />
 
 Puedes consultar el estado en cualquier momento con [Consulta validación](/msv-service/api/validation-query).
+
+## Resultado por canal {{ id: 'channel-results' }}
+
+Las respuestas de `POST /api/validations` y `POST /api/notifications` incluyen un arreglo `channels` con el resultado de cada canal, en el mismo orden en que los indicaste. Un canal puede fallar aunque otro haya entregado el mensaje; en ese caso la respuesta sigue siendo exitosa.
+
+| Campo | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `channel` | string | Canal: `sms`, `whatsapp` o `email`. |
+| `delivered` | boolean | `true` si el proveedor aceptó el mensaje. |
+| `reason` | string | Motivo de la falla. Solo aparece si `delivered` es `false`. |
+| `message` | string | Descripción del motivo en el idioma de la solicitud. Solo aparece si `delivered` es `false`. |
+
+Si el `locale` que envías no es soportado, se usa el idioma por defecto del servicio (`en`).
+
+### Motivos de falla
+
+| `reason` | Significado |
+| :--- | :--- |
+| `invalid_destination` | El número o correo de destino no es válido o no puede recibir mensajes. |
+| `template_rejected` | WhatsApp rechazó la plantilla del mensaje. |
+| `provider_unavailable` | El servicio de mensajería no está disponible en este momento. |
+| `rate_limited` | Se superó el límite de envíos del proveedor. Intenta más tarde. |
+| `authentication_error` | Error de autenticación con el proveedor de mensajería. No depende de los datos que enviaste. |
+| `delivery_unconfirmed` | El proveedor no respondió a tiempo. El mensaje pudo haber llegado o no. |
+| `unknown` | Error inesperado al enviar por el canal. |
+
+<Note>
+  msv-service no reintenta los envíos. Si un proveedor no responde dentro del tiempo límite, el canal se reporta como `delivery_unconfirmed`.
+</Note>
 
 ## Webhook {{ id: 'validation-webhook' }}
 
@@ -138,8 +168,8 @@ http_response_code(200);
 
 | Código | Cuándo ocurre |
 | :--- | :--- |
-| `200` / `201` | La solicitud se procesó correctamente. |
-| `400` | No fue posible entregar el mensaje por alguno de los canales. |
+| `200` / `201` | La solicitud se procesó y al menos un canal entregó el mensaje. |
+| `400` | Ningún canal logró entregar el mensaje. El detalle por canal viene en `channels`. |
 | `401` | Falta el token, es inválido o expiró. |
 | `404` | El token consultado no existe (solo en consulta de validación). |
 | `422` | Los datos no superaron la validación; el detalle viene en `errors`. |
@@ -152,6 +182,6 @@ http_response_code(200);
 Explora los endpoints disponibles:
 
 * [**Login**](/msv-service/api/login): Permite obtener un token para realizar peticiones a la API.
-* [**Validación**](/msv-service/api/validation): Crea una solicitud de validación (respuesta síncrona: `HTTP 201`).
+* [**Validación**](/msv-service/api/validation): Crea una solicitud de validación (respuesta síncrona: `HTTP 201` o `400`).
 * [**Consulta validación**](/msv-service/api/validation-query): Consulta el estado actual de una validación previamente creada.
 * [**Notificación**](/msv-service/api/notification): Crea una solicitud de notificación.

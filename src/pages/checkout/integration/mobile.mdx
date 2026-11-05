@@ -2,7 +2,7 @@ export const description = 'Cómo integrar tu aplicación Android correctamente.
 
 # Integración con aplicación móvil
 
-### Recomendación general
+### Recomendación general {{ id: 'mobile-recommendation' }}
 
 > ⚠️ **No se recomienda el uso de WebView para el proceso de pago.** Aunque técnicamente es posible integrar el checkout dentro de un `WebView`, no es la opción más recomendada.
 
@@ -19,6 +19,102 @@ Se recomienda utilizar browsers reales del sistema, ya que usan el motor nativo,
 - Limitaciones en redirecciones entre dominios.
 - Comportamientos inconsistentes entre versiones del sistema operativo.
 - Mayor superficie de mantenimiento.
+
+---
+
+## Billeteras digitales en WebView {{ id: 'wallets-in-webview' }}
+
+Las condiciones para usar billeteras dentro de un `WebView` dependen de la plataforma: en Android, tu app debe habilitar la Payment Request API que usa Google Pay; en iOS, `WKWebView` tiene restricciones propias para Google Pay y Apple Pay. Si ofreces billeteras en tu app, abre Webcheckout en un browser in-app o externo. Si necesitas mantener el `WebView`, configura tu app según la plataforma:
+
+| Entorno                  | Google Pay                                                                                                                                          | Apple Pay                                                                                    |
+| :----------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
+| Browser in-app o externo | Compatible sin configuración adicional en la app.                                                                                                   | Compatible en Safari y `SFSafariViewController` (iOS).                                       |
+| `WebView` en Android     | Compatible si configuras el `WebView` y el dispositivo cumple los requisitos. [Ver configuración](#google-pay-android-webview).                     | Apple no documenta soporte.                                                                  |
+| `WKWebView` en iOS       | Google documenta una configuración, pero indica que la comprobación de disponibilidad siempre responde `false`. [Ver consideraciones](#wallets-ios-webview). | Compatible desde iOS 13 si tu app no inyecta JavaScript. [Ver consideraciones](#wallets-ios-webview). |
+
+Para Google Pay, la comprobación de disponibilidad y los errores que pueden ocurrir durante el pago se describen en [Disponibilidad y errores durante el pago](/payments/wallets/googlepay#availability-and-payment-errors).
+
+### Google Pay en WebView Android {{ id: 'google-pay-android-webview' }}
+
+Según la [guía de Google para Android WebView](https://developers.google.com/pay/api/android/guides/recipes/using-android-webview), el dispositivo del pagador debe tener:
+
+- Google Play services 25.18.30 o superior.
+- Android System WebView 137 o superior.
+
+Para habilitar Google Pay, realiza estos cambios en tu app:
+
+1. Agrega la dependencia `androidx.webkit` en la versión 1.14.0 o superior.
+
+```groovy
+dependencies {
+    implementation 'androidx.webkit:webkit:1.14.0'
+}
+```
+
+2. Declara en `AndroidManifest.xml` las consultas que usa Google Pay.
+
+```xml
+<queries>
+  <intent>
+    <action android:name="org.chromium.intent.action.PAY"/>
+  </intent>
+  <intent>
+    <action android:name="org.chromium.intent.action.IS_READY_TO_PAY"/>
+  </intent>
+  <intent>
+    <action android:name="org.chromium.intent.action.UPDATE_PAYMENT_DETAILS"/>
+  </intent>
+</queries>
+```
+
+3. Habilita JavaScript y la Payment Request API en el `WebView`. Si usas el componente `CheckoutWebView` de la [integración con Android](#integration-with-android), agrega estas líneas junto a la configuración de `settings`.
+
+```kotlin
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
+
+settings.javaScriptEnabled = true
+if (WebViewFeature.isFeatureSupported(WebViewFeature.PAYMENT_REQUEST)) {
+    WebSettingsCompat.setPaymentRequestEnabled(settings, true)
+}
+```
+
+4. Si personalizas el user agent del `WebView`, agrega al final el texto `GOOGLE_PAY_SUPPORTED`.
+5. No interceptes solicitudes con `shouldInterceptRequest` para enviarlas por un cliente HTTP de terceros; Google no soporta esta configuración.
+6. Completa el proceso de [publicación de la integración de Google Pay](https://developers.google.com/pay/api/android/guides/test-and-deploy/publish-your-integration) para tu app. Google lo exige para permitir Google Pay dentro del `WebView` de una aplicación.
+
+Google documenta que, si el dispositivo no cumple los requisitos de versión anteriores, la comprobación de disponibilidad (`isReadyToPay`) responde `false`; en ese caso, Webcheckout no muestra el botón. Si falta configuración en la app, el botón puede mostrarse y el flujo fallar al iniciarse, como ocurrió en nuestras pruebas.
+
+#### Expo / React Native
+
+`react-native-webview` no expone una propiedad para habilitar la Payment Request API. Aplica los pasos 1 a 3 con código nativo, por ejemplo mediante un [config plugin](https://docs.expo.dev/config-plugins/introduction/), y ejecuta la app como [development build](https://docs.expo.dev/develop/development-builds/introduction/): Expo Go no incluye código nativo personalizado. Si personalizas el user agent, incluye `GOOGLE_PAY_SUPPORTED`, por ejemplo con `applicationNameForUserAgent`:
+
+```javascript
+<WebView
+  source={{ uri: processUrl }}
+  javaScriptEnabled={true}
+  domStorageEnabled={true}
+  applicationNameForUserAgent="GOOGLE_PAY_SUPPORTED" // Agrega GOOGLE_PAY_SUPPORTED al user agent.
+/>
+```
+
+### Billeteras en WebView iOS {{ id: 'wallets-ios-webview' }}
+
+En iOS, Apple documenta Safari y `SFSafariViewController` como los contextos compatibles con [Apple Pay en la web](https://developer.apple.com/documentation/applepayontheweb). Si ofreces billeteras, la opción recomendada es el [browser in-app](#integration-with-expo), que en iOS usa `SFSafariViewController`. Si usas `WKWebView`, ten en cuenta lo siguiente.
+
+**Google Pay**
+
+- Google publica una [guía para `WKWebView`](https://developers.google.com/pay/api/web/guides/recipes/using-ios-wkwebview): agrega `GOOGLE_PAY_SUPPORTED` al user agent e implementa los métodos `webView(_:createWebViewWith:for:windowFeatures:)` y `webViewDidClose(_:)` de `WKUIDelegate` para mostrar y cerrar las ventanas emergentes que abre el flujo de pago.
+- En sus [preguntas frecuentes](https://developers.google.com/pay/api/web/support/faq), Google indica que en los WebViews de iOS la verificación `isReadyToPay` siempre responde `false` por las restricciones de iOS sobre cookies de terceros. Aun con la configuración anterior, Google Pay puede no estar disponible.
+
+**Apple Pay**
+
+- `WKWebView` admite Apple Pay desde iOS 13, pero lo deshabilita si la app usa APIs de inyección de scripts como `WKUserScript` o `evaluateJavaScript(_:completionHandler:)` antes de que la página use Apple Pay. La restricción se reinicia cada vez que navega el frame principal ([WebKit](https://webkit.org/blog/9674/new-webkit-features-in-safari-13/)).
+- En `react-native-webview`, habilita la propiedad `enableApplePay={true}`. Con ella dejan de funcionar `injectedJavaScript`, `injectedJavaScriptBeforeContentLoaded`, `injectJavaScript`, `sharedCookiesEnabled` y el historial HTML5 ([referencia](https://github.com/react-native-webview/react-native-webview/blob/master/docs/Reference.md#enableapplepay)).
+
+<Note>
+**Resultados de nuestras pruebas.** Con una app de pruebas hecha en Expo (`react-native-webview`), reproducimos el fallo de Google Pay en un `WebView` de Android sin configurar: el botón aparecía y el flujo fallaba al iniciarse. Comprobamos que funcionó después de aplicar la [configuración para Android](#google-pay-android-webview). En el iPhone probado, Google Pay no funcionó dentro del `WebView`. Este resultado corresponde a un único dispositivo y configuración: no reemplaza el soporte documentado por Google y Apple, que puede variar según la versión del sistema operativo y la configuración de tu app.
+</Note>
 
 ---
 
@@ -68,6 +164,8 @@ import { WebView } from 'react-native-webview'
 />
 ```
 
+Si ofreces Google Pay o Apple Pay, revisa la configuración adicional en [Billeteras digitales en WebView](#wallets-in-webview).
+
 ### Ejemplo de integración
 
 Antes de integrar en tu app, puedes validar el comportamiento del checkout con las siguientes herramientas. Todas permiten ingresar la URL de la sesión y abrirla en distintos modos de navegación (WebView, browser externo y browser in-app).
@@ -89,6 +187,8 @@ También está disponible un [Snack en Expo](https://snack.expo.dev/@placetopay-
 Una vez hayas obtenido una sesión de pago de tu servicio de backend, puedes iniciar el proceso de pago en la aplicación móvil. Consulta la [recomendación general](#mobile-recommendation) para elegir el modo de navegación más adecuado.
 
 Si decides usar `WebView`, puedes cargar la `processUrl` con el método `loadUrl` de la clase `WebView`. Es importante que no olvides permitir tanto el **JavaScript** como las **Cookies** para el correcto funcionamiento de la sesión de pago, de lo contrario esta no permitirá avanzar en el proceso.
+
+Si ofreces Google Pay, completa también la configuración de [Google Pay en WebView Android](#google-pay-android-webview).
 
 ### Configurar la WebView
 

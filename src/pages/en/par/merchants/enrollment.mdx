@@ -1,0 +1,200 @@
+export const description =
+  'Request the enrollment token for an autopay in PAR and send the cardholder to complete it.'
+
+# Enroll an autopay
+
+For your customer to enroll an autopay, your server requests a token from PAR with the service and customer data, and then their browser presents that token to PAR to start the session.
+
+## Request the token {{ id: 'request-token' }}
+
+`POST {BASE_URL}/restpatpass/v1/services/patInscription`
+
+The request is authenticated with the `Authorization` and `Commercecode` headers, as explained in [Authentication](/en/par/merchants/authentication).
+
+### Required fields
+
+<Properties>
+  <Property name="commerceCode" type="string" isRequired={true}>
+    Your site's commerce code. It must be **identical** to the one you send in the `Commercecode` header.
+  </Property>
+  <Property name="url" type="string" isRequired={true}>
+    Return URL. PAR sends the cardholder to this address when the enrollment finishes. It must be a public URL.
+  </Property>
+  <Property name="finalUrl" type="string" isRequired={true}>
+    Final URL. PAR sends the cardholder to this address when they leave the autopay voucher. It must be a public URL.
+  </Property>
+  <Property name="correoPersona" type="string" isRequired={true}>
+    The cardholder's email. If they already have a PAR account with that email, the session opens with their account.
+  </Property>
+  <Property name="serviceId" type="string" isRequired={true}>
+    Identifier of the service to be charged, for example the contract or customer number. Up to 32 characters. The person cannot have another active autopay with the same identifier on your site.
+  </Property>
+</Properties>
+
+### Optional fields
+
+These fields prefill the enrollment form, so the cardholder does not have to type them.
+
+<Properties>
+  <Property name="rut" type="string" isRequired={false}>
+    The cardholder's identity document. Up to 10 characters.
+  </Property>
+  <Property name="nombre" type="string" isRequired={false}>
+    The cardholder's first name. Up to 60 characters.
+  </Property>
+  <Property name="pApellido" type="string" isRequired={false}>
+    The cardholder's first surname. Up to 60 characters.
+  </Property>
+  <Property name="sApellido" type="string" isRequired={false}>
+    The cardholder's second surname. Up to 60 characters.
+  </Property>
+  <Property name="montoMaximo" type="number" isRequired={false}>
+    Maximum amount the autopay can charge. It must be greater than or equal to zero.
+  </Property>
+  <Property name="telefonoCelular" type="string" isRequired={false}>
+    The cardholder's mobile phone. Up to 50 characters. If it is not a valid phone number, PAR ignores it.
+  </Property>
+  <Property name="telefonoFijo" type="string" isRequired={false}>
+    The cardholder's landline phone. Up to 50 characters. If it is not a valid phone number, PAR ignores it.
+  </Property>
+  <Property name="nombrePatPass" type="string" isRequired={false}>
+    Name the cardholder will recognize the autopay by. Up to 100 characters.
+  </Property>
+  <Property name="correoComercio" type="string" isRequired={false}>
+    The merchant's contact email. Up to 100 characters.
+  </Property>
+  <Property name="direccion" type="string" isRequired={false}>
+    Address associated with the enrollment. Up to 100 characters.
+  </Property>
+  <Property name="ciudad" type="string" isRequired={false}>
+    City associated with the enrollment. Up to 100 characters.
+  </Property>
+</Properties>
+
+### Example
+
+<CodeGroup title="Request" tag="POST" label="/restpatpass/v1/services/patInscription">
+
+```bash {{ title: 'cURL' }}
+curl --request POST \
+  --url '{BASE_URL}/restpatpass/v1/services/patInscription' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: {YOUR_SECRET_KEY}' \
+  --header 'Commercecode: 1234567890' \
+  --data '{
+    "commerceCode": "1234567890",
+    "url": "https://www.example.com/par/return",
+    "finalUrl": "https://www.example.com/par/final",
+    "correoPersona": "john.doe@example.com",
+    "serviceId": "CONTRACT-0001",
+    "rut": "11111111-1",
+    "nombre": "John",
+    "pApellido": "Doe",
+    "montoMaximo": 50000,
+    "telefonoCelular": "+56912345678",
+    "nombrePatPass": "Monthly plan"
+  }'
+```
+
+```php {{ title: 'PHP' }}
+$response = Http::acceptJson()
+    ->withHeaders([
+        'Authorization' => $secretKey,
+        'Commercecode' => '1234567890',
+    ])
+    ->post("{$baseUrl}/restpatpass/v1/services/patInscription", [
+        'commerceCode' => '1234567890',
+        'url' => 'https://www.example.com/par/return',
+        'finalUrl' => 'https://www.example.com/par/final',
+        'correoPersona' => 'john.doe@example.com',
+        'serviceId' => 'CONTRACT-0001',
+        'rut' => '11111111-1',
+        'nombre' => 'John',
+        'pApellido' => 'Doe',
+        'montoMaximo' => 50000,
+        'telefonoCelular' => '+56912345678',
+        'nombrePatPass' => 'Monthly plan',
+    ]);
+```
+
+```js {{ title: 'Node' }}
+const response = await fetch(`${baseUrl}/restpatpass/v1/services/patInscription`, {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'Authorization': secretKey,
+    'Commercecode': '1234567890',
+  },
+  body: JSON.stringify({
+    commerceCode: '1234567890',
+    url: 'https://www.example.com/par/return',
+    finalUrl: 'https://www.example.com/par/final',
+    correoPersona: 'john.doe@example.com',
+    serviceId: 'CONTRACT-0001',
+    rut: '11111111-1',
+    nombre: 'John',
+    pApellido: 'Doe',
+    montoMaximo: 50000,
+    telefonoCelular: '+56912345678',
+    nombrePatPass: 'Monthly plan',
+  }),
+});
+```
+
+</CodeGroup>
+
+### Response
+
+If the request is valid, PAR answers `200` with the token and the login URL:
+
+```json {{ title: 'Response' }}
+{
+  "token": "{TOKEN}",
+  "url": "{BASE_URL}/restpatpass/login"
+}
+```
+
+<Properties>
+  <Property name="token" type="string">
+    Single-use token the cardholder will start the session with. Keep it: you will need it for the [status check](/en/par/merchants/status) and the [voucher](/en/par/merchants/voucher).
+  </Property>
+  <Property name="url" type="string">
+    Login URL where you must send the token from the cardholder's browser.
+  </Property>
+</Properties>
+
+If any data is invalid, PAR answers with an error code that points to the field, as described in [Errors](/en/par/merchants/errors). Each response reports a single field; fix it and request the token again.
+
+## Start the session {{ id: 'login' }}
+
+With the token, send the cardholder to the response `url` through a `POST` form from their browser, with the token in the `tokenComercio` field. You can do it in a full window or inside an `iframe`, if your site's origin is authorized for your merchant.
+
+```html {{ title: 'Form' }}
+<form method="post" action="{BASE_URL}/restpatpass/login">
+  <input type="hidden" name="tokenComercio" value="{TOKEN}" />
+  <button type="submit">Enroll autopay</button>
+</form>
+```
+
+PAR consumes the token and takes the cardholder to enroll the autopay, with the data you sent already loaded. If the person already has a PAR account, they enroll the autopay from it; otherwise, they can enroll it without creating an account.
+
+<Note type="warning">
+  The token is single-use and expires quickly. If the login is rejected because the token was already used or expired, request a new one.
+</Note>
+
+If the token is invalid, PAR answers `403`. If the login fails for another reason, PAR shows the cardholder an error page.
+
+## Receive the return {{ id: 'return' }}
+
+When the cardholder finishes, PAR submits a `POST` form to your return `url` with the token in the `j_token` field:
+
+```text
+POST https://www.example.com/par/return
+Content-Type: application/x-www-form-urlencoded
+
+j_token={TOKEN}
+```
+
+The return only means the cardholder came back to your site. To know whether the autopay was enrolled, check the status with that token from your server, as explained in [Check the status](/en/par/merchants/status).
