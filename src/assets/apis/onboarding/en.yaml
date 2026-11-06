@@ -1381,7 +1381,7 @@ components:
           description: Posición del medio de pago en el listado.
           example: 1
         creditRules:
-          type: [object, 'null']
+          type: [object, array, 'null']
           description: Reglas de crédito del medio de pago. Hasta 4096 bytes serializados.
         settings:
           $ref: '#/components/schemas/Settings-Payment-Method'
@@ -1466,7 +1466,7 @@ components:
           minimum: 1
           maximum: 32767
         creditRules:
-          type: [object, 'null']
+          type: [object, array, 'null']
           description: Si se omite, se heredan las del comercio.
         settings:
           $ref: '#/components/schemas/Settings-Payment-Method'
@@ -1693,10 +1693,10 @@ components:
           example: Acme
         type:
           type: string
-          enum: [POS, INT, IVR, REC, ONE, POS_AIR]
+          enum: [POS, INT, IVR, REC, ONE, POS_AIR, GDS]
           description: |
-            Canal del sitio: punto de venta, internet, telefónico, recurrente, pago único o punto de
-            venta de aerolínea.
+            Canal del sitio: punto de venta, internet, telefónico, recurrente, pago único, punto de
+            venta de aerolínea o sistema de distribución global.
           example: INT
         category:
           type: string
@@ -1753,6 +1753,8 @@ components:
           $ref: '#/components/schemas/SiteSubscriptionValidationBlock'
         branding:
           $ref: '#/components/schemas/SiteBrandingBlock'
+        dispersion:
+          $ref: '#/components/schemas/SiteDispersionBlock'
         metadata:
           $ref: '#/components/schemas/Site-Metadata'
         integrations:
@@ -1789,7 +1791,7 @@ components:
           description: Versión de la página de pago. Hoy solo se admite `v4`.
         connectionMethod:
           type: [string, 'null']
-          enum: [SERVICES, REDIRECT, REDIRECT_OLD, LINK, QR, MS_OPEN, MS_CLOSED, MS_CUSTOM, IVR, INVOICE_API, PVA, RECURRENCE, null]
+          enum: [SERVICES, REDIRECT, REDIRECT_OLD, LINK, QR, MS_OPEN, MS_CLOSED, MS_CUSTOM, IVR, INVOICE_API, PVA, RECURRENCE, GDS, null]
           example: REDIRECT
         notificationUrl:
           type: [string, 'null']
@@ -1919,7 +1921,15 @@ components:
       description: |
         Registra el sitio en Seglan como proveedor 3-D Secure de sus medios de pago PayStudio. Solo
         al crear el comercio, y exige el permiso `onboarding:enroll`.
-      required: [code, name, country, mcc, url, subscriptions]
+
+        `code` y `country` son siempre obligatorios. Si llegan solos, el sitio se sincroniza con el
+        comercio que ya existe en Seglan con ese código y país: el `acquirerBin` y el
+        `acquirerMerchantId` de cada marca vienen de Seglan y se asignan al medio PayStudio de esa
+        marca que declare el sitio. Las marcas sin medio en el sitio se ignoran, y el sitio debe
+        declarar al menos uno de `PS_VS`, `PS_MC` o `PS_AM`. Si llegan con `name`, `mcc`, `url` y
+        `subscriptions`, que van juntas, se crea el comercio en Seglan.
+      required: [code, country]
+      x-conditional: [name, mcc, url, subscriptions]
       additionalProperties: false
       properties:
         code:
@@ -2108,6 +2118,55 @@ components:
         sidebarColor:
           type: [string, 'null']
           pattern: '^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$'
+
+    SiteDispersionBlock:
+      title: dispersion
+      type: object
+      description: |
+        Configuración de dispersión del sitio. Todos los campos son opcionales, una clave distinta de
+        estas cinco responde `422` y el bloque no admite `null`.
+
+        En una actualización solo cambian los campos que se envían: `{"enabled": false}` apaga la
+        dispersión y conserva el resto de la configuración.
+      additionalProperties: false
+      properties:
+        enabled:
+          type: boolean
+          description: Si el sitio permite dispersiones.
+          example: true
+        maxDispersions:
+          type: [integer, 'null']
+          minimum: 1
+          description: |
+            Máximo de dispersiones por transacción. Con `null` se aplica el máximo por defecto de la
+            plataforma.
+          example: 20
+        errorPolicy:
+          type: string
+          enum: [CONTINUE, STOP, REVERSE]
+          description: |
+            Qué hace el sitio cuando una dispersión falla: `CONTINUE` sigue procesando las que faltan y
+            `STOP` se detiene y rechaza las que no se procesaron. Con `REVERSE`, si la dispersión queda
+            aprobada parcialmente, se reversan las partes ya aprobadas. Si no se envía, se conserva el
+            valor configurado, o `STOP` si no hay ninguno. No admite `null`.
+          example: CONTINUE
+        allowedSites:
+          type: [array, 'null']
+          maxItems: 1000
+          description: |
+            Sitios a los que se puede dispersar, por su `id`: hasta 1.000 sitios existentes, de
+            cualquier comercio. Con `null` o `[]` se puede dispersar a cualquier sitio. Una transacción
+            que dispersa a un sitio fuera de la lista falla completa.
+          items:
+            type: integer
+            minimum: 1
+          example: [3, 2]
+        forwardChildThreeDS:
+          type: boolean
+          description: |
+            Si 3-D Secure se procesa con las credenciales del sitio al que se dispersa. En una
+            dispersión de comercio, solo cubre la dispersión de mayor valor.
+          example: true
 
     MerchantRead:
       title: MerchantRead
@@ -2433,6 +2492,7 @@ components:
         - subscriptionValidation
         - branding
         - promotions
+        - dispersion
         - metadata
         - paymentMethods
         - integrations
@@ -2462,7 +2522,7 @@ components:
           type: [string, 'null']
         type:
           type: string
-          enum: [POS, INT, IVR, REC, ONE, POS_AIR]
+          enum: [POS, INT, IVR, REC, ONE, POS_AIR, GDS]
         category:
           type: [string, 'null']
           enum: [COLLECT, ECOMMERCE, null]
@@ -2837,6 +2897,26 @@ components:
               franchise:
                 type: [string, 'null']
                 description: '`null` en las promociones generales.'
+        dispersion:
+          type: [object, 'null']
+          description: Configuración de dispersión del sitio. `null` si el sitio nunca se configuró.
+          required: [enabled, maxDispersions, errorPolicy, allowedSites, forwardChildThreeDS]
+          properties:
+            enabled:
+              type: boolean
+            maxDispersions:
+              type: [integer, 'null']
+              description: '`null` si se aplica el máximo por defecto de la plataforma.'
+            errorPolicy:
+              type: string
+              enum: [CONTINUE, STOP, REVERSE]
+            allowedSites:
+              type: [array, 'null']
+              description: '`null` si se puede dispersar a cualquier sitio.'
+              items:
+                type: integer
+            forwardChildThreeDS:
+              type: boolean
         metadata:
           type: [object, array, 'null']
           description: |

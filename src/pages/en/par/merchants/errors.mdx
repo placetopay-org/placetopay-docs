@@ -1,0 +1,58 @@
+export const description =
+  'Learn the format of the errors PAR returns to merchants and the full catalog of codes.'
+
+# Merchant errors
+
+The enrollment and the status check return errors as JSON, with a PAR code and an HTTP status that indicates the kind of failure.
+
+## Format {{ id: 'format' }}
+
+```json {{ title: 'Error response' }}
+{
+  "code": -107,
+  "description": "Invalid service ID"
+}
+```
+
+<Properties>
+  <Property name="code" type="integer">
+    Error code. It is the value your integration should use to decide what to do.
+  </Property>
+  <Property name="description" type="string">
+    Informative text that accompanies the code. It may change, so do not use it to make decisions.
+  </Property>
+</Properties>
+
+## Catalog {{ id: 'codes' }}
+
+| Code | HTTP | Description | Cause |
+|---|---|---|---|
+| `-110` | `401` | Authentication headers required | The `Authorization` or `Commercecode` header is missing |
+| `-111` | `401` | Invalid authentication headers | The secret key does not belong to an active merchant |
+| `-108` | `422` | Invalid commerce code | The code does not belong to an active site of your merchant, or `commerceCode` does not match the `Commercecode` header |
+| `-102` | `422` | Invalid return URL | `url` is missing or is not a valid public URL |
+| `-101` | `422` | Invalid final URL | `finalUrl` is missing or is not a valid public URL |
+| `-900` | `422` | Invalid email | `correoPersona` is missing or is not a valid email |
+| `-107` | `422` | Invalid service ID | `serviceId` is missing, exceeds 32 characters or the person already has an active autopay with that identifier on your site |
+| `-106` | `422` | Invalid RUT | `rut` exceeds 10 characters |
+| `-103` | `422` | Invalid name | `nombre` exceeds 60 characters |
+| `-104` | `422` | Invalid first surname | `pApellido` exceeds 60 characters |
+| `-105` | `422` | Invalid second surname | `sApellido` exceeds 60 characters |
+| `-109` | `422` | Invalid maximum amount | `montoMaximo` is not a number or is negative |
+| `-112` | `422` | Invalid landline phone | `telefonoFijo` exceeds 50 characters |
+| `-113` | `422` | Invalid cell phone | `telefonoCelular` exceeds 50 characters |
+| `-114` | `422` | Invalid PatPass name | `nombrePatPass` exceeds 100 characters |
+| `-115` | `422` | Invalid merchant email | `correoComercio` exceeds 100 characters |
+| `-116` | `422` | Invalid address | `direccion` exceeds 100 characters |
+| `-117` | `422` | Invalid city | `ciudad` exceeds 100 characters |
+| `-1` | `429` | Internal error | You exceeded the request limit. |
+| `-1` | `500` | Internal error | Unexpected error in PAR. Retry later |
+
+## Browser errors {{ id: 'browser-errors' }}
+
+The login and the voucher are not called by your server but by the cardholder's browser, so they do not answer JSON:
+
+- If the token is missing, does not exist, was already used, expired or was revoked, PAR answers `403` and shows an error page.
+- If the login fails for another reason, PAR shows the cardholder a page telling them the session could not be started.
+
+In both cases, request a new token and send the cardholder again.
