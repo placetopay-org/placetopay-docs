@@ -11,6 +11,7 @@ import logoExito from '@/images/cards/exito_card.svg'
 import logoAthCard from '@/images/cards/ath_card.svg'
 import logoEBT from '@/images/cards/ebt.svg'
 import logoALIA from '@/images/cards/alia.svg'
+import logoACH from '@/images/cards/ach.svg'
 import { Heading } from './Heading'
 import { useLocale } from './LocaleProvider'
 import { CopyContent } from '@/components/CopyContent'
@@ -652,6 +653,21 @@ const groupsByFranchise = [
         },
       },
     ],
+  },
+  {
+    id: 'ach',
+    logo: logoACH,
+    franchise: 'ACH',
+    items: [
+      {
+        number : '1111222233331111',
+        behavior: { es: 'Aprueba', en: 'Approve' },
+      },
+      {
+        number : '1111222233330000',
+        behavior: { es: 'Aprueba', en: 'Approve' },
+      },
+    ],
   }
 ]
 
@@ -697,5 +713,36 @@ export function TestCardNumbers() {
         </div>
       ))}
     </div>
+  )
+}
+
+export function TestCardNumbersFlat() {
+  const { locale, isEn } = useLocale()
+  const items = groupsByFranchise.flatMap((group) => group.items)
+  return (
+    <table className="mt-6">
+      <thead>
+        <tr>
+          <th>{isEn() ? 'Number' : 'Número'}</th>
+          <th>{isEn() ? 'Behavior' : 'Comportamiento'}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {items.map((item) => (
+          <tr key={item.number} className="">
+            <td className="align-middle">
+              <CopyContent content={item.number}/>
+            </td>
+            <td className="w-full">
+              <div className="not-prose flex gap-3">
+                {typeof item.behavior === 'string'
+                  ? item.behavior
+                  : item.behavior[locale]}
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   )
 }
