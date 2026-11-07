@@ -75,6 +75,9 @@ Como el `login` no distingue mayúsculas, `ACME` y `acme` son el mismo identific
       <Property name="active" type="boolean" isRequired={false}>
         Si el sitio está habilitado.
       </Property>
+      <Property name="iataCode" type="string" isRequired={false}>
+        Código IATA del sitio, con el que GDS-Gateway lo reconoce. Máximo 10 caracteres y único en todo el registro. Ver [Código IATA del sitio](#site-iata-code).
+      </Property>
     </Properties>
 
     A estos se suman siete bloques de configuración, descritos abajo.
@@ -123,6 +126,42 @@ Como el `login` no distingue mayúsculas, `ACME` y `acme` son el mismo identific
 <Note>
   La moneda y el idioma se validan contra el catálogo **respetando la grafía exacta**, igual que el código de un medio de pago.
 </Note>
+
+## Código IATA del sitio {{ id: 'site-iata-code' }}
+
+El código IATA identifica al sitio ante GDS-Gateway, que lo usa para reconocer a qué sitio pertenece una transacción de un cliente GDS. Es opcional, pero un sitio sin código no puede ser reconocido por GDS-Gateway.
+
+<Note>
+  Es un dato distinto del código IATA de la agencia, `travelAgency.iata`, que pertenece al comercio. Ninguno de los dos reemplaza ni modifica al otro.
+</Note>
+
+Estas reglas aplican al crear y al actualizar un comercio:
+
+- **Máximo 10 caracteres.** No hay longitud mínima.
+- **Único en todo el registro**, sin distinguir mayúsculas, minúsculas ni tildes: `abc1`, `ABC1` y `ÁBC1` son el mismo código. Si otro sitio ya lo tiene, sea de este comercio o de cualquiera, la petición responde `422`. Tampoco cuenta el sitio que **esta misma clave de idempotencia** ya creó: un reintento no colisiona con su propio primer intento.
+- **No se repite dentro de la misma petición.** Si dos sitios llevan el mismo código, el segundo responde `422`.
+- **Varios sitios sin código no son duplicados entre sí.**
+- **Los espacios de los extremos se quitan antes de validar y de guardar.** La grafía se conserva: `  AbC 1  ` se guarda como `AbC 1`.
+- **Un valor vacío o formado solo por espacios equivale a no enviarlo.** En una creación, el sitio queda sin código.
+
+Los errores de validación llegan en `errors` bajo `sites.N.iataCode`, como cualquier [error de validación](/onboarding/errors#validation-errors):
+
+| Qué ocurre | Mensaje |
+|---|---|
+| Más de 10 caracteres | `The sites.0.iataCode field must not be greater than 10 characters.` |
+| Un valor que no es texto | `The sites.0.iataCode field must be a string.` |
+| Ya lo tiene otro sitio | `The sites.0.iataCode has already been taken.` |
+| Repetido en la misma petición | `The sites.1.iataCode is repeated within this request.` |
+
+<Note type="warning">
+  Si el código lo ocupa otra petición después de que la tuya fue aceptada, o si dos peticiones lo intentan a la vez, la que pierde termina en `FAILED` con `DUPLICATE_MERCHANT` y no escribe nada. Para reintentar, usa otro código y una clave de idempotencia nueva. Ver [Reintentar después de un fallo](/onboarding/errors#retrying-after-a-failure).
+</Note>
+
+### En una actualización {{ id: 'site-iata-code-update' }}
+
+- **Un sitio nuevo** que agregas en la actualización acepta `iataCode` igual que en la creación.
+- **Un sitio existente** cambia al valor que envías. Enviar el código que ya tiene no es un duplicado.
+- **Si el campo no viene, o viene `null` o vacío**, el código que el sitio ya tenía no cambia. Esta API no puede quitar un código: eso se hace desde el back office de Placetopay.
 
 ## Bloque `integration` {{ id: 'block-integration' }}
 
