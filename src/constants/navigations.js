@@ -3355,6 +3355,15 @@ export const TAB_NAVIGATION = {
               { title: 'Errores', href: '/par/issuers/errors' },
             ],
           },
+          {
+            title: 'Administración',
+            links: [
+              { title: 'Autenticación', href: '/par/administration/authentication' },
+              { title: 'Comercios y sitios', href: '/par/administration/merchants-and-sites' },
+              { title: 'Socios emisores', href: '/par/administration/partners' },
+              { title: 'Errores', href: '/par/administration/errors' },
+            ],
+          },
         ],
       },
       {
@@ -3368,6 +3377,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Comercios', href: '/par/api/reference/merchants' },
               { title: 'Emisores', href: '/par/api/reference/issuers' },
+              { title: 'Administración', href: '/par/api/reference/administration' },
             ],
           },
         ],
@@ -3406,6 +3416,15 @@ export const TAB_NAVIGATION = {
               { title: 'Errors', href: '/en/par/issuers/errors' },
             ],
           },
+          {
+            title: 'Administration',
+            links: [
+              { title: 'Authentication', href: '/en/par/administration/authentication' },
+              { title: 'Merchants and sites', href: '/en/par/administration/merchants-and-sites' },
+              { title: 'Issuer partners', href: '/en/par/administration/partners' },
+              { title: 'Errors', href: '/en/par/administration/errors' },
+            ],
+          },
         ],
       },
       {
@@ -3419,6 +3438,7 @@ export const TAB_NAVIGATION = {
             links: [
               { title: 'Merchants', href: '/en/par/api/reference/merchants' },
               { title: 'Issuers', href: '/en/par/api/reference/issuers' },
+              { title: 'Administration', href: '/en/par/api/reference/administration' },
             ],
           },
         ],

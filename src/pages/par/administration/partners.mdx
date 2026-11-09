@@ -1,0 +1,59 @@
+export const description =
+  'Gestiona los socios emisores de PAR: créalos, consúltalos, actualízalos, rota su llave secreta y elimínalos.'
+
+# Socios emisores
+
+Un **socio** es la identidad con la que un integrador se autentica ante PAR. Hay dos tipos y se gestionan por caminos distintos:
+
+| Tipo | Cómo se gestiona |
+|---|---|
+| `merchant` | Nace y se actualiza al [sincronizar el comercio](/par/api/reference/administration#sync-merchant). No se puede crear ni actualizar con los endpoints de socios |
+| `issuer` | Se gestiona con los endpoints de socios: [crear](/par/api/reference/administration#create-partner), [consultar](/par/api/reference/administration#show-partner), [actualizar](/par/api/reference/administration#update-partner) y [eliminar](/par/api/reference/administration#delete-partner) |
+
+Los endpoints de [listar](/par/api/reference/administration#list-partners) y consultar trabajan con ambos tipos.
+
+## Credenciales del socio {{ id: 'credentials' }}
+
+Al crear un emisor, PAR le asigna dos valores, que devuelve en la respuesta:
+
+<Properties>
+  <Property name="code" type="string">
+    Código único del socio, de hasta 20 caracteres.
+  </Property>
+  <Property name="secretKey" type="string">
+    Llave secreta única del socio, de exactamente 15 letras y números.
+  </Property>
+</Properties>
+
+Si prefieres definirlos tú, envía `code` y `secretKey` en la creación. Ninguno de los dos puede estar en uso por otro socio.
+
+## Qué configura un emisor {{ id: 'issuer-configuration' }}
+
+<Properties>
+  <Property name="userDocumentType" type="string" isRequired={true}>
+    Tipo de documento de los tarjetahabientes del emisor, como `CLRUT`.
+  </Property>
+  <Property name="allowedIps" type="array" isRequired={true}>
+    Direcciones IP desde las que el emisor puede solicitar tokens. Debe incluir al menos una.
+  </Property>
+  <Property name="allowedFrameOrigins" type="array" isRequired={false}>
+    Orígenes del emisor autorizados para mostrar PAR en un `iframe`. Cada origen lleva solo esquema, host y puerto opcional: sin ruta, parámetros ni fragmento. Ver [Sesión embebida](/par/embedded-session).
+  </Property>
+  <Property name="enabled" type="boolean" isRequired={true}>
+    Un socio inactivo no puede solicitar tokens.
+  </Property>
+</Properties>
+
+## Actualizar y rotar la llave {{ id: 'update-and-rotate' }}
+
+La actualización **reemplaza** la configuración: envía siempre todos los campos obligatorios, no solo los que cambian.
+
+Para **rotar la llave secreta**, envía la nueva en `secretKey` y entrégasela al emisor. Para **desactivar** al emisor, envía `enabled: false`.
+
+<Note type="warning">
+  Cambiar la `secretKey` o desactivar al socio revoca sus sesiones abiertas. Eliminarlo también las revoca, y sus credenciales dejan de funcionar.
+</Note>
+
+## Listar con filtros {{ id: 'list-with-filters' }}
+
+El listado es un `POST` porque los filtros viajan en el cuerpo, pero no modifica nada. Todos los filtros son opcionales y se combinan: `status`, `type`, `name` (texto contenido en el nombre) y `code` (código exacto). La respuesta trae `meta` con `page`, `perPage` y `total`; `perPage` admite hasta 100.
