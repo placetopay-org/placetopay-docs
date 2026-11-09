@@ -1,0 +1,94 @@
+export const description =
+  'Envía tus links de pago a tus clientes por correo electrónico, SMS o WhatsApp directamente desde la API de Link de Pagos.';
+
+# Canales de envío
+
+Además de compartir la URL del link de pago por tu cuenta, Placetopay puede enviarla directamente a tus clientes en el momento en que se crea el link. Puedes elegir uno o varios canales para cada destinatario: **correo electrónico**, **SMS** y **WhatsApp**. {{ className: 'lead' }}
+
+## Canales disponibles {{ id: 'available-channels' }}
+
+| Canal | Qué necesitas enviar | Requiere configuración previa |
+| --- | --- | --- |
+| **Correo electrónico** | `email` | No |
+| **SMS** | `phoneNumber` y `sendSMS: true` | Sí, ver [configuración de SMS](#sms-setup) |
+| **WhatsApp** | `phoneNumber` y `sendWhatsapp: true` | Sí, ver [configuración de WhatsApp](#whatsapp-setup) |
+
+Puedes combinar los canales: un mismo destinatario puede recibir el link por correo, SMS y WhatsApp al mismo tiempo.
+
+## Cómo enviar el link {{ id: 'how-to-send' }}
+
+Los destinatarios se indican en el campo `recipients` al [crear un link](/payment-links/api/reference/payment-links#create-a-link). El envío se realiza una sola vez, en el momento en que se crea el link, y puedes incluir hasta **20 destinatarios** por link.
+
+Cada destinatario admite los siguientes campos:
+
+- **`email`:** correo electrónico al que se enviará el link.
+- **`phoneNumber`:** número de teléfono móvil con el código de país (por ejemplo, `+573001234567`). Es obligatorio si `sendSMS` o `sendWhatsapp` es `true`.
+- **`sendSMS`:** si es `true`, el link se envía por mensaje de texto al `phoneNumber`.
+- **`sendWhatsapp`:** si es `true`, el link se envía por WhatsApp al `phoneNumber`.
+
+```json {{ title: 'Ejemplo de recipients' }}
+"recipients": [
+    {
+        "email": "john.doe@example.com",
+        "phoneNumber": "+15550123",
+        "sendSMS": true,
+        "sendWhatsapp": true
+    },
+    {
+        "email": "jane.doe@example.com"
+    },
+    {
+        "phoneNumber": "+15550124",
+        "sendWhatsapp": true
+    }
+]
+```
+
+En este ejemplo, el primer destinatario recibe el link por los tres canales, el segundo solo por correo electrónico y el tercero solo por WhatsApp.
+
+<Note>
+  Los mensajes por SMS y WhatsApp se envían en segundo plano, después de que la API responde. Por eso, una respuesta `201` confirma que el link se creó, pero no garantiza que el mensaje haya llegado al destinatario.
+</Note>
+
+## Respuesta cuando un canal falla {{ id: 'partial-success' }}
+
+Si el link se crea correctamente pero no se puede enviar por alguno de los canales, la API responde igualmente con `201`: el link existe y puedes usar la `url` retornada. El campo `status.message` indica qué canales fallaron.
+
+```json {{ title: '201 (Éxito parcial)' }}
+{
+    "status": {
+        "status": "OK",
+        "reason": 201,
+        "message": "El link de pago se creó correctamente, pero no se pudo enviar la notificación: sms, whatsapp.",
+        "date": "2026-02-10T12:28:23-05:00"
+    },
+    "id": 1,
+    "url": "https://sites-test.placetopay.com/link/show?genid=22&code=190"
+}
+```
+
+En ese caso, puedes compartir la `url` con tu cliente por otro medio.
+
+## Configuración de SMS y WhatsApp {{ id: 'channel-setup' }}
+
+El envío por correo electrónico está disponible sin configuración adicional. Para habilitar SMS y WhatsApp, debes compartir con Placetopay las credenciales de tu proveedor para cada canal. Nuestro equipo las configura en tu sitio y, una vez habilitado el canal, puedes usar `sendSMS` o `sendWhatsapp` en tus solicitudes.
+
+### SMS {{ id: 'sms-setup' }}
+
+Los mensajes de texto se envían a través de **Amazon SNS** (AWS). Para habilitar el envío por SMS, comparte las siguientes credenciales de tu cuenta de AWS:
+
+- **Key:** Access Key ID de AWS con permisos para enviar SMS mediante Amazon SNS.
+- **Secret:** Secret Access Key asociada a la `Key`.
+- **Region:** región de AWS en la que está configurado Amazon SNS (por ejemplo, `us-east-1`).
+
+### WhatsApp {{ id: 'whatsapp-setup' }}
+
+Los mensajes de WhatsApp se envían a través de la **API de WhatsApp Cloud de Meta**. Para habilitar el envío por WhatsApp, comparte la siguiente información:
+
+- **Token:** token de acceso de la API de WhatsApp de Meta.
+- **Phone ID:** Phone Number ID del número de WhatsApp desde el que se enviarán los mensajes, tal como aparece en Meta.
+- **Nombre de la plantilla:** nombre de una plantilla de mensaje aprobada en Meta para el envío de links de pago. El cuerpo de la plantilla debe tener una única variable, que se reemplaza por la URL del link de pago, y la plantilla debe estar aprobada en los idiomas en los que crees tus links.
+
+<Note>
+  Comparte estas credenciales con Placetopay únicamente por los canales seguros que te indique nuestro equipo. El `Secret` y el `Token` no deben exponerse en repositorios públicos, registros de aplicación ni código fuente.
+</Note>
