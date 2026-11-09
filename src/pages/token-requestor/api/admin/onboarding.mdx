@@ -1,0 +1,292 @@
+import {ApiReader, CodeGroup, Col, Row} from '../../../../components/mdx';
+
+export const sectionMode = 'nav';
+export const apiRefs = [
+  '/api/admin/onboarding/generate',
+  '/api/admin/onboarding/show',
+  '/api/admin/onboarding/history',
+];
+
+# Administración de onboarding
+
+El onboarding vincula un comercio con una franquicia de pago para habilitar sus operaciones de tokenización.
+
+La creación de un comercio inicia su onboarding. También es posible solicitarlo con `generate`. El procesamiento con cada franquicia se realiza de manera asincrónica, por lo que la aceptación de la solicitud no garantiza que el onboarding haya finalizado. Consulte `show` o `history` para conocer su estado y, si el consumidor tiene una URL de notificación configurada, consulte también [notificaciones](/token-requestor/integration/notifications/#notificaciones-de-onboarding).
+
+<ApiDownloads />
+
+## Generar onboarding {{ id: 'token-requestor-api-admin-onboarding-generate', tag: 'POST', label: '/api/admin/onboarding/generate' }}
+
+Solicita el onboarding para un comercio existente. `franchises` es opcional: si se omite, se procesan todas las franquicias configuradas. Las franquicias soportadas actualmente son `visa` y `master`.
+
+<Row>
+  <Col>
+    <ApiReader path="/api/admin/onboarding/generate" method="post" api={props.refs} />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/api/admin/onboarding/generate">
+      ```bash {{ title: 'Generar onboarding' }}
+      curl -X POST https://token-requestor.placetopay.ws/api/admin/onboarding/generate \
+        -H 'Content-Type: application/json' \
+        -d '{
+          "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "MnFrcmZlYjQ0bXk=",
+            "seed": "2026-01-15T10:00:00-05:00"
+          },
+          "merchantId": "f1d0888b-f5a9-445a-8c54-dba63763fbc5",
+          "franchises": ["visa", "master"]
+        }'
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader path="/api/admin/onboarding/generate" method="post" type="response" api={props.refs} />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+      ```json {{ title: '200: solicitud procesada' }}
+      {
+        "status": {
+          "status": "OK",
+          "reason": "00",
+          "message": "The request has been successfully processed",
+          "date": "2026-01-15T15:00:00+00:00"
+        },
+        "data": {
+          "visa": {
+            "id": "a04dcc6c-5088-4d45-88be-01e98d0e838f",
+            "status": {
+              "status": "IN_PROCESS",
+              "reason": "?-"
+            }
+          },
+          "master": {
+            "id": "b4dbac6c-5088-4d45-88be-01e98d0e838f",
+            "status": {
+              "status": "IN_PROCESS",
+              "reason": "?-"
+            }
+          }
+        }
+      }
+      ```
+      ```json {{ title: '400: merchantId ausente' }}
+      {
+        "status": {
+          "status": "FAILED",
+          "reason": "BR",
+          "message": "The merchant id field is required.",
+          "date": "2026-01-15T15:00:00+00:00"
+        }
+      }
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+---
+
+## Consultar onboarding {{ id: 'token-requestor-api-admin-onboarding-show', tag: 'POST', label: '/api/admin/onboarding/show' }}
+
+Consulta el último registro por franquicia asociado al documento del comercio. Envíe `merchantId`, `document` o ambos; si envía ambos, deben corresponder al mismo comercio.
+
+<Row>
+  <Col>
+    <ApiReader path="/api/admin/onboarding/show" method="post" api={props.refs} />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/api/admin/onboarding/show">
+      ```bash {{ title: 'Consultar por comercio' }}
+      curl -X POST https://token-requestor.placetopay.ws/api/admin/onboarding/show \
+        -H 'Content-Type: application/json' \
+        -d '{
+          "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "MnFrcmZlYjQ0bXk=",
+            "seed": "2026-01-15T10:00:00-05:00"
+          },
+          "merchantId": "f1d0888b-f5a9-445a-8c54-dba63763fbc5"
+        }'
+      ```
+      ```bash {{ title: 'Consultar por documento' }}
+      curl -X POST https://token-requestor.placetopay.ws/api/admin/onboarding/show \
+        -H 'Content-Type: application/json' \
+        -d '{
+          "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "MnFrcmZlYjQ0bXk=",
+            "seed": "2026-01-15T10:00:00-05:00"
+          },
+          "document": {
+            "type": "NIT",
+            "number": "1234567895"
+          }
+        }'
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader path="/api/admin/onboarding/show" method="post" type="response" api={props.refs} />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+      ```json {{ title: '200: onboarding activo' }}
+      {
+        "status": {
+          "status": "OK",
+          "reason": "00",
+          "message": "The request has been successfully processed",
+          "date": "2026-01-15T15:00:00+00:00"
+        },
+        "data": [
+          {
+            "id": "a04dcc6c-5088-4d45-88be-01e98d0e838f",
+            "franchise": "visa",
+            "status": "ACTIVE",
+            "reason": "00",
+            "logs": [],
+            "createdAt": "2026-01-15 15:00:00",
+            "updatedAt": "2026-01-15 15:01:00"
+          }
+        ]
+      }
+      ```
+      ```json {{ title: '200: sin resultados' }}
+      {
+        "status": {
+          "status": "OK",
+          "reason": "00",
+          "message": "The request has been successfully processed",
+          "date": "2026-01-15T15:00:00+00:00"
+        },
+        "data": []
+      }
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+---
+
+## Consultar historial de onboarding {{ id: 'token-requestor-api-admin-onboarding-history', tag: 'POST', label: '/api/admin/onboarding/history' }}
+
+Consulta hasta diez intentos de onboarding para un documento y una franquicia. Al igual que en `show`, proporcione `merchantId`, `document` o ambos.
+
+<Row>
+  <Col>
+    <ApiReader path="/api/admin/onboarding/history" method="post" api={props.refs} />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/api/admin/onboarding/history">
+      ```bash {{ title: 'Historial por documento' }}
+      curl -X POST https://token-requestor.placetopay.ws/api/admin/onboarding/history \
+        -H 'Content-Type: application/json' \
+        -d '{
+          "auth": {
+            "login": "aabbccdd1234567890aabbccdd123456",
+            "tranKey": "ABC123example456trankey+789abc012def3456ABC=",
+            "nonce": "MnFrcmZlYjQ0bXk=",
+            "seed": "2026-01-15T10:00:00-05:00"
+          },
+          "document": {
+            "type": "NIT",
+            "number": "1234567895"
+          },
+          "franchise": "visa"
+        }'
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader path="/api/admin/onboarding/history" method="post" type="response" api={props.refs} />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+      ```json {{ title: '200: onboarding activo' }}
+      {
+        "status": {
+          "status": "OK",
+          "reason": "00",
+          "message": "The request has been successfully processed",
+          "date": "2026-01-15T15:00:00+00:00"
+        },
+        "data": [
+          {
+            "id": "a04dcc6c-5088-4d45-88be-01e98d0e838f",
+            "franchise": "visa",
+            "status": "ACTIVE",
+            "reason": "00",
+            "logs": [],
+            "createdAt": "2026-01-15 15:00:00",
+            "updatedAt": "2026-01-15 15:01:00"
+          }
+        ]
+      }
+      ```
+      ```json {{ title: '200: recuperación comercio' }}
+      {
+        "status": {
+          "status": "OK",
+          "reason": "00",
+          "message": "The request has been successfully processed",
+          "date": "2026-01-15T15:00:00+00:00"
+        },
+        "data": [
+          {
+            "id": "a04dcc6c-5088-4d45-88be-01e98d0e838f",
+            "franchise": "visa",
+            "status": "ACTIVE",
+            "reason": "00",
+            "logs": [],
+            "createdAt": "2026-01-15 15:00:00",
+            "updatedAt": "2026-01-15 15:01:00",
+            "recoveredMerchant": {
+              "id": "f7f9620b-c9af-4c94-bb76-92409ba23c28",
+              "name": "ACME Corp",
+              "brand": "ACME",
+              "document": {
+                "type": "NIT",
+                "number": "1234567895"
+              },
+              "address": {
+                "city": "Medellin",
+                "country": "CO",
+                "postalCode": "050031"
+              },
+              "legalRepresentative": {
+                "name": "Jane",
+                "surname": "Doe",
+                "email": "jane@example.com"
+              },
+              "websiteURL": "https://example.com"
+            }
+          }
+        ]
+      }
+      ```
+      ```json {{ title: '400: franquicia ausente' }}
+      {
+        "status": {
+          "status": "FAILED",
+          "reason": "BR",
+          "message": "The franchise field is required.",
+          "date": "2026-01-15T15:00:00+00:00"
+        }
+      }
+      ```
+    </CodeGroup>
+  </Col>
+</Row>
