@@ -8,7 +8,30 @@ export const description = 'Transferencia Electrónica de Beneficios (EBT): sist
 <PageTitle title='EBT' imageSrc={ebt} />
 <CountryFlags countries="US, PR"  prefix="Disponible para: " className='mt-4'/>
 
-La Transferencia Electrónica de Beneficios (EBT, por sus siglas en inglés) es un sistema electrónico que permite a los participantes del Programa de Asistencia Nutricional Complementaria (SNAP, por sus siglas en inglés) pagar los alimentos utilizando los beneficios del SNAP. Cuando un participante compra en una tienda autorizada SNAP, su cuenta EBT SNAP se carga para reembolsar a la tienda por los alimentos comprados.
+## Introducción a EBT Online
+
+La Transferencia Electrónica de Beneficios (EBT, por sus siglas en inglés) permite a los participantes del Programa de Asistencia Nutricional (PAN, o NAP por sus siglas en inglés) pagar por alimentos elegibles utilizando sus beneficios. En Puerto Rico, estos beneficios pueden utilizarse únicamente en comercios autorizados por ADSEF. Cuando un participante realiza una compra, el sistema EBT procesa la transacción en línea, debita los fondos de la cuenta del ciudadano y liquida el pago correspondiente al comercio.
+
+A nivel federal, estos programas son supervisados por el Food and Nutrition Service (FNS) del Departamento de Agricultura de EE. UU. (USDA). A diferencia de Estados Unidos (donde opera el programa SNAP), Puerto Rico administra un bloque de fondos federales distinto conocido como el PAN. El uso de estos beneficios mediante comercio electrónico está estrictamente limitado a transacciones procesadas por comercios certificados y localizados físicamente en Puerto Rico.
+
+A nivel local, la Administración de Desarrollo Socioeconómico de la Familia (ADSEF) es la agencia gubernamental responsable de administrar el PAN. ADSEF actúa como el ente oficial que evalúa, aprueba y certifica a los comercios para que puedan aceptar EBT Online, asegurando que cumplan con las regulaciones tecnológicas y operativas.
+
+### Estructura de fondos: los bolsillos EBT
+
+Al integrar pagos con la Tarjeta de la Familia, el comercio debe considerar que los beneficios se dividen en dos balances o "bolsillos" independientes:
+
+- **EBT Regular (Alimentos)**: Fondos restringidos exclusivamente para la compra de alimentos elegibles aprobados por el programa.
+- **EBT Cash (Efectivo)**: Fondos con mayor flexibilidad que pueden utilizarse para comprar artículos no alimenticios o cubrir otros gastos.
+
+Al procesar el pago, el sistema de Placetopay manejará la transacción contra el bolsillo correspondiente según la instrucción del comercio.
+
+### Certificación y responsabilidades del comercio
+
+Para procesar transacciones EBT en línea, el comercio debe completar la certificación funcional ante ADSEF, quien audita la experiencia de usuario (UX) para validar los controles normativos. Al integrar Placetopay con EBT, el comercio asume la responsabilidad de gestionar la lógica del carrito de compras y debe garantizar las siguientes reglas de negocio:
+
+1. **Identificación de artículos**: El comercio es el único que conoce el detalle del carrito y debe identificar visualmente de manera precisa cuáles productos son elegibles para el pago con fondos del PAN.
+2. **Restricción de cargos adicionales**: Las regulaciones federales prohíben cobrar gastos de envío, impuestos u otros recargos administrativos utilizando el método de pago EBT.
+3. **Flujo de pago dividido (Split Tender)**: Los artículos elegibles para EBT deben cobrarse primero. Si el carrito contiene artículos aplicables, el comercio debe consultar al cliente si desea utilizar su tarjeta EBT. De ser así, debe redirigir al cliente a una primera sesión en Placetopay restringida exclusivamente a los métodos de pago EBT. Una vez el usuario complete esta transacción y retorne a la tienda, el comercio deberá generar una nueva sesión de pago convencional (excluyendo la opción EBT) para saldar cualquier balance restante de artículos no elegibles y recargos.
 
 ## Flujo de pago
 1. El usuario selecciona EBT como método de pago en el checkout.
@@ -60,6 +83,25 @@ Para [crear una sesión](/checkout/api/reference/session#create-a-session), se d
 - **payment.shipping.address**: Información de dirección del comprador.
     - `country`, `state`, `city`, `postalCode`, `street`, `phone`
 
+#### Uso de `paymentMethod` para sesiones EBT
+
+Para que la sesión de Webcheckout muestre únicamente EBT, el comercio debe filtrar el medio de pago desde su petición de [creación de sesión](/checkout/api/reference/session/) enviando el campo `paymentMethod` con alguno de los códigos EBT descritos arriba. Con este filtro, el usuario solo verá las opciones EBT habilitadas.
+
+Si el comercio **no envía** el campo `paymentMethod`, la sesión no se limita a EBT y el usuario podrá utilizar los demás medios de pago habilitados en el sitio. Por esta razón, no se debe enviar el filtro cuando se quiera permitir métodos distintos de EBT, por ejemplo en la sesión convencional que salda el balance restante en un pago dividido (Split Tender).
+
+#### Cuándo y cómo enviar `metadata.EBTDeliveryIndicator` y `payment.shipping.address`
+
+Ambos datos deben enviarse en la creación de la sesión cuando esta incluye el medio de pago EBT:
+
+- **`metadata.EBTDeliveryIndicator`**: indica cómo recibirá el comprador su pedido. Se envía dentro de `metadata` con uno de los valores `DIRECT_DELIVERY`, `CUSTOMER_PICKUP`, `COMMERCIAL_SHIPPING`, `OTHER` o `NOT_AVAILABLE`.
+- **`payment.shipping.address`**: se envía dentro de `payment.shipping` con los campos `country`, `state`, `city`, `postalCode`, `street` y `phone` del comprador.
+
+No es necesario enviarlos en la sesión convencional (sin EBT) que se crea para cobrar el balance restante.
+
+## Ejemplos de solicitud
+
+**Sesión EBT (Regular y Cash)**
+
 ```json
 {
     ...
@@ -72,11 +114,11 @@ Para [crear una sesión](/checkout/api/reference/session#create-a-session), se d
         },
         "shipping" : {
             "address": {
-                "country" : "CO",
+                "country" : "PR",
                 "city" : "San Juan",
-                "street" : "Lonie Jaskolski IV",
+                "street" : "Calle Ejemplo 123",
                 "state" : "PR", 
-                "postalCode" : "43015",
+                "postalCode" : "00901",
                 "phone" : "+1-787-555-1875"
             }
         }
@@ -122,6 +164,10 @@ Para utilizar este método de cobro, la integración debe incluir el servicio de
     ...
 }
 ```
+
+## Pruebas EBT
+
+Para realizar pruebas de la integración EBT, consulta los [números de tarjeta de pruebas](/gateway/testing-card/).
 
 ## FAQs
 

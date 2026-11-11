@@ -8,57 +8,99 @@ export const description = 'Electronic Benefits Transfer (EBT): an electronic sy
 <PageTitle title='EBT' imageSrc={ebt} />
 <CountryFlags countries="US, PR"  prefix="Available for: " className='mt-4'/>
 
-Electronic Benefits Transfer (EBT) is an electronic system that allows a Supplemental Nutrition Assistance Program (SNAP) participant to pay for food using SNAP benefits. When a participant shops at a SNAP authorized retail store, their SNAP EBT account is debited to reimburse the store for food that was purchased.
+## Introduction to EBT Online
 
-## Payment Flow  
-1. The user selects EBT as the payment method at checkout.  
-2. Enters their EBT card details.  
-3. Completes the OTP (one-time password) validation.
-4. Placetopay processes the transaction and notifies both the merchant and the user about the transaction status.
+Electronic Benefits Transfer (EBT) allows participants of the Nutrition Assistance Program (known as PAN in Spanish, or NAP) to pay for eligible food using their benefits. In Puerto Rico, these benefits can only be used at merchants authorized by ADSEF. When a participant makes a purchase, the EBT system processes the transaction online, debits the funds from the citizen's account, and settles the corresponding payment to the merchant.
 
-![EBT Payment Flow](/en/payments/pm-ebt-flow.webp)  
+At the federal level, these programs are overseen by the Food and Nutrition Service (FNS) of the U.S. Department of Agriculture (USDA). Unlike the United States (where the SNAP program operates), Puerto Rico administers a separate block of federal funds known as NAP. Use of these benefits for e-commerce is strictly limited to transactions processed by certified merchants that are physically located in Puerto Rico.
 
-## Integration Options  
+At the local level, the Family Socioeconomic Development Administration (ADSEF, by its Spanish acronym) is the government agency responsible for administering NAP. ADSEF is the official entity that evaluates, approves, and certifies merchants to accept EBT Online, ensuring that they comply with technological and operational regulations.
 
-- **Integration via**: [Webcheckout](/en/checkout)  
-The **EBT** payment method is available through **Webcheckout**, providing a secure and automated payment process. **Placetopay** manages the transaction, ensuring a seamless user experience.
+### Funds structure: EBT pockets
 
-- **Integration via**: [Gateway](/en/gateway)  
-For advanced integrations, **Gateway** allows merchants to capture and process **EBT** payments directly from their platform, offering greater control in specific scenarios such as:  
+When integrating payments with the Tarjeta de la Familia, the merchant must keep in mind that benefits are divided into two independent balances, or "pockets":
+
+- **EBT Regular (Food)**: Funds restricted exclusively to the purchase of eligible food items approved by the program.
+- **EBT Cash**: Funds with greater flexibility that can be used to purchase non-food items or cover other expenses.
+
+When processing the payment, the Placetopay system will process the transaction against the corresponding pocket based on the merchant's instruction.
+
+### Certification and merchant responsibilities
+
+To process online EBT transactions, the merchant must complete functional certification with ADSEF, which audits the user experience (UX) to validate regulatory controls. When integrating Placetopay with EBT, the merchant is responsible for managing the shopping cart logic and must ensure compliance with the following business rules:
+
+1. **Item identification**: The merchant is the only party that knows the cart details and must clearly and accurately identify which products are eligible for payment with NAP funds.
+2. **Restriction on additional charges**: Federal regulations prohibit charging shipping fees, taxes, or other administrative surcharges using the EBT payment method.
+3. **Split Tender flow**: EBT-eligible items must be charged first. If the cart contains eligible items, the merchant must ask the customer whether they want to use their EBT card. If so, the merchant must redirect the customer to a first Placetopay session restricted exclusively to EBT payment methods. Once the user completes this transaction and returns to the store, the merchant must create a new conventional payment session (excluding the EBT option) to settle any remaining balance for non-eligible items and surcharges.
+
+## Payment flow
+1. The user selects EBT as the payment method at checkout.
+2. The user enters their EBT card details.
+3. The user completes validation using an OTP (one-time password).
+4. Placetopay processes the transaction and notifies the merchant and the user of the transaction status.
+
+![EBT payment flow](/payments/pm-ebt-flow.webp)
+
+## **Integration options**
+
+- **Integrations via**: [Webcheckout](/checkout)
+The **EBT** payment method is available through **Webcheckout**, offering a secure and automated payment process. **Placetopay** manages the transaction, ensuring a smooth experience for the user.
+
+- **Integrations via**: [Gateway](/gateway)
+For advanced integrations, **Gateway** allows you to capture and process **EBT** payments directly from the merchant's platform, offering greater control in specific scenarios such as:  
 - Integrations with interactive voice response (IVR) systems.  
-- Processing multiple transactions using the same cardholder information. 
+- Processing multiple transactions with the same cardholder information. 
 
 
 ## Placetopay Wallet
 
-- EBT is compatible with Placetopay Wallet, allowing users to store their card information for quick and secure purchases without needing to enter it manually for every transaction.
+- EBT is compatible with the Placetopay Wallet, which allows users to store their card information to make fast and secure purchases without having to enter it manually in each transaction.
 
-## Restrictions  
+## Restrictions
 
-- EBT cards cannot be used at certain locations, such as liquor stores, casinos, and other gambling establishments.  
+- EBT cards cannot be used at certain locations, such as liquor stores, casinos, and other gambling establishments.
 
-## Webcheckout Integration  
-The **EBT** payment method allows merchants to accept electronic payments through **Webcheckout**, with a secure and automated process. EBT supports two types of payment: **Regular** and **Cash**, which can be used in the same transaction.  
-To initiate a payment session using this method, the following parameters must be included in the request.  
+## Webcheckout Integration
+The **EBT** payment method allows merchants to accept electronic payments through **Webcheckout**, with a secure and automated process. EBT supports two payment types: **Regular** and **Cash**, which can be used in the same transaction.  
+To start a payment session with this method, you must send the following parameters in the request.  
 
-### **Payment Session Creation**  
-To [create a session](/en/checkout/api/reference/session#create-a-session), the following fields must be included:  
+### **Creating a payment session**  
+To [create a session](/checkout/api/reference/session#create-a-session), include the following fields:  
 
-- **paymentMethod**: Defines the type of EBT payment to be used. The following codes must be sent:  
-  - **ebt**: For both Regular and Cash payments.  
-  - **EBTCH, EBTRG**: For both Regular and Cash payments.  
+- **paymentMethod**: Defines the EBT payment type to use. The following codes must be sent:  
+  - **ebt**: For Regular and Cash payments.  
+  - **EBTCH,EBTRG**: For Regular and Cash payments.  
   - **EBTCH**: For Cash-only payments.  
   - **EBTRG**: For Regular-only payments.  
 
 - **metadata**: Defines the delivery type. The following options can be sent:  
-  - `DIRECT_DELIVERY`  
-  - `CUSTOMER_PICKUP`  
-  - `COMMERCIAL_SHIPPING`  
-  - `OTHER`  
-  - `NOT_AVAILABLE`  
+  - `DIRECT_DELIVERY`,  
+  - `CUSTOMER_PICKUP`, 
+  - `COMMERCIAL_SHIPPING`, 
+  - `OTHER`, 
+  - `NOT_AVAILABLE`
 
-- **payment.shipping.address**: Buyer’s address information.  
-  - `country`, `state`, `city`, `postalCode`, `street`, `phone`  
+- **payment.shipping.address**: Buyer's address information.
+    - `country`, `state`, `city`, `postalCode`, `street`, `phone`
+
+#### Using `paymentMethod` for EBT sessions
+
+For the Webcheckout session to display only EBT, the merchant must filter the payment method in its [session creation](/checkout/api/reference/session/) request by sending the `paymentMethod` field with one of the EBT codes described above. With this filter, the user will only see the enabled EBT options.
+
+If the merchant **does not send** the `paymentMethod` field, the session is not limited to EBT and the user can use the other payment methods enabled on the site. For this reason, the filter must not be sent when you want to allow payment methods other than EBT, for example in the conventional session that settles the remaining balance in a Split Tender payment.
+
+#### When and how to send `metadata.EBTDeliveryIndicator` and `payment.shipping.address`
+
+Both values must be sent when creating the session if it includes the EBT payment method:
+
+- **`metadata.EBTDeliveryIndicator`**: indicates how the buyer will receive their order. It is sent inside `metadata` with one of the values `DIRECT_DELIVERY`, `CUSTOMER_PICKUP`, `COMMERCIAL_SHIPPING`, `OTHER`, or `NOT_AVAILABLE`.
+- **`payment.shipping.address`**: sent inside `payment.shipping` with the buyer's `country`, `state`, `city`, `postalCode`, `street`, and `phone` fields.
+
+They do not need to be sent in the conventional (non-EBT) session created to collect the remaining balance.
+
+## Request examples
+
+**EBT session (Regular and Cash)**
 
 ```json
 {
@@ -72,11 +114,11 @@ To [create a session](/en/checkout/api/reference/session#create-a-session), the 
         },
         "shipping" : {
             "address": {
-                "country" : "CO",
+                "country" : "PR",
                 "city" : "San Juan",
-                "street" : "Lonie Jaskolski IV",
+                "street" : "Calle Ejemplo 123",
                 "state" : "PR", 
-                "postalCode" : "43015",
+                "postalCode" : "00901",
                 "phone" : "+1-787-555-1875"
             }
         }
@@ -89,16 +131,17 @@ To [create a session](/en/checkout/api/reference/session#create-a-session), the 
 }
 ```
 
-### **Token-Based Payment**
-To perform a [token-based payment](/en/checkout/api/reference/token#charge-using-token), the same parameters as in session creation must be sent, along with the following field:
+### **Charging using a token**
+To make a [charge using a token](/checkout/api/reference/token#charge-using-token), send the same parameters as in session creation, plus the following fields:
 
-- **provider**: EBT processing provider code:  
-  - `EBUS`  
-  - `EBUS/EBTCH`  
-  - `EBUS/EBTRG`  
+- **provider**: EBT processing provider code:
+  - `EBUS`, 
+  - `EBUS/EBTCH`, 
+  - `EBUS/EBTRG`
 
-- **instrument.pin**: PinPad code.  
-To use this payment method, the integration must include the [PinPad](/en/sdks/pinpad) service to generate and validate the PIN code. This code must be sent in the request within the property:  
+- **instrument.pin**: PinPad code.
+To use this charge method, the integration must include the [PinPad](/sdks/pinpad) service to generate and validate the PIN code. This code must be sent in the request in the following property: 
+`CollectRequest.instrument.pin`
 
 ```json
 {
@@ -122,9 +165,13 @@ To use this payment method, the integration must include the [PinPad](/en/sdks/p
 }
 ```
 
-## FAQs  
+## EBT testing
+
+To test your EBT integration, see the [test card numbers](/gateway/testing-card/).
+
+## FAQs
 
 <details>
-    <summary>How do I set up EBT in my Placetopay account?</summary>
-    <p>Contact our operations team to enable this feature in your account by emailing servicioposventa@placetopay.com</p>
+    <summary>How do I set up EBT on my Placetopay account?</summary>
+    <p>Contact our operations team to enable this feature on your sites by emailing servicioposventa@placetopay.com</p>
 </details>
