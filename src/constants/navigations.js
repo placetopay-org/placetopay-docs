@@ -2009,6 +2009,10 @@ export const TAB_NAVIGATION = {
                 title: 'Cómo funciona',
                 href: '/payment-links/how-payment-links-works',
               },
+              {
+                title: 'Canales de envío',
+                href: '/payment-links/delivery-channels',
+              },
             ],
           },
           {
@@ -2057,6 +2061,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'How does it work?',
                 href: '/en/payment-links/how-payment-links-works',
+              },
+              {
+                title: 'Delivery channels',
+                href: '/en/payment-links/delivery-channels',
               },
             ],
           },

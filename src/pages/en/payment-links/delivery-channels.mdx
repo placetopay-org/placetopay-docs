@@ -1,0 +1,75 @@
+export const description =
+  'Send your payment links to your customers by email, SMS or WhatsApp directly from the Payment Links API.';
+
+# Delivery channels
+
+Besides sharing the payment link URL yourself, Placetopay can send it directly to your customers as soon as the link is created. You can choose one or more channels for each recipient: **email**, **SMS** and **WhatsApp**. {{ className: 'lead' }}
+
+## Available channels {{ id: 'available-channels' }}
+
+| Channel | What you need to send | Requires prior setup |
+| --- | --- | --- |
+| **Email** | `email` | No |
+| **SMS** | `phoneNumber` and `sendSMS: true` | Yes, see [SMS setup](#sms-setup) |
+| **WhatsApp** | `phoneNumber` and `sendWhatsapp: true` | Yes, see [WhatsApp setup](#whatsapp-setup) |
+
+Channels can be combined: the same recipient can receive the link by email, SMS and WhatsApp at the same time.
+
+## How to send the link {{ id: 'how-to-send' }}
+
+Recipients are set in the `recipients` field when you [create a link](/en/payment-links/api/reference/payment-links#create-a-link). The link is sent only once, at the moment it is created, and you can include up to **20 recipients** per link.
+
+Each recipient accepts the following fields:
+
+- **`email`:** email address the link will be sent to.
+- **`phoneNumber`:** mobile phone number including the country code (e.g., `+573001234567`). Required if `sendSMS` or `sendWhatsapp` is `true`.
+- **`sendSMS`:** if `true`, the link is sent by text message to the `phoneNumber`.
+- **`sendWhatsapp`:** if `true`, the link is sent by WhatsApp to the `phoneNumber`.
+
+```json {{ title: 'recipients example' }}
+"recipients": [
+    {
+        "email": "john.doe@example.com",
+        "phoneNumber": "+573001234567",
+        "sendSMS": true,
+        "sendWhatsapp": true
+    },
+    {
+        "email": "jane.doe@example.com"
+    },
+    {
+        "phoneNumber": "+15550124",
+        "sendWhatsapp": true
+    }
+]
+```
+
+In this example, the first recipient receives the link through all three channels, the second one only by email, and the third one only by WhatsApp.
+
+<Note>
+  SMS and WhatsApp messages are sent in the background, after the API responds. Therefore, a `201` response confirms that the link was created, but it does not guarantee that the message reached the recipient.
+</Note>
+
+## SMS and WhatsApp setup {{ id: 'channel-setup' }}
+
+Email delivery is available without any additional setup. To enable SMS and WhatsApp, you must share your provider credentials for each channel with Placetopay. Our team configures them on your site and, once the channel is enabled, you can use `sendSMS` or `sendWhatsapp` in your requests.
+
+### SMS {{ id: 'sms-setup' }}
+
+Text messages are sent through **Amazon SNS** (AWS). To enable SMS delivery, share the following credentials from your AWS account:
+
+- **Key:** AWS Access Key ID with permissions to send SMS through Amazon SNS.
+- **Secret:** Secret Access Key associated with the `Key`.
+- **Region:** AWS region where Amazon SNS is configured (e.g., `us-east-1`).
+
+### WhatsApp {{ id: 'whatsapp-setup' }}
+
+WhatsApp messages are sent through the **Meta WhatsApp Cloud API**. To enable WhatsApp delivery, share the following information:
+
+- **Token:** Meta WhatsApp API access token.
+- **Phone ID:** Phone Number ID of the WhatsApp number the messages will be sent from, as shown in Meta.
+- **Template name:** name of a message template approved in Meta for sending payment links. The template body must have a single variable, which is replaced with the payment link URL, and the template must be approved in the languages in which you create your links.
+
+<Note>
+  Share these credentials with Placetopay only through the secure channels indicated by our team. The `Secret` and `Token` must not be exposed in public repositories, application logs or source code.
+</Note>
