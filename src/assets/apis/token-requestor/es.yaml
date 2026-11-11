@@ -2269,8 +2269,193 @@ paths:
                       - "consumer"
                       - "document"
 
+  /api/admin/onboarding/generate:
+    post:
+      summary: Generar onboarding
+      operationId: token-requestor-admin-onboarding-generate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [auth, merchantId]
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                merchantId:
+                  type: string
+                  format: uuid
+                  description: UUID del comercio.
+                franchises:
+                  type: array
+                  description: Franquicias a procesar; si se omite, se utilizan todas las configuradas.
+                  items:
+                    type: string
+                    enum: [visa, master]
+      responses:
+        '200':
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  data:
+                    type: object
+                    description: Estado de onboarding por franquicia solicitada.
+                    properties:
+                      visa:
+                        $ref: '#/components/schemas/OnboardingGenerateResult'
+                      master:
+                        $ref: '#/components/schemas/OnboardingGenerateResult'
+  /api/admin/onboarding/show:
+    post:
+      summary: Consultar onboarding
+      operationId: token-requestor-admin-onboarding-show
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ auth ]
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                merchantId:
+                  type: string
+                  format: uuid
+                  description: UUID del comercio; requerido si no se envía document.
+                document:
+                  type: object
+                  description: Documento del comercio; requerido si no se envía merchantId.
+                  required: [ type, number ]
+                  properties:
+                    type:
+                      type: string
+                      description: Tipo de documento.
+                      example: NIT
+                    number:
+                      type: string
+                      maxLength: 20
+                      description: Número de identificación del comercio.
+                      example: '1234567895'
+      responses:
+        '200':
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingListResponse'
+  /api/admin/onboarding/history:
+    post:
+      summary: Consultar historial de onboarding
+      operationId: token-requestor-admin-onboarding-history
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [auth, franchise]
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                merchantId:
+                  type: string
+                  format: uuid
+                  description: UUID del comercio; requerido si no se envía document.
+                document:
+                  type: object
+                  description: Documento del comercio; requerido si no se envía merchantId.
+                  required: [ type, number ]
+                  properties:
+                    type:
+                      type: string
+                      description: Tipo de documento.
+                      example: NIT
+                    number:
+                      type: string
+                      maxLength: 20
+                      description: Número de identificación del comercio.
+                      example: '1234567895'
+                franchise:
+                  type: string
+                  enum: [visa, master]
+                  description: Franquicia.
+      responses:
+        '200':
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingListResponse'
 components:
   schemas:
+    OnboardingGenerateResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador del onboarding.
+        status:
+          type: object
+          description: Estado del onboarding.
+          properties:
+            status:
+              type: string
+              enum: [IN_PROCESS, PENDING, ACTIVE, FAILED]
+            reason:
+              type: string
+              nullable: true
+              example: '?-'
+    OnboardingListResponse:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OnboardingRecord'
+    OnboardingRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador del onboarding.
+        franchise:
+          type: string
+          enum: [visa, master]
+        status:
+          type: string
+          enum: [IN_PROCESS, PENDING, ACTIVE, FAILED]
+          description: Estado del onboarding.
+        reason:
+          type: string
+          description: Código de motivo del onboarding.
+        logs:
+          type: array
+          description: Registros de la operación con la marca, si están disponibles; pueden estar vacíos.
+          items:
+            type: object
+            additionalProperties: true
+        recoveredMerchant:
+          type: object
+          nullable: true
+          description: Presente únicamente cuando la recuperación del comercio fue exitosa. Snapshot reconstruido con los datos recuperados del comercio.
+          additionalProperties: true
+        createdAt:
+          type: string
+          description: Fecha de creación del intento.
+        updatedAt:
+          type: string
+          description: Fecha de última actualización del intento.
     Status:
       title: "Status"
       type: "object"
