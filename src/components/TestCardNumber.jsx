@@ -667,6 +667,31 @@ const groupsByFranchise = [
         number : '1111222233330000',
         behavior: { es: 'Aprueba', en: 'Approve' },
       },
+      {
+        number : '1111222233332222',
+        behavior: { es: 'Rechaza', en: 'Denies' },
+      },
+      {
+        number : '1111222233330001',
+        behavior: {
+          es: 'Aprueba y, 5 minutos después, genera una devolución con código NACHA R01 (Fondos insuficientes)',
+          en: 'Approves and, 5 minutes later, generates a return with NACHA code R01 (Insufficient funds)',
+        },
+      },
+      {
+        number : '1111222233330009',
+        behavior: {
+          es: 'Aprueba y, 5 minutos después, genera una devolución con código NACHA R09 (Fondos no liberados)',
+          en: 'Approves and, 5 minutes later, generates a return with NACHA code R09 (Uncleared funds)',
+        },
+      },
+      {
+        number : '1111222233330002',
+        behavior: {
+          es: 'Aprueba y, 5 minutos después, genera una devolución con código NACHA R02 (Cuenta cerrada)',
+          en: 'Approves and, 5 minutes later, generates a return with NACHA code R02 (Account closed)',
+        },
+      },
     ],
   }
 ]
