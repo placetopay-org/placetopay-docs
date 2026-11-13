@@ -10,6 +10,8 @@ export const description = 'Create a notification request in MSV Service to send
 
 This endpoint allows you to send an informational message to the user via the channels you specify. Unlike a [validation](/en/msv-service/api/validation), a notification does not await a response, does not generate a `token`, cannot be queried later, and does not trigger a webhook. The message also does not include a confirmation link.
 
+The `200` response confirms that at least one channel delivered the message; if no channel delivered it, the response is `400`. In both cases, `channels` shows the result of each channel (see [Channel results](/en/msv-service/api#channel-results)).
+
 <Row>
   <Col>
     <ApiReader
@@ -76,7 +78,23 @@ curl -X "POST" {{baseURl}}/api/notifications \
     "reason": null,
     "message": "The message was sent successfully",
     "date": "2022-08-12T15:44:17+00:00"
-  }
+  },
+  "channels": [
+    {
+      "channel": "sms",
+      "delivered": true
+    },
+    {
+      "channel": "whatsapp",
+      "delivered": false,
+      "reason": "template_rejected",
+      "message": "The message template was rejected"
+    },
+    {
+      "channel": "email",
+      "delivered": true
+    }
+  ]
 }
 ```
 ```json {{ title: '401' }}
@@ -93,10 +111,24 @@ curl -X "POST" {{baseURl}}/api/notifications \
 {
   "status": {
     "status": "FAILED",
-    "reason": null,
-    "message": "El mensaje no se ha podido enviar por el canal: SMS",
+    "reason": 0,
+    "message": "The message could not be sent via the channel: SMS",
     "date": "2022-08-12T14:50:01+00:00"
-  }
+  },
+  "channels": [
+    {
+      "channel": "sms",
+      "delivered": false,
+      "reason": "invalid_destination",
+      "message": "The destination number is invalid or cannot receive messages"
+    },
+    {
+      "channel": "email",
+      "delivered": false,
+      "reason": "authentication_error",
+      "message": "Authentication error with the messaging service"
+    }
+  ]
 }
 ```
 ```json {{ title: '422' }}

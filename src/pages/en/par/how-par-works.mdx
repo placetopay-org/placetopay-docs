@@ -1,0 +1,85 @@
+import PartnerSessionSequence from "@/components/react-flow/SequenceDiagram/Diagrams/Par/PartnerSessionSequence"
+
+export const description =
+  'Learn the lifecycle of a partner session in PAR: the token request, the cardholder login, the enrollment and the return.'
+
+# How PAR works
+
+Every PAR integration, whether from a merchant or an issuer, follows the same journey: your server obtains a **single-use token**, the cardholder's browser presents it to PAR to open a **partner session** and, when they finish, PAR sends them back to your site.
+
+## Lifecycle {{ id: 'partner-session-lifecycle' }}
+
+1. Your server requests a token from PAR, authenticating with your partner credentials and sending the cardholder's data.
+2. PAR validates the credentials and the data. If something is wrong, it answers with an error code and issues no token.
+3. If everything is valid, PAR answers with the token. From that moment you have a limited time to use it.
+4. Your site sends the token to PAR's login URL through a `POST` form from the cardholder's browser, in a full window or inside an `iframe`.
+5. PAR consumes the token, opens the session and takes the cardholder to enroll their autopay.
+6. When they finish, PAR sends the cardholder back to the return URL you provided. Merchants can also check from their server whether the enrollment was authorized.
+
+## Integration {{ id: 'par-integration' }}
+
+The following diagram describes the full cycle, from the token request to the return.
+
+<PartnerSessionSequence />
+
+### Token request
+
+The request is always made **server to server**, because it carries your partner credentials. Its format depends on the channel:
+
+- **Merchants**: `POST /restpatpass/v1/services/patInscription`, with JSON and the credentials in the headers. The response includes the token and the login URL.
+- **Issuers**: `POST /nuevopat/SolicitaTkn`, with an XML message that includes the credentials, the cardholder's document and their cards. The response, also in XML, includes the token.
+
+PAR fully validates the request before issuing the token: your credentials, that your partner is active and the cardholder data you send. If the document you send belongs to a person already registered in PAR, the session is tied to their account; otherwise, the cardholder can enroll the autopay without a prior account.
+
+### Login
+
+With the token in hand, your site must send the cardholder to PAR. You do it with a `POST` form from their browser to the login URL, with the token in the field that matches your channel:
+
+- **Merchants**: `POST /restpatpass/login`, the URL included in the token response, with the `tokenComercio` field.
+- **Issuers**: `POST /nuevopat/tokenLogin`, with the `token` field. You can also set the return and error URLs.
+
+PAR consumes the token at that moment and opens the cardholder's session. The browser then receives the session through an automatic exchange that requires nothing from you; the details are in the [embedded session](/en/par/embedded-session).
+
+<Note>
+  The token is **not sent in the URL** nor consumed from your server: the cardholder's browser presents it, because the session being opened is theirs.
+</Note>
+
+### Enrollment
+
+Inside PAR, the cardholder identifies themselves if needed, chooses a card or links a new one and authorizes the autopay. If they came from an issuer, PAR offers them the cards the issuer sent in the token request, without having to type them again. If they came from a merchant, the autopay is tied to the service the merchant specified.
+
+### Return
+
+When they finish, PAR sends the cardholder back to your site:
+
+- **Merchants**: PAR submits a `POST` form to the return URL you provided when requesting the token, with the token in the `j_token` field. With that same token your server calls `POST /restpatpass/v1/services/status` to confirm whether the enrollment was **authorized**.
+- **Issuers**: PAR takes the cardholder to the `direccionRegreso` you provided at login. If the login fails, it takes them to the `direccionError`.
+
+<Note type="warning">
+  The cardholder returning to your URL **does not mean the autopay was enrolled**: they may have abandoned the process. Merchants must confirm the result with the status check.
+</Note>
+
+## The token {{ id: 'token' }}
+
+The token is the key that opens a partner session. Treat it as a credential:
+
+- **It is single-use.** At login, PAR marks it as consumed. A second attempt with the same token is rejected.
+- **It expires quickly.** It has a short validity. Issuers can ask for a different validity with `DuracionToken`, within the maximum PAR allows. If it expires before being used, you must request a new one.
+- **Only PAR issues it.** It is delivered once, in the response to your request, and PAR does not store it in plain text.
+- **It can be revoked.** If Placetopay disables your partner, pending tokens and open sessions stop being valid.
+
+After it is consumed, the token keeps identifying the enrollment: it is the one PAR returns to you in `j_token` and the one you use in the status check and in the autopay voucher.
+
+## The partner session {{ id: 'partner-session' }}
+
+Once open, the cardholder's session has its own security rules:
+
+- **It has a maximum duration.** When it is reached, PAR closes it even if the cardholder is still active and shows them that the session ended.
+- **It is bound to the browser that started it.** If the session is used from another browser, PAR closes it.
+- **It depends on your partner.** If your partner is disabled while the session is open, PAR closes it on the cardholder's next action.
+
+## PAR inside an iframe {{ id: 'iframe' }}
+
+You can display PAR inside an `iframe` on your site instead of opening it in a full window. For that, your site's origin (for example, `https://www.example.com`) must be authorized for your partner; PAR only allows authorized origins to embed it and rejects any other.
+
+That same list of origins is used to validate the issuers' return and error URLs, which must belong to an authorized origin. Ask your Placetopay contact to register your site's origins. The details are in [Embedded session](/en/par/embedded-session).

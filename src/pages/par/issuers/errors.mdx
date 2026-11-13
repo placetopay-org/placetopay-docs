@@ -1,0 +1,50 @@
+export const description =
+  'Conoce los códigos con los que PAR responde la solicitud de token de un emisor y los errores del inicio de sesión.'
+
+# Errores para emisores
+
+La solicitud de token responde los errores en el mismo mensaje XML que el éxito, con un código en `Coderror` y un texto en `Descerror`.
+
+## Formato {{ id: 'format' }}
+
+```xml {{ title: 'Respuesta de error' }}
+<?xml version="1.0" encoding="UTF-8"?>
+<Mensaje>
+  <Coderror>1</Coderror>
+  <Descerror>Usuario o Pasword Incorrecto.</Descerror>
+</Mensaje>
+```
+
+<Properties>
+  <Property name="Coderror" type="string">
+    Código del resultado. Es el valor que debes usar en tu integración para decidir qué hacer.
+  </Property>
+  <Property name="Descerror" type="string">
+    Texto informativo que acompaña al código, de hasta 80 caracteres. En los errores de validación nombra el campo que falló. Puede cambiar, así que no lo uses para tomar decisiones.
+  </Property>
+</Properties>
+
+Las respuestas de error usan HTTP `200`, salvo cuando se supera el límite de peticiones, que responde HTTP `429`.
+
+## Catálogo {{ id: 'codes' }}
+
+| Código | Descripción | Causa |
+|---|---|---|
+| `0` | EXITO | El token se emitió |
+| `1` | Usuario o Pasword Incorrecto. | El usuario o la contraseña no son válidos, no corresponden a un emisor o el emisor no está activo |
+| `100` | Error de validación de negocio | Falta un campo obligatorio, un campo está mal formado o supera su longitud, hay más de 5 tarjetas o una no es válida, `DuracionToken` no es válido, la `IP` no es válida o no está autorizada, o el documento no tiene el formato de tu emisor |
+| `1000` | Error General | Error inesperado en PAR, o se superó el límite de peticiones (HTTP `429`). Reintenta más tarde |
+| `1001` | Error General en Base de Datos | Error de base de datos en PAR. Reintenta más tarde |
+| `1007` | XML no valido | No llegó el campo `TBKPatData` o su contenido no es un XML válido |
+
+En los errores de validación (`100` y `1007`), `Descerror` describe el problema concreto, por ejemplo `El campo DatosUsuario.RutUsuario es requerido`. Cada respuesta informa un solo problema; corrígelo y vuelve a enviar la solicitud.
+
+## Errores del inicio de sesión {{ id: 'login-errors' }}
+
+El inicio de sesión lo hace el navegador del tarjetahabiente, así que sus errores no responden XML:
+
+- Si el token falta, no existe, ya se usó, venció o fue revocado, PAR responde `403` y muestra una página de error.
+- Si alguna URL del formulario no es válida o no pertenece a un origen autorizado, el inicio de sesión se rechaza.
+- Si el inicio de sesión falla, PAR envía al tarjetahabiente a tu `direccionError`, cuando la enviaste y es válida. Si no, le muestra una página que le indica que no se pudo iniciar la sesión.
+
+En todos los casos, solicita un token nuevo y vuelve a enviar al tarjetahabiente.

@@ -1,0 +1,64 @@
+export const description =
+  'Envía al tarjetahabiente a PAR con el token de tu emisor para que inscriba y gestione sus autopagos con las tarjetas que le emitiste.'
+
+# Iniciar la sesión
+
+Con el token que obtuviste al [solicitarlo](/par/issuers/request-token), el navegador del tarjetahabiente inicia la sesión en PAR. Desde esa sesión, el tarjetahabiente inscribe y gestiona autopagos con las tarjetas que enviaste.
+
+## Enviar al tarjetahabiente {{ id: 'send-cardholder' }}
+
+`POST {URL_BASE}/nuevopat/tokenLogin`
+
+Envía al tarjetahabiente mediante un formulario `POST` desde su navegador, con el token en el campo `token`. Puedes hacerlo en una ventana completa o dentro de un `iframe`, si el origen de tu sitio está autorizado para tu emisor.
+
+```html {{ title: 'Formulario' }}
+<form method="post" action="{URL_BASE}/nuevopat/tokenLogin">
+  <input type="hidden" name="token" value="{TOKEN}" />
+  <input type="hidden" name="direccionRegreso" value="https://www.example.com/par/return" />
+  <input type="hidden" name="direccionError" value="https://www.example.com/par/error" />
+  <button type="submit">Ir a mis autopagos</button>
+</form>
+```
+
+### Campos del formulario
+
+<Properties>
+  <Property name="token" type="string" isRequired={true}>
+    El token de un solo uso que PAR te devolvió en `Token`.
+  </Property>
+  <Property name="direccionRegreso" type="string" isRequired={false}>
+    URL de retorno. PAR la ofrece al tarjetahabiente para volver a tu sitio. Debe pertenecer a un origen autorizado para tu emisor.
+  </Property>
+  <Property name="direccionError" type="string" isRequired={false}>
+    URL de error. Si el inicio de sesión falla, PAR envía al tarjetahabiente a esta dirección. Debe pertenecer a un origen autorizado para tu emisor.
+  </Property>
+  <Property name="style" type="string" isRequired={false}>
+    URL de una hoja de estilos de tu emisor.
+  </Property>
+  <Property name="imagen" type="string" isRequired={false}>
+    URL de una imagen de tu emisor.
+  </Property>
+</Properties>
+
+Todas las URL deben usar `http` o `https`.
+
+## Qué ve el tarjetahabiente {{ id: 'cardholder-session' }}
+
+PAR consume el token y abre la sesión. Lo que ve el tarjetahabiente depende de si ya tiene una cuenta en PAR con el documento que enviaste:
+
+- **Si tiene una cuenta**, entra a sus autopagos y puede inscribir nuevos.
+- **Si no tiene una cuenta**, va directamente a inscribir un autopago, sin crear una cuenta previa.
+
+En los dos casos, la sesión se **limita a las tarjetas que enviaste** en la solicitud del token: PAR se las ofrece para inscribir autopagos sin que el tarjetahabiente tenga que digitarlas, y solo le muestra lo que corresponde a esas tarjetas.
+
+<Note>
+  El token es de un solo uso y vence pronto. Solicítalo justo antes de enviar al tarjetahabiente, y uno nuevo cada vez que lo envíes.
+</Note>
+
+## Retorno y errores {{ id: 'return-and-errors' }}
+
+- **Retorno**: si enviaste `direccionRegreso`, PAR ofrece al tarjetahabiente volver a esa dirección cuando termina.
+- **Error al iniciar sesión**: si el inicio de sesión falla y enviaste una `direccionError` válida, PAR envía al tarjetahabiente a esa dirección. Si no la enviaste, le muestra una página que le indica que no se pudo iniciar la sesión.
+- **Token inválido**: si el token falta, no existe, ya se usó, venció o fue revocado, PAR responde `403` y muestra una página de error.
+
+El detalle de todos los errores está en [Errores](/par/issuers/errors).

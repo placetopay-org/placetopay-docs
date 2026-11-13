@@ -1,0 +1,253 @@
+export const sectionMode = 'nav';
+export const description =
+  'Referencia de los endpoints con los que un comercio inscribe autopagos en PAR, consulta su estado y muestra el comprobante.'
+
+export const apiRefs = [
+  '/restpatpass/v1/services/patInscription',
+  '/restpatpass/v1/services/status',
+  '/restpatpass/login',
+  '/nuevo-ic-rest/tokenVoucherLogin',
+];
+
+# Comercios
+
+<Row>
+  <Col>
+    Solicita el token de inscripción de un autopago, envía al tarjetahabiente a completarla, confirma si quedó autorizada y muéstrale el comprobante. El flujo completo está explicado en [Inscribir un autopago](/par/merchants/enrollment). {{ className: 'lead' }}
+  </Col>
+  <Col>
+    <EndpointsOverview />
+  </Col>
+</Row>
+
+<ApiDownloads />
+
+## Solicitar el token de inscripción {{ id: 'request-enrollment-token', tag: 'POST', label: '/restpatpass/v1/services/patInscription' }}
+
+<Row>
+  <Col>
+    Valida los datos del servicio y del tarjetahabiente y devuelve un token de un solo uso, junto con la URL de inicio de sesión a la que el navegador del tarjetahabiente debe enviarlo. Se llama desde tu servidor, autenticado como se explica en [Autenticación](/par/merchants/authentication).
+
+    <ApiReader
+      path="/restpatpass/v1/services/patInscription"
+      method="post"
+      type="header"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/restpatpass/v1/services/patInscription"
+      method="post"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/restpatpass/v1/services/patInscription">
+```bash {{ title: 'Datos mínimos' }}
+curl --request POST \
+  --url '{URL_BASE}/restpatpass/v1/services/patInscription' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: {TU_LLAVE_SECRETA}' \
+  --header 'Commercecode: 1234567890' \
+  --data '{
+    "commerceCode": "1234567890",
+    "url": "https://www.example.com/par/return",
+    "finalUrl": "https://www.example.com/par/final",
+    "correoPersona": "john.doe@example.com",
+    "serviceId": "CONTRACT-0001"
+  }'
+```
+
+```bash {{ title: 'Con datos para prellenar' }}
+curl --request POST \
+  --url '{URL_BASE}/restpatpass/v1/services/patInscription' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: {TU_LLAVE_SECRETA}' \
+  --header 'Commercecode: 1234567890' \
+  --data '{
+    "commerceCode": "1234567890",
+    "url": "https://www.example.com/par/return",
+    "finalUrl": "https://www.example.com/par/final",
+    "correoPersona": "john.doe@example.com",
+    "serviceId": "CONTRACT-0001",
+    "rut": "11111111-1",
+    "nombre": "John",
+    "pApellido": "Doe",
+    "sApellido": "Smith",
+    "montoMaximo": 50000,
+    "telefonoCelular": "+56912345678",
+    "nombrePatPass": "Plan mensual"
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/restpatpass/v1/services/patInscription"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+
+    ```json {{ title: '200' }}
+    {
+      "token": "{TOKEN}",
+      "url": "{URL_BASE}/restpatpass/login"
+    }
+    ```
+
+    ```json {{ title: '401' }}
+    {
+      "code": -111,
+      "description": "Headers de autentificación erróneos"
+    }
+    ```
+
+    ```json {{ title: '422' }}
+    {
+      "code": -107,
+      "description": "Id de Servicio incorrecto"
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Consultar el estado de la inscripción {{ id: 'check-enrollment-status', tag: 'POST', label: '/restpatpass/v1/services/status' }}
+
+<Row>
+  <Col>
+    Indica si el tarjetahabiente inició la sesión con el token y completó la inscripción en tu sitio. Consúltalo cada vez que recibas un retorno: volver a tu sitio no significa que la inscripción se completó. Más detalle en [Consultar el estado](/par/merchants/status).
+
+    <ApiReader
+      path="/restpatpass/v1/services/status"
+      method="post"
+      type="header"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/restpatpass/v1/services/status"
+      method="post"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/restpatpass/v1/services/status">
+```bash {{ title: 'Consultar el estado' }}
+curl --request POST \
+  --url '{URL_BASE}/restpatpass/v1/services/status' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: {TU_LLAVE_SECRETA}' \
+  --header 'Commercecode: 1234567890' \
+  --data '{"token": "{TOKEN}"}'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/restpatpass/v1/services/status"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+
+    ```json {{ title: 'Autorizada' }}
+    {
+      "authorized": true,
+      "voucherUrl": "{URL_BASE}/nuevo-ic-rest/tokenVoucherLogin"
+    }
+    ```
+
+    ```json {{ title: 'No autorizada' }}
+    {
+      "authorized": false,
+      "voucherUrl": null
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Iniciar la sesión del tarjetahabiente {{ id: 'start-cardholder-session', tag: 'POST', label: '/restpatpass/login' }}
+
+<Row>
+  <Col>
+    La llama el **navegador del tarjetahabiente** con un formulario `POST`, nunca tu servidor. PAR consume el token, abre la sesión y lleva al tarjetahabiente a inscribir el autopago con los datos que enviaste. Se puede enviar en una ventana completa o dentro de un `iframe`, si el origen de tu sitio está autorizado.
+
+    <ApiReader
+      path="/restpatpass/login"
+      method="post"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/restpatpass/login"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/restpatpass/login">
+```html {{ title: 'Formulario' }}
+<form method="post" action="{URL_BASE}/restpatpass/login">
+  <input type="hidden" name="tokenComercio" value="{TOKEN}" />
+  <button type="submit">Inscribir autopago</button>
+</form>
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Mostrar el comprobante del autopago {{ id: 'show-autopay-voucher', tag: 'POST', label: '/nuevo-ic-rest/tokenVoucherLogin' }}
+
+<Row>
+  <Col>
+    La llama el **navegador del tarjetahabiente** con un formulario `POST`, a la `voucherUrl` de la consulta de estado. Muestra el comprobante del autopago y se puede abrir más de una vez mientras la inscripción siga autorizada. Más detalle en [Comprobante del autopago](/par/merchants/voucher).
+
+    <ApiReader
+      path="/nuevo-ic-rest/tokenVoucherLogin"
+      method="post"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/nuevo-ic-rest/tokenVoucherLogin"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/nuevo-ic-rest/tokenVoucherLogin">
+```html {{ title: 'Formulario' }}
+<form method="post" action="{URL_BASE}/nuevo-ic-rest/tokenVoucherLogin">
+  <input type="hidden" name="tokenComercio" value="{TOKEN}" />
+  <button type="submit">Ver comprobante</button>
+</form>
+```
+    </CodeGroup>
+  </Col>
+</Row>
