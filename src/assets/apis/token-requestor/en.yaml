@@ -2225,8 +2225,193 @@ paths:
                       - "consumer"
                       - "document"
 
+  /api/admin/onboarding/generate:
+    post:
+      summary: Generate onboarding
+      operationId: token-requestor-admin-onboarding-generate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [auth, merchantId]
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                merchantId:
+                  type: string
+                  format: uuid
+                  description: Merchant UUID.
+                franchises:
+                  type: array
+                  description: Franchises to process; if omitted, all configured franchises are used.
+                  items:
+                    type: string
+                    enum: [visa, master]
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/Status'
+                  data:
+                    type: object
+                    description: Onboarding status by requested franchise.
+                    properties:
+                      visa:
+                        $ref: '#/components/schemas/OnboardingGenerateResult'
+                      master:
+                        $ref: '#/components/schemas/OnboardingGenerateResult'
+  /api/admin/onboarding/show:
+    post:
+      summary: Get onboarding
+      operationId: token-requestor-admin-onboarding-show
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ auth ]
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                merchantId:
+                  type: string
+                  format: uuid
+                  description: Merchant UUID; required if document is not supplied.
+                document:
+                  type: object
+                  description: Merchant document; required if merchantId is not supplied.
+                  required: [ type, number ]
+                  properties:
+                    type:
+                      type: string
+                      description: Document type.
+                      example: NIT
+                    number:
+                      type: string
+                      maxLength: 20
+                      description: Merchant identification number.
+                      example: '1234567895'
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingListResponse'
+  /api/admin/onboarding/history:
+    post:
+      summary: Get onboarding history
+      operationId: token-requestor-admin-onboarding-history
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [auth, franchise]
+              properties:
+                auth:
+                  $ref: '#/components/schemas/Authentication'
+                merchantId:
+                  type: string
+                  format: uuid
+                  description: Merchant UUID; required if document is not supplied.
+                document:
+                  type: object
+                  description: Merchant document; required if merchantId is not supplied.
+                  required: [ type, number ]
+                  properties:
+                    type:
+                      type: string
+                      description: Document type.
+                      example: NIT
+                    number:
+                      type: string
+                      maxLength: 20
+                      description: Merchant identification number.
+                      example: '1234567895'
+                franchise:
+                  type: string
+                  enum: [visa, master]
+                  description: Franchise.
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingListResponse'
 components:
   schemas:
+    OnboardingGenerateResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Onboarding identifier.
+        status:
+          type: object
+          description: Onboarding status.
+          properties:
+            status:
+              type: string
+              enum: [IN_PROCESS, PENDING, ACTIVE, FAILED]
+            reason:
+              type: string
+              nullable: true
+              example: '?-'
+    OnboardingListResponse:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OnboardingRecord'
+    OnboardingRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Onboarding identifier.
+        franchise:
+          type: string
+          enum: [visa, master]
+        status:
+          type: string
+          enum: [IN_PROCESS, PENDING, ACTIVE, FAILED]
+          description: Onboarding status.
+        reason:
+          type: string
+          description: Onboarding reason code.
+        logs:
+          type: array
+          description: Brand operation logs, if available; may be empty.
+          items:
+            type: object
+            additionalProperties: true
+        recoveredMerchant:
+          type: object
+          nullable: true
+          description: Only present after successful merchant recovery. Snapshot rebuilt using the recovered merchant data.
+          additionalProperties: true
+        createdAt:
+          type: string
+          description: Attempt creation date.
+        updatedAt:
+          type: string
+          description: Attempt last update date.
     Status:
       title: "Status"
       type: "object"
