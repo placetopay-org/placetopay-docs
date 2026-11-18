@@ -115,6 +115,14 @@ const examples = [
     },
   },
   {
+    key: 'ipAddress',
+    example: '192.0.2.10',
+    description: {
+      es: 'En ATH Móvil, IP del pagador reportada por el proveedor durante la confirmación, cuando está disponible. No reemplaza la IP original de la solicitud.',
+      en: 'For ATH Móvil, payer IP reported by the provider during confirmation, when available. It does not replace the original request IP.',
+    },
+  },
+  {
     key: 'bankName',
     example: 'Bank Name',
     description: {

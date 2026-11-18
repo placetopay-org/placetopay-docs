@@ -573,6 +573,12 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
 
     If a query times out, keep the transaction pending and query again; do not automatically create another charge.
 
+    The query can also return information about the payment instrument: financial institution in `issuerName`, last four digits in `lastDigits`, and BIN in `additional.bin`. These details are obtained during authorization when ATH Móvil reports them.
+
+    `additional.ipAddress` contains the payer IP reported by ATH Móvil during confirmation. It is a separate value and does not replace the original IP sent by the merchant when processing the payment.
+
+    Availability depends on the information received: `issuerName` and `lastDigits` can be `null`, while `additional.bin` and `additional.ipAddress` are omitted when unavailable. Missing details do not change the transaction status.
+
     <Properties classNames="my-6">
       <Property name="status" type="Status">
         Current transaction status: `PENDING`, `APPROVED`, `REJECTED`, or `FAILED`.
@@ -585,6 +591,18 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
       </Property>
       <Property name="paymentMethod" type="string">
         Payment method code: `ATHMV`.
+      </Property>
+      <Property name="issuerName" type="string|null">
+        Financial institution reported by ATH Móvil during authorization; `null` when unavailable.
+      </Property>
+      <Property name="lastDigits" type="string|null">
+        Last four digits of the card used, preserving leading zeroes; `null` when unavailable.
+      </Property>
+      <Property name="additional.bin" type="string" isRequired={false}>
+        Card BIN reported by ATH Móvil during authorization.
+      </Property>
+      <Property name="additional.ipAddress" type="string" isRequired={false}>
+        Payer IP reported by ATH Móvil during confirmation. It does not replace the original request IP.
       </Property>
       <Property name="amount" type="Amount">
         Processed currency and amount.
@@ -622,7 +640,7 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
   "paymentMethod": "ATHMV",
   "franchise": "athmv",
   "franchiseName": "ATH Móvil",
-  "issuerName": null,
+  "issuerName": "Example Bank",
   "amount": {
     "currency": "USD",
     "total": 10
@@ -642,7 +660,7 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
   "receipt": "074690002888",
   "type": "AUTH_ONLY",
   "refunded": false,
-  "lastDigits": null,
+  "lastDigits": "1111",
   "provider": "ATH-MOVIL",
   "discount": null,
   "processorFields": {
@@ -651,7 +669,9 @@ curl -X "POST" https://api-co-dev.placetopay.ws/gateway/query \
     "paymentURL": "https://rest.test/mock/redirection/63671893972dc2326463f93642910630"
   },
   "additional": {
-    "onTest": true
+    "onTest": true,
+    "bin": "411111",
+    "ipAddress": "192.0.2.10"
   },
   "redirection": {
     "paymentMethod": "ATHMV",
