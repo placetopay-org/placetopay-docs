@@ -1,0 +1,50 @@
+export const description =
+  'Sincroniza en PAR los comercios y los sitios de Placetopay: qué crea cada operación, cuándo quedan activos y qué configuración admite un sitio.'
+
+# Comercios y sitios
+
+PAR necesita conocer los comercios y los sitios de Placetopay que ofrecen autopagos. Cada vez que uno cambia, se envía a PAR con un `PUT` que lo **crea si no existe y lo actualiza si ya existe**. Repetir la misma petición deja el mismo resultado.
+
+## Orden de la sincronización {{ id: 'order' }}
+
+1. [Sincroniza el comercio](/par/api/reference/administration#sync-merchant) con `PUT /api/merchants/{coreId}`.
+2. [Sincroniza cada sitio](/par/api/reference/administration#sync-site) con `PUT /api/sites/{coreId}`. El comercio del sitio, `site.merchantId`, debe existir en PAR: si no, responde `422`.
+
+En ambos casos, el `coreId` de la ruta debe ser igual al `coreId` del cuerpo.
+
+## El comercio y su socio {{ id: 'merchant-partner' }}
+
+Al sincronizar un comercio, PAR crea o actualiza también su **socio de tipo comercio**, la identidad con la que el comercio se autentica ante PAR. La respuesta devuelve su `authorizationCode`: es la llave secreta que el comercio envía en el header `Authorization`, como se explica en [Autenticación de comercios](/par/merchants/authentication).
+
+- Si no envías `merchant.authorizationCode` en la primera sincronización, PAR genera una llave.
+- Si el comercio ya existe, la llave solo cambia cuando envías un valor distinto. Una llave no puede estar en uso por otro socio.
+
+## El sitio y su código de comercio {{ id: 'site-commerce-code' }}
+
+La respuesta de la sincronización de un sitio devuelve su `commerceCode`: es el valor que el comercio envía en el header `Commercecode`. Si no envías `site.commerceCode`, PAR conserva el actual o genera uno nuevo. Dos sitios no pueden compartir el mismo código.
+
+## Cuándo queda activo {{ id: 'activation' }}
+
+Un comercio o un sitio queda **activo** solo si su `status` es `ACTIVE` **y** `settings.enabled` es `true`. En cualquier otro caso queda `INACTIVE`, y el `status` de la respuesta te dice cómo quedó.
+
+<Note type="warning">
+  Si un comercio queda inactivo, o si cambia su `authorizationCode`, PAR revoca las sesiones abiertas de su socio.
+</Note>
+
+## Configuración del sitio {{ id: 'site-settings' }}
+
+El objeto `settings` del sitio define cómo se pueden configurar los autopagos de ese sitio. Algunas combinaciones están restringidas:
+
+| Campo | Regla |
+|---|---|
+| `paymentMode` | `FIXED` cobra un monto fijo; `TOTAL_BALANCE`, el saldo total; `MINIMUM_BALANCE`, el saldo mínimo |
+| `maxAmountEnabled`, `maxAmountLabel` | No se pueden enviar con `paymentMode` `FIXED` |
+| `frequency` | `D` diaria, `W` semanal, `M` mensual, `Y` anual |
+| `allowedIntervals` | Cada cuántos períodos de `frequency` se cobra; al menos un valor |
+| `allowedDays` | Solo se envía con `paymentMode` `FIXED` y `frequency` `M`; en cualquier otro caso no se puede enviar |
+| `expirationRules.editable` | Con `true`, el tarjetahabiente elige el vencimiento y no se envían `type` ni `value` |
+| `expirationRules.type` | Con `editable` en `false` es obligatorio: `QUANTITY`, `DATE` o `UNLIMITED` |
+| `expirationRules.value` | Con `QUANTITY`, el número de cobros; con `DATE`, una fecha futura `YYYY-MM-DD`; con `UNLIMITED`, no se envía |
+| `referenceRules` | Una expresión regular válida |
+
+Cuando alguna regla no se cumple, la respuesta es un `422` con el campo en `status.errors`. El formato está en [Errores](/par/administration/errors).

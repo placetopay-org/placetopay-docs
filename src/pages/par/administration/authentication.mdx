@@ -1,0 +1,65 @@
+export const description =
+  'Autentica las peticiones a la API de administración de PAR con un token de acceso y conoce los errores que devuelve si no es válido.'
+
+# Autenticación de la API de administración
+
+Los endpoints de administración de PAR se autentican con un **token de acceso** que Placetopay emite para tu aplicación y que viaja en el header `Authorization`.
+
+## Credenciales {{ id: 'credentials' }}
+
+Placetopay te entrega un token de acceso. Con ese token haces las peticiones a todos los endpoints de administración.
+
+<Note type="warning">
+  El token se entrega **una sola vez** y no se puede recuperar después. Guárdalo en un gestor de secretos antes de continuar. Si lo pierdes, hay que emitir uno nuevo.
+</Note>
+
+Trátalo como cualquier otro secreto de producción: nunca lo incluyas en el código fuente, en un repositorio ni en código que se ejecute en el navegador.
+
+## Ambientes y URL base {{ id: 'environments' }}
+
+PAR opera en ambientes separados. Cada uno tiene su propia URL base y emite sus propios tokens, que no son intercambiables.
+
+En esta documentación, `{URL_BASE}` representa la URL del ambiente en el que estés trabajando:
+
+```text
+{URL_BASE}/api/partners
+```
+
+## Autorizar una petición {{ id: 'authorization-header' }}
+
+El token viaja como _bearer token_.
+
+<CodeGroup title="Headers">
+
+```bash {{ title: 'cURL' }}
+curl --request GET \
+  --url '{URL_BASE}/api/partners/7' \
+  --header 'Accept: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}'
+```
+
+```php {{ title: 'PHP' }}
+$response = Http::withToken($token)
+    ->acceptJson()
+    ->get("{$urlBase}/api/partners/7");
+```
+
+```js {{ title: 'Node' }}
+const response = await fetch(`${urlBase}/api/partners/7`, {
+  headers: {
+    'Accept': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  },
+});
+```
+
+</CodeGroup>
+
+## Qué valida PAR {{ id: 'validation' }}
+
+En cada petición, PAR comprueba en este orden:
+
+1. Que el token exista y sea válido. Si no, responde `401`.
+2. Que el token tenga acceso a la operación. Si no, responde `403`.
+
+El formato de estas respuestas está en [Errores](/par/administration/errors).

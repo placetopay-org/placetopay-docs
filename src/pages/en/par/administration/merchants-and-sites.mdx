@@ -1,0 +1,50 @@
+export const description =
+  'Sync in PAR the merchants and sites of Placetopay: what each operation creates, when they end up active and which configuration a site accepts.'
+
+# Merchants and sites
+
+PAR needs to know the Placetopay merchants and sites that offer autopays. Every time one changes, it is sent to PAR with a `PUT` that **creates it if it does not exist and updates it if it does**. Repeating the same request leaves the same result.
+
+## Sync order {{ id: 'order' }}
+
+1. [Sync the merchant](/en/par/api/reference/administration#sync-merchant) with `PUT /api/merchants/{coreId}`.
+2. [Sync each site](/en/par/api/reference/administration#sync-site) with `PUT /api/sites/{coreId}`. The site's merchant, `site.merchantId`, must exist in PAR: if not, it responds `422`.
+
+In both cases, the `coreId` in the path must be equal to the `coreId` in the body.
+
+## The merchant and its partner {{ id: 'merchant-partner' }}
+
+When you sync a merchant, PAR also creates or updates its **merchant partner**, the identity with which the merchant authenticates with PAR. The response returns its `authorizationCode`: it is the secret key the merchant sends in the `Authorization` header, as explained in [Merchant authentication](/en/par/merchants/authentication).
+
+- If you do not send `merchant.authorizationCode` in the first sync, PAR generates a key.
+- If the merchant already exists, the key only changes when you send a different value. A key cannot be in use by another partner.
+
+## The site and its commerce code {{ id: 'site-commerce-code' }}
+
+The response of a site sync returns its `commerceCode`: it is the value the merchant sends in the `Commercecode` header. If you do not send `site.commerceCode`, PAR keeps the current one or generates a new one. Two sites cannot share the same code.
+
+## When it ends up active {{ id: 'activation' }}
+
+A merchant or a site is **active** only if its `status` is `ACTIVE` **and** `settings.enabled` is `true`. In any other case it ends up `INACTIVE`, and the `status` in the response tells you how it ended up.
+
+<Note type="warning">
+  If a merchant ends up inactive, or if its `authorizationCode` changes, PAR revokes the open sessions of its partner.
+</Note>
+
+## Site settings {{ id: 'site-settings' }}
+
+The site's `settings` object defines how autopays of that site can be configured. Some combinations are restricted:
+
+| Field | Rule |
+|---|---|
+| `paymentMode` | `FIXED` charges a fixed amount; `TOTAL_BALANCE`, the total balance; `MINIMUM_BALANCE`, the minimum balance |
+| `maxAmountEnabled`, `maxAmountLabel` | Cannot be sent with `paymentMode` `FIXED` |
+| `frequency` | `D` daily, `W` weekly, `M` monthly, `Y` yearly |
+| `allowedIntervals` | Every how many periods of `frequency` a charge is made; at least one value |
+| `allowedDays` | Only sent with `paymentMode` `FIXED` and `frequency` `M`; in any other case it cannot be sent |
+| `expirationRules.editable` | With `true`, the cardholder chooses the expiration and `type` and `value` are not sent |
+| `expirationRules.type` | With `editable` set to `false` it is required: `QUANTITY`, `DATE` or `UNLIMITED` |
+| `expirationRules.value` | With `QUANTITY`, the number of charges; with `DATE`, a future `YYYY-MM-DD` date; with `UNLIMITED`, it is not sent |
+| `referenceRules` | A valid regular expression |
+
+When a rule is not met, the response is a `422` with the field in `status.errors`. The format is in [Errors](/en/par/administration/errors).

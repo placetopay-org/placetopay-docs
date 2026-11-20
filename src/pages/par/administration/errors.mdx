@@ -1,0 +1,52 @@
+export const description =
+  'Conoce el formato de las respuestas de la API de administración de PAR y los códigos HTTP con los que responde.'
+
+# Errores de la API de administración
+
+Todos los endpoints de administración responden en JSON con el mismo formato: un objeto `status` que dice si la petición se procesó y, cuando hay datos, un objeto `data`.
+
+## Formato {{ id: 'format' }}
+
+```json {{ title: 'Respuesta de error' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": "BR",
+    "message": "El campo merchant.name es obligatorio.",
+    "date": "2026-01-15T10:30:00-05:00",
+    "errors": {
+      "merchant.name": ["El campo merchant.name es obligatorio."]
+    }
+  }
+}
+```
+
+<Properties>
+  <Property name="status.status" type="string">
+    `OK` si la petición se procesó y `FAILED` si no.
+  </Property>
+  <Property name="status.reason" type="string">
+    Código del motivo. Es el valor que debes usar para decidir qué hacer.
+  </Property>
+  <Property name="status.message" type="string">
+    Texto informativo que acompaña al código. Puede cambiar, así que no lo uses para tomar decisiones.
+  </Property>
+  <Property name="status.errors" type="object">
+    Solo viene en los errores de validación. Agrupa los mensajes por campo: la clave es la ruta del campo, como `merchant.name` o `allowedIps.0`.
+  </Property>
+</Properties>
+
+## Catálogo {{ id: 'codes' }}
+
+| HTTP | `reason` | Significado | Causa |
+|---|---|---|---|
+| `200`, `201` | `00` | Petición procesada | La operación se realizó |
+| `204` | — | Sin contenido | El socio se eliminó; la respuesta no trae cuerpo |
+| `401` | `86` | No se pudo autenticar la petición | El token falta, no existe o no es válido |
+| `403` | `86` | El token no tiene acceso a esta operación | El token es válido, pero no habilita esta operación |
+| `404` | `X3` | El recurso solicitado no existe | No existe un socio con ese identificador |
+| `422` | `BR` | La petición no es válida | Algún dato no pasó la validación, o el socio es de tipo comercio y no se puede actualizar aquí |
+
+<Note>
+  Un identificador de ruta que no sea numérico responde `404`, igual que uno que no existe.
+</Note>

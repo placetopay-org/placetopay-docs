@@ -24,6 +24,8 @@ tags:
     description: Autopay enrollment from a merchant.
   - name: Issuers
     description: Cardholder sessions started from an issuer.
+  - name: Administration
+    description: Configuration of merchants, sites and partners in PAR.
 
 paths:
   /restpatpass/v1/services/patInscription:
@@ -251,6 +253,415 @@ paths:
         '429':
           description: The login attempt limit was exceeded.
 
+  /api/merchants/{coreId}:
+    parameters:
+      - name: coreId
+        in: path
+        required: true
+        description: Identifier of the merchant. It must be numeric and match `merchant.coreId` in the body.
+        schema:
+          type: integer
+          minimum: 1
+          example: 10
+    put:
+      tags:
+        - Administration
+      summary: Sync a merchant
+      operationId: admin-sync-merchant
+      description: |
+        Creates the merchant in PAR or updates the one that already exists with that `coreId`, together with
+        its merchant partner. The operation is idempotent: sending the same content several times leaves
+        the same result.
+
+        The merchant is active only if `merchant.status` is `ACTIVE` **and** `settings.enabled` is
+        `true`. If it ends up inactive, or if its `authorizationCode` changes, PAR revokes the open
+        sessions of its partner.
+      parameters:
+        - $ref: '#/components/parameters/AdminAuthorization'
+        - $ref: '#/components/parameters/ContentType'
+        - $ref: '#/components/parameters/Accept'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminMerchantRequest'
+            example:
+              issuer: operator@example.com
+              locale: en
+              merchant:
+                coreId: 10
+                name: Test merchant
+                authorizationCode: MerchantSecret123
+                documentType: NIT
+                document: '900123456'
+                city: Santiago
+                country: CL
+                status: ACTIVE
+              settings:
+                enabled: true
+                requiresAutopayApproval: true
+                notificationEmail: notifications@example.com
+      responses:
+        '200':
+          description: The merchant was synced.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminMerchantResponse'
+        '401':
+          description: The token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '403':
+          description: The token does not have access to this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '422':
+          description: Some data is not valid. `status.errors` says which.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminValidationFailure'
+
+  /api/sites/{coreId}:
+    parameters:
+      - name: coreId
+        in: path
+        required: true
+        description: Identifier of the site. It must be numeric and match `site.coreId` in the body.
+        schema:
+          type: integer
+          minimum: 1
+          example: 20
+    put:
+      tags:
+        - Administration
+      summary: Sync a site
+      operationId: admin-sync-site
+      description: |
+        Creates the site in PAR or updates the one that already exists with that `coreId`. The merchant it
+        belongs to (`site.merchantId`) must be synced beforehand.
+
+        The site is active only if `site.status` is `ACTIVE` **and** `settings.enabled` is `true`.
+        If you do not send `site.commerceCode`, PAR keeps the site's current one or generates a new one, and
+        returns it in the response. That is the code the merchant sends in the `Commercecode` header.
+      parameters:
+        - $ref: '#/components/parameters/AdminAuthorization'
+        - $ref: '#/components/parameters/ContentType'
+        - $ref: '#/components/parameters/Accept'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminSiteRequest'
+            example:
+              issuer: operator@example.com
+              locale: en
+              site:
+                coreId: 20
+                merchantId: 10
+                commerceCode: COM-000123
+                login: aabbccdd1234567890aabbccdd123456
+                tranKey: exampleTranKey16
+                name: Test site
+                currency: CLP
+                status: ACTIVE
+              settings:
+                enabled: true
+                paymentMode: TOTAL_BALANCE
+                allowedCurrencies:
+                  - CLP
+                frequency: M
+                allowedIntervals:
+                  - 1
+                allowedDays:
+                  - 5
+                  - 15
+                expirationRules:
+                  editable: true
+      responses:
+        '200':
+          description: The site was synced.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSiteResponse'
+        '401':
+          description: The token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '403':
+          description: The token does not have access to this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '422':
+          description: Some data is not valid, or the site's merchant does not exist. `status.errors` says which.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminValidationFailure'
+
+  /api/partners:
+    post:
+      tags:
+        - Administration
+      summary: List partners
+      operationId: admin-list-partners
+      description: |
+        Returns the partners in pages, from newest to oldest. It is a `POST` because the filters travel in
+        the body; it does not modify anything. Without filters, it returns every partner.
+      parameters:
+        - $ref: '#/components/parameters/AdminAuthorization'
+        - $ref: '#/components/parameters/ContentType'
+        - $ref: '#/components/parameters/Accept'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPartnerListRequest'
+            example:
+              filters:
+                status:
+                  - ACTIVE
+                type: issuer
+                name: Bank
+              page: 1
+              perPage: 20
+      responses:
+        '200':
+          description: Page of partners that match the filters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminPartnerListResponse'
+        '401':
+          description: The token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '403':
+          description: The token does not have access to this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '422':
+          description: Some filter is not valid. `status.errors` says which.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminValidationFailure'
+
+  /api/partners/store:
+    post:
+      tags:
+        - Administration
+      summary: Create an issuer partner
+      operationId: admin-create-partner
+      description: |
+        Creates a partner of type `issuer`. Merchant partners are not created here: they are born when
+        you [sync the merchant](/en/par/api/reference/administration#sync-merchant).
+
+        If you do not send `code` or `secretKey`, PAR generates them and returns them in the response.
+      parameters:
+        - $ref: '#/components/parameters/AdminAuthorization'
+        - $ref: '#/components/parameters/ContentType'
+        - $ref: '#/components/parameters/Accept'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPartnerRequest'
+            example:
+              name: Test bank
+              type: issuer
+              userDocumentType: CLRUT
+              enabled: true
+              allowedIps:
+                - 192.0.2.10
+              allowedFrameOrigins:
+                - https://www.example.com
+      responses:
+        '201':
+          description: The partner was created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminPartnerResponse'
+        '401':
+          description: The token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '403':
+          description: The token does not have access to this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '422':
+          description: Some data is not valid. `status.errors` says which.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminValidationFailure'
+
+  /api/partners/{partnerId}:
+    parameters:
+      - name: partnerId
+        in: path
+        required: true
+        description: Identifier of the partner, as returned in `data.id`. It must be numeric.
+        schema:
+          type: integer
+          minimum: 1
+          example: 7
+    get:
+      tags:
+        - Administration
+      summary: Get a partner
+      operationId: admin-show-partner
+      description: Returns the configuration of a partner, including its secret key.
+      parameters:
+        - $ref: '#/components/parameters/AdminAuthorization'
+        - $ref: '#/components/parameters/Accept'
+      responses:
+        '200':
+          description: The partner.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminPartnerResponse'
+        '401':
+          description: The token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '403':
+          description: The token does not have access to this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '404':
+          description: No partner exists with that identifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+    post:
+      tags:
+        - Administration
+      summary: Update an issuer partner
+      operationId: admin-update-partner
+      description: |
+        Replaces the configuration of a partner of type `issuer`: always send all the required fields, not
+        just the ones that change. Merchant partners are not updated here, but when you
+        [sync the merchant](/en/par/api/reference/administration#sync-merchant).
+
+        PAR revokes the partner's open sessions if you change its `secretKey`, or if you deactivate it
+        with `enabled: false`.
+      parameters:
+        - $ref: '#/components/parameters/AdminAuthorization'
+        - $ref: '#/components/parameters/ContentType'
+        - $ref: '#/components/parameters/Accept'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminPartnerRequest'
+            example:
+              name: Test bank
+              type: issuer
+              userDocumentType: CLRUT
+              enabled: true
+              allowedIps:
+                - 192.0.2.10
+              allowedFrameOrigins:
+                - https://www.example.com
+              secretKey: NewSecret123456
+      responses:
+        '200':
+          description: The partner was updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminPartnerResponse'
+        '401':
+          description: The token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '403':
+          description: The token does not have access to this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '404':
+          description: No partner exists with that identifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '422':
+          description: |
+            Some data is not valid, or the partner is a merchant partner. `status.errors` lists the invalid
+            fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminValidationFailure'
+    delete:
+      tags:
+        - Administration
+      summary: Delete a partner
+      operationId: admin-delete-partner
+      description: |
+        Deletes the partner and revokes all its open sessions. From that moment on, its credentials stop
+        working.
+      parameters:
+        - $ref: '#/components/parameters/AdminAuthorization'
+        - $ref: '#/components/parameters/Accept'
+      responses:
+        '204':
+          description: The partner was deleted. The response has no body.
+        '401':
+          description: The token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '403':
+          description: The token does not have access to this operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+        '404':
+          description: No partner exists with that identifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminFailure'
+
 components:
   parameters:
     MerchantAuthorization:
@@ -269,6 +680,15 @@ components:
       schema:
         type: string
         example: '1234567890'
+    AdminAuthorization:
+      name: Authorization
+      in: header
+      required: true
+      description: |
+        Access token that Placetopay gave you, sent as a _bearer token_.
+      schema:
+        type: string
+        example: Bearer 1|your-access-token
     ContentType:
       name: Content-Type
       in: header
@@ -549,3 +969,743 @@ components:
           format: uri
           description: URL of an image of the issuer.
           example: https://www.example.com/par/logo.png
+
+    AdminStatus:
+      type: object
+      required:
+        - status
+        - reason
+        - message
+        - date
+      properties:
+        status:
+          type: string
+          description: Result of the request. `OK` if it was processed and `FAILED` if it was not.
+          enum:
+            - OK
+            - FAILED
+          example: OK
+        reason:
+          type: string
+          description: |
+            Reason code. `00` is a processed request; `BR`, an invalid request; `86`, an authentication or
+            permissions problem; and `X3`, a resource that does not exist.
+          example: '00'
+        message:
+          type: string
+          description: Informational text that accompanies the code. It may change; do not use it to make decisions.
+          example: The request was processed successfully
+        date:
+          type: string
+          format: date-time
+          description: Date and time of the response.
+          example: '2026-01-15T10:30:00-05:00'
+
+    AdminFailure:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/AdminStatus'
+
+    AdminValidationFailure:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          allOf:
+            - $ref: '#/components/schemas/AdminStatus'
+            - type: object
+              required:
+                - errors
+              properties:
+                errors:
+                  type: object
+                  description: |
+                    The validation messages grouped by field. The key is the path of the field, for example
+                    `merchant.name` or `allowedIps.0`, and the value is the list of its messages.
+                  additionalProperties:
+                    type: array
+                    items:
+                      type: string
+                  example:
+                    merchant.name:
+                      - The merchant.name field is required.
+
+    AdminMerchantRequest:
+      type: object
+      required:
+        - issuer
+        - merchant
+        - settings
+      properties:
+        issuer:
+          type: string
+          maxLength: 255
+          description: Identifies who makes the change.
+          example: operator@example.com
+        locale:
+          type:
+            - string
+            - 'null'
+          maxLength: 10
+          description: Language of the merchant.
+          example: en
+        merchant:
+          type: object
+          required:
+            - coreId
+            - name
+            - status
+          properties:
+            coreId:
+              type: integer
+              description: Identifier of the merchant. It must be equal to the one in the path.
+              example: 10
+            name:
+              type: string
+              maxLength: 80
+              description: Name of the merchant.
+              example: Test merchant
+            authorizationCode:
+              type:
+                - string
+                - 'null'
+              maxLength: 255
+              description: |
+                Secret key of the merchant's partner, the one it sends in the `Authorization` header. If you
+                do not send it in the first sync, PAR generates one. If it already exists, it only changes
+                if you send a different value, and changing it revokes the open sessions. It cannot be in
+                use by another partner.
+              example: MerchantSecret123
+            documentType:
+              type:
+                - string
+                - 'null'
+              maxLength: 10
+              description: Document type of the merchant.
+              example: NIT
+            document:
+              type:
+                - string
+                - 'null'
+              maxLength: 20
+              description: Document number of the merchant.
+              example: '900123456'
+            city:
+              type:
+                - string
+                - 'null'
+              maxLength: 30
+              description: City of the merchant.
+              example: Santiago
+            country:
+              type:
+                - string
+                - 'null'
+              minLength: 2
+              maxLength: 2
+              description: Country of the merchant, with the 2-letter ISO code.
+              example: CL
+            status:
+              type: string
+              enum:
+                - ACTIVE
+                - INACTIVE
+              description: Status of the merchant.
+              example: ACTIVE
+        settings:
+          type: object
+          required:
+            - enabled
+          properties:
+            enabled:
+              type: boolean
+              description: |
+                Enables the merchant in PAR. For it to end up active, `merchant.status` must also be
+                `ACTIVE`.
+              example: true
+            requiresAutopayApproval:
+              type: boolean
+              description: Indicates whether the merchant's new autopays require approval before they are activated.
+              example: true
+            notificationEmail:
+              type:
+                - string
+                - 'null'
+              format: email
+              maxLength: 80
+              description: Email to which PAR sends the merchant's notices.
+              example: notifications@example.com
+            logoUrl:
+              type:
+                - string
+                - 'null'
+              format: uri
+              maxLength: 2048
+              description: URL of the logo that PAR shows to the cardholder.
+              example: https://www.example.com/logo.png
+            termsDocumentUrl:
+              type:
+                - string
+                - 'null'
+              format: uri
+              maxLength: 2048
+              description: URL of the merchant's terms and conditions document.
+              example: https://www.example.com/terms.pdf
+
+    AdminMerchantResponse:
+      type: object
+      required:
+        - status
+        - data
+      properties:
+        status:
+          $ref: '#/components/schemas/AdminStatus'
+        data:
+          type: object
+          required:
+            - coreId
+            - status
+            - authorizationCode
+          properties:
+            coreId:
+              type: integer
+              description: Identifier of the merchant.
+              example: 10
+            status:
+              type: string
+              enum:
+                - ACTIVE
+                - INACTIVE
+              description: Status the merchant ended up with in PAR.
+              example: ACTIVE
+            authorizationCode:
+              type: string
+              description: Secret key of the merchant's partner. Hand it to the merchant for its `Authorization` header.
+              example: MerchantSecret123
+
+    AdminSiteRequest:
+      type: object
+      required:
+        - issuer
+        - site
+        - settings
+      properties:
+        issuer:
+          type: string
+          maxLength: 255
+          description: Identifies who makes the change.
+          example: operator@example.com
+        locale:
+          type:
+            - string
+            - 'null'
+          maxLength: 10
+          description: Language of the site.
+          example: en
+        site:
+          type: object
+          required:
+            - coreId
+            - merchantId
+            - login
+            - tranKey
+            - name
+            - currency
+            - status
+          properties:
+            coreId:
+              type: integer
+              description: Identifier of the site. It must be equal to the one in the path.
+              example: 20
+            merchantId:
+              type: integer
+              description: '`coreId` of the merchant the site belongs to. The merchant must exist in PAR.'
+              example: 10
+            commerceCode:
+              type:
+                - string
+                - 'null'
+              maxLength: 20
+              description: |
+                Commerce code of the site, the one the merchant sends in the `Commercecode` header. If you do
+                not send it, PAR keeps the current one or generates one. It cannot be in use by another site.
+              example: COM-000123
+            login:
+              type: string
+              maxLength: 32
+              description: '`login` credential of the site in Placetopay.'
+              example: aabbccdd1234567890aabbccdd123456
+            tranKey:
+              type: string
+              maxLength: 32
+              description: '`tranKey` credential of the site in Placetopay.'
+              example: exampleTranKey16
+            name:
+              type: string
+              maxLength: 128
+              description: Name of the site.
+              example: Test site
+            displayName:
+              type:
+                - string
+                - 'null'
+              maxLength: 128
+              description: Name with which PAR shows the site to the cardholder.
+              example: My store
+            currency:
+              type: string
+              minLength: 3
+              maxLength: 3
+              description: Currency of the site, with the 3-letter ISO code.
+              example: CLP
+            status:
+              type: string
+              enum:
+                - ACTIVE
+                - INACTIVE
+              description: Status of the site.
+              example: ACTIVE
+        settings:
+          type: object
+          required:
+            - enabled
+            - paymentMode
+            - allowedCurrencies
+            - frequency
+            - allowedIntervals
+            - expirationRules
+          properties:
+            enabled:
+              type: boolean
+              description: |
+                Enables the site in PAR. For it to end up active, `site.status` must also be
+                `ACTIVE`.
+              example: true
+            requiresApproval:
+              type: boolean
+              description: Indicates whether the site's new autopays require approval before they are activated.
+              example: false
+            paymentMode:
+              type: string
+              enum:
+                - FIXED
+                - TOTAL_BALANCE
+                - MINIMUM_BALANCE
+              description: |
+                How each charge is calculated: `FIXED` charges a fixed amount, `TOTAL_BALANCE` the total
+                balance and `MINIMUM_BALANCE` the minimum balance.
+              example: TOTAL_BALANCE
+            maxAmountEnabled:
+              type:
+                - boolean
+                - 'null'
+              description: Lets the cardholder set a maximum amount per charge. It cannot be sent with `paymentMode` `FIXED`.
+              example: true
+            maxAmountLabel:
+              type:
+                - string
+                - 'null'
+              maxLength: 60
+              description: Text with which PAR asks for the maximum amount. It cannot be sent with `paymentMode` `FIXED`.
+              example: Maximum amount per charge
+            allowedCurrencies:
+              type: array
+              minItems: 1
+              description: Currencies in which autopays can be charged, with uppercase 3-letter ISO codes.
+              items:
+                type: string
+                pattern: '^[A-Z]{3}$'
+              example:
+                - CLP
+            frequency:
+              type: string
+              enum:
+                - D
+                - W
+                - M
+                - Y
+              description: Frequency of the charges. `D` is daily, `W` weekly, `M` monthly and `Y` yearly.
+              example: M
+            allowedIntervals:
+              type: array
+              minItems: 1
+              description: |
+                Every how many periods of `frequency` a charge is made. For example, `[1, 3]` with monthly
+                frequency allows charging every month or every three months.
+              items:
+                type: integer
+                minimum: 1
+              example:
+                - 1
+            allowedDays:
+              type:
+                - array
+                - 'null'
+              minItems: 1
+              description: |
+                Days of the month on which a charge can be made. Only sent with `paymentMode` `FIXED` and
+                `frequency` `M`; in any other case it cannot be sent.
+              items:
+                type: integer
+                minimum: 1
+              example:
+                - 5
+                - 15
+            expirationRules:
+              type: object
+              required:
+                - editable
+              description: When the autopay expires.
+              properties:
+                editable:
+                  type: boolean
+                  description: |
+                    If `true`, the cardholder chooses the expiration and `type` and `value` are not sent.
+                    If `false`, the site defines the expiration and `type` is required.
+                  example: false
+                type:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - QUANTITY
+                    - DATE
+                    - UNLIMITED
+                    - null
+                  description: |
+                    `QUANTITY` expires after a number of charges, `DATE` on a date and `UNLIMITED` never expires.
+                  example: QUANTITY
+                value:
+                  type:
+                    - integer
+                    - string
+                    - 'null'
+                  description: |
+                    Required with `QUANTITY`, as the number of charges, and with `DATE`, as a future date in
+                    `YYYY-MM-DD` format. It is not sent with `UNLIMITED`.
+                  example: 12
+            category:
+              type:
+                - string
+                - 'null'
+              maxLength: 80
+              description: Category of the service the site charges.
+              example: Services
+            subcategory:
+              type:
+                - string
+                - 'null'
+              maxLength: 80
+              description: Subcategory of the service the site charges.
+              example: Subscriptions
+            referenceRules:
+              type:
+                - string
+                - 'null'
+              maxLength: 100
+              description: Regular expression that the autopay reference must meet. It must be a valid expression.
+              example: '^[0-9]{8}$'
+            referenceGuideUrl:
+              type:
+                - string
+                - 'null'
+              format: uri
+              maxLength: 2048
+              description: URL of a guide that explains to the cardholder where to find their reference.
+              example: https://www.example.com/reference-guide
+            allowCaptureDetainer:
+              type: boolean
+              description: Allows capturing the autopay's detainer.
+              example: false
+            detainerTag:
+              type:
+                - string
+                - 'null'
+              maxLength: 100
+              description: Text with which PAR asks for the detainer.
+              example: Detainer code
+            termsAndConditions:
+              type:
+                - string
+                - 'null'
+              format: uri
+              maxLength: 255
+              description: URL of the site's terms and conditions.
+              example: https://www.example.com/terms
+
+    AdminSiteResponse:
+      type: object
+      required:
+        - status
+        - data
+      properties:
+        status:
+          $ref: '#/components/schemas/AdminStatus'
+        data:
+          type: object
+          required:
+            - coreId
+            - status
+            - commerceCode
+          properties:
+            coreId:
+              type: integer
+              description: Identifier of the site.
+              example: 20
+            status:
+              type: string
+              enum:
+                - ACTIVE
+                - INACTIVE
+              description: Status the site ended up with in PAR.
+              example: ACTIVE
+            commerceCode:
+              type: string
+              description: Commerce code of the site. Hand it to the merchant for its `Commercecode` header.
+              example: COM-000123
+
+    AdminPartnerListRequest:
+      type: object
+      properties:
+        filters:
+          type: object
+          description: Optional filters. Other keys are not accepted.
+          properties:
+            status:
+              type: array
+              description: Statuses to include.
+              items:
+                type: string
+                enum:
+                  - ACTIVE
+                  - INACTIVE
+              example:
+                - ACTIVE
+            type:
+              type: string
+              enum:
+                - issuer
+                - merchant
+              description: Type of partner.
+              example: issuer
+            name:
+              type: string
+              maxLength: 128
+              description: Text that the partner's name must contain.
+              example: Bank
+            code:
+              type: string
+              maxLength: 20
+              description: Exact code of the partner.
+              example: PARTNER-0001
+        page:
+          type: integer
+          minimum: 1
+          description: Number of the page. The first one by default.
+          example: 1
+        perPage:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Partners per page, up to 100. If you do not send it, PAR uses the environment's default value.
+          example: 20
+
+    AdminPartnerRequest:
+      type: object
+      required:
+        - name
+        - type
+        - userDocumentType
+        - enabled
+        - allowedIps
+      properties:
+        name:
+          type: string
+          maxLength: 128
+          description: Name of the partner.
+          example: Test bank
+        type:
+          type: string
+          enum:
+            - issuer
+          description: Type of partner. Only `issuer` is accepted.
+          example: issuer
+        userDocumentType:
+          type: string
+          description: Document type of the issuer's cardholders, such as `CLRUT`. It must be a supported document type.
+          example: CLRUT
+        enabled:
+          type: boolean
+          description: Indicates whether the partner is active. An inactive partner cannot request tokens.
+          example: true
+        allowedIps:
+          type: array
+          minItems: 1
+          description: |
+            IP addresses from which the partner can request tokens. It must include at least one, with no
+            repeats.
+          items:
+            type: string
+            format: ip
+          example:
+            - 192.0.2.10
+        allowedFrameOrigins:
+          type:
+            - array
+            - 'null'
+          description: |
+            Origins of the partner's sites authorized to display PAR in an `iframe`. Each one carries only
+            scheme, host and optional port, with no path.
+          items:
+            type: string
+            format: uri
+            maxLength: 2048
+          example:
+            - https://www.example.com
+        code:
+          type: string
+          maxLength: 20
+          description: Unique code of the partner. If you do not send it on creation, PAR generates one; on update, it only changes if you send it.
+          example: PARTNER-0001
+        secretKey:
+          type: string
+          minLength: 15
+          maxLength: 15
+          pattern: '^[A-Za-z0-9]{15}$'
+          description: |
+            Unique secret key of the partner, of exactly 15 letters and digits. If you do not send it on
+            creation, PAR generates one; on update, it only changes if you send it, and changing it revokes
+            the open sessions.
+          example: NewSecret123456
+
+    AdminPartner:
+      type: object
+      required:
+        - id
+        - merchantId
+        - name
+        - code
+        - secretKey
+        - type
+        - userDocumentType
+        - allowedIps
+        - allowedFrameOrigins
+        - enabled
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          description: Identifier of the partner.
+          example: 7
+        merchantId:
+          type:
+            - integer
+            - 'null'
+          description: Internal identifier of the merchant, only on merchant partners.
+          example: null
+        name:
+          type: string
+          description: Name of the partner.
+          example: Test bank
+        code:
+          type: string
+          description: Code of the partner.
+          example: PARTNER-0001
+        secretKey:
+          type: string
+          description: Secret key of the partner.
+          example: NewSecret123456
+        type:
+          type: string
+          enum:
+            - issuer
+            - merchant
+          description: Type of partner.
+          example: issuer
+        userDocumentType:
+          type:
+            - string
+            - 'null'
+          description: Document type of the issuer's cardholders.
+          example: CLRUT
+        allowedIps:
+          type:
+            - array
+            - 'null'
+          items:
+            type: string
+          description: Authorized IP addresses.
+          example:
+            - 192.0.2.10
+        allowedFrameOrigins:
+          type:
+            - array
+            - 'null'
+          items:
+            type: string
+          description: Origins authorized to display PAR in an `iframe`.
+          example:
+            - https://www.example.com
+        enabled:
+          type: boolean
+          description: Indicates whether the partner is active.
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date.
+          example: '2026-01-15T10:30:00.000000Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of the last update.
+          example: '2026-01-15T10:30:00.000000Z'
+
+    AdminPartnerResponse:
+      type: object
+      required:
+        - status
+        - data
+      properties:
+        status:
+          $ref: '#/components/schemas/AdminStatus'
+        data:
+          $ref: '#/components/schemas/AdminPartner'
+
+    AdminPartnerListResponse:
+      type: object
+      required:
+        - status
+        - data
+        - meta
+      properties:
+        status:
+          $ref: '#/components/schemas/AdminStatus'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminPartner'
+        meta:
+          type: object
+          required:
+            - page
+            - perPage
+            - total
+          properties:
+            page:
+              type: integer
+              description: Page returned.
+              example: 1
+            perPage:
+              type: integer
+              description: Partners per page.
+              example: 20
+            total:
+              type: integer
+              description: Total partners that match the filters.
+              example: 42

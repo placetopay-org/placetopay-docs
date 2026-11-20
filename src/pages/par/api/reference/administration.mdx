@@ -1,0 +1,713 @@
+export const sectionMode = 'nav';
+export const description =
+  'Referencia de los endpoints con los que se mantiene en PAR la configuración de comercios, sitios y socios emisores.'
+
+export const apiRefs = [
+  '/api/merchants/{coreId}',
+  '/api/sites/{coreId}',
+  '/api/partners',
+  '/api/partners/store',
+  '/api/partners/{partnerId}',
+];
+
+# Administración
+
+<Row>
+  <Col>
+    Mantén sincronizada la configuración de PAR: los comercios y sus sitios, y los socios emisores que se integran con PAR. Todos los endpoints se autentican con un token de acceso, como se explica en [Autenticación](/par/administration/authentication). {{ className: 'lead' }}
+  </Col>
+  <Col>
+    <EndpointsOverview />
+  </Col>
+</Row>
+
+<ApiDownloads />
+
+## Sincronizar un comercio {{ id: 'sync-merchant', tag: 'PUT', label: '/api/merchants/{coreId}' }}
+
+<Row>
+  <Col>
+    Crea el comercio en PAR o actualiza el que ya existe con ese `coreId`, junto con su socio de tipo comercio. Es idempotente: repetir la misma petición deja el mismo resultado. Más detalle en [Comercios y sitios](/par/administration/merchants-and-sites).
+
+    <Note type="warning">
+      El comercio queda activo solo si `merchant.status` es `ACTIVE` **y** `settings.enabled` es `true`. Si queda inactivo, o si cambia su `authorizationCode`, PAR revoca las sesiones abiertas de su socio.
+    </Note>
+
+    <ApiReader
+      path="/api/merchants/{coreId}"
+      type="params"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/api/merchants/{coreId}"
+      method="put"
+      type="header"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/api/merchants/{coreId}"
+      method="put"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="PUT" label="/api/merchants/{coreId}">
+```bash {{ title: 'Sincronizar el comercio' }}
+curl --request PUT \
+  --url '{URL_BASE}/api/merchants/10' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --data '{
+    "issuer": "operator@example.com",
+    "locale": "es",
+    "merchant": {
+      "coreId": 10,
+      "name": "Comercio de prueba",
+      "authorizationCode": "MerchantSecret123",
+      "documentType": "NIT",
+      "document": "900123456",
+      "city": "Santiago",
+      "country": "CL",
+      "status": "ACTIVE"
+    },
+    "settings": {
+      "enabled": true,
+      "requiresAutopayApproval": true,
+      "notificationEmail": "notifications@example.com"
+    }
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/merchants/{coreId}"
+      method="put"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+
+    ```json {{ title: '200' }}
+    {
+      "status": {
+        "status": "OK",
+        "reason": "00",
+        "message": "La petición se ha procesado correctamente",
+        "date": "2026-01-15T10:30:00-05:00"
+      },
+      "data": {
+        "coreId": 10,
+        "status": "ACTIVE",
+        "authorizationCode": "MerchantSecret123"
+      }
+    }
+    ```
+
+    ```json {{ title: '422' }}
+    {
+      "status": {
+        "status": "FAILED",
+        "reason": "BR",
+        "message": "El campo merchant.name es obligatorio.",
+        "date": "2026-01-15T10:30:00-05:00",
+        "errors": {
+          "merchant.name": ["El campo merchant.name es obligatorio."]
+        }
+      }
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Sincronizar un sitio {{ id: 'sync-site', tag: 'PUT', label: '/api/sites/{coreId}' }}
+
+<Row>
+  <Col>
+    Crea el sitio en PAR o actualiza el que ya existe con ese `coreId`. El comercio al que pertenece debe estar sincronizado antes. La respuesta devuelve el `commerceCode` del sitio: es el valor que el comercio envía en el header `Commercecode`. Más detalle en [Comercios y sitios](/par/administration/merchants-and-sites).
+
+    <Note>
+      El sitio queda activo solo si `site.status` es `ACTIVE` **y** `settings.enabled` es `true`. Si no envías `site.commerceCode`, PAR conserva el actual o genera uno nuevo.
+    </Note>
+
+    <ApiReader
+      path="/api/sites/{coreId}"
+      type="params"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/api/sites/{coreId}"
+      method="put"
+      type="header"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/api/sites/{coreId}"
+      method="put"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="PUT" label="/api/sites/{coreId}">
+```bash {{ title: 'Datos mínimos' }}
+curl --request PUT \
+  --url '{URL_BASE}/api/sites/20' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --data '{
+    "issuer": "operator@example.com",
+    "site": {
+      "coreId": 20,
+      "merchantId": 10,
+      "login": "aabbccdd1234567890aabbccdd123456",
+      "tranKey": "exampleTranKey16",
+      "name": "Sitio de prueba",
+      "currency": "CLP",
+      "status": "ACTIVE"
+    },
+    "settings": {
+      "enabled": true,
+      "paymentMode": "TOTAL_BALANCE",
+      "allowedCurrencies": ["CLP"],
+      "frequency": "M",
+      "allowedIntervals": [1],
+      "expirationRules": { "editable": true }
+    }
+  }'
+```
+
+```bash {{ title: 'Monto fijo con vencimiento' }}
+curl --request PUT \
+  --url '{URL_BASE}/api/sites/20' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --data '{
+    "issuer": "operator@example.com",
+    "site": {
+      "coreId": 20,
+      "merchantId": 10,
+      "commerceCode": "COM-000123",
+      "login": "aabbccdd1234567890aabbccdd123456",
+      "tranKey": "exampleTranKey16",
+      "name": "Sitio de prueba",
+      "currency": "CLP",
+      "status": "ACTIVE"
+    },
+    "settings": {
+      "enabled": true,
+      "paymentMode": "FIXED",
+      "allowedCurrencies": ["CLP"],
+      "frequency": "M",
+      "allowedIntervals": [1],
+      "allowedDays": [5, 15],
+      "expirationRules": { "editable": false, "type": "QUANTITY", "value": 12 }
+    }
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/sites/{coreId}"
+      method="put"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+
+    ```json {{ title: '200' }}
+    {
+      "status": {
+        "status": "OK",
+        "reason": "00",
+        "message": "La petición se ha procesado correctamente",
+        "date": "2026-01-15T10:30:00-05:00"
+      },
+      "data": {
+        "coreId": 20,
+        "status": "ACTIVE",
+        "commerceCode": "COM-000123"
+      }
+    }
+    ```
+
+    ```json {{ title: '422' }}
+    {
+      "status": {
+        "status": "FAILED",
+        "reason": "BR",
+        "message": "El comercio del sitio no existe.",
+        "date": "2026-01-15T10:30:00-05:00",
+        "errors": {
+          "site.merchantId": ["El comercio del sitio no existe."]
+        }
+      }
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Listar socios {{ id: 'list-partners', tag: 'POST', label: '/api/partners' }}
+
+<Row>
+  <Col>
+    Devuelve los socios paginados, del más reciente al más antiguo. Es un `POST` porque los filtros viajan en el cuerpo, pero no modifica nada. Todos los filtros son opcionales y se combinan.
+
+    <ApiReader
+      path="/api/partners"
+      method="post"
+      type="header"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/api/partners"
+      method="post"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/api/partners">
+```bash {{ title: 'Con filtros' }}
+curl --request POST \
+  --url '{URL_BASE}/api/partners' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --data '{
+    "filters": {
+      "status": ["ACTIVE"],
+      "type": "issuer",
+      "name": "Banco"
+    },
+    "page": 1,
+    "perPage": 20
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/partners"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+
+    ```json {{ title: '200' }}
+    {
+      "status": {
+        "status": "OK",
+        "reason": "00",
+        "message": "La petición se ha procesado correctamente",
+        "date": "2026-01-15T10:30:00-05:00"
+      },
+      "data": [
+        {
+          "id": 7,
+          "merchantId": null,
+          "name": "Banco de prueba",
+          "code": "PARTNER-0001",
+          "secretKey": "NewSecret123456",
+          "type": "issuer",
+          "userDocumentType": "CLRUT",
+          "allowedIps": ["192.0.2.10"],
+          "allowedFrameOrigins": ["https://www.example.com"],
+          "enabled": true,
+          "createdAt": "2026-01-15T10:30:00.000000Z",
+          "updatedAt": "2026-01-15T10:30:00.000000Z"
+        }
+      ],
+      "meta": {
+        "page": 1,
+        "perPage": 20,
+        "total": 1
+      }
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Crear un socio emisor {{ id: 'create-partner', tag: 'POST', label: '/api/partners/store' }}
+
+<Row>
+  <Col>
+    Crea un socio de tipo `issuer`. Los socios de tipo comercio no se crean aquí: nacen al [sincronizar el comercio](#sync-merchant). Si no envías `code` ni `secretKey`, PAR los genera y los devuelve. Más detalle en [Socios emisores](/par/administration/partners).
+
+    <ApiReader
+      path="/api/partners/store"
+      method="post"
+      type="header"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/api/partners/store"
+      method="post"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/api/partners/store">
+```bash {{ title: 'Crear el emisor' }}
+curl --request POST \
+  --url '{URL_BASE}/api/partners/store' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --data '{
+    "name": "Banco de prueba",
+    "type": "issuer",
+    "userDocumentType": "CLRUT",
+    "enabled": true,
+    "allowedIps": ["192.0.2.10"],
+    "allowedFrameOrigins": ["https://www.example.com"]
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/partners/store"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+
+    ```json {{ title: '201' }}
+    {
+      "status": {
+        "status": "OK",
+        "reason": "00",
+        "message": "La petición se ha procesado correctamente",
+        "date": "2026-01-15T10:30:00-05:00"
+      },
+      "data": {
+        "id": 7,
+        "merchantId": null,
+        "name": "Banco de prueba",
+        "code": "k3J9xQ2mT7vB4nR8cL1Z",
+        "secretKey": "h6Fd2Wq9Lp3Xz7A",
+        "type": "issuer",
+        "userDocumentType": "CLRUT",
+        "allowedIps": ["192.0.2.10"],
+        "allowedFrameOrigins": ["https://www.example.com"],
+        "enabled": true,
+        "createdAt": "2026-01-15T10:30:00.000000Z",
+        "updatedAt": "2026-01-15T10:30:00.000000Z"
+      }
+    }
+    ```
+
+    ```json {{ title: '422' }}
+    {
+      "status": {
+        "status": "FAILED",
+        "reason": "BR",
+        "message": "El campo type seleccionado no es válido.",
+        "date": "2026-01-15T10:30:00-05:00",
+        "errors": {
+          "type": ["El campo type seleccionado no es válido."]
+        }
+      }
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Consultar un socio {{ id: 'show-partner', tag: 'GET', label: '/api/partners/{partnerId}' }}
+
+<Row>
+  <Col>
+    Devuelve la configuración de un socio. La respuesta incluye su `secretKey` en claro: no la registres en logs ni la guardes sin protección.
+
+    <ApiReader
+      path="/api/partners/{partnerId}"
+      type="params"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/api/partners/{partnerId}"
+      method="get"
+      type="header"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="GET" label="/api/partners/{partnerId}">
+```bash {{ title: 'Consultar el socio' }}
+curl --request GET \
+  --url '{URL_BASE}/api/partners/7' \
+  --header 'Accept: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/partners/{partnerId}"
+      method="get"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+
+    ```json {{ title: '200' }}
+    {
+      "status": {
+        "status": "OK",
+        "reason": "00",
+        "message": "La petición se ha procesado correctamente",
+        "date": "2026-01-15T10:30:00-05:00"
+      },
+      "data": {
+        "id": 7,
+        "merchantId": null,
+        "name": "Banco de prueba",
+        "code": "PARTNER-0001",
+        "secretKey": "NewSecret123456",
+        "type": "issuer",
+        "userDocumentType": "CLRUT",
+        "allowedIps": ["192.0.2.10"],
+        "allowedFrameOrigins": ["https://www.example.com"],
+        "enabled": true,
+        "createdAt": "2026-01-15T10:30:00.000000Z",
+        "updatedAt": "2026-01-15T10:30:00.000000Z"
+      }
+    }
+    ```
+
+    ```json {{ title: '404' }}
+    {
+      "status": {
+        "status": "FAILED",
+        "reason": "X3",
+        "message": "El recurso solicitado no existe",
+        "date": "2026-01-15T10:30:00-05:00"
+      }
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Actualizar un socio emisor {{ id: 'update-partner', tag: 'POST', label: '/api/partners/{partnerId}' }}
+
+<Row>
+  <Col>
+    Reemplaza la configuración de un socio de tipo `issuer`: envía siempre todos los campos obligatorios, no solo los que cambian. Si el socio es de tipo comercio, responde `422`: esos socios se actualizan al [sincronizar el comercio](#sync-merchant).
+
+    <Note type="warning">
+      Si cambias la `secretKey` o desactivas el socio con `enabled: false`, PAR revoca sus sesiones abiertas. Para rotar la llave, envía la nueva en `secretKey` y entrégasela al emisor.
+    </Note>
+
+    <ApiReader
+      path="/api/partners/{partnerId}"
+      type="params"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/api/partners/{partnerId}"
+      method="post"
+      type="header"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/api/partners/{partnerId}"
+      method="post"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="POST" label="/api/partners/{partnerId}">
+```bash {{ title: 'Rotar la llave secreta' }}
+curl --request POST \
+  --url '{URL_BASE}/api/partners/7' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --data '{
+    "name": "Banco de prueba",
+    "type": "issuer",
+    "userDocumentType": "CLRUT",
+    "enabled": true,
+    "allowedIps": ["192.0.2.10"],
+    "allowedFrameOrigins": ["https://www.example.com"],
+    "secretKey": "NewSecret123456"
+  }'
+```
+
+```bash {{ title: 'Desactivar el socio' }}
+curl --request POST \
+  --url '{URL_BASE}/api/partners/7' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}' \
+  --data '{
+    "name": "Banco de prueba",
+    "type": "issuer",
+    "userDocumentType": "CLRUT",
+    "enabled": false,
+    "allowedIps": ["192.0.2.10"],
+    "allowedFrameOrigins": ["https://www.example.com"]
+  }'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/partners/{partnerId}"
+      method="post"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+
+    ```json {{ title: '200' }}
+    {
+      "status": {
+        "status": "OK",
+        "reason": "00",
+        "message": "La petición se ha procesado correctamente",
+        "date": "2026-01-15T10:30:00-05:00"
+      },
+      "data": {
+        "id": 7,
+        "merchantId": null,
+        "name": "Banco de prueba",
+        "code": "PARTNER-0001",
+        "secretKey": "NewSecret123456",
+        "type": "issuer",
+        "userDocumentType": "CLRUT",
+        "allowedIps": ["192.0.2.10"],
+        "allowedFrameOrigins": ["https://www.example.com"],
+        "enabled": true,
+        "createdAt": "2026-01-15T10:30:00.000000Z",
+        "updatedAt": "2026-01-16T09:00:00.000000Z"
+      }
+    }
+    ```
+
+    ```json {{ title: '422' }}
+    {
+      "status": {
+        "status": "FAILED",
+        "reason": "BR",
+        "message": "Aquí solo se pueden actualizar partners de tipo issuer; los partners merchant se gestionan desde la configuración del comercio",
+        "date": "2026-01-15T10:30:00-05:00"
+      }
+    }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+## Eliminar un socio {{ id: 'delete-partner', tag: 'DELETE', label: '/api/partners/{partnerId}' }}
+
+<Row>
+  <Col>
+    Elimina el socio y revoca todas sus sesiones abiertas. Desde ese momento sus credenciales dejan de funcionar. La respuesta no trae cuerpo.
+
+    <ApiReader
+      path="/api/partners/{partnerId}"
+      type="params"
+      api={props.refs}
+    />
+
+    <ApiReader
+      path="/api/partners/{partnerId}"
+      method="delete"
+      type="header"
+      api={props.refs}
+    />
+
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Solicitud" tag="DELETE" label="/api/partners/{partnerId}">
+```bash {{ title: 'Eliminar el socio' }}
+curl --request DELETE \
+  --url '{URL_BASE}/api/partners/7' \
+  --header 'Accept: application/json' \
+  --header 'Authorization: Bearer {TU_TOKEN}'
+```
+    </CodeGroup>
+  </Col>
+</Row>
+
+<Row>
+  <Col>
+    <ApiReader
+      path="/api/partners/{partnerId}"
+      method="delete"
+      type="response"
+      api={props.refs}
+    />
+  </Col>
+  <Col sticky>
+    <CodeGroup title="Respuesta">
+
+    ```text {{ title: '204' }}
+    HTTP/1.1 204 No Content
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>

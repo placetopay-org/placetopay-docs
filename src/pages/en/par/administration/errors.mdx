@@ -1,0 +1,52 @@
+export const description =
+  'Learn the format of the PAR administration API responses and the HTTP codes it answers with.'
+
+# Administration API errors
+
+All the administration endpoints respond in JSON with the same format: a `status` object that says whether the request was processed and, when there is data, a `data` object.
+
+## Format {{ id: 'format' }}
+
+```json {{ title: 'Error response' }}
+{
+  "status": {
+    "status": "FAILED",
+    "reason": "BR",
+    "message": "The merchant.name field is required.",
+    "date": "2026-01-15T10:30:00-05:00",
+    "errors": {
+      "merchant.name": ["The merchant.name field is required."]
+    }
+  }
+}
+```
+
+<Properties>
+  <Property name="status.status" type="string">
+    `OK` if the request was processed and `FAILED` if it was not.
+  </Property>
+  <Property name="status.reason" type="string">
+    Reason code. It is the value you should use to decide what to do.
+  </Property>
+  <Property name="status.message" type="string">
+    Informational text that accompanies the code. It may change, so do not use it to make decisions.
+  </Property>
+  <Property name="status.errors" type="object">
+    Only present on validation errors. It groups the messages by field: the key is the path of the field, such as `merchant.name` or `allowedIps.0`.
+  </Property>
+</Properties>
+
+## Catalog {{ id: 'codes' }}
+
+| HTTP | `reason` | Meaning | Cause |
+|---|---|---|---|
+| `200`, `201` | `00` | Request processed | The operation was carried out |
+| `204` | — | No content | The partner was deleted; the response has no body |
+| `401` | `86` | The request could not be authenticated | The token is missing, does not exist or is not valid |
+| `403` | `86` | The token does not have access to this operation | The token is valid, but does not enable this operation |
+| `404` | `X3` | The requested resource does not exist | No partner exists with that identifier |
+| `422` | `BR` | The request is not valid | Some data did not pass validation, or the partner is a merchant partner and cannot be updated here |
+
+<Note>
+  A path identifier that is not numeric responds `404`, just like one that does not exist.
+</Note>
