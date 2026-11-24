@@ -3244,6 +3244,7 @@ export const TAB_NAVIGATION = {
             title: 'API',
             links: [
               { title: 'Comercios', href: '/onboarding/api/reference/merchants' },
+              { title: 'Sitios', href: '/onboarding/api/reference/sites' },
               { title: 'Procesos', href: '/onboarding/api/reference/processes' },
               { title: 'Consumidor', href: '/onboarding/api/reference/user' },
             ],
@@ -3313,6 +3314,7 @@ export const TAB_NAVIGATION = {
             title: 'API',
             links: [
               { title: 'Merchants', href: '/en/onboarding/api/reference/merchants' },
+              { title: 'Sites', href: '/en/onboarding/api/reference/sites' },
               { title: 'Processes', href: '/en/onboarding/api/reference/processes' },
               { title: 'Consumer', href: '/en/onboarding/api/reference/user' },
             ],
