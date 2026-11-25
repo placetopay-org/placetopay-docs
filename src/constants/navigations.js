@@ -1648,6 +1648,10 @@ export const TAB_NAVIGATION = {
                 title: 'Administración de comercios',
                 href: '/token-requestor/api/admin/merchant',
               },
+              {
+                title: 'Administración de onboarding',
+                href: '/token-requestor/api/admin/onboarding',
+              },
             ],
           },
         ],
@@ -1741,6 +1745,10 @@ export const TAB_NAVIGATION = {
               {
                 title: 'Merchant management',
                 href: '/en/token-requestor/api/admin/merchant',
+              },
+              {
+                title: 'Onboarding management',
+                href: '/en/token-requestor/api/admin/onboarding',
               },
             ],
           },
