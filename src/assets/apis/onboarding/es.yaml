@@ -310,6 +310,87 @@ paths:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
 
+  /api/sites/{siteId}:
+    parameters:
+      - name: siteId
+        in: path
+        required: true
+        description: |
+          Identificador del sitio, tal como lo publican `result.sites[].id` y `sites[].id`. No es el
+          `login`: la consulta no busca por `login`. Debe ser numérico: uno que no lo sea, o uno más
+          grande de lo que el registro puede guardar, responde `404` sin llegar al endpoint.
+        schema:
+          type: integer
+          minimum: 1
+          example: 214
+    get:
+      summary: Consultar un sitio
+      operationId: show-site
+      description: |
+        Devuelve un sitio conociendo solo su identificador, sin necesidad de conocer su comercio. El
+        sitio sale **igual** que el elemento de `sites` que le corresponde en la consulta de su
+        comercio: los mismos campos, en el mismo orden y con los mismos valores, incluidos sus medios
+        de pago, sus integraciones y sus promociones. `customerId` lleva al comercio.
+
+        Es una consulta **síncrona y de solo lectura**: no crea proceso, no envía notificación y no
+        modifica nada. No admite parámetros de consulta.
+
+        La respuesta incluye **credenciales en claro**: el `tranKey` y el `md5Hash` del sitio, y los
+        `settings` de sus medios de pago e integraciones.
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Token de acceso con el permiso `onboarding:read`.
+          schema:
+            type: string
+            example: Bearer 1|tu-token-de-acceso
+        - name: Accept
+          in: header
+          required: false
+          description: Recomendado.
+          schema:
+            type: string
+            example: application/json
+      responses:
+        '200':
+          description: |
+            El sitio existe. Los campos viajan en la raíz, junto a `status`. Un sitio deshabilitado, o
+            uno de un comercio deshabilitado, se devuelve igual, con `active: false`.
+          headers:
+            Cache-Control:
+              description: |
+                `no-cache, private` en todas las respuestas: la respuesta contiene credenciales y
+                ninguna caché compartida debe guardarla.
+              schema:
+                type: string
+                example: no-cache, private
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteShow'
+        '401':
+          description: Token ausente, inválido o revocado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: El token no incluye el permiso `onboarding:read`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: |
+            No existe un sitio con ese identificador, el comercio al que pertenece no existe, o el
+            identificador no es numérico. La consulta no se limita a los sitios que creó tu aplicación,
+            así que un `404` significa siempre que el sitio no existe.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/processes/{processId}:
     parameters:
       - name: processId
@@ -2932,6 +3013,121 @@ components:
           description: Integraciones del sitio, por su `type`.
           items:
             $ref: '#/components/schemas/SiteIntegrationRead'
+
+    SiteShow:
+      title: SiteShow
+      type: object
+      description: |
+        Sitio completo, tal como está registrado. Sus campos viajan en la raíz, junto a `status`, y
+        son los mismos de `SiteRead`: el elemento de `sites` que le corresponde en la consulta de su
+        comercio.
+
+        Es una lectura, no un cuerpo para reenviar: un sitio se sigue actualizando a través de su
+        comercio, con `PATCH /api/merchants/{merchantId}`.
+      required:
+        - status
+        - id
+        - login
+        - tranKey
+        - md5Hash
+        - customerId
+        - name
+        - displayName
+        - type
+        - category
+        - email
+        - customBatch
+        - language
+        - currency
+        - onTest
+        - productionDate
+        - active
+        - createdAt
+        - expiration
+        - integration
+        - control
+        - threeDS
+        - historic
+        - creditBureau
+        - riskEngine
+        - securityFilters
+        - operation
+        - subscriptionValidation
+        - branding
+        - promotions
+        - dispersion
+        - metadata
+        - paymentMethods
+        - integrations
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
+        id:
+          $ref: '#/components/schemas/SiteRead/properties/id'
+        login:
+          $ref: '#/components/schemas/SiteRead/properties/login'
+        tranKey:
+          $ref: '#/components/schemas/SiteRead/properties/tranKey'
+        md5Hash:
+          $ref: '#/components/schemas/SiteRead/properties/md5Hash'
+        customerId:
+          $ref: '#/components/schemas/SiteRead/properties/customerId'
+        name:
+          $ref: '#/components/schemas/SiteRead/properties/name'
+        displayName:
+          $ref: '#/components/schemas/SiteRead/properties/displayName'
+        type:
+          $ref: '#/components/schemas/SiteRead/properties/type'
+        category:
+          $ref: '#/components/schemas/SiteRead/properties/category'
+        email:
+          $ref: '#/components/schemas/SiteRead/properties/email'
+        customBatch:
+          $ref: '#/components/schemas/SiteRead/properties/customBatch'
+        language:
+          $ref: '#/components/schemas/SiteRead/properties/language'
+        currency:
+          $ref: '#/components/schemas/SiteRead/properties/currency'
+        onTest:
+          $ref: '#/components/schemas/SiteRead/properties/onTest'
+        productionDate:
+          $ref: '#/components/schemas/SiteRead/properties/productionDate'
+        active:
+          $ref: '#/components/schemas/SiteRead/properties/active'
+        createdAt:
+          $ref: '#/components/schemas/SiteRead/properties/createdAt'
+        expiration:
+          $ref: '#/components/schemas/SiteRead/properties/expiration'
+        integration:
+          $ref: '#/components/schemas/SiteRead/properties/integration'
+        control:
+          $ref: '#/components/schemas/SiteRead/properties/control'
+        threeDS:
+          $ref: '#/components/schemas/SiteRead/properties/threeDS'
+        historic:
+          $ref: '#/components/schemas/SiteRead/properties/historic'
+        creditBureau:
+          $ref: '#/components/schemas/SiteRead/properties/creditBureau'
+        riskEngine:
+          $ref: '#/components/schemas/SiteRead/properties/riskEngine'
+        securityFilters:
+          $ref: '#/components/schemas/SiteRead/properties/securityFilters'
+        operation:
+          $ref: '#/components/schemas/SiteRead/properties/operation'
+        subscriptionValidation:
+          $ref: '#/components/schemas/SiteRead/properties/subscriptionValidation'
+        branding:
+          $ref: '#/components/schemas/SiteRead/properties/branding'
+        promotions:
+          $ref: '#/components/schemas/SiteRead/properties/promotions'
+        dispersion:
+          $ref: '#/components/schemas/SiteRead/properties/dispersion'
+        metadata:
+          $ref: '#/components/schemas/SiteRead/properties/metadata'
+        paymentMethods:
+          $ref: '#/components/schemas/SiteRead/properties/paymentMethods'
+        integrations:
+          $ref: '#/components/schemas/SiteRead/properties/integrations'
 
     SitePaymentMethodRead:
       title: SitePaymentMethodRead
