@@ -32,7 +32,7 @@ paths:
           required: true
           description: |
             Token de acceso con el permiso `onboarding:create`. Si algún sitio trae
-            `threeDS.seglan`, el token debe incluir además `onboarding:enroll`.
+            `threeDS.seglan` o `threeDS.clAuth`, el token debe incluir además `onboarding:enroll`.
           schema:
             type: string
             example: Bearer 1|tu-token-de-acceso
@@ -111,7 +111,7 @@ paths:
         '403':
           description: |
             El token no incluye el permiso requerido: `onboarding:create` o, si algún sitio trae
-            `threeDS.seglan`, `onboarding:enroll`.
+            `threeDS.seglan` o `threeDS.clAuth`, `onboarding:enroll`.
           content:
             application/json:
               schema:
@@ -579,7 +579,8 @@ components:
             - `RESOURCE_NOT_FOUND` — el comercio a actualizar desapareció
             - `VALIDATION_FAILED` — el contenido fue rechazado al escribirlo
             - `DEPENDENCY_UNAVAILABLE` — un servicio externo que el proceso necesita rechazó la
-              operación o no estaba disponible
+              operación o no estaba disponible, por ejemplo al registrar un sitio en Seglan o en
+              cl-auth
             - `INTERRUPTED` — el proceso se detuvo antes de completarse
           oneOf:
             - type: integer
@@ -1037,6 +1038,7 @@ components:
             - whatsapp
             - fiduoccidente
             - google_pay
+            - chilean_auth
           example: kount
         settings:
           type: object
@@ -1065,6 +1067,7 @@ components:
             - $ref: '#/components/schemas/SettingsWhatsapp'
             - $ref: '#/components/schemas/SettingsFiduoccidente'
             - $ref: '#/components/schemas/SettingsGooglePay'
+            - $ref: '#/components/schemas/SettingsChileanAuth'
 
     SettingsPaygate:
       title: paygate
@@ -1400,6 +1403,18 @@ components:
           items:
             type: string
             enum: [PAN_ONLY, CRYPTOGRAM_3DS]
+
+    SettingsChileanAuth:
+      title: chilean_auth
+      type: object
+      required: [api_key, enabled]
+      properties:
+        api_key:
+          type: string
+          description: Token 3-D Secure emitido por cl-auth para el sitio.
+          example: exampleChileanAuthApiKey
+        enabled:
+          type: boolean
 
     PaymentMethod:
       title: PaymentMethod
@@ -1995,6 +2010,108 @@ components:
           description: Monto a partir del cual se aplica la autenticación.
         seglan:
           $ref: '#/components/schemas/SiteThreeDSSeglan'
+        clAuth:
+          $ref: '#/components/schemas/SiteThreeDSClAuth'
+
+    SiteThreeDSClAuth:
+      title: clAuth
+      type: object
+      description: |
+        Registra el sitio en cl-auth como proveedor 3-D Secure y deja en el sitio la integración
+        `chilean_auth` con el token emitido. Solo al crear el comercio, y exige el permiso
+        `onboarding:enroll`. Un sitio que trae `clAuth` no puede declarar además la integración
+        `chilean_auth` en `integrations`.
+      required: [code, name, country, mcc, url]
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: |
+            Código del sitio en cl-auth. Único entre los sitios de la petición, sin distinguir
+            mayúsculas.
+          example: acme-tienda-principal
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Nombre del sitio en cl-auth.
+          example: Acme
+        country:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: País del sitio en código ISO 3166-1 alfa-3, del catálogo de países.
+          example: CHL
+        mcc:
+          type: string
+          minLength: 4
+          maxLength: 4
+          description: Código de categoría de comercio (MCC) del sitio, del catálogo.
+          example: '5411'
+        url:
+          type: string
+          format: uri
+          maxLength: 2048
+          description: URL del sitio.
+          example: https://acme.example.com
+        logoUrl:
+          type: [string, 'null']
+          format: uri
+          maxLength: 2048
+          description: URL del logo del sitio.
+          example: https://acme.example.com/logo.png
+
+    ThreeDSEnrollmentSeglan:
+      title: seglan
+      type: object
+      description: Registro del sitio en Seglan.
+      required: [provider, merchantId, tokenId, expiresAt]
+      properties:
+        provider:
+          type: string
+          enum: [seglan]
+          description: Proveedor 3-D Secure del sitio.
+          example: seglan
+        merchantId:
+          type: integer
+          description: Identificador del comercio en Seglan.
+          example: 7310
+        tokenId:
+          type: string
+          description: Identificador de la credencial 3-D Secure emitida para el sitio.
+          example: exampleTokenId
+        expiresAt:
+          type: string
+          format: date-time
+          description: Vencimiento de la credencial al momento del registro.
+          example: '2029-08-17T15:14:09+00:00'
+
+    ThreeDSEnrollmentClAuth:
+      title: clAuth
+      type: object
+      description: Registro del sitio en cl-auth.
+      required: [provider, merchantId, tokenId, expiresAt]
+      properties:
+        provider:
+          type: string
+          enum: [cl-auth]
+          description: Proveedor 3-D Secure del sitio.
+          example: cl-auth
+        merchantId:
+          type: integer
+          description: Identificador del comercio en cl-auth.
+          example: 7311
+        tokenId:
+          type: string
+          description: Identificador de la credencial 3-D Secure emitida para el sitio.
+          example: exampleTokenId
+        expiresAt:
+          type: string
+          format: date-time
+          description: Vencimiento de la credencial al momento del registro.
+          example: '2029-08-17T15:14:09+00:00'
 
     SiteThreeDSSeglan:
       title: seglan
@@ -3384,27 +3501,14 @@ components:
                       enum: [created, updated, unchanged]
               threeDS:
                 type: object
-                description: Presente solo en los sitios registrados en Seglan con `threeDS.seglan`.
-                required: [provider, merchantId, tokenId, expiresAt]
+                description: |
+                  Presente solo en los sitios registrados en algún proveedor 3-D Secure, con una clave
+                  por proveedor. Cada clave aparece solo si el sitio se registró en ese proveedor.
                 properties:
-                  provider:
-                    type: string
-                    enum: [seglan]
-                    description: Proveedor 3-D Secure del sitio.
-                    example: seglan
-                  merchantId:
-                    type: integer
-                    description: Identificador del comercio en Seglan.
-                    example: 7310
-                  tokenId:
-                    type: string
-                    description: Identificador de la credencial 3-D Secure emitida para el sitio.
-                    example: exampleTokenId
-                  expiresAt:
-                    type: string
-                    format: date-time
-                    description: Vencimiento de la credencial al momento del registro.
-                    example: '2029-08-17T15:14:09+00:00'
+                  seglan:
+                    $ref: '#/components/schemas/ThreeDSEnrollmentSeglan'
+                  clAuth:
+                    $ref: '#/components/schemas/ThreeDSEnrollmentClAuth'
               paymentMethods:
                 type: array
                 description: |
